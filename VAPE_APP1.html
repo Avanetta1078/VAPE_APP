@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA&amp;PE — Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116; --panel:#181d25; --panel-2:#1d232c; --border:#2a313b;
+    --ink:#eeece4; --ink-dim:#8a919d; --ink-faint:#565d68;
+    --navy:#3a54b8; --navy-glow:#5b76e0; --rust:#c8492c; --rust-glow:#e8663f;
+    --bronze:#c98a3e; --bronze-glow:#e6a95c; --steel:#6a93b8; --steel-glow:#8fb4d6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(1100px 560px at 12% -8%, #1a2038 0%, transparent 58%),
+      radial-gradient(900px 520px at 105% 8%, #1a1712 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:32px 20px;
+    position:relative; overflow:hidden;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  body.dash-active{
+    display:block !important; overflow:visible !important; padding:0 !important;
+  }
+
+  /* Ambient background trace (dyno-card echo, very subtle) */
+  .bg-trace{position:absolute; inset:0; pointer-events:none; opacity:.16;}
+  .bg-trace svg{width:100%; height:100%;}
+
+  .stage{
+    width:100%; max-width:920px; position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center;
+  }
+
+  .brand{display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:44px;}
+  .brand-mark{
+    width:56px;height:56px;border-radius:12px;
+    background:linear-gradient(155deg,var(--navy),var(--rust));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono';font-weight:700;font-size:22px;color:#fff;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08) inset, 0 8px 26px rgba(58,84,184,.35);
+  }
+  .brand h1{
+    margin:0; font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:28px;
+    letter-spacing:.16em; text-transform:uppercase; text-align:center;
+  }
+  .brand p{
+    margin:2px 0 0; font-size:12.5px; color:var(--ink-dim); letter-spacing:.05em; text-align:center;
+  }
+
+  /* --- Role selection --- */
+  #roleStep{width:100%;}
+  .role-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; width:100%;}
+  .role-card{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--border); border-radius:16px; padding:32px 26px;
+    cursor:pointer; text-align:left; transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    position:relative; overflow:hidden;
+  }
+  .role-card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent);
+  }
+  .role-card:hover{transform:translateY(-4px); border-color:var(--accent); box-shadow:0 16px 40px rgba(0,0,0,.4);}
+  .role-card.operador{--accent:var(--bronze-glow);}
+  .role-card.cliente{--accent:var(--steel-glow);}
+  .role-card .icon{
+    width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.04); border:1px solid var(--border); margin-bottom:20px; color:var(--accent);
+  }
+  .role-card h2{
+    margin:0 0 8px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:20px;
+    letter-spacing:.02em; text-transform:uppercase;
+  }
+  .role-card p{margin:0; font-size:13px; color:var(--ink-dim); line-height:1.55;}
+  .role-card .go{
+    margin-top:20px; font-family:'IBM Plex Mono'; font-size:11px; color:var(--accent);
+    display:flex; align-items:center; gap:6px; letter-spacing:.05em;
+  }
+
+  /* --- Login step --- */
+  #loginStep{display:none; width:100%; max-width:400px;}
+  .back-link{
+    display:flex; align-items:center; gap:6px; color:var(--ink-faint); font-size:12px;
+    cursor:pointer; margin-bottom:22px; width:fit-content; letter-spacing:.03em;
+  }
+  .back-link:hover{color:var(--ink-dim);}
+  .login-card{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--border); border-radius:16px; padding:34px 32px;
+  }
+  .login-tag{
+    display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono'; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; border-radius:999px;
+    margin-bottom:18px; border:1px solid var(--tagc); color:var(--tagc); background:rgba(255,255,255,.03);
+  }
+  .login-tag .d{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .login-card h2{
+    margin:0 0 24px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:20px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-faint); margin-bottom:7px;
+  }
+  .field input{
+    width:100%; background:#0e1116; border:1px solid var(--border); border-radius:8px;
+    padding:11px 13px; color:var(--ink); font-family:'IBM Plex Sans'; font-size:13.5px;
+  }
+  .field input:focus{outline:none; border-color:var(--focusc);}
+  .btn-primary{
+    width:100%; padding:12px; border-radius:8px; border:none; cursor:pointer;
+    font-family:'IBM Plex Sans Condensed'; font-weight:600; letter-spacing:.03em;
+    text-transform:uppercase; font-size:13px; color:#fff; margin-top:6px;
+    background:var(--btnc); transition:filter .15s;
+  }
+  .btn-primary:hover{filter:brightness(1.1);}
+  .divider{
+    display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--ink-faint); font-size:11px;
+  }
+  .divider::before, .divider::after{content:""; flex:1; height:1px; background:var(--border);}
+  .btn-google{
+    width:100%; padding:11px; border-radius:8px; border:1px solid var(--border); cursor:pointer;
+    background:var(--panel-2); color:var(--ink); font-family:'IBM Plex Sans'; font-size:13px;
+    display:flex; align-items:center; justify-content:center; gap:10px; transition:background .15s;
+  }
+  .btn-google:hover{background:#242c37;}
+  .foot-note{text-align:center; font-size:11px; color:var(--ink-faint); margin-top:18px;}
+  .foot-note a{color:var(--ink-dim);}
+
+  @media (max-width:640px){
+    .role-grid{grid-template-columns:1fr;}
+  }
+
+  :root{
+    --bg:#11141a; --panel:#181d25; --panel-2:#1d232c; --border:#2a313b;
+    --ink:#eeece4; --ink-dim:#8a919d; --ink-faint:#565d68;
+    --navy:#3a54b8; --navy-glow:#5b76e0; --rust:#c8492c; --rust-glow:#e8663f;
+    --bronze:#c98a3e; --bronze-glow:#e6a95c; --steel:#6a93b8; --steel-glow:#8fb4d6;
+    --good:#5fa876; --radius:10px;
+  }
+  body.light-mode{
+    --bg:#f4f5f7; --panel:#ffffff; --panel-2:#eef0f3; --border:#d7dbe1;
+    --ink:#1c2128; --ink-dim:#5b6470; --ink-faint:#8b93a0;
+    --navy:#3a54b8; --navy-glow:#2743a0; --rust:#c8492c; --rust-glow:#b43c22;
+    --bronze:#b5761f; --bronze-glow:#9c6318; --steel:#3f6f96; --steel-glow:#2f5a7d;
+    --good:#3f8a5c;
+  }
+  body.light-mode{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #e4e8f5 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #f2ece2 0%, transparent 55%),
+      var(--bg);
+  }
+  body.light-mode .scope-real{
+    background:linear-gradient(#ffffff,#ffffff) padding-box, repeating-linear-gradient(135deg,#d7dbe1 0 2px, transparent 2px 8px) border-box;
+    border-color:#d7dbe1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #1a2038 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #1a1712 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif; min-height:100vh;
+    padding:0 32px 60px;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .cond{font-family:'IBM Plex Sans Condensed', sans-serif;}
+
+  /* ---------- Header (single row) ---------- */
+  .topbar-wrap{position:sticky; top:0; z-index:20; background:var(--bg,#11141a);}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:22px;
+    padding:14px 0; border-bottom:1px solid var(--border); flex-wrap:nowrap;
+  }
+  .status-group{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .brand-mini{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .brand-mini svg{display:block; flex-shrink:0;}
+  .topbar-app-title-mini{white-space:nowrap;}
+  .topbar-app-title-mini .t1{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-dim);}
+  .pozo-group{
+    display:flex; align-items:center; gap:32px; flex-wrap:nowrap; min-width:0;
+  }
+  .well-search{
+    display:flex; align-items:center; gap:6px; width:100px; flex-shrink:0;
+    background:var(--panel); border:1px solid var(--border); border-radius:9px;
+    padding:6px 8px;
+  }
+  .well-search input{
+    flex:1; width:100%; min-width:0; background:none; border:none; outline:none; color:var(--ink);
+    font-family:'IBM Plex Sans'; font-size:12px;
+  }
+  .well-search input::placeholder{color:var(--ink-faint);}
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:7px;
+    background:linear-gradient(155deg,var(--navy),var(--rust));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono';font-weight:700;font-size:15px;color:#fff;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08) inset, 0 4px 14px rgba(58,84,184,.35);
+  }
+  .brand-text .t1{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);}
+  .brand-text .t2{font-size:11px;color:var(--ink-dim);letter-spacing:.04em;margin-top:1px;}
+  .well-select{display:flex;flex-direction:column;align-items:flex-start;gap:1px; flex-shrink:0;}
+  .well-select .lbl{font-size:9px;letter-spacing:.13em;color:var(--ink-faint);text-transform:uppercase;}
+  .well-select{width:230px;}
+  .well-select .name{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:230px; display:block;}
+  .field-tag{font-size:10px;color:var(--steel-glow);font-family:'IBM Plex Mono'; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:230px; flex-shrink:0;}
+  .date-stepper{
+    display:flex;align-items:center;gap:8px; background:var(--panel); flex-shrink:0;
+    border:1px solid var(--border);border-radius:999px; padding:4px 6px 4px 12px;
+  }
+  .date-stepper button{
+    width:24px;height:24px;border-radius:50%;border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink); cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .date-stepper button:hover{background:#242c37;border-color:var(--navy-glow);}
+  .date-stepper .dt{text-align:center;min-width:104px;}
+  .date-stepper .dt .d{font-family:'IBM Plex Mono';font-size:11.5px;font-weight:600; white-space:nowrap;}
+  .date-stepper .dt .idx{font-size:8px;color:var(--ink-faint);letter-spacing:.07em;margin-top:1px;}
+  .theme-toggle{
+    width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+    background:var(--panel); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .theme-toggle:hover{background:var(--panel-2);}
+  .user-scope-tag{
+    font-size:10.5px; font-family:'IBM Plex Mono'; color:var(--ink-dim);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:999px;
+    padding:5px 11px; white-space:nowrap; flex-shrink:0;
+  }
+
+  @media (max-width:1150px){
+    .field-tag{display:none;}
+    .date-stepper .dt{min-width:88px;}
+  }
+
+  /* ---------- Nav menu ---------- */
+  .menu{
+    display:flex; gap:4px; padding:12px 0; border-bottom:1px solid var(--border);
+    margin-bottom:22px; overflow-x:auto;
+    position:sticky; top:var(--topbar-h, 140px); z-index:19; background:var(--bg,#11141a);
+  }
+  .menu button{
+    background:none; border:1px solid transparent; color:var(--ink-dim);
+    font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:12.5px;
+    letter-spacing:.05em; text-transform:uppercase; padding:9px 16px;
+    border-radius:8px; cursor:pointer; white-space:nowrap;
+    display:flex; align-items:center; gap:7px;
+    transition:background .15s, color .15s;
+  }
+  .menu button .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;}
+  .menu button:hover{background:var(--panel); color:var(--ink);}
+  .menu button.active{background:var(--panel-2); color:var(--ink); border-color:var(--border);}
+  .menu button.active .dot{opacity:1;}
+  .menu button.disabled{opacity:.4; cursor:default;}
+  .menu button.disabled:hover{background:none; color:var(--ink-dim);}
+
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  /* ---------- Instrument strip ---------- */
+  .instrument-strip{display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:26px;}
+  .tile{
+    position:relative; background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:13px 14px 12px; overflow:hidden; transition:transform .15s ease;
+  }
+  .tile:hover{transform:translateY(-2px);}
+  .tile::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent, var(--navy));}
+  .tile .lbl{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px; display:block;}
+  .tile .val{
+    font-family:'IBM Plex Mono';font-weight:600;font-size:23px;line-height:1;
+    color:var(--accent-glow, var(--navy-glow)); display:flex; align-items:baseline; gap:4px;
+  }
+  .tile .val .unit{font-size:11px;font-weight:400;color:var(--ink-dim);}
+  .tile.dyn{--accent:var(--navy); --accent-glow:var(--navy-glow);}
+  .tile.acu{--accent:var(--steel); --accent-glow:var(--steel-glow);}
+  .tile.sig{--accent:var(--bronze); --accent-glow:var(--bronze-glow);}
+
+  /* ---------- Panels / charts ---------- */
+  .main-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:18px; align-items:stretch;}
+  .full{grid-template-columns:1fr;}
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px 20px 18px; display:flex; flex-direction:column;}
+  .panel-head{display:flex; justify-content:flex-start; align-items:baseline; gap:16px; margin-bottom:4px;}
+  .panel-head .stamp{margin-left:auto;}
+  .prom-tiles-inline{display:flex; align-items:baseline; gap:8px; flex-shrink:0;}
+  .prom-tiles-inline .chip2{
+    display:flex; align-items:baseline; gap:5px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:7px;
+    padding:3px 9px;
+  }
+  .prom-tiles-inline .chip2 .lbl{font-size:8.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint);}
+  .prom-tiles-inline .chip2 .val{font-family:'IBM Plex Mono'; font-size:12px; font-weight:700; color:var(--ink);}
+  .prom-tiles-inline .chip2 .val .unit{font-size:9px; font-weight:400; color:var(--ink-dim); margin-left:1px;}
+
+  .hist-nav{display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:3px 8px; margin-left:4px;}
+  .hist-nav button{background:none; border:none; color:var(--steel-glow); font-size:22px; font-weight:700; cursor:pointer; line-height:1; padding:0 5px;}
+  .hist-nav button:hover{color:var(--ink);}
+  .hist-nav span{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-dim); white-space:nowrap;}
+
+  .days-since-chip{
+    font-family:'IBM Plex Mono'; font-size:12.5px; font-weight:700; white-space:nowrap;
+    border-radius:7px; padding:5px 9px; margin-left:4px;
+  }
+  .days-since-chip.ds-verde{background:rgba(46,160,90,.18); color:#5fd68a;}
+  .days-since-chip.ds-amarillo{background:rgba(212,175,55,.18); color:#e6c34d;}
+  .days-since-chip.ds-naranja{background:rgba(212,120,45,.18); color:#f0975a;}
+  .days-since-chip.ds-rojo{background:rgba(200,50,50,.2); color:#ff7373;}
+
+  .inicio-pager{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:12px; font-size:12px; color:var(--ink-dim);}
+  .inicio-pager button{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:7px; color:var(--ink);
+    padding:6px 12px; font-size:11.5px; cursor:pointer;
+  }
+  .inicio-pager button:hover:not(:disabled){background:#242c37;}
+  .inicio-pager button:disabled{opacity:.4; cursor:default;}
+  .panel-head h2{font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:16px; letter-spacing:.03em; margin:0; text-transform:uppercase; display:flex; align-items:center; gap:8px;}
+  .dot2{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .dot2.navy{background:var(--navy-glow);box-shadow:0 0 8px var(--navy-glow);}
+  .dot2.steel{background:var(--steel-glow);box-shadow:0 0 8px var(--steel-glow);}
+  .panel-head .stamp{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-faint);}
+  .scope-native{
+    padding:16px; margin:12px 0 14px; border-radius:8px;
+    background:#0e1116; border:1px solid #262c35; max-width:420px;
+  }
+  .scope-native svg{display:block; width:100%; height:auto;}
+  .scope-native .grid-l{stroke:#1c222b; stroke-width:1;}
+  .panel-foot{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .mini{border-top:1px solid var(--border); padding-top:8px;}
+  .mini .lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:3px;}
+  .mini .val{font-family:'IBM Plex Mono';font-size:14px;font-weight:600;color:var(--ink);}
+
+  /* ---------- Strategic small grids ---------- */
+  .grid-strip{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;}
+  .mini-grid{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .mini-grid h4{
+    margin:0 0 10px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:11.5px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--steel-glow);
+    display:flex; align-items:center; gap:7px;
+  }
+  .mini-grid.acc-bronze h4{color:var(--bronze-glow);}
+  table.gtab{width:100%; border-collapse:collapse; font-size:12px;}
+  .gtab td.bal-verde{background:rgba(46,160,90,.22); color:#5fd68a; font-weight:700; border-radius:5px;}
+  .gtab td.bal-amarillo{background:rgba(212,175,55,.22); color:#e6c34d; font-weight:700; border-radius:5px;}
+  .gtab td.bal-naranja{background:rgba(212,120,45,.22); color:#f0975a; font-weight:700; border-radius:5px;}
+  .gtab td.bal-rojo{background:rgba(200,50,50,.25); color:#ff7373; font-weight:700; border-radius:5px;}
+  table.gtab th{
+    text-align:left; font-weight:500; color:var(--ink-faint); font-size:10px;
+    letter-spacing:.05em; text-transform:uppercase; padding:0 8px 6px 0; border-bottom:1px solid var(--border);
+  }
+  table.gtab td{
+    padding:6px 8px 6px 0; font-family:'IBM Plex Mono'; color:var(--ink); border-bottom:1px solid rgba(255,255,255,.03);
+  }
+  table.gtab tr:last-child td{border-bottom:none;}
+
+  /* ---------- History chart ---------- */
+  .hist-chart{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:20px; margin-top:6px;}
+  .hist-pt{cursor:pointer;}
+  .hist-pt:hover circle{r:6;}
+  .hist-label{font-family:'IBM Plex Mono'; font-size:10px; fill:var(--ink-dim);}
+
+  /* ---------- Install data table ---------- */
+  .install-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .install-card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px;}
+  .install-card h3{margin:0 0 14px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink);}
+  .kv{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:12.5px;}
+  .kv span:first-child{color:var(--ink-dim);}
+  .kv span:last-child{font-family:'IBM Plex Mono'; color:var(--ink);}
+
+  .placeholder{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:80px 20px; color:var(--ink-faint); text-align:center; gap:8px;
+    border:1px dashed var(--border); border-radius:14px;
+  }
+  .placeholder .big{font-family:'IBM Plex Sans Condensed'; font-size:16px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+
+  @media (max-width:1050px){
+    .main-grid, .install-grid, .grid-strip{grid-template-columns:1fr;}
+    .instrument-strip{grid-template-columns:repeat(3,1fr);}
+  }
+
+  #dashboardStage{padding:0 32px 60px;}
+  body{padding:0;}
+
+  .scope-real{
+    padding:10px; margin:12px 0 14px; border-radius:8px;
+    background:linear-gradient(#14181f,#14181f) padding-box, repeating-linear-gradient(135deg,#1c222b 0 2px, transparent 2px 8px) border-box;
+    border:1px solid #262c35;
+    max-width:520px;
+  }
+  .scope-real img{display:block; width:100%; height:auto; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);}
+
+  /* ---- Dina view: 2-column layout (point 4) ---- */
+  .dina-layout{display:flex; gap:20px; align-items:flex-start;}
+  .dina-main{flex:0 0 auto; min-width:0; max-width:560px;}
+  .dina-side{width:840px; flex-shrink:0; display:flex; flex-direction:row; gap:14px;}
+  .dina-side-col{width:0; flex:1; display:flex; flex-direction:column; gap:12px; min-width:0;}
+  .dina-main .scope-real{max-width:560px; margin:0;}
+  .dina-side .mini-grid{padding:11px 12px;}
+  .dina-side .mini-grid h4{font-size:11px;}
+  .dina-side table.gtab{font-size:10.5px;}
+  .dina-side table.gtab th{padding:4px 5px 4px 0;}
+  .dina-side table.gtab td{padding:4px 5px 4px 0;}
+  .cp-cards .cp-card{border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:8px;}
+  .cp-cards .cp-card:last-child{margin-bottom:0;}
+  .cp-cards .cp-card-title{font-size:10.5px; font-weight:700; margin-bottom:5px;}
+  .cp-cards .cp-card-title.crank-1{color:var(--steel-glow);}
+  .cp-cards .cp-card-title.crank-2{color:var(--rust,#c0603a);}
+  .cp-cards .cp-grid{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-family:'IBM Plex Mono'; font-size:10.5px;}
+  .cp-cards .cp-grid .cp-lbl{color:var(--ink-faint);}
+  .cp-cards .cp-grid .cp-val{color:var(--ink); text-align:right;}
+  .sarta-img{display:block; width:auto; max-width:100%; max-height:210px; object-fit:contain; margin:0 auto 6px; border-radius:6px; background:var(--panel); border:1px solid var(--border);}
+
+  .prom-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 6px;}
+  .prom-tiles .tile2{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:11px 13px;}
+  .prom-tiles .tile2 .lbl{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);display:block;margin-bottom:5px;}
+  .prom-tiles .tile2 .val{font-family:'IBM Plex Mono';font-size:19px;font-weight:700;color:var(--ink);}
+  .prom-tiles .tile2 .val .unit{font-size:11px;font-weight:400;color:var(--ink-dim);}
+
+  .prom-tiles-compact{margin:8px 0 12px; max-width:560px;}
+  .prom-tiles-compact .tile2{padding:6px 10px;}
+  .prom-tiles-compact .tile2 .lbl{font-size:8.5px; margin-bottom:2px;}
+  .prom-tiles-compact .tile2 .val{font-size:14px;}
+  .prom-tiles-compact .tile2 .val .unit{font-size:9.5px;}
+
+  .comment-box{background:var(--panel-2); border:1px solid var(--border); border-left:3px solid var(--rust,#b3492b);
+    border-radius:8px; padding:11px 14px; margin:4px 0 10px; font-size:12.5px; color:var(--ink); line-height:1.5;}
+  .comment-box .lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:5px;display:block;}
+  .comment-box.empty{color:var(--ink-faint); font-style:italic;}
+
+  .details-btn{margin-top:2px; padding:8px 14px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink); font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .details-btn:hover{background:#242c37;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:50;}
+  .modal-overlay.active{display:flex;}
+  .modal-box{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px 20px 20px;
+    width:min(360px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .modal-box h3{margin:0 0 12px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; justify-content:space-between; align-items:center;}
+  .modal-close{width:26px;height:26px;border-radius:50%;border:1px solid var(--border); background:var(--panel-2); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1;}
+  .modal-close:hover{background:#242c37;}
+  .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .modal-grid .mini{border-top:1px solid var(--border); padding-top:7px;}
+
+  @media (max-width:900px){
+    .dina-layout{flex-direction:column;}
+    .dina-side{width:100%; flex-direction:column;}
+  }
+
+  /* ---- Inicio: grilla general (Tarea 3) ---- */
+  .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; margin:14px 0 18px;}
+  .ifilter{display:flex; flex-direction:column; gap:4px;}
+  .ifilter label{font-size:9.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint);}
+  .ifilter input, .ifilter select{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:7px;
+    padding:7px 9px; color:var(--ink); font-family:'IBM Plex Sans'; font-size:12px; min-width:140px;
+  }
+  .ifilter input:focus, .ifilter select:focus{outline:none; border-color:var(--navy-glow);}
+  .ifilter-clear{
+    align-self:flex-end; padding:8px 12px; border-radius:7px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink-dim); font-size:11.5px; cursor:pointer;
+  }
+  .ifilter-clear:hover{background:#242c37; color:var(--ink);}
+
+  .inicio-table-wrap{overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 300px); border:1px solid var(--border); border-radius:10px;}
+  .inicio-table{width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed;}
+  .inicio-table thead th{
+    position:sticky; top:0; background:var(--panel-2); text-align:left; font-size:9px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); padding:7px 6px;
+    border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;
+  }
+  .inicio-table td{padding:5px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10.5px;}
+  .inicio-table tbody tr:hover{background:var(--panel-2);}
+  .row-pendiente{background:rgba(179,73,43,.07);}
+  .row-pendiente:hover{background:rgba(179,73,43,.13);}
+  .pending-badge{
+    font-family:'IBM Plex Sans'; font-size:8.5px; font-weight:600; color:var(--rust,#c0603a);
+    background:rgba(192,96,58,.14); border:1px solid rgba(192,96,58,.35); border-radius:999px;
+    padding:1px 5px; margin-left:5px; white-space:nowrap;
+  }
+  .inicio-table td.well-name{font-family:'IBM Plex Sans Condensed'; font-weight:600; cursor:pointer; font-size:11.5px; overflow:hidden; text-overflow:ellipsis;}
+  .inicio-table td.well-name:hover{color:var(--steel-glow);}
+  .inicio-table td.dim{color:var(--ink-faint);}
+  .row-preview-btn{width:20px; height:20px;}
+
+  /* Anchos fijos por columna: 1=icono 2=Pozo 3=Fecha 4=Bateria 5=Operadora 6=Nivel 7=Sumerg 8=Fillage 9=FoMax 10=TV 11=SPM */
+  .inicio-table th:nth-child(1), .inicio-table td:nth-child(1){ width:80px; }
+  .inicio-table th:nth-child(2), .inicio-table td:nth-child(2){ width:66px; max-width:66px; }
+  .inicio-table th:nth-child(3), .inicio-table td:nth-child(3){ width:78px; }
+  .inicio-table th:nth-child(4), .inicio-table td:nth-child(4){ width:64px; }
+  .inicio-table th:nth-child(5), .inicio-table td:nth-child(5){ width:76px; }
+  .inicio-table th:nth-child(6), .inicio-table td:nth-child(6){ width:68px; }
+  .inicio-table th:nth-child(7), .inicio-table td:nth-child(7){ width:72px; }
+  .inicio-table th:nth-child(8), .inicio-table td:nth-child(8){ width:64px; }
+  .inicio-table th:nth-child(9), .inicio-table td:nth-child(9){ width:68px; }
+  .inicio-table th:nth-child(10), .inicio-table td:nth-child(10){ width:64px; }
+  .inicio-table th:nth-child(11), .inicio-table td:nth-child(11){ width:56px; }
+  .inicio-table th:nth-child(12), .inicio-table td:nth-child(12){ width:220px; max-width:220px; text-align:left; }
+  .row-preview-btn{
+    width:24px;height:24px;border-radius:6px;border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink-dim); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .row-preview-btn:hover{background:#242c37; color:var(--steel-glow);}
+  .qp-thumbs{display:flex; gap:10px; margin-top:10px;}
+  .qp-thumbs img{width:50%; border-radius:6px; border:1px solid var(--border); background:var(--panel-2); display:block;}
+  .qp-thumbs .qp-empty{width:50%; border-radius:6px; border:1px dashed var(--border); background:var(--panel-2);
+    display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:10.5px; min-height:100px; text-align:center; padding:8px;}
+  .qp-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
+
+  /* ---- Herramientas (Tarea 4) ---- */
+  .tools-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:16px;}
+  .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px;}
+  .tool-card h3{margin:0 0 8px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px;}
+  .tool-desc{font-size:12px; color:var(--ink-dim); line-height:1.55; margin:0 0 14px;}
+  .tool-upload-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
+  .tool-file-btn{
+    flex-shrink:0; padding:8px 14px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink); font-size:12px; cursor:pointer; white-space:nowrap;
+  }
+  .tool-file-btn:hover{background:#242c37;}
+  .tool-file-name{font-size:11.5px; color:var(--ink-faint); font-family:'IBM Plex Mono'; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .upload-preview{margin-top:16px;}
+  .upload-preview .up-block{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:12px;}
+  .upload-preview .up-block h4{margin:0 0 8px; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--steel-glow);}
+  .upload-preview table{width:100%; border-collapse:collapse; font-size:11px; font-family:'IBM Plex Mono';}
+  .upload-preview th{text-align:left; color:var(--ink-faint); padding:3px 6px 3px 0; text-transform:uppercase; font-size:9.5px; letter-spacing:.05em;}
+  .upload-preview td{padding:3px 6px 3px 0; color:var(--ink); border-top:1px solid var(--border);}
+  .upload-preview .up-warn{color:var(--rust,#c0603a); font-size:11.5px;}
+  .upload-preview .up-note{color:var(--ink-faint); font-size:10.5px; margin-top:6px; font-style:italic;}
+  .acu-toolbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;}
+  .acu-hint{font-size:10.5px; color:var(--ink-faint); font-family:'IBM Plex Sans';}  .bit-pillrow{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .bit-pill{padding:9px 20px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); color:var(--ink-dim); font-size:12px; font-weight:700; cursor:pointer;}
+  .bit-pill.active{background:rgba(200,73,44,.18); border-color:var(--rust); color:var(--rust-glow);}
+  .bit-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px;}
+  .bit-grid label{display:block; font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
+  .bit-input{width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Sans';}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+  <div id="dashboardStage" style="display:none;">
+<div class="topbar-wrap">
+  <div class="topbar topbar-single">
+    <div class="brand-mini">
+      <svg width="186" height="43" viewBox="0 0 300 76">
+        <text x="150" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="30" letter-spacing="5" fill="#eeece4">VA<tspan fill="#5b76e0">&amp;</tspan>PE</text>
+        <text x="150" y="62" text-anchor="middle" font-family="IBM Plex Sans" font-weight="400" font-size="12" letter-spacing="2" fill="#8a919d">Eco Dinamometría Computarizada</text>
+      </svg>
+      <div class="topbar-app-title-mini">
+        <div class="t1">Sistema de Gestión de Pozos</div>
+        <div class="t2" style="font-size:8.5px; color:var(--ink-faint); letter-spacing:.05em; margin-top:1px;">build 2026-08-09 10:00</div>
+      </div>
+    </div>
+    <div class="pozo-group">
+      <div class="well-select">
+        <span class="lbl">Pozo</span>
+        <span class="name">ED-316</span>
+        <span class="field-tag" id="fieldTag">BREST · ED2</span>
+      </div>
+      <div class="well-search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a919d" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="#8a919d" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input type="text" id="wellSearch" placeholder="Buscar… (ej. 966)" value="ED-316">
+      </div>
+      <div class="date-stepper">
+        <button id="prevBtn" title="Prueba anterior">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#eeece4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="dt"><div class="d mono" id="dtLabel">29/06/2026 · 14:52</div><div class="idx" id="dtIndex">PRUEBA 3 DE 5</div></div>
+        <button id="nextBtn" title="Prueba siguiente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#eeece4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="status-group">
+      <span class="user-scope-tag" id="dbStatusTag" title="Estado de conexión a la base de datos">DB: probando…</span>
+      <span class="user-scope-tag" id="userScopeTag" title="Alcance de datos del usuario"></span>
+    </div>
+    <button id="themeToggle" class="theme-toggle" title="Cambiar modo claro/oscuro">
+      <svg id="themeIconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="#eeece4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg id="themeIconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none;"><circle cx="12" cy="12" r="4.5" stroke="#e6a95c" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke="#e6a95c" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</div>
+
+
+
+  <!-- MENU -->
+  <div class="menu" id="menu">
+    <button data-view="inicio" class="active"><span class="dot"></span>Inicio</button>
+    <button data-view="resumen"><span class="dot"></span>Resumen Pozo</button>
+    <button data-view="dina"><span class="dot"></span>Dina</button>
+    <button data-view="sonolog"><span class="dot"></span>Sonolog</button>
+    <button data-view="historial"><span class="dot"></span>Historial ECO</button>
+    <button data-view="instalacion"><span class="dot"></span>Datos de Instalación</button>
+    <button data-view="herramientas"><span class="dot"></span>Herramientas</button>
+    <button data-view="bitacora"><span class="dot"></span>Bitácora</button>
+    <button data-view="consultas" class="disabled" disabled><span class="dot"></span>Consultas <span style="font-size:9px;opacity:.7;">(a definir)</span></button>
+  </div>
+
+  <!-- ===================== VIEW: INICIO ===================== -->
+  <div class="view active" id="view-inicio">
+    <div class="panel">
+      <div class="panel-head">
+        <h2><span class="dot2 navy"></span>Vista General de Pozos</h2>
+        <span class="stamp" id="inicioCountStamp">— pozos</span>
+      </div>
+
+      <div class="inicio-filters" id="inicioFilters">
+        <div class="ifilter">
+          <label>Buscar pozo</label>
+          <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
+        </div>
+        <div class="ifilter">
+          <label>Operadora</label>
+          <select id="ifOperadora"><option value="">Todas</option></select>
+        </div>
+        <div class="ifilter">
+          <label>Batería</label>
+          <select id="ifBateria"><option value="">Todas</option></select>
+        </div>
+        <div class="ifilter">
+          <label>Fecha de campaña</label>
+          <select id="ifFecha"><option value="">Todas</option></select>
+        </div>
+        <div class="ifilter">
+          <label>Ensayo</label>
+          <select id="ifEnsayo">
+            <option value="">Todos</option>
+            <option value="dyn">Con Dina</option>
+            <option value="acu">Solo Nivel</option>
+          </select>
+        </div>
+        <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
+      </div>
+
+      <div class="inicio-table-wrap">
+        <table class="inicio-table" id="inicioTable">
+          <thead>
+            <tr>
+              <th class="col-fixed"></th>
+              <th class="col-fixed">Pozo</th>
+              <th class="col-fixed">Fecha</th>
+              <th class="col-fixed">Batería</th>
+              <th>Operadora</th>
+              <th>Nivel (m)</th>
+              <th>Sumerg. (m)</th>
+              <th>Fillage (%)</th>
+              <th>Fo Max (lb)</th>
+              <th>TV (lb)</th>
+              <th>SPM</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody id="inicioTableBody"></tbody>
+        </table>
+      </div>
+      <div class="inicio-pager" id="inicioPager"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: VISTA RAPIDA DE CARTA ===================== -->
+  <div class="modal-overlay" id="quickPreviewModal">
+    <div class="modal-box" style="width:min(460px,92vw);">
+      <h3 id="qpTitle">Vista rápida <button class="modal-close" id="qpClose" type="button">&#10005;</button></h3>
+      <div id="qpBody"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-resumen">
+    <div class="instrument-strip" id="instrumentStrip">
+      <div class="tile acu"><span class="lbl">Nivel Medido</span><div class="val"><span id="v-nivel">1216</span><span class="unit">m</span></div></div>
+      <div class="tile acu"><span class="lbl">Sumergencia</span><div class="val"><span id="v-sumerg">8</span><span class="unit">m</span></div></div>
+      <div class="tile acu"><span class="lbl">Sumergencia Corr.</span><div class="val"><span id="v-sumergc">7</span><span class="unit">m</span></div></div>
+      <div class="tile sig"><span class="lbl">Fo Max</span><div class="val"><span id="v-fomax">4319</span><span class="unit">lb</span></div></div>
+      <div class="tile dyn"><span class="lbl">TV / SV</span><div class="val"><span id="v-tvsv" style="font-size:17px;">12527 / 4790</span></div></div>
+      <div class="tile dyn"><span class="lbl">Wrf</span><div class="val"><span id="v-wrf">6625</span><span class="unit">lb</span></div></div>
+    </div>
+    <div class="main-grid">
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dot2 navy"></span>Carta Dinamométrica</h2><span class="stamp">WPRT 490 · 14:52:13</span></div>
+        <div class="scope-real"><img src="" alt="Carta dinamométrica real ED-316"/></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dot2 steel"></span>Nivel Acústico</h2><span class="stamp">CG 561 · 14:57:21</span></div>
+        <div class="scope-real"><img src="" alt="Nivel acústico real ED-316"/></div>
+      </div>
+    </div>
+    <p style="color:var(--ink-faint); font-size:11.5px; margin-top:14px;">
+      Nota: se sacaron de esta pantalla los datos de producción, sarta y controles de gearbox — ahora viven en
+      Dina / Sonolog / Datos de Instalación, cada uno cerca de donde corresponde.
+    </p>
+  </div>
+
+  <!-- ===================== VIEW: DINA ===================== -->
+  <div class="view" id="view-dina">
+    <div class="main-grid full">
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dot2 navy"></span>Carta Dinamométrica</h2><div class="prom-tiles-inline">
+          <div class="chip2"><span class="lbl">Llenado</span><span class="val" id="d-fillage">44.9<span class="unit">%</span></span></div>
+          <div class="chip2"><span class="lbl">P. Tubing</span><span class="val" id="d-tubpres">4.5<span class="unit">kg</span></span></div>
+          <div class="chip2"><span class="lbl">GPM</span><span class="val" id="d-spm">7.31</span></div>
+          <div class="hist-nav" id="dyn-hist-nav" style="visibility:hidden; min-width:120px;">
+            <button id="dyn-hist-prev" title="Ensayo anterior">‹</button>
+            <span id="dyn-hist-label">—</span>
+            <button id="dyn-hist-next" title="Ensayo siguiente">›</button>
+          </div>
+          <div class="days-since-chip" id="daysSinceDyn" style="visibility:hidden;"></div>
+        </div><span class="stamp" id="dinaStamp">WPRT 490 · 29/06/2026 · 14:52:13 · Stroke 19/20</span></div>
+        <div class="dina-layout">
+        <div class="dina-main">
+        <div class="scope-real"><img src="" alt="Carta dinamométrica real ED-316"/></div>
+        <div class="comment-box" id="dinaCommentBox">
+          <span class="lbl">Comentario del operador</span>
+          <span id="d-comment">Se observa golpe de fluido - leve golpe de bba inferior. Polea 30 - Nivel pegado a bba.-</span>
+        </div>
+
+
+        <button class="details-btn" id="dinaDetailsBtn" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Ver detalles (WRF, Fo Max, TV, SV, MPT, EPT, PIP, Potencia)
+        </button>
+        </div>
+
+        <div class="dina-side">
+        <div class="dina-side-col">
+          <div class="mini-grid">
+            <h4>Bomba</h4>
+            <table class="gtab">
+              <tr><th>Pump Intake Depth</th><th>PIP Dina</th><th>PIP Eco</th><th>Pistón</th></tr>
+              <tr><td id="d-pump-depth">—</td><td id="d-pump-pip">—</td><td id="d-pump-pip-eco">—</td><td id="d-plunger">—</td></tr>
+            </table>
+          </div>
+          <div class="mini-grid acc-bronze">
+            <h4>Controles (Producción)</h4>
+            <table class="gtab">
+              <tr><th>Neta</th><th>Agua</th><th>Bruta</th><th>% Agua</th><th>Gas</th></tr>
+              <tr>
+                <td id="d-oil">0.0 m³/D</td>
+                <td id="d-water">1.0 m³/D</td>
+                <td id="d-bruta">1.0 m³/D</td>
+                <td id="d-pctagua">100 %</td>
+                <td id="d-gas">155.1 m³/D</td>
+              </tr>
+            </table>
+          </div>
+          <div class="mini-grid">
+            <h4><i></i>Unidad de Bombeo</h4>
+            <table class="gtab">
+              <tr><th>Carga Estruct.</th><th>Carrera</th><th>SPM</th></tr>
+              <tr><td id="d-beam">—</td><td id="d-carrera">—</td><td id="d-spm2">—</td></tr>
+              <tr><th>Carga Máx.</th><th>Carga Mín.</th><th></th></tr>
+              <tr><td id="d-cargamax">—</td><td id="d-cargamin">—</td><td></td></tr>
+            </table>
+            <table class="gtab" style="margin-top:8px;">
+              <tr><th>Fabricante</th><th>Unidad</th></tr>
+              <tr><td id="d-unit-mfr">—</td><td id="d-unit-class">—</td></tr>
+              <tr><th>Descripción (API)</th><th></th></tr>
+              <tr><td id="d-unit-api">—</td><td></td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="dina-side-col">
+          <div class="mini-grid">
+            <h4><i></i>Sarta de Varillas</h4>
+            <img class="sarta-img" id="d-sarta-img" src="" alt="Esquema de sarta de varillas">
+            <table class="gtab" id="d-sarta-table">
+              <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>
+            </table>
+          </div>
+          <div class="mini-grid acc-bronze">
+            <h4>GearBox</h4>
+            <table class="gtab">
+              <tr><th>Gear Box Rating</th><td id="d-gb-rating">—</td></tr>
+              <tr><th>Upstroke Peak, Existing</th><td id="d-gb-up">—</td></tr>
+              <tr><th>Torque existente (in-lb)</th><td id="d-gb-down">—</td></tr>
+              <tr><th>% Loading (Down), Existing</th><td id="d-gb-pctdown">—</td></tr>
+              <tr><th>Out of Balance</th><td id="d-gb-oob">—</td></tr>
+              <tr><th>Move</th><td id="d-gb-move">—</td></tr>
+              <tr><th>Torque en Balance In-lb</th><td id="d-gb-balanced">—</td></tr>
+              <tr><th>% Loading, Balanced</th><td id="d-gb-pctbal" class="bal-verde">—</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="dina-side-col">
+          <div class="mini-grid">
+            <h4><i></i>Contrapesos</h4>
+            <div id="d-contrapesos-table" class="cp-cards">
+              <p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>
+            </div>
+            <table class="gtab" style="margin-top:10px;">
+              <tr><th>Counter Balance Moment</th><td id="d-cbm">—</td></tr>
+              <tr><th>Weight of Counter Weights</th><td id="d-wcw">—</td></tr>
+            </table>
+          </div>
+        </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: DINA DETALLES ===================== -->
+  <div class="modal-overlay" id="dinaDetailsModal">
+    <div class="modal-box">
+      <h3>Detalles Dina <button class="modal-close" id="dinaDetailsClose" type="button">&#10005;</button></h3>
+      <div class="modal-grid">
+        <div class="mini"><span class="lbl">Wrf</span><span class="val mono" id="dd-wrf">6,625 lb</span></div>
+        <div class="mini"><span class="lbl">Fo Max</span><span class="val mono" id="dd-fomax">4,319 lb</span></div>
+        <div class="mini"><span class="lbl">TV medido (Peak Rod Load)</span><span class="val mono" id="dd-tv">12,172 lb</span></div>
+        <div class="mini"><span class="lbl">SV medido</span><span class="val mono" id="dd-sv">4,449 lb</span></div>
+        <div class="mini"><span class="lbl">MPT</span><span class="val mono" id="dd-mpt">62.15 in</span></div>
+        <div class="mini"><span class="lbl">EPT</span><span class="val mono" id="dd-ept">27.19 in</span></div>
+        <div class="mini"><span class="lbl">PIP DYN</span><span class="val mono" id="dd-pipdyn">4.9 kg</span></div>
+        <div class="mini"><span class="lbl">Potencia Vástago</span><span class="val mono" id="dd-rodpower">4.2 HP</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW: SONOLOG ===================== -->
+  <div class="view" id="view-sonolog">
+    <div class="main-grid full">
+      <div class="panel">
+        <div class="panel-head"><h2><span class="dot2 steel"></span>Sonolog — Nivel Acústico</h2>
+          <div class="hist-nav" id="acu-hist-nav" style="visibility:hidden; min-width:120px;">
+            <button id="acu-hist-prev" title="Ensayo anterior">‹</button>
+            <span id="acu-hist-label">—</span>
+            <button id="acu-hist-next" title="Ensayo siguiente">›</button>
+          </div>
+        <span class="stamp">CG 561 · 29/06/2026 · 14:57:21</span></div>
+        <div class="scope-real" id="acuScopeReal">
+          <div class="acu-toolbar" id="acuToolbar" style="display:none;">
+            <span class="acu-hint">Rueda del mouse: zoom · Arrastrar: mover · Doble clic: reset</span>
+            <button id="acuResetZoom" class="details-btn" type="button" style="padding:5px 10px; font-size:11px;">Reset zoom</button>
+          </div>
+          <canvas id="acuInteractiveCanvas" style="display:none; width:100%; cursor:grab; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);"></canvas>
+        <img src="" alt="Nivel acústico real ED-316"/></div>
+        <div class="panel-foot">
+          <div class="mini"><span class="lbl">Nivel Medido</span><span class="val mono" id="s-nivel">1,216 m</span></div>
+          <div class="mini"><span class="lbl">Sumergencia</span><span class="val mono" id="s-sumerg">8 m</span></div>
+          <div class="mini"><span class="lbl">Sumerg. Corr.</span><span class="val mono" id="s-sumergc">7 m</span></div>
+          <div class="mini"><span class="lbl">Vel. Acústica</span><span class="val mono" id="s-vel">400 m/s</span></div>
+          <div class="mini"><span class="lbl">Jts a Líquido</span><span class="val mono" id="s-jts">126.57</span></div>
+          <div class="mini"><span class="lbl">RTTT</span><span class="val mono" id="s-rttt">6.088 s</span></div>
+          <div class="mini"><span class="lbl">P. Casing</span><span class="val mono" id="s-pcsg">4.9 kg</span></div>
+          <div class="mini"><span class="lbl">% Líq. s/Bomba</span><span class="val mono" id="s-pctliq">78.1 %</span></div>
+        </div>
+        <div class="comment-box" id="sonologCommentBox" style="margin:0 16px 16px;">
+          <span class="lbl">Comentario del operador (Eco)</span>
+          <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW: HISTORIAL ECO ===================== -->
+  <div class="view" id="view-historial">
+    <div class="panel">
+      <div class="panel-head"><h2><span class="dot2 steel"></span>Historial de Mediciones — Nivel Acústico</h2><span class="stamp">ED-316 · últimas 5 mediciones</span></div>
+      <div class="hist-chart" id="histChart">
+        <svg viewBox="0 0 900 260" width="100%" height="260">
+          <line x1="40" y1="210" x2="860" y2="210" stroke="#2a313b" stroke-width="1"/>
+          <line x1="40" y1="30" x2="40" y2="210" stroke="#2a313b" stroke-width="1"/>
+          <polyline points="90,150 260,120 430,60 600,42 770,30" fill="none" stroke="#8fb4d6" stroke-width="2"/>
+          <g class="hist-pt"><circle cx="90" cy="150" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="90" y="230" text-anchor="middle">22/06</text><text class="hist-label" x="90" y="140" text-anchor="middle" fill="#eeece4">1204 m</text></g>
+          <g class="hist-pt"><circle cx="260" cy="120" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="260" y="230" text-anchor="middle">24/06</text><text class="hist-label" x="260" y="110" text-anchor="middle" fill="#eeece4">1209 m</text></g>
+          <g class="hist-pt"><circle cx="430" cy="60" r="5.5" fill="#e6a95c"/><text class="hist-label" x="430" y="230" text-anchor="middle">29/06</text><text class="hist-label" x="430" y="48" text-anchor="middle" fill="#e6a95c">1216 m ★</text></g>
+          <g class="hist-pt"><circle cx="600" cy="42" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="600" y="230" text-anchor="middle">03/07</text><text class="hist-label" x="600" y="30" text-anchor="middle" fill="#eeece4">1221 m</text></g>
+          <g class="hist-pt"><circle cx="770" cy="30" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="770" y="230" text-anchor="middle">06/07</text><text class="hist-label" x="770" y="20" text-anchor="middle" fill="#eeece4">1224 m</text></g>
+        </svg>
+      </div>
+      <p style="color:var(--ink-faint); font-size:11.5px; margin-top:10px;">
+        Puntos ubicados por encima/debajo de la línea según espacio disponible, para no tapar la tendencia. ★ = medición seleccionada actualmente.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW: DATOS DE INSTALACION ===================== -->
+  <div class="view" id="view-instalacion">
+    <div class="install-grid" id="installGrid">
+      <div class="install-card">
+        <h3>Tubing / Casing</h3>
+        <div class="kv"><span>Tubing OD</span><span>2.875 in</span></div>
+        <div class="kv"><span>Casing OD</span><span>5.500 in</span></div>
+        <div class="kv"><span>Formation Depth</span><span>1,231 m</span></div>
+        <div class="kv"><span>Plugback</span><span>1,231 m</span></div>
+      </div>
+      <div class="install-card">
+        <h3>Bomba</h3>
+        <div class="kv"><span>API</span><span>25-175 RHBC 24-4</span></div>
+        <div class="kv"><span>Pump Intake Depth</span><span>1,225 m</span></div>
+        <div class="kv"><span>Plunger</span><span>1.750 in</span></div>
+        <div class="kv"><span>Pump HP</span><span>2.97 HP</span></div>
+      </div>
+      <div class="install-card">
+        <h3>Unidad de Bombeo</h3>
+        <div class="kv"><span>Modelo</span><span>C-228D-173-74</span></div>
+        <div class="kv"><span>Fabricante</span><span>SIAM</span></div>
+        <div class="kv"><span>Gearbox Rating</span><span>228,000 in-lb</span></div>
+        <div class="kv"><span>Stroke Length</span><span>74.00 in</span></div>
+      </div>
+      <div class="install-card">
+        <h3>Sarta de Varillas</h3>
+        <table class="gtab">
+          <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>API</th><th>Long.</th></tr>
+          <tr><td>1</td><td>0.875"</td><td>D</td><td>API</td><td>587 m</td></tr>
+          <tr><td>2</td><td>0.750"</td><td>D</td><td>API</td><td>625 m</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW: HERRAMIENTAS ===================== -->
+  <div class="view" id="view-herramientas">
+    <div class="tools-grid">
+      <div class="tool-card">
+        <h3><span class="dot2 navy"></span>Cargar Datos (CSV / TXT)</h3>
+        <p class="tool-desc">Subí el CSV general del ensayo (export Echometer) y/o los archivos TXT de Dina y Sonolog para ver una vista previa. La carga permanente a la base de datos se habilita cuando conectemos el servidor (Tarea 4, pendiente).</p>
+
+        <div class="tool-upload-row">
+          <label class="tool-file-btn">
+            CSV general
+            <input type="file" id="uploadCsv" accept=".csv" hidden>
+          </label>
+          <span class="tool-file-name" id="uploadCsvName">Ningún archivo</span>
+        </div>
+        <div class="tool-upload-row">
+          <label class="tool-file-btn">
+            TXT Dina / Sonolog
+            <input type="file" id="uploadTxt" accept=".txt" multiple hidden>
+          </label>
+          <span class="tool-file-name" id="uploadTxtName">Ningún archivo</span>
+        </div>
+        <div class="tool-upload-row">
+          <label style="font-size:12px; color:var(--ink-dim); min-width:110px;">Operadora de este CSV</label>
+          <select id="uploadOperadora" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--ink); font-size:12px;">
+            <option value="">Elegir…</option>
+            <option value="PECOM">PECOM</option>
+            <option value="BREST">BREST</option>
+            <option value="CROWN POINT">CROWN POINT</option>
+            <option value="VISTA OIL">VISTA OIL</option>
+          </select>
+        </div>
+
+        <button class="details-btn" id="uploadProcessBtn" type="button" style="margin-top:12px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Ver vista previa
+        </button>
+        <button class="details-btn" id="uploadSaveBtn" type="button" style="margin-top:12px; margin-left:8px; border-color:var(--navy-glow);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Guardar en la base de datos
+        </button>
+
+        <div id="uploadPreviewArea" class="upload-preview"></div>
+      </div>
+    
+        <!-- CARD: Administración de Usuarios -->
+      <div class="tool-card">
+        <h3><span class="dot2 navy"></span>Administración de Usuarios</h3>
+        <p class="tool-desc">Creá, editá y asigná operadoras a operadores y clientes.</p>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
+          <button class="details-btn" id="btnNuevaOperadora" type="button">+ Nueva operadora</button>
+          <button class="details-btn" id="btnNuevoUsuario" type="button" style="border-color:var(--navy-glow);">+ Nuevo usuario</button>
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; font-size:11.5px;">
+          <tr style="color:var(--ink-dim); text-align:left;">
+            <th style="padding:6px 8px; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;">Usuario</th>
+            <th style="padding:6px 8px; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;">Rol</th>
+            <th style="padding:6px 8px; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;">Operadora(s)</th>
+            <th style="padding:6px 8px; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;">Estado</th>
+            <th style="padding:6px 8px;"></th>
+          </tr>
+          <tbody id="usuariosTableBody">
+            <tr><td colspan="5" style="padding:12px 8px; color:var(--ink-dim); font-size:11px;">Cargando usuarios…</td></tr>
+          </tbody>
+        </table>
+
+        <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:14px;">
+          <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:10px;">Operadoras</div>
+          <div id="operadorasList" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:11px; color:var(--ink-dim);">Cargando…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===================== VIEW: BITACORA (Operador — prueba real) ===================== -->
+  <div class="view" id="view-bitacora">
+    <div class="panel">
+      <div class="panel-head">
+        <h2><span class="dot2 rust"></span>Bitácora Online</h2>
+        <span class="stamp" id="bitacoraStamp">Buscá un pozo arriba</span>
+      </div>
+
+      <div class="bit-pillrow" id="bitSistemaRow">
+        <button class="bit-pill active" data-sistema="AIB">AIB</button>
+        <button class="bit-pill" data-sistema="BES">BES</button>
+        <button class="bit-pill" data-sistema="PCP">PCP</button>
+        <button class="bit-pill" data-sistema="SSE">SSE</button>
+        <button class="bit-pill" data-sistema="Abandonado">Abandonado</button>
+      </div>
+
+      <div class="bit-grid">
+        <div><label>Presión Tubing (kg)</label><input type="number" step="0.1" id="bit-tbg" class="bit-input"></div>
+        <div><label>Presión Casing (kg)</label><input type="number" step="0.1" id="bit-csg" class="bit-input"></div>
+        <div><label>Nivel medido (m)</label><input type="number" step="1" id="bit-nivel" class="bit-input"></div>
+        <div><label>Estado Nivel</label>
+          <select id="bit-nivel-estado" class="bit-input">
+            <option value="OK">OK</option><option value="NO">NO</option><option value="Ver">Ver</option><option value="NRN">NRN</option>
+          </select>
+        </div>
+        <div id="bit-carrera-wrap"><label>Carrera (in)</label><input type="number" step="0.5" id="bit-carrera" class="bit-input"></div>
+        <div id="bit-tipoop-wrap"><label>Tipo de Operación</label>
+          <select id="bit-tipoop" class="bit-input">
+            <option value="Combinada">Combinada</option><option value="Dina">Dina</option><option value="Nivel">Nivel</option><option value="Cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div id="bit-tipoensayo-wrap"><label>Tipo de Ensayo</label>
+          <select id="bit-tipoensayo" class="bit-input">
+            <option value="Dinamico">Dinámico</option><option value="Estatico">Estático</option>
+          </select>
+        </div>
+        <div><label>Modo de Disparo (Nivel)</label>
+          <select id="bit-modo" class="bit-input">
+            <option value="Explosion">Explosión</option><option value="Implosion">Implosión</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bit-grid" id="bit-bes-wrap" style="display:none;">
+        <div><label>Hz</label><input type="number" step="0.1" id="bit-hz" class="bit-input"></div>
+        <div><label>PIP (kg)</label><input type="number" step="0.1" id="bit-pip" class="bit-input"></div>
+        <div><label>RPM</label><input type="number" step="1" id="bit-rpm-bes" class="bit-input"></div>
+        <div><label>Torque (in-lb)</label><input type="number" step="1" id="bit-torque" class="bit-input"></div>
+      </div>
+
+      <div class="bit-grid" id="bit-motor-wrap">
+        <div><label>Motor Marca</label><input type="text" id="bit-motor-marca" class="bit-input"></div>
+        <div><label>Motor RPM</label><input type="number" step="1" id="bit-motor-rpm" class="bit-input"></div>
+        <div><label>Motor HP</label><input type="number" step="1" id="bit-motor-hp" class="bit-input"></div>
+        <div><label>Motor Polea</label><input type="text" id="bit-motor-polea" class="bit-input"></div>
+      </div>
+
+      <label>Observaciones</label>
+      <textarea id="bit-observaciones" class="bit-input" style="width:100%; height:60px; margin-bottom:14px;"></textarea>
+
+      <button class="details-btn" id="bitGuardarBtn" type="button" style="background:var(--navy); color:#fff; border:none;">
+        Guardar visita
+      </button>
+      <div id="bitSaveMsg" style="margin-top:10px; font-size:12px;"></div>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW: CONSULTAS (placeholder) ===================== -->
+  <div class="view" id="view-consultas">
+    <div class="placeholder">
+      <div class="big">Consultas</div>
+      <div>Sección a definir</div>
+    </div>
+  </div>
+  </div>
+
+
+  <div class="stage">
+    <div class="brand" id="loginBrand">
+      <svg width="300" height="76" viewBox="0 0 300 76">
+        <text x="150" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="30" letter-spacing="5" fill="#eeece4">VA<tspan fill="#5b76e0">&amp;</tspan>PE</text>
+        <text x="150" y="62" text-anchor="middle" font-family="IBM Plex Sans" font-weight="400" font-size="10" letter-spacing="2" fill="#8a919d">Eco Dinamometría Computarizada</text>
+      </svg>
+    </div>
+
+    <!-- ===== STEP 1: role selection ===== -->
+    <div id="roleStep">
+      <div class="role-grid">
+        <div class="role-card operador" onclick="selectRole('operador')">
+          <div class="icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6"/><rect x="5" y="6" width="14" height="15" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 11h8M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <h2>Operador</h2>
+          <p>Planillero de campo — relevamiento diario, combinadas DYN + Sonolog, estado de instalación de cada pozo.</p>
+          <div class="go">Ingresar como operador →</div>
+        </div>
+
+        <div class="role-card cliente" onclick="selectRole('cliente')">
+          <div class="icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h2>Cliente</h2>
+          <p>Cartas, historial y reportes de tus pozos — consultá y descargá la información que necesites.</p>
+          <div class="go">Ingresar como cliente →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STEP 2: login ===== -->
+    <div id="loginStep">
+      <div class="back-link" onclick="backToRoles()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Elegir otro acceso
+      </div>
+      <div class="login-card">
+        <span class="login-tag" id="roleTag"><span class="d"></span><span id="roleTagText">Operador</span></span>
+        <h2 id="loginTitle">Ingresar al planillero</h2>
+
+        <div class="field">
+          <label>Usuario</label>
+          <input type="text" id="loginUser" placeholder="usuario">
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="loginPass" placeholder="••••••••••">
+        </div>
+        <button class="btn-primary" id="submitBtn" onclick="attemptLogin()">Ingresar</button>
+        <p id="loginError" style="color:#e8663f; font-size:12px; margin:10px 0 0; display:none;">Usuario o contraseña incorrectos.</p>
+
+        <div class="divider">o continuar con</div>
+        <button class="btn-google">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.7 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.5l-6.5-5.4C29.5 34.9 26.9 36 24 36c-5.3 0-9.8-3.3-11.4-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 3-3.1 5.5-5.8 7.1l6.5 5.4C39.9 37.1 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+          Continuar con Google
+        </button>
+
+        <p class="foot-note">¿Problemas para ingresar? <a href="#">Contactar a soporte VA&amp;PE</a></p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---- Conexion a Supabase (prueba inicial) ----
+  const SUPABASE_URL = 'https://fkfrhboiugnfmrfsbvjm.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_VB0cXroFNoZFElEgMQXAbA_hzj4ey74';
+  let supabaseClient = null;
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (e) {
+    console.error('No se pudo inicializar el cliente de Supabase:', e);
+  }
+
+  // Trae TODAS las filas de una tabla, paginando de a 1000 (el limite que
+  // Supabase aplica igual aunque se pida mas por request) — evita el corte
+  // silencioso que ya nos paso una vez con las curvas de Sonolog.
+  async function fetchAllRows(table, selectCols, filterFn){
+    let all = [], from = 0, pageSize = 1000, keepGoing = true, safety = 0;
+    while(keepGoing && safety < 500){
+      safety++;
+      let q = supabaseClient.from(table).select(selectCols).range(from, from + pageSize - 1);
+      if(filterFn) q = filterFn(q);
+      const { data, error } = await q;
+      if(error) return { data: null, error };
+      if(!data || !data.length){ keepGoing = false; break; }
+      all = all.concat(data);
+      from += data.length;
+      if(data.length < pageSize) keepGoing = false;
+    }
+    return { data: all, error: null };
+  }
+
+  async function loadLiveDataFromSupabase(){
+    if(!supabaseClient) return false;
+    try {
+      // Consultas simples y planas (sin anidado) para evitar ambiguedades de
+      // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
+      // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
+      const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria'),
+        fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb'),
+        fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
+        fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments'),
+        fetchAllRows('dyn_results', '*'),
+        fetchAllRows('acu_results', '*'),
+      ]);
+
+      for(const r of [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes]){
+        if(r.error){
+          console.error('Error cargando datos en vivo de Supabase:', JSON.stringify(r.error));
+          return false;
+        }
+      }
+      const wells = wellsRes.data, cfgs = cfgRes.data, tapers = taperRes.data,
+            tests = testsRes.data, dynAll = dynRes.data, acuAll = acuRes.data;
+
+      // Supabase es la unica fuente de verdad una vez conectado: se borra
+      // cualquier dato "demo" que haya quedado embebido en el HTML (incluidos
+      // los pozos, si la base esta vacia no se debe mostrar nada de mentira).
+      Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+      Object.keys(CHART_MAP).forEach(k => delete CHART_MAP[k]);
+
+      if(!wells || !wells.length){
+        wellNames = [];
+        console.warn('Supabase devolvió 0 pozos — la base esta vacia.');
+        return true;
+      }
+
+      const dynByTest = {}; (dynAll||[]).forEach(d => { dynByTest[d.test_id] = d; });
+      const acuByTest = {}; (acuAll||[]).forEach(a => { acuByTest[a.test_id] = a; });
+      const tapersByCfg = {}; (tapers||[]).forEach(t => { (tapersByCfg[t.well_config_id] = tapersByCfg[t.well_config_id]||[]).push(t); });
+      const cfgsByWell = {}; (cfgs||[]).forEach(c => { (cfgsByWell[c.well_id] = cfgsByWell[c.well_id]||[]).push(c); });
+      const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
+
+      wells.forEach(w => {
+        const entry = { operadora: w.operadora, zona: w.zona, bateria: w.bateria };
+
+        const myCfgs = (cfgsByWell[w.well_id] || []).slice().sort((a,b) => b.well_config_id - a.well_config_id);
+        const lastCfg = myCfgs[0];
+        entry.tapers = lastCfg
+          ? (tapersByCfg[lastCfg.well_config_id] || []).slice().sort((a,b) => a.taper_number - b.taper_number)
+              .map(t => ({ n: t.taper_number, diam: t.diameter_in, grade: t.grade, len: t.length_m }))
+          : (WELLS_DB[w.well_name] && WELLS_DB[w.well_name].tapers) || [];
+        if(lastCfg){
+          entry.surfaceUnitApi = lastCfg.surface_unit_api;
+          entry.surfaceUnitClass = lastCfg.surface_unit_class;
+          entry.surfaceUnitMfr = lastCfg.surface_unit_manufacturer;
+          entry.surfaceUnitModel = lastCfg.surface_unit_model;
+          entry.gearboxRating = lastCfg.gearbox_rating_inlb;
+          entry.strokeLength = lastCfg.stroke_length_in;
+          entry.pumpIntakeDepth = lastCfg.pump_intake_depth_m;
+          entry.plungerDiameter = lastCfg.plunger_diameter_in;
+          entry.cbm = lastCfg.counter_balance_moment_inlb;
+          entry.wcw = lastCfg.weight_of_counterweights_lb;
+        }
+
+        const myTests = testsByWell[w.well_id] || [];
+        const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
+        const dynTests = myTests.filter(t => t.test_type === 'DYN').sort(byRecency);
+        const acuTests = myTests.filter(t => t.test_type === 'ACU').sort(byRecency);
+
+        entry.hasDyn = dynTests.length > 0;
+        entry.hasAcu = acuTests.length > 0;
+
+        if(entry.hasDyn){
+          const t = dynTests[0];
+          const d = dynByTest[t.test_id] || {};
+          entry.fomax = d.fo_max_line_lb; entry.tv = d.peak_polished_rod_load_lb; entry.sv = d.minimum_polished_rod_load_lb;
+          entry.wrf = d.calculated_buoyant_rod_weight_lb; entry.mpt = d.maximum_plunger_stroke_in; entry.ept = d.effective_plunger_travel_in;
+          entry.fillage = d.average_fillage_pct; entry.tubpres = d.dyn_tubing_pressure_kg; entry.pipdyn = d.pip_dyn_kg;
+          entry.rodpower = d.polished_rod_power_hp; entry.spm = d.spm; entry.dt = t.test_date;
+          entry.torqueUp = d.existing_max_torque_upstroke_inlb;
+          entry.torqueDown = d.existing_max_torque_downstroke_inlb;
+          entry.cbExisting = d.existing_counterbalance_inlb;
+          entry.cbMax = d.maximum_counterbalance_inlb;
+          entry.cbChange = d.required_counterbalance_change_inlb;
+          entry.outOfBalance = d.out_of_balance_note;
+          entry.moveWeights = d.to_balance_move_note;
+          entry.torqueUpBal = d.in_balance_max_torque_upstroke_inlb;
+          entry.torqueDownBal = d.in_balance_max_torque_downstroke_inlb;
+          entry.beamLoading = d.beam_loading_pct;
+          entry.strokeComputed = d.computed_stroke_length_in;
+          entry.commentDyn = t.test_comments || null; // comentario del ensayo Dina, unicamente
+        }
+        if(entry.hasAcu){
+          const t = acuTests[0];
+          const a = acuByTest[t.test_id] || {};
+          entry.nivel = a.liquid_level_tvd_m; entry.sumerg = a.fluid_above_pump_m; entry.sumergc = a.gas_free_above_pump_m;
+          entry.pcsg = a.acu_casing_pressure_kg; entry.oil = a.oil_production_m3d; entry.water = a.water_production_m3d; entry.gas = a.gas_production_m3d;
+          entry.pipEco = a.pip_ll_kg;
+          if(entry.oil != null && entry.water != null){
+            entry.bruta = Math.round((entry.oil + entry.water) * 100) / 100;
+            entry.pctagua = entry.bruta ? Math.round((entry.water / entry.bruta * 100) * 10) / 10 : null;
+          }
+          if(!entry.dt) entry.dt = t.test_date;
+          entry.commentAcu = t.test_comments || null; // comentario del ensayo Eco, unicamente
+        }
+        // Comentario "general" (usado como respaldo en lugares que no distinguen Dina/Eco):
+        // se prioriza el de Dina, y si no hay, el de Eco.
+        entry.comment = entry.commentDyn || entry.commentAcu || null;
+        if(!entry.dt && lastCfg && lastCfg.effective_date){
+          entry.dt = lastCfg.effective_date; // pozo sin ensayo todavia: usa la fecha de su alta/config
+        }
+        // Fusion: se pisan los datos numericos con los reales de Supabase; las cartas
+        // (CHART_MAP) y cualquier otro campo ya embebido se conservan si no vino de la base.
+        WELLS_DB[w.well_name] = Object.assign({}, WELLS_DB[w.well_name], entry);
+      });
+
+      // Vuelve a calcular la lista de pozos por si Supabase trae pozos nuevos
+      // que todavia no estaban embebidos en el HTML.
+      wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
+
+      // Trae las cartas ya guardadas en Storage (persisten aunque se cierre la sesion).
+      try {
+        const { data: files, error: listErr } = await supabaseClient.storage.from('cartas').list('', { limit: 1000 });
+        if(!listErr && files){
+          const fileSet = new Set(files.map(f => f.name));
+          wellNames.forEach(name => {
+            const safe = safePathName(name);
+            ['DYN', 'ACU'].forEach(type => {
+              const fname = `${safe}_${type}.png`;
+              if(fileSet.has(fname)){
+                const { data } = supabaseClient.storage.from('cartas').getPublicUrl(fname);
+                if(data && data.publicUrl){
+                  CHART_MAP[name] = Object.assign({}, CHART_MAP[name], { [type.toLowerCase()]: data.publicUrl });
+                }
+              }
+            });
+          });
+        }
+      } catch(e){
+        console.error('No se pudieron listar las cartas de Storage:', e);
+      }
+
+      return true;
+    } catch (e) {
+      console.error('Excepción cargando datos en vivo de Supabase:', e);
+      return false;
+    }
+  }
+
+  async function testSupabaseConnection(){
+    const tag = document.getElementById('dbStatusTag');
+    if (!tag) return;
+    if (!supabaseClient) {
+      tag.textContent = 'DB: error (cliente)';
+      tag.title = 'No se pudo crear el cliente de Supabase (revisa que el script de supabase-js haya cargado).';
+      return;
+    }
+    try {
+      const { count, error } = await supabaseClient
+        .from('wells')
+        .select('*', { count: 'exact', head: true });
+      if (error) {
+        tag.textContent = 'DB: error';
+        const detail = [error.message, error.details, error.hint, error.code].filter(Boolean).join(' | ');
+        tag.title = 'Error de Supabase: ' + detail;
+        console.error('Supabase error:', detail, JSON.stringify(error));
+      } else {
+        tag.textContent = `DB: OK (${count} pozos)`;
+        tag.title = 'Conexión a Supabase funcionando correctamente.';
+      }
+    } catch (e) {
+      tag.textContent = 'DB: error (red)';
+      tag.title = 'Error de red al conectar con Supabase: ' + e.message;
+      console.error('Supabase connection exception:', e);
+    }
+  }
+
+  function selectRole(role){
+    currentRole = role;
+    document.getElementById('roleStep').style.display = 'none';
+    document.getElementById('loginStep').style.display = 'block';
+    const tag = document.getElementById('roleTag');
+    const tagText = document.getElementById('roleTagText');
+    const title = document.getElementById('loginTitle');
+    const card = document.querySelector('.login-card');
+    const submitBtn = document.getElementById('submitBtn');
+    if(role === 'operador'){
+      tagText.textContent = 'Operador';
+      title.textContent = 'Ingresar al planillero';
+      tag.style.setProperty('--tagc', '#e6a95c');
+      card.style.setProperty('--focusc', '#e6a95c');
+      submitBtn.style.setProperty('--btnc', '#c98a3e');
+      tag.style.color = '#e6a95c'; tag.style.borderColor = '#e6a95c';
+    } else {
+      tagText.textContent = 'Cliente';
+      title.textContent = 'Ingresar a mis pozos';
+      tag.style.color = '#8fb4d6'; tag.style.borderColor = '#8fb4d6';
+      card.style.setProperty('--focusc', '#8fb4d6');
+      submitBtn.style.setProperty('--btnc', '#3a54b8');
+    }
+  }
+  function backToRoles(){
+    document.getElementById('loginStep').style.display = 'none';
+    document.getElementById('roleStep').style.display = 'block';
+  }
+
+  // Usuario único temporal (admin) mientras no exista el generador de usuarios en Herramientas.
+  // Sirve tanto para entrar como Operador (redirige a Bitácora) como Cliente (se queda en VAPE_App),
+  // y en ambos casos ve TODO sin restricción de operadora.
+  const USERS_DB = {
+    admin1: { pass: "Admin1", role: "admin", nombre: "VA&PE (Admin)", operadora: null }
+  };
+ 
+    b.replace(/(\d+)|(\D+)/g, (_, d, s) => { bx.push([d ? parseInt(d,10) : Infinity, s || '']); return ''; });
+    while(ax.length && bx.length){
+      const an = ax.shift(), bn = bx.shift();
+      const nn = (an[0] - bn[0]) || an[1].localeCompare(bn[1]);
+      if(nn) return nn;
+    }
+    return ax.length - bx.length;
+  }
+  let wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
+
+  function initScopeForUser(){
+    if(!currentUser) return;
+    if(currentUser.role !== 'admin' && currentUser.operadora){
+      wellNames = Object.keys(WELLS_DB)
+        .filter(n => WELLS_DB[n].operadora === currentUser.operadora)
+        .sort(naturalCompare);
+    } else {
+      wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
+    }
+    if(!wellNames.includes(currentWell)){
+      currentWell = wellNames[0];
+    }
+    if(!wellNames.length){
+      document.querySelectorAll('.well-select .name').forEach(el => el.textContent = '— sin pozos —');
+      const fieldTagEl = document.getElementById('fieldTag');
+      if(fieldTagEl) fieldTagEl.textContent = '';
+      const dtIndexEl = document.getElementById('dtIndex');
+      if(dtIndexEl) dtIndexEl.textContent = 'Base de datos vacía';
+    }
+    const scopeEl = document.getElementById('userScopeTag');
+    if(scopeEl){
+      scopeEl.textContent = currentUser.role === 'admin'
+        ? 'VA&PE · todas las operadoras'
+        : (currentUser.nombre || currentUser.operadora);
+    }
+    if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
+    renderWell();
+  }
+
+  function chartSrc(value){
+    if(!value) return null;
+    return /^https?:\/\//i.test(value) ? value : ('data:image/png;base64,' + value);
+  }
+
+  function updateChartImg(selector, type, w){
+    document.querySelectorAll(selector).forEach(img => {
+      const entry = CHART_MAP[currentWell];
+      const b64 = entry ? entry[type] : null;
+      let note = img.parentElement.querySelector('.no-chart-note');
+      if(b64){
+        img.src = chartSrc(b64);
+        img.style.display = 'block';
+        if(note) note.remove();
+      } else {
+        img.style.display = 'none';
+        if(!note){
+          note = document.createElement('div');
+          note.className = 'no-chart-note';
+          note.style.cssText = 'padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:12px;';
+          note.textContent = 'Carta no disponible para ' + currentWell + ' (este tipo de ensayo no se realizó).';
+          img.parentElement.appendChild(note);
+        }
+      }
+    });
+  }
+
+  let currentWell = "ED-316";
+
+  function fmt(v, dec=0){
+    if(v === null || v === undefined) return "—";
+    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+
+  function renderWell(){
+    const w = WELLS_DB[currentWell];
+    if(!w){
+      const wellSearchEl = document.getElementById('wellSearch');
+      if(wellSearchEl) wellSearchEl.value = '';
+      const ifSearchEl = document.getElementById('ifSearch');
+      if(ifSearchEl) ifSearchEl.value = '';
+      const dtLabelEl = document.getElementById('dtLabel');
+      if(dtLabelEl) dtLabelEl.textContent = '—';
+      const fieldTagEl0 = document.getElementById('fieldTag');
+      if(fieldTagEl0) fieldTagEl0.textContent = '—';
+      const daysSinceEl = document.getElementById('daysSinceDyn');
+      if(daysSinceEl) daysSinceEl.style.visibility = 'hidden';
+      // No hay pozos (base vacia u operadora sin datos): blanquea todos los
+      // campos en vez de dejar los valores viejos que traia el HTML de fabrica.
+      ['v-nivel','v-sumerg','v-sumergc','v-fomax','v-tvsv','v-wrf',
+       'd-fillage','d-tubpres','d-spm','d-oil','d-water','d-bruta','d-pctagua','d-gas',
+       's-nivel','s-sumerg','s-sumergc','s-vel','s-jts','s-rttt','s-pcsg','s-pctliq',
+       'dd-wrf','dd-fomax','dd-tv','dd-sv','dd-mpt','dd-ept','dd-pipdyn','dd-rodpower',
+       'd-beam','d-carrera','d-spm2','d-cargamax','d-cargamin','d-unit-api','d-unit-class','d-unit-mfr',
+       'd-gb-rating','d-gb-up','d-gb-down','d-gb-pctdown','d-gb-oob','d-gb-move','d-gb-balanced','d-gb-pctbal',
+       'd-pump-depth','d-pump-pip','d-pump-pip-eco','d-plunger','d-cbm','d-wcw']
+        .forEach(id => { const el = document.getElementById(id); if(el){ el.textContent = '—'; if(id !== 'd-gb-pctbal'){ el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo'); } } });
+      const commentEl = document.getElementById('d-comment');
+      if(commentEl) commentEl.textContent = 'Sin pozos cargados.';
+      const sartaTable = document.getElementById('d-sarta-table');
+      if(sartaTable) sartaTable.innerHTML = '<tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
+      const sartaImg = document.getElementById('d-sarta-img');
+      if(sartaImg) sartaImg.style.display = 'none';
+      document.querySelectorAll('.scope-real img').forEach(img => { img.style.display = 'none'; });
+      const commentAcuEl = document.getElementById('s-comment');
+      if(commentAcuEl) commentAcuEl.textContent = 'Sin pozos cargados.';
+      const histChart = document.getElementById('histChart');
+      if(histChart) histChart.innerHTML = '<p style="color:var(--ink-faint); font-size:12px; padding:30px; text-align:center;">Sin pozos/mediciones cargados.</p>';
+      const installGrid = document.getElementById('installGrid');
+      if(installGrid) installGrid.innerHTML = '<p style="color:var(--ink-faint); font-size:12px; padding:20px;">Sin pozos cargados.</p>';
+      const contrapesosTable = document.getElementById('d-contrapesos-table');
+      if(contrapesosTable) contrapesosTable.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin pozos cargados.</p>';
+      return;
+    }
+    const i = wellNames.indexOf(currentWell);
+
+    document.querySelectorAll('.well-select .name').forEach(el => el.textContent = currentWell);
+    document.getElementById('dtLabel').textContent = fmtDate(w.dt);
+    document.getElementById('dtIndex').textContent = `POZO ${i+1} DE ${wellNames.length}`;
+
+    document.getElementById('v-nivel').textContent = w.nivel !== null ? fmt(w.nivel) : "—";
+    document.getElementById('v-sumerg').textContent = w.sumerg !== null ? fmt(w.sumerg) : "—";
+    document.getElementById('v-sumergc').textContent = w.sumergc !== null ? fmt(w.sumergc) : "—";
+    document.getElementById('v-fomax').textContent = w.fomax !== null ? fmt(w.fomax, 1) : "—";
+    document.getElementById('v-tvsv').textContent = (w.tv !== null && w.sv !== null) ? `${fmt(w.tv,1)} / ${fmt(w.sv,1)}` : "—";
+    document.getElementById('v-wrf').textContent = w.wrf !== null ? fmt(w.wrf,1) : "—";
+
+    document.getElementById('prevBtn').style.opacity = i<=0 ? .35 : 1;
+    document.getElementById('nextBtn').style.opacity = i>=wellNames.length-1 ? .35 : 1;
+
+    // Charts: swap DYN/ACU images per selected well using CHART_MAP
+    updateChartImg('img[alt*="Carta dinamométrica"]', 'dyn', w);
+    updateChartImg('img[alt*="Nivel acústico"]', 'acu', w);
+    // showAcuChartForWell(currentWell); // desactivado: se volvio a la imagen fija (sin zoom interactivo)
+    // (el cache de historial NO se borra aca: si ya visitaste este pozo en esta
+    // sesion, se reusa y aparece al instante. Solo se invalida al guardar datos nuevos.)
+    initHistoryNav('DYN');
+    initHistoryNav('ACU');
+    const bitacoraViewEl = document.getElementById('view-bitacora');
+    if(bitacoraViewEl && bitacoraViewEl.classList.contains('active')){ bitLoadForWell(currentWell); }
+
+    // Tarea 2: Operadora (asignada) · Zona (Group, si aplica) · Batería (Sub Group)
+    const fieldTagEl = document.getElementById('fieldTag');
+    if(fieldTagEl){
+      const op = w.operadora || '—';
+      const bat = w.bateria || '—';
+      const parts = [op];
+      if(w.zona && w.zona !== w.operadora) parts.push(w.zona);
+      parts.push(bat);
+      fieldTagEl.textContent = parts.join(' · ');
+    }
+
+    // Punto 1: sincronizar el campo buscar con el pozo actual
+    const searchInput = document.getElementById('wellSearch');
+    if(searchInput){ searchInput.value = currentWell; }
+
+    // Punto 4: tiles prominentes (Fillage, Presión Tubing, SPM)
+    const fillageEl = document.getElementById('d-fillage');
+    const tubpresEl = document.getElementById('d-tubpres');
+    const spmEl = document.getElementById('d-spm');
+    if(fillageEl) fillageEl.innerHTML = w.fillage !== null && w.fillage !== undefined ? `${fmt(w.fillage,1)} <span class="unit">%</span>` : '—';
+    if(tubpresEl) tubpresEl.innerHTML = w.tubpres !== null && w.tubpres !== undefined ? `${fmt(w.tubpres,1)} <span class="unit">kg</span>` : '—';
+    if(spmEl) spmEl.textContent = w.spm !== null && w.spm !== undefined ? fmt(w.spm,2) : '—';
+
+    // Comentario del operador
+    const commentBox = document.getElementById('dinaCommentBox');
+    const commentEl = document.getElementById('d-comment');
+    if(commentEl && commentBox){
+      if(w.commentDyn){
+        commentEl.textContent = w.commentDyn;
+        commentBox.classList.remove('empty');
+      } else {
+        commentEl.textContent = 'Sin comentarios registrados para este ensayo.';
+        commentBox.classList.add('empty');
+      }
+    }
+
+    // Sonolog: campos del panel-foot + comentario del Eco
+    const sNivel = document.getElementById('s-nivel');
+    const sSumerg = document.getElementById('s-sumerg');
+    const sSumergc = document.getElementById('s-sumergc');
+    const sPcsg = document.getElementById('s-pcsg');
+    if(sNivel) sNivel.textContent = w.nivel !== null && w.nivel !== undefined ? `${fmt(w.nivel)} m` : '—';
+    if(sSumerg) sSumerg.textContent = w.sumerg !== null && w.sumerg !== undefined ? `${fmt(w.sumerg)} m` : '—';
+    if(sSumergc) sSumergc.textContent = w.sumergc !== null && w.sumergc !== undefined ? `${fmt(w.sumergc)} m` : '—';
+    if(sPcsg) sPcsg.textContent = w.pcsg !== null && w.pcsg !== undefined ? `${fmt(w.pcsg,1)} kg` : '—';
+    // s-vel, s-jts, s-rttt todavia no se capturan del CSV en el flujo de carga: quedan pendientes.
+    ['s-vel','s-jts','s-rttt','s-pctliq'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.textContent = '—';
+    });
+    const sonologCommentBox = document.getElementById('sonologCommentBox');
+    const sCommentEl = document.getElementById('s-comment');
+    if(sCommentEl && sonologCommentBox){
+      if(w.commentAcu){
+        sCommentEl.textContent = w.commentAcu;
+        sonologCommentBox.classList.remove('empty');
+      } else {
+        sCommentEl.textContent = 'Sin comentarios registrados para este ensayo.';
+        sonologCommentBox.classList.add('empty');
+      }
+    }
+
+    // Sarta de varillas: imagen + tabla dinámica
+    const sartaImg = document.getElementById('d-sarta-img');
+    const chartEntry = CHART_MAP[currentWell];
+    if(sartaImg){
+      if(chartEntry && chartEntry.sarta){
+        sartaImg.src = 'data:image/png;base64,' + chartEntry.sarta;
+        sartaImg.style.display = 'block';
+      } else {
+        sartaImg.style.display = 'none';
+      }
+    }
+    const sartaTable = document.getElemen let currentRole = null;
+  let currentUser = null; // { user, ...USERS_DB[user] } tras login
+
+  function attemptLogin(){
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginError');
+    const rec = USERS_DB[user.toLowerCase()];
+    if(currentRole === 'cliente' && rec && pass === rec.pass){
+      currentUser = Object.assign({ user: user.toLowerCase() }, rec);
+      err.style.display = 'none';
+      document.getElementById('roleStep').style.display = 'none';
+      document.getElementById('loginStep').style.display = 'none';
+      document.getElementById('loginBrand').style.display = 'none';
+      document.getElementById('dashboardStage').style.display = 'block';
+      document.body.classList.add('dash-active');
+      const tw = document.querySelector('.topbar-wrap');
+      if(tw){ document.documentElement.style.setProperty('--topbar-h', tw.offsetHeight + 'px'); }
+      initWellSearch();
+      // No se llama a initScopeForUser() todavia: eso mostraria por un instante
+      // los 21 pozos "de fabrica" embebidos en el HTML antes de que termine de
+      // llegar el dato real de Supabase. Se muestra "Cargando..." hasta tenerlo.
+      Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+      wellNames = [];
+      renderWell(); // fuerza el estado en blanco ya mismo (borra lo que haya quedado dibujado de antes de loguearse)
+      if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
+      const scopeElInit = document.getElementById('userScopeTag');
+      if(scopeElInit) scopeElInit.textContent = 'Cargando…';
+      testSupabaseConnection();
+      loadLiveDataFromSupabase().then(ok => {
+        initScopeForUser(); // primera y unica vez que se renderiza, ya con el dato real (o vacio si no hay)
+      });
+    } else {
+      err.style.display = 'block';
+    }
+  }
+
+
+  <script src="wells_data.js"></script>
+
+  function openQuickPreview(name){
+    const w = WELLS_DB[name];
+    const chart = CHART_MAP[name] || {};
+    document.getElementById('qpTitle').innerHTML = `${name} <button class="modal-close" id="qpClose2" type="button">&#10005;</button>`;
+    document.getElementById('qpClose2').addEventListener('click', ()=> document.getElementById('quickPreviewModal').classList.remove('active'));
+    const dynImg = chart.dyn ? `<img src="${chartSrc(chart.dyn)}" alt="Carta dinamométrica ${name}">` : `<div class="qp-empty">Sin carta Dina</div>`;
+    const acuImg = chart.acu ? `<img src="${chartSrc(chart.acu)}" alt="Nivel acústico ${name}">` : `<div class="qp-empty">Sin registro Sonolog</div>`;
+    document.getElementById('qpBody').innerHTML = `
+      <div class="qp-thumbs">${dynImg}${acuImg}</div>
+      <div class="qp-stats">
+        <div class="mini"><span class="lbl">Fecha</span><span class="val">${fmtDate(w.dt)}</span></div>
+        <div class="mini"><span class="lbl">Batería</span><span class="val">${w.bateria || '—'}</span></div>
+        <div class="mini"><span class="lbl">Nivel</span><span class="val">${fmtN(w.nivel,0)} m</span></div>
+        <div class="mini"><span class="lbl">Fillage</span><span class="val">${fmtN(w.fillage,1)} %</span></div>
+      </div>`;
+    document.getElementById('quickPreviewModal').classList.add('active');
+  }
+
+  function initInicioGrid(){
+    populateInicioFilterOptions();
+    renderInicioGrid();
+    ['ifSearch','ifOperadora','ifBateria','ifFecha','ifEnsayo'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', ()=>{ inicioPage = 0; renderInicioGrid(); });
+    });
+    // Sincroniza el buscador de la grilla con el del header (son un solo buscador).
+    document.getElementById('ifSearch').addEventListener('input', ()=>{
+      const wellSearch = document.getElementById('wellSearch');
+      const ifVal = document.getElementById('ifSearch').value;
+      if(wellSearch && wellSearch.value !== ifVal) wellSearch.value = ifVal;
+    });
+    document.getElementById('ifClear').addEventListener('click', ()=>{
+      document.getElementById('ifSearch').value = '';
+      const wellSearch = document.getElementById('wellSearch');
+      if(wellSearch) wellSearch.value = '';
+      document.getElementById('ifOperadora').value = '';
+      document.getElementById('ifBateria').value = '';
+      document.getElementById('ifFecha').value = '';
+      document.getElementById('ifEnsayo').value = '';
+      renderInicioGrid();
+    });
+    const modal = document.getElementById('quickPreviewModal');
+    document.getElementById('qpClose').addEventListener('click', ()=> modal.classList.remove('active'));
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
+  }
+
+  function initDinaDetailsModal(){
+    const btn = document.getElementById('dinaDetailsBtn');
+    const modal = document.getElementById('dinaDetailsModal');
+    const closeBtn = document.getElementById('dinaDetailsClose');
+    if(!btn || !modal || !closeBtn) return;
+    btn.addEventListener('click', ()=> modal.classList.add('active'));
+    closeBtn.addEventListener('click', ()=> modal.classList.remove('active'));
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
+  }
+
+  function initThemeToggle(){
+    const btn = document.getElementById('themeToggle');
+    if(!btn) return;
+    const moonIcon = document.getElementById('themeIconMoon');
+    const sunIcon = document.getElementById('themeIconSun');
+    btn.addEventListener('click', ()=>{
+      const isLight = document.body.classList.toggle('light-mode');
+      moonIcon.style.display = isLight ? 'none' : 'block';
+      sunIcon.style.display = isLight ? 'block' : 'none';
+    });
+  }
+
+
+  // ---- Tarea 4 (fase 1): carga de archivos con vista previa (sin persistencia aún) ----
+  function readFileAsText(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsText(file, 'utf-8');
+    });
+  }
+
+  function parseDelimited(text, delim){
+    const lines = text.split(/\r?\n/).filter(l => l.length);
+    return lines.map(l => l.split(delim));
+  }
+
+  function previewCsv(text, fileName){
+    // Los export de Echometer usan ';' como separador
+    const delim = text.split('\n')[0].includes(';') ? ';' : ',';
+    const rows = parseDelimited(text, delim);
+    if(rows.length < 2){
+      return `<div class="up-block"><h4>CSV — ${fileName}</h4><p class="up-warn">No se pudieron leer filas de datos.</p></div>`;
+    }
+    const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim());
+    const dataRows = rows.slice(1);
+    const idx = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+    const wellIdx = idx('Well Name'); const groupIdx = idx('Group'); const subIdx = idx('Sub Group');
+    const dateIdx = idx('Test Date'); const timeIdx = idx('Test Time'); const typeIdx = idx('Test Type');
+
+    const wells = [...new Set(dataRows.map(r => r[wellIdx]).filter(Boolean))];
+    const firstRow = dataRows[0] || [];
+
+    let html = `<div class="up-block"><h4>CSV — ${fileName}</h4>`;
+    html += `<table>
+      <tr><th>Filas</th><td>${dataRows.length}</td></tr>
+      <tr><th>Pozos detectados</th><td>${wells.length ? wells.join(', ') : '—'}</td></tr>
+      <tr><th>Operadora (Group)</th><td>${groupIdx>=0 ? (firstRow[groupIdx]||'—') : '—'}</td></tr>
+      <tr><th>Batería (Sub Group)</th><td>${subIdx>=0 ? (firstRow[subIdx]||'—') : '—'}</td></tr>
+      <tr><th>Fecha / Hora</th><td>${dateIdx>=0 ? (firstRow[dateIdx]||'—') : '—'} ${timeIdx>=0 ? (firstRow[timeIdx]||'') : ''}</td></tr>
+      <tr><th>Tipo de ensayo</th><td>${typeIdx>=0 ? (firstRow[typeIdx]||'—') : '—'}</td></tr>
+    </table>`;
+    html += `<p class="up-note">Vista previa solamente — la carga a la base de datos se habilita cuando conectemos el servidor.</p></div>`;
+    return html;
+  }
+
+  function previewTxt(text, fileName){
+    const lines = text.split(/\r?\n/).filter(l => l.length);
+    if(!lines.length){
+      return `<div class="up-block"><h4>TXT — ${fileName}</h4><p class="up-warn">Archivo vacío.</p></div>`;
+    }
+    const first = lines[0];
+    const isDyn = first.includes('\t') || /position/i.test(first);
+    const isAcu = !isDyn && first.includes(',');
+    const tipo = isDyn ? 'Dina (posición/carga)' : (isAcu ? 'Sonolog (tiempo/mV)' : 'Formato no reconocido');
+    const sample = lines.slice(0, 4).map(l => l.split(isDyn ? '\t' : ',').map(c=>c.trim()));
+
+    let html = `<div class="up-block"><h4>TXT — ${fileName}</h4>`;
+    html += `<table>
+      <tr><th>Tipo detectado</th><td>${tipo}</td></tr>
+      <tr><th>Filas de datos</th><td>${lines.length - 1}</td></tr>
+    </table>`;
+    if(sample.length){
+      html += `<table style="margin-top:8px;">` + sample.map((r,i) =>
+        `<tr>${r.map(c => i===0 ? `<th>${c}</th>` : `<td>${c}</td>`).join('')}</tr>`
+      ).join('') + `</table>`;
+    }
+    html += `<p class="up-note">Vista previa solamente — la carga a la base de datos se habilita cuando conectemos el servidor.</p></div>`;
+    return html;
+  }
+
+  // ---- Tarea 4 (fase 2): carga real y acumulativa a Supabase ----
+
+  const DYN_FIELD_MAP = {
+    peak_polished_rod_load_lb: 'Peak Polished Rod Load (lb)',
+    minimum_polished_rod_load_lb: 'Minimum Polished Rod Load (lb)',
+    computed_stroke_length_in: 'Computed Stroke Length (in)',
+    spm: 'Strokes Per Minute (SPM)',
+    beam_loading_pct: 'Beam Loading (%)',
+    polished_rod_power_hp: 'Polished Rod Power (HP)',
+    calculated_buoyant_rod_weight_lb: 'Calculated Buoyant Rod Weight (lb)',
+    fo_max_line_lb: 'Fo Max Line (lb)',
+    fo_calculated_pip_fluid_level_lb: 'Fo Calculated from PIP Fluid Level Analysis (lb)',
+    measured_fluid_load_lb: 'Measured Fluid Load (lb)',
+    maximum_plunger_stroke_in: 'Maximum Plunger Stroke (in)',
+    effective_plunger_travel_in: 'Effective Plunger Travel (in)',
+    average_fillage_pct: 'Average Fillage (%)',
+    adjusted_fillage_pct: 'Adjusted Fillage (%)',
+    gas_free_fillage_in: 'Gas Free Fillage (in)',
+    pump_displacement_m3d: 'Pump Displacement (m^3/D)',
+    volumetric_efficiency_pct: 'Volumetric Efficiency (%)',
+    polished_rod_to_pump_efficiency_pct: 'Polished Rod to Pump Efficiency (%)',
+    pump_hp: 'Pump HP (HP)',
+    pump_discharge_pressure_kg: 'Pump Discharge Pressure (kilo (g))',
+    maximum_rod_loading_goodman_pct: 'Maximum Rod Loading % Goodman',
+    rod_tubing_stretch_lb_in: 'Rod/Tubing Stretch (lb/in)',
+    tubing_stretch_lb_in: 'Tubing Stretch (lb/in)',
+    dyn_tubing_pressure_kg: 'DYN Tubing Pressure (kilo (g))',
+    existing_max_torque_upstroke_inlb: 'Existing Max Gearbox Torque. Upstroke (in-lb)',
+    existing_max_torque_downstroke_inlb: 'Existing Max Gearbox Torque. DownStroke (in-lb)',
+    existing_counterbalance_inlb: 'Existing Counterbalance (in-lb)',
+    maximum_counterbalance_inlb: 'Maximum Counterbalance (in-lb)',
+    required_counterbalance_change_inlb: 'Required Counterbalance Change (in-lb)',
+    out_of_balance_note: 'Out of Balance (in-lb)',
+    to_balance_move_note: 'To Balance Move',
+    in_balance_max_torque_upstroke_inlb: 'In Balance Max Gearbox Torque. Upstroke (in-lb)',
+    in_balance_max_torque_downstroke_inlb: 'In Balance Max Gearbox Torque. DownStroke (in-lb)',
+    dyn_casing_pressure_kg: 'DYN Casing Pressure (kilo (g))',
+    pip_dyn_kg: 'PIP DYN (kilo (g))',
+    pip_vt_kg: 'PIP VT (kilo (g))',
+  };
+  const ACU_FIELD_MAP = {
+    distance_to_liquid_m: 'Distance to Liquid (m)',
+    liquid_level_tvd_m: 'Liquid Level - TVD (m)',
+    fluid_above_pump_m: 'Fluid Above Pump (m)',
+    gas_free_above_pump_m: 'Gas Free Above Pump (m)',
+    acu_acoustic_velocity_ms: 'ACU Acoustic Velocity (m/s)',
+    average_acoustic_velocity_ms: 'Average Acoustic Velocity (m/s)',
+    interval_acoustic_velocity_ms: 'Interval Acoustic Velocity (m/s)',
+    acu_casing_pressure_kg: 'ACU Casing Pressure (kilo (g))',
+    gas_liquid_interface_pressure_kg: 'Gas/Liquid Interface Pressure (kilo (g))',
+    annular_gas_flow_m3d: 'Annular Gas Flow (m^3/D)',
+    gas_production_m3d: 'Gas Production (m^3/D)',
+    oil_production_m3d: 'Oil Production (m^3/D)',
+    water_production_m3d: 'Water Production (m^3/D)',
+    producing_efficiency_pct: 'Producing Efficiency (%)',
+    gas_gravity: 'Gas Gravity',
+    pip_ll_kg: 'PIP LL (kilo (g))',
+  };
+  const CONFIG_FIELD_MAP = {
+    tubing_od_in: 'Tubing OD (in)',
+    casing_od_in: 'Casing OD (in)',
+    formation_depth_m: 'Formation Depth (m)',
+    plugback_depth_m: 'Plugback Depth (m)',
+    pump_designation_api: 'Pump Designation (API)',
+    pump_intake_depth_m: 'Pump Intake Depth (m)',
+    plunger_diameter_in: 'Plunger Diameter (in)',
+    surface_unit_manufacturer: 'Surface Unit Manufacturer',
+    surface_unit_api: 'Surface Unit API',
+    surface_unit_class: 'Surface Unit Class',
+    surface_unit_model: 'Surface Unit Model',
+    gearbox_rating_inlb: 'Gearbox Rating (in-lb)',
+    counter_balance_moment_inlb: 'CBM (in-lb)',
+    weight_of_counterweights_lb: 'Weight of Counterweights (lb)',
+    stroke_length_in: 'Stroke Length (in)',
+  };
+
+  function parseCsvDate(d){
+    // MM/DD/YYYY -> YYYY-MM-DD
+    const p = String(d).trim().split('/');
+    if(p.length !== 3) return null;
+    const [m, day, y] = p;
+    return `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  function parseCsvTime(t){
+    // "2:52:13 PM" -> "14:52:13"
+    const m = String(t).trim().match(/(\d{1,2}):(\d{2}):(\d{2})\s*([ap])/i);
+    if(!m) return null;
+    let [, h, mi, s, ap] = m;
+    h = parseInt(h,10);
+    if(ap.toLowerCase()==='p' && h!==12) h += 12;
+    if(ap.toLowerCase()==='a' && h===12) h = 0;
+    return `${String(h).padStart(2,'0')}:${mi}:${s}`;
+  }
+  function parseTxtFilename(name){
+    // {well}_{DYN|ACU}_{seq}_{MM-DD-YYYY}_{HH-MM-SS}.txt
+    const m = name.match(/^(.*?)_(ACU|DYN)_\d+_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})-(\d{2})\.txt$/i);
+    if(!m) return null;
+    const [, well, type, mm, dd, yyyy, hh, mi, ss] = m;
+    return { well, type: type.toUpperCase(), time: `${hh}:${mi}:${ss}`, dateFromFilename: `${yyyy}-${mm}-${dd}` };
+  }
+
+  function parseCsvRows(text){
+    const delim = text.split('\n')[0].includes(';') ? ';' : ',';
+    const lines = text.split(/\r?\n/).filter(l => l.length);
+    const headers = lines[0].split(delim).map(h => h.replace(/^\uFEFF/,'').trim());
+    return lines.slice(1).map(line => {
+      const cells = line.split(delim);
+      const row = {};
+      headers.forEach((h, i) => { row[h] = cells[i] !== undefined ? cells[i].trim() : ''; });
+      return row;
+    });
+  }
+  function findCsvColumnValue(row, wantedName){
+    // Busca la columna por nombre exacto primero; si no la encuentra, prueba
+    // ignorando mayusculas/minusculas y espacios extra (los exports pueden variar).
+    if(row[wantedName] !== undefined) return row[wantedName];
+    const target = wantedName.toLowerCase().replace(/\s+/g, ' ').trim();
+    let key = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, ' ').trim() === target);
+    if(key !== undefined) return row[key];
+    // Ultimo recurso: cualquier encabezado que CONTENGA la palabra principal
+    // (ej. busca "comment" y encuentra "Test Comments (optional)" o similar).
+    const mainWord = target.split(' ')[target.split(' ').length - 1]; // ultima palabra, ej "comments"
+    key = Object.keys(row).find(k => k.toLowerCase().includes(mainWord));
+    return key !== undefined ? row[key] : undefined;
+  }
+
+  function csvVal(row, col){
+    let v = findCsvColumnValue(row, col);
+    if(v === undefined || v === null || v === '') return null;
+    // Algunas columnas (ej. diametros de casing con varias sartas) traen
+    // varios valores separados por espacio; para columnas numericas simples
+    // de la base tomamos solo el primero, en vez de romper el insert.
+    if(typeof v === 'string' && v.trim().includes(' ')){
+      const parts = v.trim().split(/\s+/);
+      if(parts.length > 1 && parts.every(p => !isNaN(Number(p)) && p !== '')){
+        v = parts[0];
+      }
+    }
+    const n = Number(v);
+    return isNaN(n) ? v : n;
+  }
+  function buildFieldValues(row, map){
+    const out = {};
+    if(!row) return out;
+    Object.keys(map).forEach(dbCol => {
+      const v = csvVal(row, map[dbCol]);
+      if(v !== null) out[dbCol] = v;
+    });
+    return out;
+  }
+
+  async function getAnyWellConfig(wellId){
+    const { data } = await supabaseClient
+      .from('well_configurations').select('well_config_id')
+      .eq('well_id', wellId).order('well_config_id', { ascending: false }).limit(1).maybeSingle();
+    return data ? data.well_config_id : null;
+  }
+
+  async function upsertWell(wellName, operadora, zona, bateria){
+    await supabaseClient.from('wells').upsert(
+      { well_name: wellName, operadora: operadora || null, zona: zona || null, bateria: bateria || null },
+      { onConflict: 'well_name', ignoreDuplicates: true }
+    );
+    const { data, error } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).single();
+    if(error) throw error;
+    return data.well_id;
+  }
+
+  async function insertRodTapers(wellConfigId, csvRow){
+    if(!csvRow) return;
+    const n = parseInt(findCsvColumnValue(csvRow, 'Rod String Number of Tapers')) || 0;
+    if(!n){
+      console.warn('Sarta: "Rod String Number of Tapers" vacío o no encontrado en el CSV para este pozo.');
+      return;
+    }
+    const splitVals = (name) => {
+      const raw = findCsvColumnValue(csvRow, name);
+      return raw ? String(raw).trim().split(/\s+/) : [];
+    };
+    const diams = splitVals('Taper Diameters (in)');
+    const lens = splitVals('Taper Lengths (m)');
+    const mfrs = splitVals('Taper Manufacturers');
+    const grades = splitVals('Taper Types');
+    const rows = [];
+    for(let i = 0; i < n; i++){
+      rows.push({
+        well_config_id: wellConfigId,
+        taper_number: i + 1,
+        diameter_in: diams[i] !== undefined ? Number(diams[i]) : null,
+        length_m: lens[i] !== undefined ? Number(lens[i]) : null,
+        manufacturer: mfrs[i] || null,
+        grade: grades[i] || null,
+      });
+    }
+    if(rows.length){
+      const { error } = await supabaseClient.from('rod_tapers').insert(rows);
+      if(error) console.error('Error guardando sarta de varillas:', JSON.stringify(error));
+    }
+  }
+
+  async function ensureWellConfig(wellId, effDate, csvRow){
+    const { data: existing } = await supabaseClient
+      .from('well_configurations').select('well_config_id')
+      .eq('well_id', wellId).eq('effective_date', effDate).maybeSingle();
+    if(existing){
+      // La config ya existia (de un intento previo) — se ACTUALIZA siempre con
+      // lo que trae el CSV ahora, nunca se queda con datos viejos silenciosamente.
+      const cfg = buildFieldValues(csvRow, CONFIG_FIELD_MAP);
+      if(Object.keys(cfg).length){
+        const { error: updErr } = await supabaseClient
+          .from('well_configurations').update(cfg).eq('well_config_id', existing.well_config_id);
+        if(updErr) console.error('Error actualizando config del pozo:', JSON.stringify(updErr));
+      }
+      const { count } = await supabaseClient
+        .from('rod_tapers').select('rod_taper_id', { count: 'exact', head: true })
+        .eq('well_config_id', existing.well_config_id);
+      if(!count){ await insertRodTapers(existing.well_config_id, csvRow); }
+      return existing.well_config_id;
+    }
+    const cfg = buildFieldValues(csvRow, CONFIG_FIELD_MAP);
+    cfg.well_id = wellId; cfg.effective_date = effDate;
+    const { data, error } = await supabaseClient.from('well_configurations').insert(cfg).select('well_config_id').single();
+    if(error) throw error;
+    await insertRodTapers(data.well_config_id, csvRow);
+    return data.well_config_id;
+  }
+
+  async function ensureTest(wellId, wellConfigId, type, date, time, sourceFile, comments){
+    const { data: existing } = await supabaseClient
+      .from('tests').select('test_id')
+      .eq('well_id', wellId).eq('test_date', date).eq('test_time', time).eq('test_type', type).maybeSingle();
+    if(existing) return { testId: existing.test_id, isNew: false };
+    const { data, error } = await supabaseClient.from('tests').insert({
+      well_id: wellId, well_config_id: wellConfigId, test_type: type,
+      test_date: date, test_time: time, source_file: sourceFile, test_comments: comments || null,
+    }).select('test_id').single();
+    if(error) throw error;
+    return { testId: data.test_id, isNew: true };
+  }
+
+  // ---- Sonolog: grafico interactivo (zoom/pan real sobre los datos) ----
+  const ACU_CURVE_CACHE = {};
+  let acuView = null; // { points, LL, vEff, tShot, xMin, xMax, fullMin, fullMax, wellName }
+
+  function detectShot(points){
+    const p = points.find(pt => Math.abs(pt.signal_mv) > 20);
+    return p ? p.time_sec : points[0].time_sec;
+  }
+
+  function detectOnsetFino(points, tShot, LL, vEff){
+    const tGuess = LL ? (2 * LL / vEff) : null;
+    if(tGuess == null) return null;
+    const win = 1.0;
+    const windowed = points
+      .map(p => ({ tRef: p.time_sec - tShot, mv: p.signal_mv }))
+      .filter(p => p.tRef > tGuess - win && p.tRef < tGuess + win);
+    if(!windowed.length) return tGuess;
+    let peakI = 0, peakAbs = 0;
+    windowed.forEach((p, i) => { if(Math.abs(p.mv) > peakAbs){ peakAbs = Math.abs(p.mv); peakI = i; } });
+    const thresh = peakAbs * 0.25;
+    let onsetI = peakI;
+    while(onsetI > 0 && Math.abs(windowed[onsetI].mv) > thresh) onsetI--;
+    return windowed[onsetI].tRef;
+  }
+
+  function loadAcuCurveForWell(wellName){
+    if(ACU_CURVE_CACHE[wellName] instanceof Promise) return ACU_CURVE_CACHE[wellName];
+    if(ACU_CURVE_CACHE[wellName]) return Promise.resolve(ACU_CURVE_CACHE[wellName]);
+    const promise = _loadAcuCurveForWellImpl(wellName).then(result => {
+      if(result){ ACU_CURVE_CACHE[wellName] = result; } // reemplaza la promesa por el dato ya resuelto
+      else { delete ACU_CURVE_CACHE[wellName]; }
+      return result;
+    });
+    ACU_CURVE_CACHE[wellName] = promise; // cachea la promesa YA, antes de que termine, para que un pedido concurrente la reuse
+    return promise;
+  }
+
+  async function _loadAcuCurveForWellImpl(wellName){
+    if(!supabaseClient) return null;
+    try{
+      const { data: tests, error: testsErr } = await supabaseClient
+        .from('tests').select('test_id, well_id, test_date, test_time, wells!inner(well_name)')
+        .eq('wells.well_name', wellName).eq('test_type', 'ACU')
+        .order('test_date', { ascending: false }).order('test_time', { ascending: false });
+      if(testsErr){ console.error('Error buscando ensayos ACU:', JSON.stringify(testsErr)); return null; }
+      if(!tests || !tests.length) return null;
+
+      // Puede haber mas de un ensayo Sonolog para el mismo pozo (reintentos, o
+      // cargas sin CSV). Se prioriza el mas reciente que SI tenga Nivel/Velocidad
+      // guardados; si ninguno los tiene, se usa el mas reciente igual (solo curva).
+      const testIds = tests.map(t => t.test_id);
+      const { data: allResults } = await supabaseClient
+        .from('acu_results').select('test_id, liquid_level_tvd_m, interval_acoustic_velocity_ms')
+        .in('test_id', testIds);
+      const resultsByTest = {};
+      (allResults || []).forEach(r => { resultsByTest[r.test_id] = r; });
+
+      let chosenTest = tests.find(t => resultsByTest[t.test_id] && resultsByTest[t.test_id].liquid_level_tvd_m != null);
+      if(!chosenTest) chosenTest = tests[0];
+      const testId = chosenTest.test_id;
+      const acuRes = resultsByTest[testId] || null;
+
+      let points = [];
+      {
+        const pageSize = 1000; // Supabase suele capear cada respuesta a 1000 igual si se pide mas
+        let from = 0, keepGoing = true, safety = 0;
+        while(keepGoing && safety < 100){
+          safety++;
+          const { data: page, error: pageErr } = await supabaseClient
+            .from('acu_curve_points').select('time_sec, signal_mv')
+            .eq('test_id', testId).order('time_sec', { ascending: true })
+            .range(from, from + pageSize - 1);
+          if(pageErr){ console.error('Error trayendo curva ACU (pagina):', JSON.stringify(pageErr)); break; }
+          if(!page || page.length === 0){ keepGoing = false; break; }
+          points = points.concat(page);
+          from += page.length; // avanza segun lo que REALMENTE llego, no lo pedido
+          if(page.length < pageSize) keepGoing = false; // pagina incompleta = era la ultima
+        }
+      }
+      if(!points || !points.length) return null;
+      const result = {
+        points,
+        LL: acuRes ? acuRes.liquid_level_tvd_m : null,
+        vEff: (acuRes && acuRes.interval_acoustic_velocity_ms) ? acuRes.interval_acoustic_velocity_ms : 400,
+      };
+      ACU_CURVE_CACHE[wellName] = result;
+      return result;
+    } catch(e){
+      console.error('Error cargando curva ACU para', wellName, e);
+      return null;
+    }
+  }
+
+  function drawAcuInteractive(){
+    const canvas = document.getElementById('acuInteractiveCanvas');
+    if(!canvas || !acuView) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.clientWidth || 900;
+    const cssHeight = 380;
+    canvas.width = cssWidth * dpr; canvas.height = cssHeight * dpr;
+    canvas.style.height = cssHeight + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const width = cssWidth, height = cssHeight;
+    const margin = { top: 55, right: 30, bottom: 45, left: 55 };
+    const plotW = width - margin.left - margin.right;
+    const plotH = height - margin.top - margin.bottom;
+
+    ctx.fillStyle = '#11141a'; ctx.fillRect(0, 0, width, height);
+
+    const { points, LL, vEff, tShot, xMin, xMax } = acuView;
+    const yMax = 1.5;
+    const xS = v => margin.left + (v - xMin) / ((xMax - xMin) || 1) * plotW;
+    const yS = v => margin.top + plotH/2 - (Math.max(-yMax, Math.min(yMax, v)) / yMax) * (plotH/2);
+
+    // grilla
+    ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+    [-1.5,-1,-0.5,0,0.5,1,1.5].forEach(v=>{
+      const y = yS(v);
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(width-margin.right, y); ctx.stroke();
+    });
+
+    // ejes
+    ctx.strokeStyle = '#3a4150'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top); ctx.lineTo(margin.left, margin.top+plotH); ctx.lineTo(width-margin.right, margin.top+plotH);
+    ctx.stroke();
+
+    // ticks eje X (tiempo abajo, profundidad arriba) recalculados segun el rango visible
+    ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    const nTicks = 6;
+    for(let i=0;i<=nTicks;i++){
+      const tv = xMin + (xMax-xMin)*i/nTicks;
+      const x = xS(tv);
+      ctx.strokeStyle = 'rgba(255,255,255,.15)';
+      ctx.beginPath(); ctx.moveTo(x, margin.top+plotH); ctx.lineTo(x, margin.top+plotH+5); ctx.stroke();
+      ctx.fillStyle = '#8a919d'; ctx.fillText(tv.toFixed(2), x, margin.top+plotH+18);
+      const depth = tv * vEff / 2;
+      ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, margin.top-5); ctx.stroke();
+      ctx.fillStyle = '#5b76e0'; ctx.fillText(depth.toFixed(0), x, margin.top-10);
+    }
+    ctx.fillStyle = '#8a919d'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Tiempo (s) — referenciado al disparo (Sh)', margin.left, height-10);
+    ctx.fillStyle = '#5b76e0'; ctx.fillText('Profundidad (m MD)', margin.left, 18);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8a919d';
+    [-1.5,-1,-0.5,0,0.5,1,1.5].forEach(v=>{ ctx.fillText(v.toFixed(1), margin.left-8, yS(v)+3); });
+
+    // traza (solo puntos dentro del rango visible +margen)
+    const padRange = (xMax - xMin) * 0.05;
+    ctx.strokeStyle = '#c9cedb'; ctx.lineWidth = 1.1; ctx.beginPath();
+    let started = false;
+    points.forEach(p => {
+      const tRef = p.time_sec - tShot;
+      if(tRef < xMin - padRange || tRef > xMax + padRange) { started = false; return; }
+      const x = xS(tRef), y = yS(p.signal_mv);
+      if(!started){ ctx.moveTo(x,y); started = true; } else { ctx.lineTo(x,y); }
+    });
+    ctx.stroke();
+
+    // clip visual del canvas (recorta lo que se sale de +-1.5)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(margin.left, margin.top, plotW, plotH); ctx.clip();
+    ctx.restore();
+
+    // linea Shot
+    if(tShot != null && 0 >= xMin && 0 <= xMax){
+      const xShot = xS(0);
+      ctx.strokeStyle = '#2255cc'; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(xShot, margin.top); ctx.lineTo(xShot, margin.top+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#5b8bff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('Shot', xShot+4, margin.top+14);
+    }
+    // linea LL
+    if(acuView.tOnset != null && acuView.tOnset >= xMin && acuView.tOnset <= xMax){
+      const xLL = xS(acuView.tOnset);
+      ctx.strokeStyle = '#eeece4'; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(xLL, margin.top); ctx.lineTo(xLL, margin.top+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#eeece4'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('LL', xLL+4, margin.top+14);
+      ctx.font = '10px sans-serif';
+      ctx.fillText(LL ? `${LL.toFixed(0)} m` : '', xLL+4, margin.top+27);
+    }
+
+    ctx.fillStyle = '#eeece4'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(`${acuView.wellName} — Nivel de Fluido Acústico`, margin.left, 36);
+  }
+
+  let acuDrawCallCount = 0;
+  function resetAcuView(){
+    if(!acuView) return;
+    let defaultSpan;
+    if(acuView.tOnset != null && Number.isFinite(acuView.tOnset)){
+      defaultSpan = acuView.tOnset + 3;
+    } else {
+      // Sin Nivel/Velocidad oficiales (CSV) para ubicar la linea LL: se muestra
+      // el registro completo en vez de un recorte arbitrario que puede quedar mal.
+      defaultSpan = acuView.fullMax;
+    }
+    acuView.xMin = 0;
+    acuView.xMax = Math.min(defaultSpan, acuView.fullMax);
+    drawAcuInteractive();
+
+    acuDrawCallCount++;
+    let dbg = document.getElementById('acuDebugLine');
+    if(!dbg){
+      dbg = document.createElement('div');
+      dbg.id = 'acuDebugLine';
+      dbg.style.cssText = 'font-family:monospace; font-size:10px; color:#c0603a; margin-top:6px; white-space:pre-wrap;';
+      const toolbar = document.getElementById('acuToolbar');
+      if(toolbar) toolbar.insertAdjacentElement('afterend', dbg);
+    }
+    const line = `[#${acuDrawCallCount} ${new Date().toLocaleTimeString()}] pozo=${acuView.wellName} puntos=${acuView.points.length} tShot=${acuView.tShot.toFixed(3)} tOnset=${acuView.tOnset==null?'null':acuView.tOnset.toFixed(3)} LL=${acuView.LL} vEff=${acuView.vEff} fullMax=${acuView.fullMax.toFixed(2)} xMax=${acuView.xMax.toFixed(2)}`;
+    dbg.textContent = (dbg.textContent ? dbg.textContent + '\n' : '') + line;
+  }
+
+  function initAcuInteractive(){
+    const canvas = document.getElementById('acuInteractiveCanvas');
+    if(!canvas) return;
+    let dragging = false, dragStartX = 0, dragStartMin = 0, dragStartMax = 0;
+
+    canvas.addEventListener('wheel', (e) => {
+      if(!acuView) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const margin = { left: 55, right: 30 };
+      const plotW = rect.width - margin.left - margin.right;
+      const frac = Math.max(0, Math.min(1, (mx - margin.left) / plotW));
+      const { xMin, xMax, fullMin, fullMax } = acuView;
+      const cursorT = xMin + frac * (xMax - xMin);
+      const zoomFactor = e.deltaY < 0 ? 0.82 : 1.22;
+      let newMin = cursorT - (cursorT - xMin) * zoomFactor;
+      let newMax = cursorT + (xMax - cursorT) * zoomFactor;
+      const minSpan = 0.1, maxSpan = fullMax - fullMin;
+      let span = newMax - newMin;
+      if(span < minSpan){ const c=(newMin+newMax)/2; newMin=c-minSpan/2; newMax=c+minSpan/2; }
+      if(span > maxSpan){ newMin = fullMin; newMax = fullMax; }
+      if(newMin < fullMin){ newMax += (fullMin-newMin); newMin = fullMin; }
+      if(newMax > fullMax){ newMin -= (newMax-fullMax); newMax = fullMax; }
+      acuView.xMin = Math.max(fullMin, newMin);
+      acuView.xMax = Math.min(fullMax, newMax);
+      drawAcuInteractive();
+    }, { passive: false });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if(!acuView) return;
+      dragging = true; dragStartX = e.clientX;
+      dragStartMin = acuView.xMin; dragStartMax = acuView.xMax;
+      canvas.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', (e) => {
+      if(!dragging || !acuView) return;
+      const rect = canvas.getBoundingClientRect();
+      const margin = { left: 55, right: 30 };
+      const plotW = rect.width - margin.left - margin.right;
+      const dt = (e.clientX - dragStartX) / plotW * (dragStartMax - dragStartMin);
+      let newMin = dragStartMin - dt, newMax = dragStartMax - dt;
+      const { fullMin, fullMax } = acuView;
+      if(newMin < fullMin){ newMax += (fullMin-newMin); newMin = fullMin; }
+      if(newMax > fullMax){ newMin -= (newMax-fullMax); newMax = fullMax; }
+      acuView.xMin = Math.max(fullMin,newMin); acuView.xMax = Math.min(fullMax,newMax);
+      drawAcuInteractive();
+    });
+    window.addEventListener('mouseup', () => { dragging = false; canvas.style.cursor = 'grab'; });
+    canvas.addEventListener('dblclick', () => resetAcuView());
+    const resetBtn = document.getElementById('acuResetZoom');
+    if(resetBtn) resetBtn.addEventListener('click', resetAcuView);
+  }
+
+  async function showAcuChartForWell(wellName){
+    const canvas = document.getElementById('acuInteractiveCanvas');
+    const toolbar = document.getElementById('acuToolbar');
+    const staticImg = document.querySelector('#acuScopeReal img[alt*="Nivel acústico"]');
+    if(!canvas) return;
+    let dbg = document.getElementById('acuDebugLine');
+    if(dbg) dbg.textContent += `\n>>> showAcuChartForWell(${wellName}) llamada a las ${new Date().toLocaleTimeString()}`;
+    const data = await loadAcuCurveForWell(wellName);
+    if(!data){
+      canvas.style.display = 'none';
+      if(toolbar) toolbar.style.display = 'none';
+      if(staticImg) staticImg.style.display = 'block';
+      return;
+    }
+    const tShot = detectShot(data.points);
+    const tOnset = detectOnsetFino(data.points, tShot, data.LL, data.vEff);
+    const fullMax = Math.max(...data.points.map(p => p.time_sec)) - tShot;
+    acuView = {
+      points: data.points, LL: data.LL, vEff: data.vEff, tShot, tOnset,
+      fullMin: 0, fullMax, wellName,
+    };
+    resetAcuView();
+    if(staticImg) staticImg.style.display = 'none';
+    canvas.style.display = 'block';
+    if(toolbar) toolbar.style.display = 'flex';
+
+    const hintEl = document.getElementById('acuNoLLHint');
+    if(!data.LL){
+      if(!hintEl){
+        const note = document.createElement('div');
+        note.id = 'acuNoLLHint';
+        note.className = 'up-warn';
+        note.style.cssText = 'font-size:11px; margin-top:6px;';
+        note.textContent = 'Este pozo no tiene Nivel Líquido / Velocidad oficiales guardados (faltó subir el CSV) — se muestra el registro completo, sin marca de nivel.';
+        toolbar.insertAdjacentElement('afterend', note);
+      }
+    } else if(hintEl){
+      hintEl.remove();
+    }
+  }
+
+
+  function renderDynCardCanvas(points, meta){
+    // meta: { wellName, wrf, foMax, tv, sv, mpt, ept, fillage, testDate, testTime }
+    const width = 1000, height = 700;
+    const margin = { top: 80, right: 40, bottom: 60, left: 70 };
+    const plotW = width - margin.left - margin.right;
+    const plotH = height - margin.top - margin.bottom;
+
+    const sPts = points.filter(p => p.surface_position_in != null && p.surface_load_lb != null);
+    const pPts = points.filter(p => p.pump_position_in != null && p.pump_load_lb != null);
+    const allPos = sPts.map(p=>p.surface_position_in).concat(pPts.map(p=>p.pump_position_in));
+    const allLoad = sPts.map(p=>p.surface_load_lb).concat(pPts.map(p=>p.pump_load_lb));
+    if(!allPos.length) return null;
+    const xMin = -2, xMax = Math.max(...allPos) + 3;
+    const loadMin = Math.min(...allLoad), loadMax = Math.max(...allLoad);
+    const pad = (loadMax - loadMin) * 0.08;
+    const yMin = loadMin - pad, yMax = loadMax + pad * 1.6;
+    const xS = v => margin.left + (v - xMin) / ((xMax - xMin) || 1) * plotW;
+    const yS = v => margin.top + plotH - (v - yMin) / ((yMax - yMin) || 1) * plotH;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#11141a'; ctx.fillRect(0, 0, width, height);
+
+    // Grilla horizontal
+    ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+    const gridSteps = 6;
+    for(let i = 0; i <= gridSteps; i++){
+      const y = margin.top + plotH * i / gridSteps;
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(width - margin.right, y); ctx.stroke();
+    }
+
+    // Ejes
+    ctx.strokeStyle = '#3a4150'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top); ctx.lineTo(margin.left, margin.top + plotH); ctx.lineTo(width - margin.right, margin.top + plotH);
+    ctx.stroke();
+
+    // Ticks + numeros de los ejes
+    ctx.fillStyle = '#8a919d'; ctx.font = '10.5px monospace';
+    for(let i = 0; i <= 5; i++){
+      const xv = xMin + (xMax - xMin) * i / 5;
+      const x = xS(xv);
+      ctx.textAlign = 'center'; ctx.fillText(xv.toFixed(0), x, margin.top + plotH + 16);
+    }
+    for(let i = 0; i <= gridSteps; i++){
+      const yv = yMin + (yMax - yMin) * i / gridSteps;
+      const y = margin.top + plotH - plotH * i / gridSteps;
+      ctx.textAlign = 'right'; ctx.fillText(yv.toFixed(0), margin.left - 8, y + 3);
+    }
+    ctx.fillStyle = '#8a919d'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Posición (in)', margin.left + plotW/2, height - 14);
+    ctx.save(); ctx.translate(20, margin.top + plotH/2); ctx.rotate(-Math.PI/2); ctx.fillText('Carga (lb)', 0, 0); ctx.restore();
+
+    // Lineas de referencia
+    function hLine(val, color, dash){
+      if(val == null) return;
+      const y = yS(val);
+      ctx.strokeStyle = color; ctx.setLineDash(dash); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(width - margin.right, y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function vLine(val, color, dash){
+      if(val == null) return;
+      const x = xS(val);
+      ctx.strokeStyle = color; ctx.setLineDash(dash); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, margin.top + plotH); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    hLine(meta.wrf, '#767c87', [6,4]);
+    hLine(meta.tv, '#3a54b8', [2,3]);
+    hLine(meta.sv, '#3a54b8', [2,3]);
+    hLine(meta.foMax, '#c0603a', [2,3]);
+    vLine(meta.mpt, '#c0603a', [6,4]);
+
+    // Cartas: superficie (navy) y fondo (bordo)
+    function drawCard(pts, xKey, yKey, color){
+      if(!pts.length) return;
+      ctx.strokeStyle = color; ctx.lineWidth = 2.4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath();
+      pts.forEach((p, i) => {
+        const x = xS(p[xKey]), y = yS(p[yKey]);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.closePath(); ctx.stroke();
+    }
+    drawCard(pPts, 'pump_position_in', 'pump_load_lb', '#8b1a1a');
+    drawCard(sPts, 'surface_position_in', 'surface_load_lb', '#3a54b8');
+
+    // Leyenda (abajo a la derecha)
+    const legX = width - margin.right - 175, legY = margin.top + plotH - 52;
+    ctx.fillStyle = 'rgba(17,20,26,.88)'; ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+    ctx.fillRect(legX, legY, 165, 44); ctx.strokeRect(legX, legY, 165, 44);
+    ctx.strokeStyle = '#3a54b8'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(legX+10, legY+14); ctx.lineTo(legX+34, legY+14); ctx.stroke();
+    ctx.fillStyle = '#eeece4'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Carta de Superficie', legX+40, legY+18);
+    ctx.strokeStyle = '#8b1a1a';
+    ctx.beginPath(); ctx.moveTo(legX+10, legY+32); ctx.lineTo(legX+34, legY+32); ctx.stroke();
+    ctx.fillText('Carta de Fondo', legX+40, legY+36);
+
+    // Caja de datos (arriba a la izquierda)
+    const f = (v, nd) => (v === null || v === undefined) ? 's/d' : Number(v).toLocaleString('es-AR', { minimumFractionDigits: nd||0, maximumFractionDigits: nd||0 });
+    const lines = [
+      `Wrf = ${f(meta.wrf)} lb`,
+      `Fo Max = ${f(meta.foMax,1)} lb`,
+      `TV medido = ${f(meta.tv,1)} lb`,
+      `SV medido = ${f(meta.sv,1)} lb`,
+      `MPT = ${f(meta.mpt,2)} in`,
+      `EPT = ${f(meta.ept,2)} in`,
+      `Fillage = ${f(meta.fillage,1)} %`,
+    ];
+    const boxX = margin.left + 12, boxY = margin.top + 10, boxW = 168, boxH = 16*lines.length + 14;
+    ctx.fillStyle = 'rgba(17,20,26,.88)'; ctx.strokeStyle = 'rgba(255,255,255,.15)';
+    ctx.fillRect(boxX, boxY, boxW, boxH); ctx.strokeRect(boxX, boxY, boxW, boxH);
+    ctx.fillStyle = '#eeece4'; ctx.font = '11px monospace'; ctx.textAlign = 'left';
+    lines.forEach((l, i) => ctx.fillText(l, boxX+10, boxY+20+i*16));
+
+    // Titulo
+    ctx.fillStyle = '#eeece4'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(`${meta.wellName} — Carta Dinamométrica (Superficie + Fondo)`, margin.left, 30);
+    ctx.font = '11px sans-serif'; ctx.fillStyle = '#8a919d';
+    ctx.fillText(`${meta.testDate||''} ${meta.testTime||''}`, margin.left, 48);
+
+    return canvas.toDataURL('image/png').split(',')[1];
+  }
+
+  function renderAcuCardCanvas(points, meta){
+    // meta: { wellName, liquidLevel, velocity, testDate, testTime }
+    if(!points.length) return null;
+    const width = 1300, height = 560;
+    const margin = { top: 90, right: 40, bottom: 60, left: 70 };
+    const plotW = width - margin.left - margin.right;
+    const plotH = height - margin.top - margin.bottom;
+
+    // --- Deteccion del pulso de disparo: primer punto con |mV| > 20 ---
+    const shotIdx = points.findIndex(p => Math.abs(p.signal_mv) > 20);
+    const tShot = shotIdx >= 0 ? points[shotIdx].time_sec : points[0].time_sec;
+    const withRef = points.map(p => ({ tRef: p.time_sec - tShot, mv: p.signal_mv }));
+
+    // --- Velocidad oficial (CSV) y nivel liquido: nunca se autocalcula ---
+    const vEff = (meta.velocity && meta.velocity > 0) ? meta.velocity : 400.0;
+    const LL = meta.liquidLevel;
+    const tGuess = LL ? (2 * LL / vEff) : null;
+
+    // --- Ajuste fino: borde de ataque de la deflexion mas cercana a la
+    //     estimacion oficial (no el centro, el punto donde arranca a moverse) ---
+    let tOnset = tGuess;
+    if(tGuess != null){
+      const win = 1.0;
+      const windowed = withRef.filter(p => p.tRef > tGuess - win && p.tRef < tGuess + win);
+      if(windowed.length){
+        let peakI = 0, peakAbs = 0;
+        windowed.forEach((p,i) => { if(Math.abs(p.mv) > peakAbs){ peakAbs = Math.abs(p.mv); peakI = i; } });
+        const thresh = peakAbs * 0.25;
+        let onsetI = peakI;
+        while(onsetI > 0 && Math.abs(windowed[onsetI].mv) > thresh) onsetI--;
+        tOnset = windowed[onsetI].tRef;
+      }
+    }
+
+    // --- Vista: TODO el registro completo (no se recorta), igual al software real ---
+    const fullMax = Math.max(...withRef.map(p => p.tRef));
+    const xMin = 0, xMax = fullMax;
+    const yMin = -1.5, yMax = 1.5; // escala fija chica: el disparo se deja cortar, no se autoescala
+    const xS = v => margin.left + (v - xMin) / ((xMax - xMin) || 1) * plotW;
+    const yS = v => margin.top + plotH - (Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin) * plotH;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fbfbfb'; ctx.fillRect(0, 0, width, height);
+
+    // Grilla
+    ctx.strokeStyle = '#dddddd'; ctx.lineWidth = 1;
+    [-1.5,-1,-0.5,0,0.5,1,1.5].forEach(v=>{
+      const y = yS(v);
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(width - margin.right, y); ctx.stroke();
+    });
+
+    // Ejes
+    ctx.strokeStyle = '#333333'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top); ctx.lineTo(margin.left, margin.top + plotH); ctx.lineTo(width - margin.right, margin.top + plotH);
+    ctx.stroke();
+
+    // Ticks eje X inferior (tiempo, seg) + eje X superior (profundidad, m)
+    ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    const nTicks = Math.min(12, Math.round(xMax));
+    for(let i = 0; i <= nTicks; i++){
+      const tv = xMin + (xMax - xMin) * i / nTicks;
+      const x = xS(tv);
+      ctx.strokeStyle = '#cccccc';
+      ctx.beginPath(); ctx.moveTo(x, margin.top + plotH); ctx.lineTo(x, margin.top + plotH + 5); ctx.stroke();
+      ctx.fillStyle = '#222222'; ctx.fillText(tv.toFixed(0), x, margin.top + plotH + 22);
+      const depth = tv * vEff / 2;
+      ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, margin.top - 5); ctx.stroke();
+      ctx.fillStyle = '#333333'; ctx.fillText(depth.toFixed(0), x, margin.top - 12);
+    }
+    ctx.fillStyle = '#222222'; ctx.font = '14px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Tiempo (s) — referenciado al disparo (Sh)', margin.left, height - 12);
+    ctx.textAlign = 'center';
+    ctx.fillText('Profundidad (m MD)', margin.left + plotW/2, margin.top - 45);
+    ctx.textAlign = 'right';
+    [-1.5,-1,-0.5,0,0.5,1,1.5].forEach(v=>{ ctx.fillText(v.toFixed(1), margin.left-10, yS(v)+5); });
+    ctx.save(); ctx.translate(22, margin.top + plotH/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center';
+    ctx.fillText('Señal (mV)', 0, 0); ctx.restore();
+
+    // Traza de la señal (negra sobre fondo claro, igual al software real)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(margin.left, margin.top, plotW, plotH); ctx.clip();
+    ctx.strokeStyle = '#111111'; ctx.lineWidth = 1.1; ctx.beginPath();
+    let started = false;
+    withRef.forEach(p => {
+      if(p.tRef < xMin || p.tRef > xMax) { started = false; return; }
+      const x = xS(p.tRef), y = yS(p.mv);
+      if(!started){ ctx.moveTo(x,y); started = true; } else { ctx.lineTo(x,y); }
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // Linea Shot
+    const xShot = xS(0);
+    ctx.strokeStyle = '#2255cc'; ctx.setLineDash([5,4]); ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(xShot, margin.top); ctx.lineTo(xShot, margin.top+plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#2255cc'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Shot', xShot+6, margin.top+22);
+
+    // Linea LL (nivel)
+    if(tOnset != null && tOnset >= xMin && tOnset <= xMax){
+      const xLL = xS(tOnset);
+      ctx.strokeStyle = '#111111'; ctx.setLineDash([5,4]); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(xLL, margin.top); ctx.lineTo(xLL, margin.top+plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#111111'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('LL', xLL+6, margin.top+22);
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(LL ? `${LL.toFixed(0)} m` : '', xLL+6, margin.top+38);
+    }
+
+    // Titulo
+    ctx.fillStyle = '#111111'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`${meta.wellName} — Nivel de Fluido Acústico`, width/2, 26);
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`${meta.testDate||''} ${meta.testTime||''}   |   Vel. oficial (CSV) = ${vEff.toFixed(1)} m/s`, width/2, 48);
+
+    return canvas.toDataURL('image/png').split(',')[1];
+  }
+
+  async function insertChunked(table, rows, chunkSize){
+    for(let i = 0; i < rows.length; i += chunkSize){
+      const chunk = rows.slice(i, i + chunkSize);
+      const { error } = await supabaseClient.from(table).insert(chunk);
+      if(error) throw error;
+    }
+  }
+
+  function safePathName(name){
+    return String(name).replace(/[^\w\-]/g, '_');
+  }
+
+  // ---- Historial: navegar entre ensayos viejos del mismo pozo ----
+  const WELL_HISTORY_CACHE = {}; // wellName -> { DYN: [tests...], ACU: [tests...] }
+  const historyIdx = { DYN: 0, ACU: 0 }; // indice actual dentro del historial del pozo abierto
+
+  const CONTRAPESOS_CACHE = {};
+
+  async function loadContrapesosForWell(wellName){
+    const table = document.getElementById('d-contrapesos-table');
+    if(!table) return;
+    if(!(wellName in CONTRAPESOS_CACHE)){
+      if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = null; }
+      else {
+        try{
+          const wellNumber = String(wellName).replace(/\D/g, '');
+          if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
+          else {
+            const { data, error } = await supabaseClient
+              .from('field_log').select('fecha, contrapesos')
+              .eq('well_number', wellNumber)
+              .not('contrapesos', 'is', null)
+              .order('fecha', { ascending: false }).limit(1).maybeSingle();
+            if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
+            else { CONTRAPESOS_CACHE[wellName] = data || null; }
+          }
+        } catch(e){
+          console.error('Excepción buscando contrapesos:', e);
+          CONTRAPESOS_CACHE[wellName] = null;
+        }
+      }
+    }
+    const row = CONTRAPESOS_CACHE[wellName];
+    if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
+    if(!row || !row.contrapesos || !row.contrapesos.cranks || !row.contrapesos.cranks.length){
+      table.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo (no hay bitácora cargada, o no trae este dato).</p>';
+      return;
+    }
+    let cardsHtml = '';
+    row.contrapesos.cranks.forEach(crank => {
+      (crank.counterweights || []).forEach(cw => {
+        const crankClass = crank.crank_no === 2 ? 'crank-2' : 'crank-1';
+        cardsHtml += `<div class="cp-card">
+          <div class="cp-card-title ${crankClass}">Manivela ${crank.crank_no}${crank.crank_code ? ' ('+crank.crank_code+')' : ''} · Contrapeso ${cw.cw_no}</div>
+          <div class="cp-grid">
+            <div class="cp-lbl">Placa Ppal.</div><div class="cp-val">${cw.principal || '—'}</div>
+            <div class="cp-lbl">Aux 1</div><div class="cp-val">${cw.aux1 || '—'}</div>
+            <div class="cp-lbl">Aux 2</div><div class="cp-val">${cw.aux2 || '—'}</div>
+            <div class="cp-lbl">Distancia</div><div class="cp-val">${cw.distancia_cm != null ? cw.distancia_cm+' cm' : '—'}</div>
+          </div>
+        </div>`;
+      });
+    });
+    table.innerHTML = cardsHtml;
+  }
+
+  async function loadWellHistory(wellName, type){
+    const cacheKey = wellName;
+    if(WELL_HISTORY_CACHE[cacheKey] && WELL_HISTORY_CACHE[cacheKey][type]) return WELL_HISTORY_CACHE[cacheKey][type];
+    if(!supabaseClient) return [];
+    try{
+      const { data: wellRow } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).maybeSingle();
+      if(!wellRow) return [];
+      const { data: tests, error } = await supabaseClient
+        .from('tests').select('test_id, test_date, test_time, test_comments')
+        .eq('well_id', wellRow.well_id).eq('test_type', type)
+        .order('test_date', { ascending: false }).order('test_time', { ascending: false });
+      if(error){ console.error('Error trayendo historial:', JSON.stringify(error)); return []; }
+      const testIds = (tests || []).map(t => t.test_id);
+      let resultsById = {};
+      if(testIds.length){
+        const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
+        const { data: results } = await supabaseClient.from(table).select('*').in('test_id', testIds);
+        (results || []).forEach(r => { resultsById[r.test_id] = r; });
+      }
+      const list = (tests || []).map(t => Object.assign({}, t, { results: resultsById[t.test_id] || {} }));
+      if(!WELL_HISTORY_CACHE[cacheKey]) WELL_HISTORY_CACHE[cacheKey] = {};
+      WELL_HISTORY_CACHE[cacheKey][type] = list;
+      return list;
+    } catch(e){
+      console.error('Excepción trayendo historial:', e);
+      return [];
+    }
+  }
+
+  async function initHistoryNav(type){
+    const list = await loadWellHistory(currentWell, type);
+    historyIdx[type] = 0; // arranca en el mas reciente
+    renderHistoryEntry(type, list);
+    if(type === 'DYN'){ updateDaysSinceDyn(list); }
+  }
+
+  function updateDaysSinceDyn(list){
+    const chip = document.getElementById('daysSinceDyn');
+    if(!chip) return;
+    if(!list || !list.length){
+      chip.style.visibility = 'hidden';
+      return;
+    }
+    const lastDate = list[0].test_date; // el mas reciente (la lista viene ordenada desc)
+    const dias = Math.floor((new Date() - new Date(lastDate + 'T00:00:00')) / 86400000);
+    let clase = 'ds-verde';
+    if(dias > 60) clase = 'ds-rojo';
+    else if(dias > 30) clase = 'ds-naranja';
+    else if(dias > 15) clase = 'ds-amarillo';
+    chip.className = 'days-since-chip ' + clase;
+    chip.textContent = dias === 0 ? 'Dina de hoy' : `${dias} día${dias===1?'':'s'} sin Dina`;
+    chip.title = `Último ensayo Dina: ${fmtDate(lastDate)}`;
+    chip.style.visibility = 'visible';
+  }
+
+  function renderHistoryEntry(type, list){
+    const prefix = type === 'DYN' ? 'dyn' : 'acu';
+    const labelEl = document.getElementById(`${prefix}-hist-label`);
+    const ctrlEl = document.getElementById(`${prefix}-hist-nav`);
+    if(!list.length){
+      if(labelEl) labelEl.textContent = 'Sin historial';
+      if(ctrlEl) ctrlEl.style.visibility = 'hidden';
+      return;
+    }
+    if(ctrlEl) ctrlEl.style.visibility = 'visible';
+    const idx = historyIdx[type];
+    const t = list[idx];
+    if(labelEl) labelEl.textContent = `${fmtDate(t.test_date)} (${idx+1}/${list.length})`;
+
+    if(type === 'DYN'){
+      const r = t.results || {};
+      const setTxt = (id, val, unit, dec) => { const el = document.getElementById(id); if(el) el.textContent = (val!=null)?`${fmt(val,dec)}${unit||''}`:'—'; };
+      setTxt('d-fillage', r.average_fillage_pct, '', 1);
+      setTxt('d-tubpres', r.dyn_tubing_pressure_kg, '', 1);
+      setTxt('d-spm', r.spm, '', 2);
+      const commentEl = document.getElementById('d-comment');
+      const commentBox = document.getElementById('dinaCommentBox');
+      if(commentEl && commentBox){
+        if(t.test_comments){ commentEl.textContent = t.test_comments; commentBox.classList.remove('empty'); }
+        else { commentEl.textContent = 'Sin comentarios registrados para este ensayo.'; commentBox.classList.add('empty'); }
+      }
+      const chartUrl = supabaseClient.storage.from('cartas').getPublicUrl(chartHistPath(currentWell, 'DYN', t.test_date, t.test_time)).data.publicUrl;
+      const img = document.querySelector('#view-dina .scope-real img');
+      if(img){
+        img.onerror = () => { img.style.display = 'none'; showNoChartNote('view-dina', true); };
+        img.onload = () => { img.style.display = 'block'; showNoChartNote('view-dina', false); };
+        img.src = chartUrl + '?t=' + Date.now();
+      }
+    } else {
+      const r = t.results || {};
+      const setTxt = (id, val, unit, dec) => { const el = document.getElementById(id); if(el) el.textContent = (val!=null)?`${fmt(val,dec)}${unit||''}`:'—'; };
+      setTxt('s-nivel', r.liquid_level_tvd_m, ' m', 0);
+      setTxt('s-sumerg', r.fluid_above_pump_m, ' m', 0);
+      setTxt('s-sumergc', r.gas_free_above_pump_m, ' m', 0);
+      setTxt('s-pcsg', r.acu_casing_pressure_kg, ' kg', 1);
+      const sCommentEl = document.getElementById('s-comment');
+      const sBox = document.getElementById('sonologCommentBox');
+      if(sCommentEl && sBox){
+        if(t.test_comments){ sCommentEl.textContent = t.test_comments; sBox.classList.remove('empty'); }
+        else { sCommentEl.textContent = 'Sin comentarios registrados para este ensayo.'; sBox.classList.add('empty'); }
+      }
+      const chartUrl = supabaseClient.storage.from('cartas').getPublicUrl(chartHistPath(currentWell, 'ACU', t.test_date, t.test_time)).data.publicUrl;
+      const img = document.querySelector('#acuScopeReal img[alt*="Nivel acústico"]');
+      const canvas = document.getElementById('acuInteractiveCanvas');
+      if(canvas) canvas.style.display = 'none';
+      if(img){
+        img.onerror = () => { img.style.display = 'none'; showNoChartNote('view-sonolog', true); };
+        img.onload = () => { img.style.display = 'block'; showNoChartNote('view-sonolog', false); };
+        img.src = chartUrl + '?t=' + Date.now();
+      }
+    }
+  }
+
+  function showNoChartNote(viewId, show){
+    const view = document.getElementById(viewId);
+    if(!view) return;
+    let note = view.querySelector('.no-chart-hist-note');
+    if(show){
+      if(!note){
+        note = document.createElement('div');
+        note.className = 'no-chart-hist-note';
+        note.style.cssText = 'padding:30px; text-align:center; color:var(--ink-faint); font-size:12px; background:var(--panel-2); border-radius:8px;';
+        note.textContent = 'La carta gráfica de esta fecha no está disponible (se empezaron a guardar por fecha recién ahora — subí de nuevo este TXT para archivarla).';
+        const scopeReal = view.querySelector('.scope-real');
+        if(scopeReal) scopeReal.appendChild(note);
+      }
+    } else if(note){ note.remove(); }
+  }
+
+  function navHistory(type, dir){
+    const list = (WELL_HISTORY_CACHE[currentWell] && WELL_HISTORY_CACHE[currentWell][type]) || [];
+    if(!list.length) return;
+    historyIdx[type] = Math.max(0, Math.min(list.length - 1, historyIdx[type] + dir));
+    renderHistoryEntry(type, list);
+  }
+
+  // ---- Bitacora Online: prueba real (buscar pozo, editar, guardar) ----
+  let bitSistemaActual = 'AIB';
+
+  function bitSetSistema(sistema){
+    bitSistemaActual = sistema;
+    document.querySelectorAll('.bit-pill').forEach(b => b.classList.toggle('active', b.dataset.sistema === sistema));
+    const esAib = (sistema === 'AIB');
+    const esBesPcp = (sistema === 'BES' || sistema === 'PCP');
+    const carreraWrap = document.getElementById('bit-carrera-wrap');
+    const tipoopWrap = document.getElementById('bit-tipoop-wrap');
+    const tipoensayoWrap = document.getElementById('bit-tipoensayo-wrap');
+    const motorWrap = document.getElementById('bit-motor-wrap');
+    const besWrap = document.getElementById('bit-bes-wrap');
+    if(carreraWrap) carreraWrap.style.display = esAib ? '' : 'none';
+    if(tipoopWrap) tipoopWrap.style.display = esAib ? '' : 'none';
+    if(tipoensayoWrap) tipoensayoWrap.style.display = esAib ? '' : 'none';
+    if(motorWrap) motorWrap.style.display = esAib ? '' : 'none';
+    if(besWrap) besWrap.style.display = esBesPcp ? 'grid' : 'none';
+  }
+
+  function bitClearForm(){
+    ['bit-tbg','bit-nivel','bit-carrera','bit-hz','bit-pip','bit-rpm-bes','bit-torque',
+     'bit-motor-marca','bit-motor-rpm','bit-motor-hp','bit-motor-polea','bit-observaciones']
+      .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    const csgEl = document.getElementById('bit-csg'); if(csgEl) csgEl.value = '';
+  }
+
+  async function bitLoadForWell(wellName){
+    const stamp = document.getElementById('bitacoraStamp');
+    if(!wellName){ if(stamp) stamp.textContent = 'Buscá un pozo arriba'; return; }
+    if(!supabaseClient) return;
+    bitClearForm();
+    if(stamp) stamp.textContent = `${wellName} — buscando última visita…`;
+    try{
+      const { data: wellRow } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).maybeSingle();
+      if(!wellRow){
+        if(stamp) stamp.textContent = `${wellName} — pozo no encontrado en la base (cargalo primero por Herramientas)`;
+        return;
+      }
+      const { data: visitas } = await supabaseClient
+        .from('bitacora_visitas').select('*').eq('well_id', wellRow.well_id)
+        .order('fecha', { ascending: false }).order('created_at', { ascending: false }).limit(1);
+      const v = (visitas && visitas[0]) || null;
+      if(v){
+        bitSetSistema(v.sistema_extraccion || 'AIB');
+        document.getElementById('bit-tbg').value = v.presion_tubing_kg ?? '';
+        document.getElementById('bit-csg').value = v.presion_casing_kg ?? '';
+        document.getElementById('bit-nivel').value = v.nivel_medido_m ?? '';
+        document.getElementById('bit-nivel-estado').value = v.nivel_estado || 'OK';
+        document.getElementById('bit-carrera').value = v.carrera_in ?? '';
+        document.getElementById('bit-tipoop').value = v.tipo_operacion || 'Combinada';
+        document.getElementById('bit-tipoensayo').value = v.tipo_ensayo || 'Dinamico';
+        document.getElementById('bit-modo').value = v.modo_disparo || 'Explosion';
+        document.getElementById('bit-hz').value = v.hz ?? '';
+        document.getElementById('bit-pip').value = v.pip_kg ?? '';
+        document.getElementById('bit-rpm-bes').value = v.rpm_bes ?? '';
+        document.getElementById('bit-torque').value = v.torque_inlb ?? '';
+        document.getElementById('bit-motor-marca').value = v.motor_marca || '';
+        document.getElementById('bit-motor-rpm').value = v.motor_rpm ?? '';
+        document.getElementById('bit-motor-hp').value = v.motor_hp ?? '';
+        document.getElementById('bit-motor-polea').value = v.motor_polea || '';
+        document.getElementById('bit-observaciones').value = v.observaciones || '';
+        if(stamp) stamp.textContent = `${wellName} — última visita: ${fmtDate(v.fecha)}`;
+      } else {
+        bitSetSistema('AIB');
+        if(stamp) stamp.textContent = `${wellName} — sin visitas de bitácora todavía (será la primera)`;
+      }
+    } catch(e){
+      console.error('Error cargando bitácora:', e);
+      if(stamp) stamp.textContent = 'Error al buscar la última visita — ver consola.';
+    }
+  }
+
+  async function bitGuardar(){
+    const msg = document.getElementById('bitSaveMsg');
+    if(!currentWell){ if(msg){ msg.style.color = '#ff7373'; msg.textContent = 'No hay ningún pozo seleccionado.'; } return; }
+    if(!supabaseClient) return;
+    if(msg){ msg.style.color = 'var(--ink-dim)'; msg.textContent = 'Guardando…'; }
+    try{
+      const { data: wellRow, error: wellErr } = await supabaseClient.from('wells').select('well_id, operadora').eq('well_name', currentWell).maybeSingle();
+      if(wellErr) throw wellErr;
+      if(!wellRow){
+        if(msg){ msg.style.color = '#ff7373'; msg.textContent = `"${currentWell}" no existe todavía en la base — cargalo primero por Herramientas.`; }
+        return;
+      }
+      const numOrNull = (id) => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+      const row = {
+        well_id: wellRow.well_id,
+        well_name_raw: currentWell,
+        operadora: wellRow.operadora,
+        fecha: new Date().toISOString().slice(0,10),
+        sistema_extraccion: bitSistemaActual,
+        presion_tubing_kg: numOrNull('bit-tbg'),
+        presion_casing_kg: numOrNull('bit-csg'),
+        modo_disparo: document.getElementById('bit-modo').value,
+        nivel_medido_m: numOrNull('bit-nivel'),
+        nivel_estado: document.getElementById('bit-nivel-estado').value,
+        carrera_in: numOrNull('bit-carrera'),
+        tipo_operacion: document.getElementById('bit-tipoop').value,
+        tipo_ensayo: document.getElementById('bit-tipoensayo').value,
+        hz: numOrNull('bit-hz'),
+        pip_kg: numOrNull('bit-pip'),
+        rpm_bes: numOrNull('bit-rpm-bes'),
+        torque_inlb: numOrNull('bit-torque'),
+        motor_marca: document.getElementById('bit-motor-marca').value || null,
+        motor_rpm: numOrNull('bit-motor-rpm'),
+        motor_hp: numOrNull('bit-motor-hp'),
+        motor_polea: document.getElementById('bit-motor-polea').value || null,
+        observaciones: document.getElementById('bit-observaciones').value || null,
+      };
+      const { error: insErr } = await supabaseClient.from('bitacora_visitas').insert(row);
+      if(insErr) throw insErr;
+      if(msg){ msg.style.color = '#5fd68a'; msg.textContent = `Guardado ✓ (${currentWell}, ${row.fecha})`; }
+      const stamp = document.getElementById('bitacoraStamp');
+      if(stamp) stamp.textContent = `${currentWell} — última visita: ${fmtDate(row.fecha)} (recién guardada)`;
+    } catch(e){
+      console.error('Error guardando bitácora:', e);
+      if(msg){ msg.style.color = '#ff7373'; msg.textContent = 'Error al guardar: ' + (e.message || JSON.stringify(e)); }
+    }
+  }
+
+  function chartHistPath(wellName, type, testDate, testTime){
+    const safeTime = (testTime || '00-00-00').replace(/:/g, '-');
+    return `${safePathName(wellName)}_${type}_${testDate}_${safeTime}.png`;
+  }
+
+  async function uploadChartToStorage(wellName, type, base64Png, testDate, testTime){
+    try{
+      const byteChars = atob(base64Png);
+      const bytes = new Uint8Array(byteChars.length);
+      for(let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'image/png' });
+
+      // 1) Copia permanente por ensayo (para poder navegar el historial mas adelante,
+      //    nunca se pisa: cada fecha guarda su propia carta para siempre).
+      if(testDate){
+        const histPath = chartHistPath(wellName, type, testDate, testTime);
+        const { error: histErr } = await supabaseClient.storage.from('cartas').upload(histPath, blob, {
+          upsert: true, contentType: 'image/png',
+        });
+        if(histErr) console.error('Error subiendo carta histórica a Storage:', JSON.stringify(histErr));
+      }
+
+      // 2) "Ultima" (se sigue pisando, para la vista rapida/grilla que solo muestra la mas reciente)
+      const path = `${safePathName(wellName)}_${type}.png`;
+      const { error } = await supabaseClient.storage.from('cartas').upload(path, blob, {
+        upsert: true, contentType: 'image/png',
+      });
+      if(error){ console.error('Error subiendo carta a Storage:', JSON.stringify(error)); return null; }
+      const { data } = supabaseClient.storage.from('cartas').getPublicUrl(path);
+      return data ? data.publicUrl + '?t=' + Date.now() : null; // cache-bust para ver la version nueva
+    } catch(e){
+      console.error('Excepción subiendo carta a Storage:', e);
+      return null;
+    }
+  }
+
+  async function saveToDatabase(csvFile, txtFiles, operadora, logFn){
+    if(!supabaseClient) throw new Error('Cliente de Supabase no inicializado.');
+    if(!operadora) throw new Error('Elegí la operadora a la que pertenece este pozo/CSV.');
+    if(!txtFiles.length && !csvFile) throw new Error('Elegí al menos un archivo TXT (o el CSV general).');
+
+    const csvRows = csvFile ? parseCsvRows(await readFileAsText(csvFile)) : [];
+    const summary = { wells: new Set(), altaSinEnsayo: new Set(), tests: 0, dynPoints: 0, acuPoints: 0, omitidos: [] };
+    const matchedWells = new Set();
+    const consumedCsvRows = new Set(); // filas del CSV ya usadas por un TXT emparejado
+
+    for(const f of txtFiles){
+      const meta = parseTxtFilename(f.name);
+      if(!meta){
+        summary.omitidos.push(`${f.name} (nombre de archivo no reconocido)`);
+        continue;
+      }
+
+      let csvRow = null;
+      if(csvRows.length){
+        const csvMatch = csvRows.filter(r =>
+          (r['Well Name']||'').trim() === meta.well &&
+          parseCsvTime(r['Time']) === meta.time
+        );
+        if(csvMatch.length === 1){
+          csvRow = csvMatch[0];
+          consumedCsvRows.add(csvRow);
+          meta.date = parseCsvDate(findCsvColumnValue(csvRow, 'Date'));
+        } else {
+          let detail = csvMatch.length===0 ? 'sin fila del CSV que coincida (pozo+hora)' : 'coincide con más de una fila del CSV';
+          if(csvMatch.length === 0){
+            const wellRows = csvRows.filter(r => (r['Well Name']||'').trim() === meta.well);
+            if(wellRows.length){
+              const horas = wellRows.map(r => `${r['Time']} → ${parseCsvTime(r['Time'])}`).join(', ');
+              detail += `. El pozo "${meta.well}" sí está en el CSV, buscando hora ${meta.time}, horas disponibles: ${horas}`;
+            } else {
+              const nombres = [...new Set(csvRows.map(r => (r['Well Name']||'').trim()))].slice(0,15).join(', ');
+              detail += `. El pozo "${meta.well}" no aparece en el CSV. Nombres en el CSV: ${nombres}`;
+            }
+          }
+          summary.omitidos.push(`${f.name} (${detail})`);
+          continue;
+        }
+      } else {
+        // Sin CSV: el pozo ya deberia existir con su configuracion cargada antes.
+        // Se usa la fecha/hora del propio nombre del archivo TXT.
+        meta.date = meta.dateFromFilename;
+      }
+
+      if(!meta.date){
+        summary.omitidos.push(`${f.name} (no se pudo determinar la fecha del ensayo)`);
+        continue;
+      }
+      logFn(`Procesando ${meta.well} · ${meta.type} · ${meta.date} ${meta.time}${csvRow ? '' : ' (sin CSV — solo curva)'}…`);
+      matchedWells.add(meta.well);
+
+      const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null);
+      let wellConfigId;
+      if(csvRow){
+        wellConfigId = await ensureWellConfig(wellId, meta.date, csvRow);
+      } else {
+        wellConfigId = await getAnyWellConfig(wellId);
+        if(!wellConfigId){
+          wellConfigId = await ensureWellConfig(wellId, meta.date, null);
+        }
+      }
+      const { testId, isNew } = await ensureTest(wellId, wellConfigId, meta.type, meta.date, meta.time, f.name, csvRow ? findCsvColumnValue(csvRow, 'Test Comments') : null);
+      summary.wells.add(meta.well);
+      if(isNew) summary.tests++;
+
+      const txtText = await readFileAsText(f);
+      const txtLines = txtText.split(/\r?\n/).filter(l => l.length);
+
+      if(meta.type === 'DYN'){
+        let dynVals = csvRow ? buildFieldValues(csvRow, DYN_FIELD_MAP) : {};
+        if(csvRow){
+          const vals = Object.assign({}, dynVals);
+          vals.test_id = testId;
+          const { error } = await supabaseClient.from('dyn_results').upsert(vals, { onConflict: 'test_id' });
+          if(error) throw error;
+        } else {
+          const { data: existingDyn } = await supabaseClient
+            .from('dyn_results')
+            .select('calculated_buoyant_rod_weight_lb, fo_max_line_lb, peak_polished_rod_load_lb, minimum_polished_rod_load_lb, maximum_plunger_stroke_in, effective_plunger_travel_in, average_fillage_pct')
+            .eq('test_id', testId).maybeSingle();
+          if(existingDyn){
+            dynVals = {
+              calculated_buoyant_rod_weight_lb: existingDyn.calculated_buoyant_rod_weight_lb,
+              fo_max_line_lb: existingDyn.fo_max_line_lb,
+              peak_polished_rod_load_lb: existingDyn.peak_polished_rod_load_lb,
+              minimum_polished_rod_load_lb: existingDyn.minimum_polished_rod_load_lb,
+              maximum_plunger_stroke_in: existingDyn.maximum_plunger_stroke_in,
+              effective_plunger_travel_in: existingDyn.effective_plunger_travel_in,
+              average_fillage_pct: existingDyn.average_fillage_pct,
+            };
+          }
+        }
+        const header = txtLines[0].split('\t').map(h=>h.trim().replace(/^#/, ''));
+        const iSP = header.indexOf('Surface Card Position'), iSL = header.indexOf('Surface Card Load');
+        const iPP = header.indexOf('Pump Card Position'), iPL = header.indexOf('Pump Card Load');
+        if(iSP === -1 || iSL === -1){
+          logFn(`  ⚠ No se encontraron las columnas "Surface Card Position/Load" en el TXT (encabezado: ${header.join(' | ')}) — la carta de Superficie va a quedar vacía.`);
+        }
+        if(iPP === -1 || iPL === -1){
+          logFn(`  ⚠ No se encontraron las columnas "Pump Card Position/Load" en el TXT (encabezado: ${header.join(' | ')}) — la carta de Fondo va a quedar vacía.`);
+        }
+        const numOrNull = (v) => {
+          if(v === undefined || v === '') return null;
+          const n = Number(v);
+          return Number.isFinite(n) ? n : null;
+        };
+        const points = txtLines.slice(1).map((line, idx) => {
+          const c = line.split('\t');
+          const sp = numOrNull(c[iSP]), sl = numOrNull(c[iSL]);
+          const pp = numOrNull(c[iPP]), pl = numOrNull(c[iPL]);
+          return {
+            test_id: testId, seq_index: idx,
+            surface_position_in: sp, surface_load_lb: sl !== null ? sl * 1000 : null,
+            pump_position_in: pp, pump_load_lb: pl !== null ? pl * 1000 : null,
+          };
+        });
+        if(isNew){ await insertChunked('dyn_curve_points', points, 1000); }
+        summary.dynPoints += points.length;
+        const dynB64 = renderDynCardCanvas(points, {
+          wellName: meta.well,
+          wrf: dynVals.calculated_buoyant_rod_weight_lb,
+          foMax: dynVals.fo_max_line_lb,
+          tv: dynVals.peak_polished_rod_load_lb,
+          sv: dynVals.minimum_polished_rod_load_lb,
+          mpt: dynVals.maximum_plunger_stroke_in,
+          ept: dynVals.effective_plunger_travel_in,
+          fillage: dynVals.average_fillage_pct,
+          testDate: meta.date,
+          testTime: meta.time,
+        });
+        if(dynB64){
+          CHART_MAP[meta.well] = Object.assign({}, CHART_MAP[meta.well], { dyn: dynB64 });
+          const url = await uploadChartToStorage(meta.well, 'DYN', dynB64, meta.date, meta.time);
+          if(url){ CHART_MAP[meta.well].dyn = url; logFn(`  ↳ carta Dina guardada en Storage`); }
+        }
+      } else {
+        let acuVals = csvRow ? buildFieldValues(csvRow, ACU_FIELD_MAP) : {};
+        if(csvRow){
+          const vals = Object.assign({}, acuVals);
+          vals.test_id = testId;
+          const { error } = await supabaseClient.from('acu_results').upsert(vals, { onConflict: 'test_id' });
+          if(error) throw error;
+        } else {
+          // Sin CSV esta vez: si el ensayo ya tenia nivel/velocidad guardados, los reusa
+          // para dibujar la carta correctamente en vez de usar valores por defecto.
+          const { data: existingAcu } = await supabaseClient
+            .from('acu_results').select('liquid_level_tvd_m, interval_acoustic_velocity_ms')
+            .eq('test_id', testId).maybeSingle();
+          if(existingAcu) acuVals = existingAcu;
+        }
+        const points = txtLines.slice(1).map(line => {
+          const [t, mv] = line.split(',');
+          return { test_id: testId, time_sec: Number(t), signal_mv: Number(mv) };
+        });
+        if(isNew){ await insertChunked('acu_curve_points', points, 2000); }
+        summary.acuPoints += points.length;
+        const acuB64 = renderAcuCardCanvas(points, {
+          wellName: meta.well,
+          liquidLevel: acuVals.liquid_level_tvd_m,
+          velocity: acuVals.interval_acoustic_velocity_ms,
+          testDate: meta.date,
+          testTime: meta.time,
+        });
+        if(acuB64){
+          CHART_MAP[meta.well] = Object.assign({}, CHART_MAP[meta.well], { acu: acuB64 });
+          const url = await uploadChartToStorage(meta.well, 'ACU', acuB64, meta.date, meta.time);
+          if(url){ CHART_MAP[meta.well].acu = url; logFn(`  ↳ carta Sonolog guardada en Storage`); }
+        }
+      }
+      logFn(`✓ ${meta.well} · ${meta.type} ${isNew ? '(nuevo, guardado)' : '(ya existía, no se duplicó)'}${csvRow ? '' : ' — sin valores calculados (no se subió CSV)'}`);
+    }
+
+    // Carga masiva del CSV general: procesa TODAS las filas que no fueron
+    // consumidas por un TXT emparejado arriba. Cada fila es un ensayo propio
+    // (aunque el pozo se repita con distinta fecha/hora, ej. "1500" x3) y
+    // se guarda como test independiente para poder navegarlos en Historial.
+    if(csvRows.length){
+      for(const row of csvRows){
+        if(consumedCsvRows.has(row)) continue;
+        const wellName = (row['Well Name'] || '').trim();
+        if(!wellName) continue;
+        try{
+          const rowDate = parseCsvDate(findCsvColumnValue(row, 'Date'));
+          const rowTime = parseCsvTime(findCsvColumnValue(row, 'Time')) || '00:00:00';
+          const effDate = rowDate || new Date().toISOString().slice(0,10);
+          const rawType = (findCsvColumnValue(row, 'Test Type') || '').toString().toUpperCase();
+          const type = rawType.includes('ACU') || rawType.includes('SONOLOG') || rawType.includes('STATIC') ? 'ACU' : 'DYN';
+
+          const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'));
+          const wellConfigId = await ensureWellConfig(wellId, effDate, row);
+
+          if(!rowDate){
+            // Sin fecha de ensayo en la fila: solo se da de alta la config del pozo.
+            summary.wells.add(wellName);
+            summary.altaSinEnsayo.add(wellName);
+            logFn(`✓ ${wellName} dado de alta (fila sin fecha de ensayo — solo config)`);
+            continue;
+          }
+
+          const { testId, isNew } = await ensureTest(wellId, wellConfigId, type, rowDate, rowTime, csvFile ? csvFile.name : 'CSV general', findCsvColumnValue(row, 'Test Comments'));
+          if(isNew){
+            const map = type === 'DYN' ? DYN_FIELD_MAP : ACU_FIELD_MAP;
+            const vals = buildFieldValues(row, map);
+            vals.test_id = testId;
+            const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
+            const { error } = await supabaseClient.from(table).upsert(vals, { onConflict: 'test_id' });
+            if(error) throw error;
+            summary.tests++;
+          }
+          summary.wells.add(wellName);
+          matchedWells.add(wellName);
+          logFn(`✓ ${wellName} · ${type} · ${rowDate} ${rowTime} (del CSV general, sin curva — falta TXT para la carta)`);
+        } catch(e){
+          summary.omitidos.push(`${wellName} (error al procesar fila del CSV: ${e.message||e})`);
+        }
+      }
+    }
+
+    return summary;
+  }
+
+  function initToolsUpload(){
+    const csvInput = document.getElementById('uploadCsv');
+    const txtInput = document.getElementById('uploadTxt');
+    const csvName = document.getElementById('uploadCsvName');
+    const txtName = document.getElementById('uploadTxtName');
+    const processBtn = document.getElementById('uploadProcessBtn');
+    const saveBtn = document.getElementById('uploadSaveBtn');
+    const previewArea = document.getElementById('uploadPreviewArea');
+    if(!csvInput || !txtInput || !processBtn) return;
+
+    csvInput.addEventListener('change', ()=>{
+      csvName.textContent = csvInput.files.length ? csvInput.files[0].name : 'Ningún archivo';
+    });
+    txtInput.addEventListener('change', ()=>{
+      txtName.textContent = txtInput.files.length
+        ? (txtInput.files.length === 1 ? txtInput.files[0].name : `${txtInput.files.length} archivos`)
+        : 'Ningún archivo';
+    });
+
+    if(saveBtn){
+      saveBtn.addEventListener('click', async ()=>{
+        const logLines = [];
+        const logFn = (msg) => {
+          logLines.push(msg);
+          previewArea.innerHTML = `<div class="up-block"><h4>Guardando…</h4><p class="up-note" style="white-space:pre-line;">${logLines.join('\n')}</p></div>`;
+        };
+        previewArea.innerHTML = `<div class="up-block"><p class="up-note">Iniciando…</p></div>`;
+        const operadoraSel = document.getElementById('uploadOperadora');
+        try{
+          const summary = await saveToDatabase(csvInput.files[0], Array.from(txtInput.files), operadoraSel.value, logFn);
+          let html = `<div class="up-block"><h4>Listo</h4><table>
+            <tr><th>Pozos procesados</th><td>${[...summary.wells].join(', ') || '—'}</td></tr>
+            <tr><th>Ensayos nuevos (con TXT)</th><td>${summary.tests}</td></tr>
+            <tr><th>Puntos Dina guardados</th><td>${summary.dynPoints}</td></tr>
+            <tr><th>Puntos Sonolog guardados</th><td>${summary.acuPoints}</td></tr>
+          </table>`;
+          if(summary.altaSinEnsayo.size){
+            html += `<p class="up-warn">Dados de alta sin ensayo todavía (aparecen en Inicio marcados como pendientes): ${[...summary.altaSinEnsayo].join(', ')}</p>`;
+          }
+          if(summary.omitidos.length){
+            html += `<p class="up-warn">Omitidos: ${summary.omitidos.join('; ')}</p>`;
+          }
+          html += `<p class="up-note">Los datos ya están en la base — la vista Inicio se actualizó con lo nuevo.</p></div>`;
+          previewArea.innerHTML = html;
+          summary.wells.forEach(w => { delete ACU_CURVE_CACHE[w]; delete WELL_HISTORY_CACHE[w]; });
+          const ok = await loadLiveDataFromSupabase();
+          if(ok){ initScopeForUser(); }
+        } catch(e){
+          console.error('Error guardando en Supabase:', e);
+          previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al guardar: ${e.message || e}</p></div>`;
+        }
+      });
+    }
+
+    processBtn.addEventListener('click', async ()=>{
+      if(!csvInput.files.length && !txtInput.files.length){
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Elegí al menos un archivo CSV o TXT.</p></div>`;
+        return;
+      }
+      previewArea.innerHTML = `<div class="up-block"><p class="up-note">Procesando…</p></div>`;
+      let html = '';
+      try{
+        if(csvInput.files.length){
+          const text = await readFileAsText(csvInput.files[0]);
+          html += previewCsv(text, csvInput.files[0].name);
+        }
+        for(const f of txtInput.files){
+          const text = await readFileAsText(f);
+          html += previewTxt(text, f.name);
+        }
+      } catch(e){
+        html += `<div class="up-block"><p class="up-warn">Error al leer el archivo: ${e.message}</p></div>`;
+      }
+      previewArea.innerHTML = html;
+    });
+  }
+
+  initToolsUpload();
+    // ---- Módulo Administración de Usuarios ----
+  async function loadUsuariosTable(){
+    const tbody = document.getElementById('usuariosTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:12px 8px; color:var(--ink-dim); font-size:11px;">Cargando…</td></tr>`;
+    const { data, error } = await supabaseClient.from('users').select('user_id,username,role,nombre,operadora,activo').order('user_id');
+    if(error){ tbody.innerHTML = `<tr><td colspan="5" style="color:#ff8f8f; padding:8px;">Error: ${error.message}</td></tr>`; return; }
+    tbody.innerHTML = data.map(u => {
+      const roleColor = u.role==='admin' ? 'background:rgba(200,50,50,.18); color:#ff8f8f;' : u.role==='operador' ? 'background:rgba(58,84,184,.18); color:#8ea3f0;' : 'background:rgba(212,175,55,.18); color:#e6c34d;';
+      const roleLbl = u.role==='admin' ? 'Admin' : u.role==='operador' ? 'Operador' : 'Cliente';
+      return `<tr style="border-top:1px solid var(--border); color:var(--ink);">
+        <td style="padding:9px 8px;">${u.username}</td>
+        <td style="padding:9px 8px;"><span style="${roleColor} padding:2px 8px; border-radius:6px; font-size:10px;">${roleLbl}</span></td>
+        <td style="padding:9px 8px; color:var(--ink-dim);">${u.operadora||'Todas'}</td>
+        <td style="padding:9px 8px;"><span style="color:${u.activo ? '#5fd68a' : '#ff8f8f'};">● ${u.activo ? 'Activo' : 'Inactivo'}</span></td>
+        <td style="padding:9px 8px; text-align:right; color:#5b76e0; cursor:pointer;" onclick="editUsuario(${u.user_id})">Editar</td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function editUsuario(id){
+    const { data, error } = await supabaseClient.from('users').select('*').eq('user_id', id).single();
+    if(error||!data) return;
+    const nuevo_pass = prompt(`Contraseña para ${data.username} (dejá vacío para no cambiar):`);
+    const nueva_op = prompt(`Operadora (PECOM/BREST/CROWN POINT/VISTA OIL, o vacío para Todas):`, data.operadora||'');
+    const nuevo_activo = confirm(`¿Usuario activo?`);
+    const update = { operadora: nueva_op||null, activo: nuevo_activo };
+    if(nuevo_pass && nuevo_pass.trim()) update.password_hash = nuevo_pass.trim();
+    await supabaseClient.from('users').update(update).eq('user_id', id);
+    loadUsuariosTable();
+  }
+
+  async function crearUsuario(){
+    const username = prompt('Nombre de usuario:');
+    if(!username) return;
+    const pass = prompt('Contraseña:');
+    if(!pass) return;
+    const role = prompt('Rol (admin/operador/cliente):');
+    if(!['admin','operador','cliente'].includes(role)) return alert('Rol inválido');
+    const nombre = prompt('Nombre completo:');
+    const operadora = prompt('Operadora (PECOM/BREST/CROWN POINT/VISTA OIL, o vacío para Todas):');
+    const { error } = await supabaseClient.from('users').insert({ username, password_hash: pass, role, nombre, operadora: operadora||null, activo: true });
+    if(error) return alert('Error: ' + error.message);
+    loadUsuariosTable();
+  }
+
+  const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
+  if(btnNuevoUsuario) btnNuevoUsuario.addEventListener('click', crearUsuario);
+
+  // Cargar tabla cuando se activa la vista Herramientas
+  document.querySelectorAll('#menu button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.dataset.view === 'herramientas') loadUsuariosTable();
+    });
+  });
+  initInicioGrid();
+  initAcuInteractive();
+  const dynHistPrev = document.getElementById('dyn-hist-prev');
+  const dynHistNext = document.getElementById('dyn-hist-next');
+  if(dynHistPrev) dynHistPrev.addEventListener('click', ()=> navHistory('DYN', 1));
+  if(dynHistNext) dynHistNext.addEventListener('click', ()=> navHistory('DYN', -1));
+  const acuHistPrev = document.getElementById('acu-hist-prev');
+  const acuHistNext = document.getElementById('acu-hist-next');
+  if(acuHistPrev) acuHistPrev.addEventListener('click', ()=> navHistory('ACU', 1));
+  if(acuHistNext) acuHistNext.addEventListener('click', ()=> navHistory('ACU', -1));
+  initDinaDetailsModal();
+
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    const i = wellNames.indexOf(currentWell);
+    if(i>0){ currentWell = wellNames[i-1]; renderWell(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    const i = wellNames.indexOf(currentWell);
+    if(i<wellNames.length-1){ currentWell = wellNames[i+1]; renderWell(); }
+  });
+  renderWell();
+
+  document.querySelectorAll('#menu button:not(.disabled)').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#menu button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+      if(btn.dataset.view === 'bitacora'){ bitLoadForWell(currentWell); }
+    });
+  });
+
+  document.querySelectorAll('.bit-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=> bitSetSistema(btn.dataset.sistema));
+  });
+  const bitGuardarBtnEl = document.getElementById('bitGuardarBtn');
+  if(bitGuardarBtnEl) bitGuardarBtnEl.addEventListener('click', bitGuardar);
+
+</script>
+
+</body>
+</html>
