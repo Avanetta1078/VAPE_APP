@@ -1234,8 +1234,17 @@
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
-        const dynTests = myTests.filter(t => t.test_type === 'DYN').sort(byRecency);
+        const dynTestsAll = myTests.filter(t => t.test_type === 'DYN').sort(byRecency);
         const acuTests = myTests.filter(t => t.test_type === 'ACU').sort(byRecency);
+
+        // Se toma el ensayo Dina mas reciente que realmente tenga datos cargados
+        // (peak_polished_rod_load_lb no nulo) — hay ensayos "cascara vacia" creados
+        // por el CSV general sin el TXT correspondiente, que no deben pisar un
+        // ensayo anterior valido de ese mismo pozo.
+        const dynTests = dynTestsAll.filter(t => {
+          const d = dynByTest[t.test_id];
+          return d && d.peak_polished_rod_load_lb != null;
+        });
 
         entry.hasDyn = dynTests.length > 0;
         entry.hasAcu = acuTests.length > 0;
@@ -1374,13 +1383,20 @@
     document.getElementById('roleStep').style.display = 'block';
   }
 
+  // Contenedores de datos de pozos — se pueblan desde Supabase al login
+  const WELLS_DB = {};
+  const CHART_MAP = {};
+
   // Usuario único temporal (admin) mientras no exista el generador de usuarios en Herramientas.
   // Sirve tanto para entrar como Operador (redirige a Bitácora) como Cliente (se queda en VAPE_App),
   // y en ambos casos ve TODO sin restricción de operadora.
   const USERS_DB = {
     admin1: { pass: "Admin1", role: "admin", nombre: "VA&PE (Admin)", operadora: null }
   };
- 
+
+  function naturalCompare(a, b){
+    let ax = [], bx = [];
+    a.replace(/(\d+)|(\D+)/g, (_, d, s) => { ax.push([d ? parseInt(d,10) : Infinity, s || '']); return ''; });
     b.replace(/(\d+)|(\D+)/g, (_, d, s) => { bx.push([d ? parseInt(d,10) : Infinity, s || '']); return ''; });
     while(ax.length && bx.length){
       const an = ax.shift(), bn = bx.shift();
@@ -1452,6 +1468,18 @@
   function fmt(v, dec=0){
     if(v === null || v === undefined) return "—";
     return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+
+  function fmtN(v, dec=1){
+    if(v === null || v === undefined || v === '') return "—";
+    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+
+  function fmtDate(dateStr){
+    if(!dateStr) return "—";
+    const d = new Date(dateStr + (dateStr.length <= 10 ? 'T00:00:00' : ''));
+    if(isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'});
   }
 
   function renderWell(){
@@ -1593,45 +1621,54 @@
         sartaImg.style.display = 'none';
       }
     }
-    const sartaTable = document.getElemen let currentRole = null;
-  let currentUser = null; // { user, ...USERS_DB[user] } tras login
-
-  function attemptLogin(){
-    const user = document.getElementById('loginUser').value.trim();
-    const pass = document.getElementById('loginPass').value;
-    const err = document.getElementById('loginError');
-    const rec = USERS_DB[user.toLowerCase()];
-    if(currentRole === 'cliente' && rec && pass === rec.pass){
-      currentUser = Object.assign({ user: user.toLowerCase() }, rec);
-      err.style.display = 'none';
-      document.getElementById('roleStep').style.display = 'none';
-      document.getElementById('loginStep').style.display = 'none';
-      document.getElementById('loginBrand').style.display = 'none';
-      document.getElementById('dashboardStage').style.display = 'block';
-      document.body.classList.add('dash-active');
-      const tw = document.querySelector('.topbar-wrap');
-      if(tw){ document.documentElement.style.setProperty('--topbar-h', tw.offsetHeight + 'px'); }
-      initWellSearch();
-      // No se llama a initScopeForUser() todavia: eso mostraria por un instante
-      // los 21 pozos "de fabrica" embebidos en el HTML antes de que termine de
-      // llegar el dato real de Supabase. Se muestra "Cargando..." hasta tenerlo.
-      Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
-      wellNames = [];
-      renderWell(); // fuerza el estado en blanco ya mismo (borra lo que haya quedado dibujado de antes de loguearse)
-      if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
-      const scopeElInit = document.getElementById('userScopeTag');
-      if(scopeElInit) scopeElInit.textContent = 'Cargando…';
-      testSupabaseConnection();
-      loadLiveDataFromSupabase().then(ok => {
-        initScopeForUser(); // primera y unica vez que se renderiza, ya con el dato real (o vacio si no hay)
-      });
-    } else {
-      err.style.display = 'block';
-    }
+    const sartaTable = document.getElementById('d-sarta-table');
   }
 
+  let currentRole = null;
+  let currentUser = null; // { user, ...USERS_DB[user] } tras login
 
-  <script src="wells_data.js"></script>
+  async function attemptLogin(){
+    const user = document.getElementById('loginUser').value.trim().toLowerCase();
+    const pass = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+
+    // Consultar tabla users en Supabase
+    const { data, error } = await supabaseClient
+      .from('users')
+      .select('*')
+      .eq('username', user)
+      .eq('activo', true)
+      .single();
+
+    if(error || !data || data.password_hash !== pass){
+      err.style.display = 'block';
+      return;
+    }
+
+    currentUser = { user, role: data.role, nombre: data.nombre, operadora: data.operadora };
+    currentRole = data.role;
+
+    document.getElementById('roleStep').style.display = 'none';
+    document.getElementById('loginStep').style.display = 'none';
+    document.getElementById('loginBrand').style.display = 'none';
+    document.getElementById('dashboardStage').style.display = 'block';
+    document.body.classList.add('dash-active');
+    const tw = document.querySelector('.topbar-wrap');
+    if(tw){ document.documentElement.style.setProperty('--topbar-h', tw.offsetHeight + 'px'); }
+    initWellSearch();
+    Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+    wellNames = [];
+    renderWell();
+    if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
+    const scopeElInit = document.getElementById('userScopeTag');
+    if(scopeElInit) scopeElInit.textContent = 'Cargando…';
+    testSupabaseConnection();
+    loadLiveDataFromSupabase().then(ok => {
+      initScopeForUser();
+    });
+  }
+
 
   function openQuickPreview(name){
     const w = WELLS_DB[name];
@@ -1649,6 +1686,130 @@
         <div class="mini"><span class="lbl">Fillage</span><span class="val">${fmtN(w.fillage,1)} %</span></div>
       </div>`;
     document.getElementById('quickPreviewModal').classList.add('active');
+  }
+
+  // ---- Funciones de búsqueda de pozo y grilla Inicio ----
+  let inicioPage = 0;
+  const INICIO_PAGE_SIZE = 25;
+
+  function initWellSearch(){
+    const input = document.getElementById('wellSearch');
+    if(!input) return;
+    input.addEventListener('input', ()=>{
+      const q = input.value.trim().toLowerCase();
+      const ifSearchEl = document.getElementById('ifSearch');
+      if(ifSearchEl && ifSearchEl.value !== input.value) ifSearchEl.value = input.value;
+      if(!q) return;
+      const match = wellNames.find(n => n.toLowerCase() === q) ||
+                    wellNames.find(n => n.toLowerCase().startsWith(q)) ||
+                    wellNames.find(n => n.toLowerCase().includes(q));
+      if(match && match !== currentWell){
+        currentWell = match;
+        renderWell();
+      }
+    });
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') e.preventDefault();
+    });
+  }
+
+  function populateInicioFilterOptions(){
+    const opSel = document.getElementById('ifOperadora');
+    const batSel = document.getElementById('ifBateria');
+    const fechaSel = document.getElementById('ifFecha');
+    if(!opSel || !batSel || !fechaSel) return;
+
+    const ops = new Set(), bats = new Set(), fechas = new Set();
+    wellNames.forEach(n => {
+      const w = WELLS_DB[n];
+      if(!w) return;
+      if(w.operadora) ops.add(w.operadora);
+      if(w.bateria) bats.add(w.bateria);
+      if(w.dt) fechas.add(w.dt);
+    });
+
+    const fillSelect = (sel, values) => {
+      const current = sel.value;
+      sel.innerHTML = '<option value="">Todas</option>' +
+        [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
+      if([...values].includes(current)) sel.value = current;
+    };
+    fillSelect(opSel, ops);
+    fillSelect(batSel, bats);
+    fillSelect(fechaSel, [...fechas].sort().reverse());
+  }
+
+  function renderInicioGrid(){
+    const tbody = document.getElementById('inicioTableBody');
+    const stamp = document.getElementById('inicioCountStamp');
+    const pager = document.getElementById('inicioPager');
+    if(!tbody) return;
+
+    const qRaw = document.getElementById('ifSearch') ? document.getElementById('ifSearch').value.trim().toLowerCase() : '';
+    const opFilter = document.getElementById('ifOperadora') ? document.getElementById('ifOperadora').value : '';
+    const batFilter = document.getElementById('ifBateria') ? document.getElementById('ifBateria').value : '';
+    const fechaFilter = document.getElementById('ifFecha') ? document.getElementById('ifFecha').value : '';
+    const ensayoFilter = document.getElementById('ifEnsayo') ? document.getElementById('ifEnsayo').value : '';
+
+    let rows = wellNames.filter(n => {
+      const w = WELLS_DB[n];
+      if(!w) return false;
+      if(qRaw && !n.toLowerCase().includes(qRaw)) return false;
+      if(opFilter && w.operadora !== opFilter) return false;
+      if(batFilter && w.bateria !== batFilter) return false;
+      if(fechaFilter && w.dt !== fechaFilter) return false;
+      if(ensayoFilter === 'dyn' && !w.hasDyn) return false;
+      if(ensayoFilter === 'acu' && !w.hasAcu) return false;
+      return true;
+    });
+
+    if(stamp) stamp.textContent = `${rows.length} pozo${rows.length===1?'':'s'}`;
+
+    const totalPages = Math.max(1, Math.ceil(rows.length / INICIO_PAGE_SIZE));
+    if(inicioPage >= totalPages) inicioPage = totalPages - 1;
+    if(inicioPage < 0) inicioPage = 0;
+    const pageRows = rows.slice(inicioPage * INICIO_PAGE_SIZE, (inicioPage + 1) * INICIO_PAGE_SIZE);
+
+    if(!pageRows.length){
+      tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--ink-faint);">Sin pozos que coincidan con los filtros.</td></tr>`;
+    } else {
+      tbody.innerHTML = pageRows.map(n => {
+        const w = WELLS_DB[n];
+        const pendiente = !w.hasDyn && !w.hasAcu;
+        const rowClass = pendiente ? 'row-pendiente' : '';
+        const badge = pendiente ? '<span class="pending-badge">Pendiente</span>' : '';
+        return `<tr class="${rowClass}">
+          <td><button class="row-preview-btn" type="button" onclick="openQuickPreview('${n.replace(/'/g,"\\'")}')" title="Vista rápida">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button></td>
+          <td class="well-name" onclick="currentWell='${n.replace(/'/g,"\\'")}'; renderWell();">${n}</td>
+          <td>${fmtDate(w.dt)}</td>
+          <td class="dim">${w.bateria || '—'}</td>
+          <td class="dim">${w.operadora || '—'}${badge}</td>
+          <td>${w.nivel != null ? fmtN(w.nivel,0) : '—'}</td>
+          <td>${w.sumerg != null ? fmtN(w.sumerg,0) : '—'}</td>
+          <td>${w.fillage != null ? fmtN(w.fillage,1) : '—'}</td>
+          <td>${w.fomax != null ? fmtN(w.fomax,0) : '—'}</td>
+          <td>${w.tv != null ? fmtN(w.tv,0) : '—'}</td>
+          <td>${w.spm != null ? fmtN(w.spm,2) : '—'}</td>
+          <td class="dim" title="${(w.comment||'').replace(/"/g,'&quot;')}">${w.comment || '—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    if(pager){
+      if(totalPages <= 1){
+        pager.innerHTML = '';
+      } else {
+        pager.innerHTML = `
+          <button type="button" ${inicioPage===0?'disabled':''} onclick="inicioPage=0; renderInicioGrid();">« Primero</button>
+          <button type="button" ${inicioPage===0?'disabled':''} onclick="inicioPage--; renderInicioGrid();">‹ Anterior</button>
+          <span>Página ${inicioPage+1} de ${totalPages}</span>
+          <button type="button" ${inicioPage>=totalPages-1?'disabled':''} onclick="inicioPage++; renderInicioGrid();">Siguiente ›</button>
+          <button type="button" ${inicioPage>=totalPages-1?'disabled':''} onclick="inicioPage=${totalPages-1}; renderInicioGrid();">Último »</button>
+        `;
+      }
+    }
   }
 
   function initInicioGrid(){
