@@ -322,6 +322,7 @@
   .rp-chips-row{display:grid; gap:6px;}
   .rp-chips-5{display:flex; flex-wrap:wrap; gap:4px; height:auto; margin-bottom:4px;}
   .rp-chips-3{display:flex; flex-wrap:wrap; gap:4px; height:auto; margin-bottom:5px;}
+  .rp-chips-9{display:flex; flex-wrap:wrap; gap:4px; height:auto; margin-bottom:5px;}
   .rp-chip{background:var(--panel-2); border-radius:6px; padding:3px 7px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; flex:0 0 auto;}
   .rp-chip-highlight{border:1px solid #185FA5;}
   .rp-chip-highlight .rp-val{color:#185FA5; font-size:13.5px;}
@@ -421,6 +422,12 @@
     0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
     50% { box-shadow: 0 0 8px 1px currentColor; opacity: .78; }
   }
+  /* Resalte con pulso para valores destacados (Carga Maxima, Peso Total de Sarta) */
+  .gtab td.hl-pulse{background:rgba(91,118,224,.20); color:var(--navy-glow,#5b76e0); font-weight:700; border-radius:5px; animation:hlPulse 1.7s ease-in-out infinite;}
+  @keyframes hlPulse{
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+    50% { box-shadow: 0 0 9px 1px currentColor; opacity: .8; }
+  }
   table.gtab th{
     text-align:left; font-weight:500; color:var(--ink-faint); font-size:10px;
     letter-spacing:.05em; text-transform:uppercase; padding:0 8px 6px 0; border-bottom:1px solid var(--border);
@@ -516,6 +523,42 @@
   .modal-box h3{margin:0 0 12px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; justify-content:space-between; align-items:center;}
   .modal-close{width:26px;height:26px;border-radius:50%;border:1px solid var(--border); background:var(--panel-2); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1;}
   .modal-close:hover{background:#242c37;}
+
+  /* ---- Informe Rapido (Dina + Sonolog) ---- */
+  .qr-modal-box{width:min(920px, 94vw); max-height:90vh; overflow-y:auto;}
+  .qr-toolbar{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; position:sticky; top:0; background:var(--panel); padding-bottom:6px; z-index:2;}
+  .qr-body{background:#fff; color:#1a1d22; border-radius:10px; padding:22px 24px; font-family:'IBM Plex Sans', sans-serif;}
+  .qr-head{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #1a2038; padding-bottom:12px; margin-bottom:14px;}
+  .qr-brand{font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.06em; color:#5b76e0; text-transform:uppercase; margin-bottom:4px;}
+  .qr-well{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:22px; color:#1a1d22;}
+  .qr-sub{font-family:'IBM Plex Mono'; font-size:11.5px; color:#5b6470; margin-top:2px;}
+  .qr-classif{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+    padding:6px 12px; border-radius:999px; background:#eef0f3; color:#3a54b8; border:1px solid #d7dbe1; white-space:nowrap;}
+  .qr-chips-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .qr-chips-row .qr-chip{background:#f4f5f7; border:1px solid #d7dbe1; border-radius:8px; padding:7px 12px; min-width:90px;}
+  .qr-chips-row .qr-chip .qr-lbl{font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:#8b93a0; display:block; margin-bottom:2px;}
+  .qr-chips-row .qr-chip .qr-val{font-family:'IBM Plex Mono'; font-weight:700; font-size:14px; color:#1a1d22;}
+  .qr-charts-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  .qr-chart-lbl{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:#3a54b8; margin-bottom:6px;}
+  .qr-chart-box{background:#f4f5f7; border:1px solid #d7dbe1; margin:0 0 6px; padding:8px;}
+  .qr-chart-box img{width:100%; height:auto; display:block;}
+  .qr-comment{font-size:11.5px; color:#5b6470; font-style:italic; line-height:1.4;}
+  .qr-sarta-row{display:grid; grid-template-columns:1fr 1.2fr; gap:16px; align-items:start; border-top:1px solid #d7dbe1; padding-top:14px;}
+  .qr-sarta-img-col img{width:100%; height:auto; background:#f4f5f7; border:1px solid #d7dbe1; border-radius:6px;}
+  .qr-body table.gtab th{color:#5b6470; border-bottom:1px solid #d7dbe1;}
+  .qr-body table.gtab td{color:#1a1d22; border-bottom:1px solid #eef0f3;}
+  .qr-foot{margin-top:18px; padding-top:10px; border-top:1px solid #d7dbe1; font-size:10px; color:#8b93a0; text-align:center;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #quickReportModal, #quickReportModal .qr-body, #quickReportModal .qr-body *{visibility:visible;}
+    #quickReportModal{position:absolute; inset:0; background:#fff !important; display:block !important; z-index:9999;}
+    #quickReportModal .modal-box{box-shadow:none; width:100%; max-height:none; padding:0; border:none;}
+    #quickReportModal .qr-toolbar{display:none;}
+    #quickReportModal .qr-body{position:absolute; top:0; left:0; width:100%; border-radius:0; padding:14px 18px;}
+    .qr-charts-row{grid-template-columns:1fr 1fr; page-break-inside:avoid;}
+    .qr-sarta-row{page-break-inside:avoid;}
+  }
   .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .modal-grid .mini{border-top:1px solid var(--border); padding-top:7px;}
 
@@ -843,7 +886,7 @@
               <th class="col-fixed">Fecha<button class="th-filter-btn" data-col="dt" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th class="col-fixed">Batería<button class="th-filter-btn" data-col="bateria" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Operación<button class="th-filter-btn" data-col="operacion" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
-              <th>Ensayo<button class="th-filter-btn" data-col="tipo" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Estado<button class="th-filter-btn" data-col="tipo" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sistema<button class="th-filter-btn" data-col="sistema" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Nivel (m)<button class="th-filter-btn" data-col="nivel" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sumerg. (m)<button class="th-filter-btn" data-col="sumerg" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
@@ -882,17 +925,16 @@
           <span id="rp-classif" class="rp-badge rp-badge-accent" style="margin-left:8px;">—</span>
           <span class="stamp" id="rp-dyn-stamp">—</span>
         </div>
-        <div class="rp-chips-row rp-chips-5">
+        <div class="rp-chips-row rp-chips-9">
           <div class="rp-chip"><span class="rp-lbl">Carga Máx</span><span class="rp-val" id="rp-cargamax">—</span></div>
           <div class="rp-chip"><span class="rp-lbl">Carga Mín</span><span class="rp-val" id="rp-cargamin">—</span></div>
           <div class="rp-chip"><span class="rp-lbl">GPM</span><span class="rp-val" id="rp-gpm">—</span></div>
           <div class="rp-chip"><span class="rp-lbl">Llenado</span><span class="rp-val" id="rp-llenado">—</span></div>
           <div class="rp-chip"><span class="rp-lbl">Pres.Tbg</span><span class="rp-val" id="rp-prestbg">—</span></div>
-        </div>
-        <div class="rp-chips-row rp-chips-3">
-          <div class="rp-chip"><span class="rp-lbl">Modelo AIB / API</span><span class="rp-val" id="rp-modeloapi">—</span></div>
-          <div class="rp-chip"><span class="rp-lbl">Carrera</span><span class="rp-val" id="rp-carrera">—</span></div>
-          <div class="rp-chip"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
+          <div class="rp-chip rp-chip-aib"><span class="rp-lbl">Fabricante</span><span class="rp-val" id="rp-fabricante">—</span></div>
+          <div class="rp-chip rp-chip-aib"><span class="rp-lbl">Modelo AIB / API</span><span class="rp-val" id="rp-modeloapi">—</span></div>
+          <div class="rp-chip rp-chip-aib"><span class="rp-lbl">Carrera</span><span class="rp-val" id="rp-carrera">—</span></div>
+          <div class="rp-chip rp-chip-aib"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
         </div>
         <div class="rp-chart-box"><img id="rp-dyn-img" src="" alt="Carta dinamométrica"></div>
         <div class="rp-comment-box">
@@ -961,6 +1003,10 @@
             <button id="dyn-hist-next" title="Ensayo siguiente">›</button>
           </div>
           <div class="days-since-chip" id="daysSinceDyn">—</div>
+          <button class="details-btn" id="dinaReportBtn" type="button" style="margin-left:56px; padding:6px 12px; font-size:11px;" title="Informe rápido (Dina + Sonolog) para descargar en PDF">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M9 15h6M9 11h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Informe rápido
+          </button>
         </div><span class="stamp" id="dinaStamp">WPRT 490 · 29/06/2026 · 14:52:13 · Stroke 19/20</span></div>
         <div class="dina-layout">
         <div class="dina-main">
@@ -982,7 +1028,7 @@
           <div class="mini-grid">
             <h4>Bomba</h4>
             <table class="gtab">
-              <tr><th>Pump Intake Depth</th><th>PIP Dina</th><th>PIP Eco</th><th>Pistón</th></tr>
+              <tr><th>Prof de bba</th><th>PIP Dina</th><th>PIP Eco</th><th>Pistón</th></tr>
               <tr><td id="d-pump-depth">—</td><td id="d-pump-pip">—</td><td id="d-pump-pip-eco">—</td><td id="d-plunger">—</td></tr>
             </table>
           </div>
@@ -1005,7 +1051,7 @@
               <tr><th>Carga Estruct.</th><th>Carrera</th><th>SPM</th></tr>
               <tr><td id="d-beam">—</td><td id="d-carrera">—</td><td id="d-spm2">—</td></tr>
               <tr><th>Carga Máx.</th><th>Carga Mín.</th><th></th></tr>
-              <tr><td id="d-cargamax">—</td><td id="d-cargamin">—</td><td></td></tr>
+              <tr><td id="d-cargamax" class="hl-pulse">—</td><td id="d-cargamin">—</td><td></td></tr>
             </table>
             <table class="gtab" style="margin-top:8px;">
               <tr><th>Fabricante</th><th>Unidad</th></tr>
@@ -1020,11 +1066,11 @@
             <h4><i></i>Sarta de Varillas</h4>
             <img class="sarta-img" id="d-sarta-img" src="" alt="Esquema de sarta de varillas">
             <table class="gtab" id="d-sarta-table">
-              <tr><th>Tramo</th><th>Cant.</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>
+              <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>
             </table>
             <table class="gtab" style="margin-top:8px;">
               <tr><th>Cat. Varillas</th><td id="d-sarta-cat">—</td></tr>
-              <tr><th>Peso Total Sarta</th><td id="d-sarta-peso">—</td></tr>
+              <tr><th>Peso Total Sarta</th><td id="d-sarta-peso" class="hl-pulse">—</td></tr>
               <tr><th>API Bba.</th><td id="d-sarta-apibba">—</td></tr>
             </table>
           </div>
@@ -1076,6 +1122,64 @@
       </div>
     </div>
   </div>
+
+  <!-- ===================== MODAL: INFORME RAPIDO (DINA + SONOLOG) ===================== -->
+  <div class="modal-overlay" id="quickReportModal">
+    <div class="modal-box qr-modal-box">
+      <div class="qr-toolbar">
+        <h3 style="margin:0;">Informe Rápido <button class="modal-close" id="quickReportClose" type="button">&#10005;</button></h3>
+        <button class="details-btn" id="quickReportPdfBtn" type="button" style="border-color:var(--navy-glow);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Descargar PDF
+        </button>
+      </div>
+      <div id="qrBody" class="qr-body">
+        <div class="qr-head">
+          <div class="qr-title-block">
+            <div class="qr-brand">VA&amp;PE · Eco Dinamometría Computarizada</div>
+            <div class="qr-well" id="qr-well">—</div>
+            <div class="qr-sub" id="qr-sub">—</div>
+          </div>
+          <div class="qr-classif" id="qr-classif">—</div>
+        </div>
+
+        <div class="qr-chips-row" id="qr-chips"></div>
+
+        <div class="qr-charts-row">
+          <div class="qr-chart-col">
+            <div class="qr-chart-lbl">Carta Dinamométrica</div>
+            <div class="scope-real qr-chart-box"><img id="qr-dyn-img" src="" alt="Carta dinamométrica"></div>
+            <div class="qr-comment" id="qr-dyn-comment">Sin comentarios registrados.</div>
+          </div>
+          <div class="qr-chart-col">
+            <div class="qr-chart-lbl">Nivel Acústico (Sonolog)</div>
+            <div class="scope-real qr-chart-box"><img id="qr-acu-img" src="" alt="Nivel acústico"></div>
+            <div class="qr-comment" id="qr-acu-comment">Sin comentarios registrados.</div>
+          </div>
+        </div>
+
+        <div class="qr-sarta-row">
+          <div class="qr-sarta-img-col">
+            <div class="qr-chart-lbl">Sarta de Varillas</div>
+            <img class="sarta-img" id="qr-sarta-img" src="" alt="Esquema de sarta de varillas" style="max-height:260px;">
+          </div>
+          <div class="qr-sarta-table-col">
+            <div class="qr-chart-lbl">Detalle de Sarta</div>
+            <table class="gtab" id="qr-sarta-table">
+              <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>
+            </table>
+            <table class="gtab" style="margin-top:8px;">
+              <tr><th>Peso Total Sarta</th><td id="qr-sarta-peso">—</td></tr>
+              <tr><th>Cat. Varillas</th><td id="qr-sarta-cat">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="qr-foot" id="qr-foot">Generado por VA&amp;PE App · —</div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- ===================== VIEW: SONOLOG ===================== -->
   <div class="view" id="view-sonolog">
@@ -1192,7 +1296,7 @@
       <div class="install-card">
         <h3>Bomba</h3>
         <div class="kv"><span>API</span><span>25-175 RHBC 24-4</span></div>
-        <div class="kv"><span>Pump Intake Depth</span><span>1,225 m</span></div>
+        <div class="kv"><span>Prof de bba</span><span>1,225 m</span></div>
         <div class="kv"><span>Plunger</span><span>1.750 in</span></div>
         <div class="kv"><span>Pump HP</span><span>2.97 HP</span></div>
       </div>
@@ -1446,7 +1550,7 @@
             <option value="Combinada">Combinada</option><option value="Dina">Dina</option><option value="Nivel">Nivel</option><option value="Cancelada">Cancelada</option>
           </select>
         </div>
-        <div id="bit-tipoensayo-wrap"><label>Tipo de Ensayo</label>
+        <div id="bit-tipoensayo-wrap"><label>Estático o Dinámico</label>
           <select id="bit-tipoensayo" class="bit-input">
             <option value="Dinamico">Dinámico</option><option value="Estatico">Estático</option>
           </select>
@@ -1703,7 +1807,7 @@
           entry.dynTestId = t.test_id;
           entry.fomax = d.fo_max_line_lb; entry.tv = d.peak_polished_rod_load_lb; entry.sv = d.minimum_polished_rod_load_lb;
           entry.wrf = d.calculated_buoyant_rod_weight_lb; entry.mpt = d.maximum_plunger_stroke_in; entry.ept = d.effective_plunger_travel_in;
-          entry.fillage = d.average_fillage_pct; entry.tubpres = d.dyn_tubing_pressure_kg; entry.pipdyn = d.pip_dyn_kg;
+          entry.fillage = d.adjusted_fillage_pct; entry.tubpres = d.dyn_tubing_pressure_kg; entry.pipdyn = d.pip_dyn_kg;
           entry.rodpower = d.polished_rod_power_hp; entry.spm = d.spm; entry.dt = t.test_date;
           entry.torqueUp = d.existing_max_torque_upstroke_inlb;
           entry.torqueDown = d.existing_max_torque_downstroke_inlb;
@@ -1752,12 +1856,21 @@
         // AIB se infiere por marca de unidad de bombeo (Lufkin/Siam/Vulcan) o, en su defecto,
         // por tener carta dinamometrica cargada (solo un AIB puede generar carta).
         const unitBlob = `${entry.surfaceUnitMfr||''} ${entry.surfaceUnitModel||''}`.toUpperCase();
-        if(/\bROTAFLEX\b/.test(commentsBlob) || /\bROTAFLEX\b/.test(unitBlob)) entry.sistema = 'ROTAFLEX';
-        else if(entry.besConfirmado) entry.sistema = 'BES';
-        else if(/\bPCP\b|CAVIDAD PROGRESIVA/.test(commentsBlob)) entry.sistema = 'PCP';
-        else if(/\bSSE\b/.test(commentsBlob)) entry.sistema = 'SSE';
-        else if(/LUFKIN|\bLFK\b|\bSIAM\b|VULCAN/.test(unitBlob) || entry.hasDyn) entry.sistema = 'AIB';
-        else entry.sistema = null;
+        // classifySistema: misma logica de clasificacion (Rotaflex solo con la palabra
+        // completa, sin importar mayus/minus por el .toUpperCase() de quien la llama),
+        // extraida a funcion para poder aplicarse tanto al pozo (ultimo estado) como a
+        // CADA ensayo individual de su historial (ver bug: pozo con Rotaflex un dia y
+        // otro sistema despues quedaba "pisado" por la clasificacion mas reciente en
+        // TODAS sus filas de historial, escondiendo Rotaflex de dias anteriores).
+        function classifySistema(cBlob, uBlob, hadDyn){
+          if(/\bROTAFLEX\b/.test(cBlob) || /\bROTAFLEX\b/.test(uBlob)) return 'ROTAFLEX';
+          if(/\bBES\b|ELECTRO|\bHZ\b/.test(cBlob)) return 'BES';
+          if(/\bPCP\b|CAVIDAD PROGRESIVA/.test(cBlob)) return 'PCP';
+          if(/\bSSE\b/.test(cBlob)) return 'SSE';
+          if(/LUFKIN|\bLFK\b|\bSIAM\b|VULCAN/.test(uBlob) || hadDyn) return 'AIB';
+          return null;
+        }
+        entry.sistema = classifySistema(commentsBlob, unitBlob, entry.hasDyn);
 
         // Historial completo de ensayos del pozo (para el selector "Todos los ensayos"
         // en Inicio). Cada ensayo Dina y cada ensayo Nivel queda como fila propia,
@@ -1765,19 +1878,23 @@
         entry.history = [];
         dynTests.forEach(t => {
           const d = dynByTest[t.test_id] || {};
+          const cBlob = `${t.test_comments||''}`.toUpperCase();
           entry.history.push({
             dt: t.test_date, tipo: 'Dina', testId: t.test_id,
             fomax: d.fo_max_line_lb, tv: d.peak_polished_rod_load_lb, sv: d.minimum_polished_rod_load_lb,
-            fillage: d.average_fillage_pct, spm: d.spm,
-            comment: t.test_comments || null
+            fillage: d.adjusted_fillage_pct, spm: d.spm,
+            comment: t.test_comments || null,
+            sistema: classifySistema(cBlob, unitBlob, true)
           });
         });
         acuTests.forEach(t => {
           const a = acuByTest[t.test_id] || {};
+          const cBlob = `${t.test_comments||''}`.toUpperCase();
           entry.history.push({
             dt: t.test_date, tipo: 'Nivel', testId: t.test_id,
             nivel: a.liquid_level_tvd_m, sumerg: a.fluid_above_pump_m,
-            comment: t.test_comments || null
+            comment: t.test_comments || null,
+            sistema: classifySistema(cBlob, unitBlob, false)
           });
         });
         entry.history.sort((a, b) => (a.dt < b.dt ? 1 : (a.dt > b.dt ? -1 : 0)));
@@ -2001,6 +2118,33 @@
     if(pct >= 90) el.classList.add('bal-pulse');
   }
 
+  // Semaforo del % Torque Existente: NO se dispara por el valor absoluto, sino
+  // por cuanto se aleja del % En Balance (que es el dato de referencia/objetivo).
+  // Ej: si En Balance = 50% y Existente = 50%, esta perfecto -> verde, aunque
+  // ambos sean "altos". Si En Balance = 50% y Existente = 94%, esta muy
+  // desviado -> casi rojo. A mayor distancia de Existente respecto a
+  // En Balance, el color avanza hacia rojo.
+  function setGearboxPctExisting(id, pctExisting, pctBalanced){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo','bal-pulse');
+    if(pctExisting == null){ el.textContent = '—'; return; }
+    el.textContent = fmt(pctExisting, 1) + ' %';
+    if(pctBalanced == null){
+      // Sin referencia En Balance: no se puede evaluar la desviacion, se
+      // muestra neutro (verde) en vez de arriesgar un falso alarmante.
+      el.classList.add('bal-verde');
+      return;
+    }
+    const diff = pctExisting - pctBalanced; // cuanto se aleja Existente de la referencia
+    let clase = 'bal-verde';
+    if(diff >= 30) clase = 'bal-rojo';
+    else if(diff >= 20) clase = 'bal-naranja';
+    else if(diff >= 10) clase = 'bal-amarillo';
+    el.classList.add(clase);
+    if(diff >= 10) el.classList.add('bal-pulse');
+  }
+
   // "24976.0 weights IN 11.38" (formato crudo del TAM: peso en lb + sentido +
   // distancia en pulgadas) -> "24976.0 lb hacia ADENTRO 28.9 cm"
   function formatGbMove(raw){
@@ -2026,7 +2170,7 @@
     const setRaw = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val || '—'; };
 
     if(!w){
-      ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-modeloapi','rp-carrera','rp-pipdyn',
+      ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-fabricante','rp-modeloapi','rp-carrera','rp-pipdyn',
        'rp-nivel','rp-sumerg','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
         .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
       const dynImg = document.getElementById('rp-dyn-img'); if(dynImg) dynImg.style.display = 'none';
@@ -2093,8 +2237,7 @@
     // pozo es BES confirmado, no corresponde mostrarlos — se ocultan en vez
     // de dejar "—" o, peor, un dato viejo que haya quedado de una config
     // anterior del mismo pozo (ej. si era AIB y se convirtio a BES).
-    const aibFieldsRow = document.querySelector('.rp-chips-3');
-    if(aibFieldsRow) aibFieldsRow.style.display = esBes ? 'none' : '';
+    document.querySelectorAll('.rp-chip-aib').forEach(chip => { chip.style.display = esBes ? 'none' : ''; });
     const tramosCol = document.querySelector('.rp-tramos-col');
     if(tramosCol) tramosCol.style.display = esBes ? 'none' : '';
 
@@ -2104,6 +2247,7 @@
     setTxt('rp-gpm', w.spm, '', 2);
     setTxt('rp-llenado', w.fillage, ' %', 1);
     setTxt('rp-prestbg', w.tubpres, ' kg', 1);
+    setRaw('rp-fabricante', w.surfaceUnitMfr);
     setRaw('rp-modeloapi', w.surfaceUnitApi);
     setTxt('rp-carrera', w.strokeComputed, ' in', 1);
     setTxt('rp-pipdyn', w.pipdyn, ' kg', 1);
@@ -2373,7 +2517,7 @@
       const commentEl = document.getElementById('d-comment');
       if(commentEl) commentEl.textContent = 'Sin pozos cargados.';
       const sartaTable = document.getElementById('d-sarta-table');
-      if(sartaTable) sartaTable.innerHTML = '<tr><th>Tramo</th><th>Cant.</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
+      if(sartaTable) sartaTable.innerHTML = '<tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
       const sartaImg = document.getElementById('d-sarta-img');
       if(sartaImg) sartaImg.style.display = 'none';
       document.querySelectorAll('.scope-real img').forEach(img => { img.style.display = 'none'; });
@@ -2491,13 +2635,11 @@
     }
     const sartaTable = document.getElementById('d-sarta-table');
     if(sartaTable){
-      const header = '<tr><th>Tramo</th><th>Cant.</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
+      const header = '<tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
       if(w.tapers && w.tapers.length){
         sartaTable.innerHTML = header + w.tapers.map(t => {
-          const cant = t.len != null ? Math.round(t.len / 7.62) : null;
           return `<tr>
           <td>${t.n != null ? t.n : '—'}</td>
-          <td>${cant != null ? cant : '—'}</td>
           <td>${t.diam != null ? fmt(t.diam,3) : '—'}</td>
           <td>${t.grade || '—'}</td>
           <td>${t.len != null ? fmt(t.len,1)+' m' : '—'}</td>
@@ -2558,8 +2700,12 @@
     if(moveEl) moveEl.textContent = formatGbMove(w.moveWeights) || '—';
     // % Torque Existente y % Torque en Balance no vienen calculados de la
     // base: se calculan aca como torque / gearbox rating, con semaforo.
-    setGearboxPct('d-gb-pctdown', (w.torqueDown != null && w.gearboxRating) ? w.torqueDown / w.gearboxRating * 100 : null);
-    setGearboxPct('d-gb-pctbal', (w.torqueDownBal != null && w.gearboxRating) ? w.torqueDownBal / w.gearboxRating * 100 : null);
+    {
+      const pctDown = (w.torqueDown != null && w.gearboxRating) ? w.torqueDown / w.gearboxRating * 100 : null;
+      const pctBal = (w.torqueDownBal != null && w.gearboxRating) ? w.torqueDownBal / w.gearboxRating * 100 : null;
+      setGearboxPct('d-gb-pctbal', pctBal);
+      setGearboxPctExisting('d-gb-pctdown', pctDown, pctBal);
+    }
 
     // Contrapesos: CBM/WCW son de la config fija; la tabla de manivela/placas
     // viene de la Bitácora (field_log), se busca aparte de forma asincrónica.
@@ -3008,7 +3154,7 @@
           if(comentarioFilter && !(h.comment||'').toLowerCase().includes(comentarioFilter)) return;
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
-            operacion: h.tipo, sistema: w.sistema || '—',
+            operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : []
           });
@@ -3059,9 +3205,18 @@
         } else if(w.hasAcu){
           tipoUltimo = 'Nivel'; comentarioUltimo = w.commentAcu;
         }
+        // Si hay filtro de fecha activo, el "Sistema" a mostrar es el que
+        // corresponde a ESE ensayo puntual (puede no ser el ultimo del pozo) —
+        // evita que un Rotaflex de una fecha vieja quede oculto porque el pozo
+        // tuvo despues otro ensayo clasificado distinto.
+        let sistemaMostrar = w.sistema || '—';
+        if(fechaFilter){
+          const hMatch = (w.history || []).find(h => h.dt === fechaFilter);
+          if(hMatch && hMatch.sistema) sistemaMostrar = hMatch.sistema;
+        }
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
-          operacion, sistema: w.sistema || '—',
+          operacion, sistema: sistemaMostrar,
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null)
@@ -3214,6 +3369,90 @@
     const modal = document.getElementById('quickPreviewModal');
     document.getElementById('qpClose').addEventListener('click', ()=> modal.classList.remove('active'));
     modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
+  }
+
+  function initQuickReportModal(){
+    const btn = document.getElementById('dinaReportBtn');
+    const modal = document.getElementById('quickReportModal');
+    const closeBtn = document.getElementById('quickReportClose');
+    const pdfBtn = document.getElementById('quickReportPdfBtn');
+    if(!btn || !modal || !closeBtn) return;
+
+    function fillReport(){
+      const w = WELLS_DB[currentWell] || {};
+      const chartEntry = CHART_MAP[currentWell] || {};
+
+      document.getElementById('qr-well').textContent = currentWell || '—';
+      const fechaTxt = w.dynDate ? fmtDate(w.dynDate) : (w.acuDate ? fmtDate(w.acuDate) : '—');
+      document.getElementById('qr-sub').textContent = `${w.bateria || '—'} · ${w.operadora || '—'} · ${fechaTxt}`;
+
+      const esCombinada = w.hasDyn && w.hasAcu;
+      const classifEl = document.getElementById('qr-classif');
+      if(esCombinada) classifEl.textContent = 'Combinada';
+      else if(w.hasDyn) classifEl.textContent = 'Dina';
+      else if(w.hasAcu) classifEl.textContent = 'Nivel';
+      else classifEl.textContent = 'Sin ensayos';
+
+      const chips = [
+        ['Sistema', w.sistema || '—'],
+        ['Carga Máx', w.tv != null ? fmt(w.tv,0) + ' lb' : '—'],
+        ['Carga Mín', w.sv != null ? fmt(w.sv,0) + ' lb' : '—'],
+        ['Llenado', w.fillage != null ? fmt(w.fillage,1) + ' %' : '—'],
+        ['GPM', w.spm != null ? fmt(w.spm,2) : '—'],
+        ['Nivel', w.nivel != null ? fmt(w.nivel,0) + ' m' : '—'],
+        ['Sumergencia', w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—'],
+        ['Prof de bba', w.pumpIntakeDepth != null ? fmt(w.pumpIntakeDepth,0) + ' m' : '—'],
+        ['PIP Dyn', w.pipdyn != null ? fmt(w.pipdyn,1) + ' kg' : '—'],
+      ];
+      const chipsEl = document.getElementById('qr-chips');
+      chipsEl.innerHTML = chips.map(([lbl,val]) => `<div class="qr-chip"><span class="qr-lbl">${lbl}</span><span class="qr-val">${val}</span></div>`).join('');
+
+      // Imagenes: se copian directamente de las que ya estan cargadas en
+      // pantalla (Dina / Sonolog / Sarta), para no reimplementar la logica
+      // de resolucion de URL de Storage — asi el informe siempre coincide
+      // exactamente con lo que el operador esta viendo en ese momento.
+      const liveDyn = document.querySelector('#view-dina .dina-main .scope-real img');
+      const liveAcu = document.querySelector('#acuScopeReal img[alt*="Nivel acústico"]');
+      const liveSarta = document.getElementById('d-sarta-img');
+      const qrDynImg = document.getElementById('qr-dyn-img');
+      const qrAcuImg = document.getElementById('qr-acu-img');
+      const qrSartaImg = document.getElementById('qr-sarta-img');
+      if(qrDynImg){
+        if(liveDyn && liveDyn.src && liveDyn.style.display !== 'none'){ qrDynImg.src = liveDyn.src; qrDynImg.style.display = 'block'; }
+        else { qrDynImg.style.display = 'none'; }
+      }
+      if(qrAcuImg){
+        if(liveAcu && liveAcu.src && liveAcu.style.display !== 'none'){ qrAcuImg.src = liveAcu.src; qrAcuImg.style.display = 'block'; }
+        else { qrAcuImg.style.display = 'none'; }
+      }
+      if(qrSartaImg){
+        if(liveSarta && liveSarta.src && liveSarta.style.display !== 'none'){ qrSartaImg.src = liveSarta.src; qrSartaImg.style.display = 'block'; }
+        else { qrSartaImg.style.display = 'none'; }
+      }
+
+      document.getElementById('qr-dyn-comment').textContent = w.commentDyn || 'Sin comentarios registrados.';
+      document.getElementById('qr-acu-comment').textContent = w.commentAcu || 'Sin comentarios registrados.';
+
+      // Tabla de sarta: se copia la ya renderizada en Dina (sin la columna
+      // Cant., ya sacada de ahi tambien) para evitar duplicar la logica de tapers.
+      const liveSartaTable = document.getElementById('d-sarta-table');
+      const qrSartaTable = document.getElementById('qr-sarta-table');
+      if(qrSartaTable && liveSartaTable) qrSartaTable.innerHTML = liveSartaTable.innerHTML;
+
+      const pesoEl = document.getElementById('d-sarta-peso');
+      const catEl = document.getElementById('d-sarta-cat');
+      document.getElementById('qr-sarta-peso').textContent = pesoEl ? pesoEl.textContent : '—';
+      document.getElementById('qr-sarta-cat').textContent = catEl ? catEl.textContent : '—';
+
+      const now = new Date();
+      document.getElementById('qr-foot').textContent = `Generado por VA&PE App · ${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
+    }
+
+    btn.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
+    closeBtn.addEventListener('click', ()=> modal.classList.remove('active'));
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
+    if(pdfBtn) pdfBtn.addEventListener('click', ()=> window.print());
   }
 
   function initDinaDetailsModal(){
@@ -4576,7 +4815,7 @@
       // mas lenta se pisaria el HTML y el campo cambiaria de ancho de golpe
       // (el sintoma de "aparece el % y desaparece" que corria todo lo de al lado).
       const setUnitField = (id, val, unit, dec) => { const el = document.getElementById(id); if(el) el.innerHTML = (val!=null) ? `${fmt(val,dec)} <span class="unit">${unit}</span>` : '—'; };
-      setUnitField('d-fillage', r.average_fillage_pct, '%', 1);
+      setUnitField('d-fillage', r.adjusted_fillage_pct, '%', 1);
       setUnitField('d-tubpres', r.dyn_tubing_pressure_kg, 'kg', 1);
       const spmEl2 = document.getElementById('d-spm');
       if(spmEl2) spmEl2.textContent = r.spm != null ? fmt(r.spm, 2) : '—';
@@ -4604,20 +4843,22 @@
       if(oobEl2) oobEl2.textContent = r.out_of_balance_note || '—';
       const moveEl2 = document.getElementById('d-gb-move');
       if(moveEl2) moveEl2.textContent = formatGbMove(r.to_balance_move_note) || '—';
-      setGearboxPct('d-gb-pctdown', (r.existing_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.existing_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null);
-      setGearboxPct('d-gb-pctbal', (r.in_balance_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.in_balance_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null);
+      {
+        const pctDown2 = (r.existing_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.existing_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null;
+        const pctBal2 = (r.in_balance_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.in_balance_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null;
+        setGearboxPct('d-gb-pctbal', pctBal2);
+        setGearboxPctExisting('d-gb-pctdown', pctDown2, pctBal2);
+      }
       setDinaField('d-cbm', c.counter_balance_moment_inlb, ' in-lb', 0);
       setDinaField('d-wcw', c.weight_of_counterweights_lb, ' lb', 0);
       // Sarta de varillas: la de ESTE ensayo puntual.
       const sartaTable2 = document.getElementById('d-sarta-table');
       if(sartaTable2){
-        const header = '<tr><th>Tramo</th><th>Cant.</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
+        const header = '<tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
         if(t.tapers && t.tapers.length){
           sartaTable2.innerHTML = header + t.tapers.map(tp => {
-            const cant = tp.length_m != null ? Math.round(tp.length_m / 7.62) : null;
             return `<tr>
               <td>${tp.taper_number != null ? tp.taper_number : '—'}</td>
-              <td>${cant != null ? cant : '—'}</td>
               <td>${tp.diameter_in != null ? fmt(tp.diameter_in,3) : '—'}</td>
               <td>${tp.grade || '—'}</td>
               <td>${tp.length_m != null ? fmt(tp.length_m,1)+' m' : '—'}</td>
@@ -5792,6 +6033,7 @@
   if(acuHistPrev) acuHistPrev.addEventListener('click', ()=> navHistory('ACU', 1));
   if(acuHistNext) acuHistNext.addEventListener('click', ()=> navHistory('ACU', -1));
   initDinaDetailsModal();
+  initQuickReportModal();
 
   document.getElementById('prevBtn').addEventListener('click', ()=>{
     const i = wellNames.indexOf(currentWell);
