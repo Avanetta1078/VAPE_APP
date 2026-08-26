@@ -307,6 +307,16 @@
   .rp-badge-confirm{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.35);}
   .rp-grid{display:grid; grid-template-columns:50% 50%; gap:14px; align-items:stretch;}
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
+  .rp-pkr-badge{
+    position:absolute; top:-9px; right:14px; z-index:5;
+    background:#c8342c; color:#fff; font-family:'IBM Plex Mono'; font-size:10px; font-weight:700;
+    letter-spacing:.03em; padding:3px 9px; border-radius:5px; box-shadow:0 2px 8px rgba(200,52,44,.5);
+    animation:pkrPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pkrPulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(200,52,44,.55); }
+    50%{ box-shadow:0 0 0 6px rgba(200,52,44,0); }
+  }
   .rp-panel .panel-head{height:22px; margin-bottom:8px; flex-shrink:0;}
   .rp-panel .panel-head h2{font-size:13.5px;}
   .rp-chips-row{display:grid; gap:6px;}
@@ -518,13 +528,23 @@
   .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:12px 0 14px;}
   .ifilter{display:flex; flex-direction:column; gap:2px;}
   .ifilter label{font-size:8.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);}
-  .ifilter input, .ifilter select{
+  .ifilter input:not([type="checkbox"]), .ifilter select{
     background:var(--panel-2); border:1px solid var(--border); border-radius:6px;
-    padding:4px 6px; color:var(--ink); font-family:'IBM Plex Sans'; font-size:11px; min-width:96px; height:24px;
+    padding:4px 6px; color:var(--ink); font-family:'IBM Plex Sans'; font-size:11px;
+    min-width:96px; max-width:150px; height:24px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
+  #ifFecha{ max-width:190px; }
+  .ifilter input[type="checkbox"]{ width:13px; height:13px; min-width:0; flex-shrink:0; }
   .ifilter input:focus, .ifilter select:focus{outline:none; border-color:var(--navy-glow);}
   .ifilter select.if-active, .ifilter input.if-active{
-    background:rgba(200,73,44,.18); border-color:var(--rust); color:var(--rust-glow); font-weight:700;
+    background:rgba(46,160,90,.16); border-color:#2ea05a; font-weight:700;
+  }
+  /* El navegador dibuja la lista desplegada del <select> aparte (no hereda bien todo el CSS
+     del padre); se fuerza fondo oscuro + texto legible + resalte al pasar el cursor, para que
+     no quede texto invisible sobre fondo blanco nativo del sistema operativo. */
+  .ifilter select option{ background:#161b22; color:var(--ink); }
+  .ifilter select option:hover, .ifilter select option:checked, .ifilter select option:focus{
+    background:#2ea05a !important; color:#0c0f13 !important;
   }
   .ifilter-clear{
     align-self:flex-end; padding:4px 9px; height:24px; border-radius:6px; border:1px solid var(--border);
@@ -545,14 +565,14 @@
   .inicio-bulkbar .clear-sel{background:none; border-color:var(--border); color:var(--ink-dim); font-weight:400;}
   .inicio-bulkbar .clear-sel:hover{background:var(--panel-2); color:var(--ink);}
 
-  .inicio-table-wrap{overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 300px); border:1px solid var(--border); border-radius:10px;}
-  .inicio-table{width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed;}
+  .inicio-table-wrap{overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 340px); border:1px solid var(--border); border-radius:10px;}
+  .inicio-table{width:100%; border-collapse:collapse; font-size:11px; table-layout:auto;}
   .inicio-table thead th{
     position:sticky; top:0; background:var(--panel-2); text-align:left; font-size:9px;
-    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); padding:7px 6px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); padding:5px 6px;
     border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;
   }
-  .inicio-table td{padding:5px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10.5px;}
+  .inicio-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35;}
   .inicio-table tbody tr:hover{background:var(--panel-2);}
   .row-pendiente{background:rgba(179,73,43,.07);}
   .row-pendiente:hover{background:rgba(179,73,43,.13);}
@@ -564,6 +584,52 @@
   .inicio-table td.well-name{font-family:'IBM Plex Sans Condensed'; font-weight:600; cursor:pointer; font-size:11.5px; overflow:hidden; text-overflow:ellipsis;}
   .inicio-table td.well-name:hover{color:var(--steel-glow);}
   .inicio-table td.dim{color:var(--ink-faint);}
+  .inicio-table td.cmt-cell{ white-space:nowrap; text-align:left; }
+  .th-comment-head{ padding:4px 6px !important; }
+  .th-comment-search{
+    display:flex; align-items:center; gap:5px; background:var(--panel); border:1px solid var(--border);
+    border-radius:6px; padding:3px 8px; color:var(--ink-faint);
+  }
+  .th-comment-search:focus-within{ border-color:var(--navy-glow); }
+  .th-comment-search input{
+    background:none; border:none; outline:none; color:var(--ink); font-family:'IBM Plex Sans';
+    font-size:10.5px; text-transform:none; letter-spacing:normal; width:170px;
+  }
+  .th-comment-search input::placeholder{ color:var(--ink-faint); text-transform:none; }
+  .inicio-table th{ position:relative; }
+  .th-filter-btn{
+    background:none; border:none; color:var(--ink-faint); cursor:pointer; padding:2px;
+    margin-left:4px; display:inline-flex; align-items:center; vertical-align:middle; border-radius:3px;
+  }
+  .th-filter-btn:hover{ color:var(--ink); background:var(--panel); }
+  .th-filter-btn.th-active{ color:#2ea05a; }
+  .th-filter-panel{
+    position:absolute; top:100%; left:0; margin-top:2px; background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.5); z-index:50; width:190px;
+    font-family:'IBM Plex Sans'; text-transform:none; letter-spacing:normal; font-size:11px; padding:8px; display:none;
+  }
+  .th-filter-panel.open{ display:block; }
+  .th-sort-row{ display:flex; gap:4px; margin-bottom:7px; }
+  .th-sort-btn{
+    flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink);
+    font-size:10px; padding:4px 2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;
+  }
+  .th-sort-btn:hover, .th-sort-btn.th-sort-active{ border-color:#2ea05a; color:#2ea05a; }
+  .th-search{
+    width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink);
+    font-size:10.5px; padding:4px 6px; margin-bottom:6px; box-sizing:border-box;
+  }
+  .th-check-list{ max-height:150px; overflow-y:auto; border-top:1px solid var(--border); padding-top:5px; }
+  .th-check-item{ display:flex; align-items:center; gap:6px; padding:3px 2px; cursor:pointer; font-size:10.5px; color:var(--ink); }
+  .th-check-item:hover{ color:#2ea05a; }
+  .th-check-item input{ width:12px; height:12px; accent-color:#2ea05a; cursor:pointer; flex-shrink:0; }
+  .th-filter-actions{ display:flex; gap:5px; margin-top:7px; }
+  .th-filter-actions button{
+    flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink-dim);
+    font-size:10px; padding:4px; cursor:pointer;
+  }
+  .th-filter-actions button:hover{ color:var(--ink); }
+  .th-filter-actions .th-apply{ border-color:#2ea05a; color:#2ea05a; }
   .row-actions{display:flex; align-items:center; gap:5px; overflow:visible;}
   .row-check{width:13px; height:13px; flex-shrink:0; accent-color:var(--rust,#c0603a); cursor:pointer;}
   .row-pending-dot{
@@ -577,19 +643,29 @@
   }
   .row-del-btn:hover{background:rgba(200,73,44,.18); border-color:rgba(200,73,44,.5); color:var(--rust-glow);}
 
-  /* Anchos fijos por columna: 1=acciones 2=Pozo 3=Fecha 4=Bateria 5=Operadora 6=Nivel 7=Sumerg 8=Fillage 9=FoMax 10=TV 11=SPM */
-  .inicio-table th:nth-child(1), .inicio-table td:nth-child(1){ width:78px; overflow:visible; }
-  .inicio-table th:nth-child(2), .inicio-table td:nth-child(2){ width:66px; max-width:66px; }
-  .inicio-table th:nth-child(3), .inicio-table td:nth-child(3){ width:88px; }
-  .inicio-table th:nth-child(4), .inicio-table td:nth-child(4){ width:64px; }
-  .inicio-table th:nth-child(5), .inicio-table td:nth-child(5){ width:76px; }
-  .inicio-table th:nth-child(6), .inicio-table td:nth-child(6){ width:68px; }
-  .inicio-table th:nth-child(7), .inicio-table td:nth-child(7){ width:72px; }
-  .inicio-table th:nth-child(8), .inicio-table td:nth-child(8){ width:64px; }
-  .inicio-table th:nth-child(9), .inicio-table td:nth-child(9){ width:68px; }
-  .inicio-table th:nth-child(10), .inicio-table td:nth-child(10){ width:64px; }
-  .inicio-table th:nth-child(11), .inicio-table td:nth-child(11){ width:56px; }
-  .inicio-table th:nth-child(12), .inicio-table td:nth-child(12){ width:220px; max-width:220px; text-align:left; }
+  /* Anchos MINIMOS por columna (table-layout:auto permite que crezcan segun contenido,
+     asi el comentario queda en un solo renglon y aparece la barra de scroll horizontal
+     al pie de la grilla en vez de amontonar texto): 1=acciones 2=Pozo 3=Fecha 4=Bateria
+     5=Operacion 6=Ensayo 7=Sistema 8=Nivel 9=Sumerg 10=Fillage 11=SPM 12=Comentario */
+  .inicio-table th:nth-child(1), .inicio-table td:nth-child(1){ min-width:86px; width:86px; overflow:visible; padding-right:10px; }
+  .inicio-table th:nth-child(2), .inicio-table td:nth-child(2){ min-width:72px; width:72px; padding-left:10px;
+    position:sticky; left:0; z-index:2; background:var(--panel); box-shadow:2px 0 4px rgba(0,0,0,.25); }
+  .inicio-table th:nth-child(2){ z-index:4; background:var(--panel-2); }
+  .inicio-table th:nth-child(3), .inicio-table td:nth-child(3){ min-width:88px;
+    position:sticky; left:72px; z-index:2; background:var(--panel); box-shadow:2px 0 4px rgba(0,0,0,.25); }
+  .inicio-table th:nth-child(3){ z-index:4; background:var(--panel-2); }
+  .inicio-table tbody tr:hover td:nth-child(2), .inicio-table tbody tr:hover td:nth-child(3){ background:var(--panel-2); }
+  .row-pendiente td:nth-child(2), .row-pendiente td:nth-child(3){ background:#241a15; }
+  .row-pendiente:hover td:nth-child(2), .row-pendiente:hover td:nth-child(3){ background:#2c1f18; }
+  .inicio-table th:nth-child(4), .inicio-table td:nth-child(4){ min-width:64px; }
+  .inicio-table th:nth-child(5), .inicio-table td:nth-child(5){ min-width:76px; }
+  .inicio-table th:nth-child(6), .inicio-table td:nth-child(6){ min-width:60px; }
+  .inicio-table th:nth-child(7), .inicio-table td:nth-child(7){ min-width:64px; }
+  .inicio-table th:nth-child(8), .inicio-table td:nth-child(8){ min-width:72px; }
+  .inicio-table th:nth-child(9), .inicio-table td:nth-child(9){ min-width:76px; }
+  .inicio-table th:nth-child(10), .inicio-table td:nth-child(10){ min-width:68px; }
+  .inicio-table th:nth-child(11), .inicio-table td:nth-child(11){ min-width:60px; }
+  .inicio-table th:nth-child(12), .inicio-table td:nth-child(12){ min-width:180px; text-align:left; }
   .row-preview-btn{
     width:22px;height:22px;border-radius:6px;border:1px solid var(--border); flex-shrink:0;
     background:var(--panel-2); color:var(--ink-dim); cursor:pointer;
@@ -603,9 +679,15 @@
   .qp-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
 
   /* ---- Herramientas (Tarea 4) ---- */
-  .tools-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:16px;}
-  .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px;}
-  .tool-card h3{margin:0 0 8px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px;}
+  .tools-grid{display:flex; flex-direction:column; gap:10px; max-width:560px;}
+  .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden;}
+  .tool-card h3{margin:0; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px; padding:14px 18px; cursor:pointer; user-select:none;}
+  .tool-card h3:hover{background:var(--panel-2);}
+  .tool-card h3 .chev{margin-left:auto; display:flex; align-items:center; transition:transform .18s ease; color:var(--ink-faint);}
+  .tool-card.open h3 .chev{transform:rotate(180deg);}
+  .tool-card .tool-body{max-height:0; overflow:hidden; transition:max-height .22s ease; padding:0 20px;}
+  .tool-card.open .tool-body{max-height:3000px; padding:0 20px 18px;}
+  .tool-card.open{border-color:var(--navy-glow);}
   .tool-desc{font-size:12px; color:var(--ink-dim); line-height:1.55; margin:0 0 14px;}
   .tool-upload-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
   .tool-file-btn{
@@ -631,6 +713,7 @@
   .bit-input{width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Sans';}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -686,13 +769,13 @@
   <div class="menu" id="menu">
     <button data-view="inicio" class="active"><span class="dot"></span>Inicio</button>
     <button data-view="resumen"><span class="dot"></span>Resumen Pozo</button>
+    <button data-view="consultas" class="disabled" disabled><span class="dot"></span>Consultas <span style="font-size:9px;opacity:.7;">(a definir)</span></button>
     <button data-view="dina"><span class="dot"></span>Dina</button>
     <button data-view="sonolog"><span class="dot"></span>Sonolog</button>
     <button data-view="historial"><span class="dot"></span>Historial ECO</button>
     <button data-view="instalacion"><span class="dot"></span>Datos de Instalación</button>
     <button data-view="herramientas"><span class="dot"></span>Herramientas</button>
     <button data-view="bitacora"><span class="dot"></span>Bitácora</button>
-    <button data-view="consultas" class="disabled" disabled><span class="dot"></span>Consultas <span style="font-size:9px;opacity:.7;">(a definir)</span></button>
   </div>
 
   <!-- ===================== VIEW: INICIO ===================== -->
@@ -715,6 +798,13 @@
           <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
         </div>
         <div class="ifilter">
+          <label>&nbsp;</label>
+          <label style="display:flex; align-items:center; gap:5px; height:24px; font-size:11px; color:var(--ink-dim); cursor:pointer; text-transform:none; letter-spacing:normal;">
+            <input type="checkbox" id="ifMostrarOcultos" style="width:13px; height:13px; accent-color:#2ea05a; cursor:pointer;">
+            Mostrar ocultos
+          </label>
+        </div>
+        <div class="ifilter">
           <label>Mostrar</label>
           <select id="ifModo">
             <option value="ultimo">Último ensayo por pozo</option>
@@ -730,16 +820,16 @@
           <select id="ifBateria"><option value="">Todas</option></select>
         </div>
         <div class="ifilter">
-          <label>Fecha de campaña</label>
-          <select id="ifFecha"><option value="">Todas</option></select>
+          <label>Operación</label>
+          <select id="ifOperacion"><option value="">Todas</option></select>
         </div>
         <div class="ifilter">
-          <label>Ensayo</label>
-          <select id="ifEnsayo">
-            <option value="">Todos</option>
-            <option value="dyn">Con Dina</option>
-            <option value="acu">Solo Nivel</option>
-          </select>
+          <label>Sistema</label>
+          <select id="ifSistema"><option value="">Todos</option></select>
+        </div>
+        <div class="ifilter">
+          <label>Fecha de campaña</label>
+          <select id="ifFecha"><option value="">Todas</option></select>
         </div>
         <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
       </div>
@@ -749,17 +839,22 @@
           <thead>
             <tr>
               <th class="col-fixed"><input type="checkbox" id="inicioSelectAll" class="row-check" title="Seleccionar todos"></th>
-              <th class="col-fixed">Pozo</th>
-              <th class="col-fixed">Fecha</th>
-              <th class="col-fixed">Batería</th>
-              <th>Operadora</th>
-              <th>Nivel (m)</th>
-              <th>Sumerg. (m)</th>
-              <th>Fillage (%)</th>
-              <th>Fo Max (lb)</th>
-              <th>TV (lb)</th>
-              <th>SPM</th>
-              <th>Comentario</th>
+              <th class="col-fixed">Pozo<button class="th-filter-btn" data-col="well" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th class="col-fixed">Fecha<button class="th-filter-btn" data-col="dt" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th class="col-fixed">Batería<button class="th-filter-btn" data-col="bateria" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Operación<button class="th-filter-btn" data-col="operacion" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Ensayo<button class="th-filter-btn" data-col="tipo" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Sistema<button class="th-filter-btn" data-col="sistema" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Nivel (m)<button class="th-filter-btn" data-col="nivel" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Sumerg. (m)<button class="th-filter-btn" data-col="sumerg" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Fillage (%)<button class="th-filter-btn" data-col="fillage" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>SPM<button class="th-filter-btn" data-col="spm" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th class="th-comment-head">
+                <div class="th-comment-search">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  <input type="text" id="ifComentario" placeholder="Comentario · buscar coincidencia…">
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody id="inicioTableBody"></tbody>
@@ -806,7 +901,8 @@
         </div>
       </div>
 
-      <div class="panel rp-panel">
+      <div class="panel rp-panel" style="position:relative;">
+        <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
           <span id="rp-sistema" class="rp-badge rp-badge-pending" style="margin-left:8px; font-size:9px; padding:2px 8px;">Sistema: pendiente</span>
@@ -1020,24 +1116,68 @@
   <!-- ===================== VIEW: HISTORIAL ECO ===================== -->
   <div class="view" id="view-historial">
     <div class="panel">
-      <div class="panel-head"><h2><span class="dot2 steel"></span>Historial de Mediciones — Nivel Acústico</h2><span class="stamp">ED-316 · últimas 5 mediciones</span></div>
+      <div class="panel-head">
+        <h2><span class="dot2 steel"></span>Historial de Mediciones — Nivel Acústico</h2>
+        <span class="stamp" id="histStamp">—</span>
+      </div>
+
+      <div class="hist-toolbar" style="display:flex; align-items:center; gap:10px; margin:2px 0 16px;">
+        <div class="well-search" style="width:220px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a919d" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="#8a919d" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input type="text" id="histWellSearch" placeholder="Buscar pozo… (ej. 966)">
+        </div>
+        <span id="histWellMatches" class="tool-desc" style="margin:0; display:none;"></span>
+      </div>
+
       <div class="hist-chart" id="histChart">
-        <svg viewBox="0 0 900 260" width="100%" height="260">
-          <line x1="40" y1="210" x2="860" y2="210" stroke="#2a313b" stroke-width="1"/>
-          <line x1="40" y1="30" x2="40" y2="210" stroke="#2a313b" stroke-width="1"/>
-          <polyline points="90,150 260,120 430,60 600,42 770,30" fill="none" stroke="#8fb4d6" stroke-width="2"/>
-          <g class="hist-pt"><circle cx="90" cy="150" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="90" y="230" text-anchor="middle">22/06</text><text class="hist-label" x="90" y="140" text-anchor="middle" fill="#eeece4">1204 m</text></g>
-          <g class="hist-pt"><circle cx="260" cy="120" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="260" y="230" text-anchor="middle">24/06</text><text class="hist-label" x="260" y="110" text-anchor="middle" fill="#eeece4">1209 m</text></g>
-          <g class="hist-pt"><circle cx="430" cy="60" r="5.5" fill="#e6a95c"/><text class="hist-label" x="430" y="230" text-anchor="middle">29/06</text><text class="hist-label" x="430" y="48" text-anchor="middle" fill="#e6a95c">1216 m ★</text></g>
-          <g class="hist-pt"><circle cx="600" cy="42" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="600" y="230" text-anchor="middle">03/07</text><text class="hist-label" x="600" y="30" text-anchor="middle" fill="#eeece4">1221 m</text></g>
-          <g class="hist-pt"><circle cx="770" cy="30" r="4.5" fill="#8fb4d6"/><text class="hist-label" x="770" y="230" text-anchor="middle">06/07</text><text class="hist-label" x="770" y="20" text-anchor="middle" fill="#eeece4">1224 m</text></g>
-        </svg>
+        <p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Cargando historial…</p>
       </div>
       <p style="color:var(--ink-faint); font-size:11.5px; margin-top:10px;">
-        Puntos ubicados por encima/debajo de la línea según espacio disponible, para no tapar la tendencia. ★ = medición seleccionada actualmente.
+        Nivel Medido a lo largo del tiempo. Pasá el cursor sobre un punto para ver PIP y Sumergencia de esa medición.
       </p>
     </div>
   </div>
+
+  <style>
+  #histWellSearch{ background:none; border:none; outline:none; color:var(--ink); font-family:'IBM Plex Sans'; font-size:12px; width:100%; }
+  #histWellSearch::placeholder{ color:var(--ink-faint); }
+  .hist-timeline-svg{ display:block; width:100%; height:auto; }
+  .hist-tl-line{ fill:none; stroke:var(--steel-glow); stroke-width:1.75; }
+  .hist-tl-area{ fill:url(#histAreaGrad); }
+  .hist-tl-grid{ stroke:var(--border); stroke-width:1; opacity:.45; }
+  .hist-tl-axis{ stroke:var(--border); stroke-width:1; opacity:.8; }
+  .hist-tl-pt{ fill:var(--panel); stroke:var(--steel-glow); stroke-width:1.6; cursor:pointer; transition:r .12s ease, fill .12s ease; }
+  .hist-tl-pt:hover, .hist-tl-pt.active{ fill:var(--steel-glow); }
+  .hist-tl-datelbl{ font-family:'IBM Plex Mono'; font-size:8.5px; fill:var(--ink-faint); letter-spacing:.02em; }
+  .hist-tl-vallbl{ font-family:'IBM Plex Mono'; font-size:9px; fill:var(--ink-dim); font-weight:500; }
+  .hist-tooltip{
+    position:absolute; pointer-events:none; background:var(--panel-2); border:1px solid var(--border);
+    border-radius:8px; padding:8px 11px; font-family:'IBM Plex Sans'; font-size:11px; color:var(--ink);
+    box-shadow:0 8px 22px rgba(0,0,0,.4); opacity:0; transition:opacity .1s ease; z-index:30; white-space:nowrap;
+  }
+  .hist-tooltip .htt-date{ font-family:'IBM Plex Mono'; font-size:9.5px; color:var(--steel-glow); margin-bottom:4px; letter-spacing:.03em; }
+  .hist-tooltip .htt-row{ display:flex; justify-content:space-between; gap:14px; padding:1px 0; }
+  .hist-tooltip .htt-row span:first-child{ color:var(--ink-faint); }
+  .hist-tooltip .htt-row span:last-child{ font-family:'IBM Plex Mono'; font-weight:600; }
+  .hist-well-match{
+    display:block; padding:8px 12px; cursor:pointer; font-size:12px; color:var(--ink); border-bottom:1px solid var(--border);
+  }
+  .hist-well-match:last-child{ border-bottom:none; }
+  .hist-well-match:hover{ background:var(--panel-2); color:var(--steel-glow); }
+  #histWellDropdown{
+    position:absolute; margin-top:6px; background:var(--panel); border:1px solid var(--border); border-radius:9px;
+    max-height:220px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.4); z-index:25; min-width:220px; display:none;
+  }
+  #view-historial .hist-chart{ padding:14px 16px 10px; max-width:760px; }
+  #view-historial .panel{ max-width:800px; }
+  .ws-dropdown{
+    position:absolute; top:100%; left:0; margin-top:6px; background:var(--panel); border:1px solid var(--border); border-radius:9px;
+    max-height:260px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.4); z-index:60; min-width:200px; display:none;
+  }
+  .ws-match{ display:block; padding:8px 12px; cursor:pointer; font-size:12px; color:var(--ink); border-bottom:1px solid var(--border); }
+  .ws-match:last-child{ border-bottom:none; }
+  .ws-match:hover{ background:var(--panel-2); color:var(--steel-glow); }
+  </style>
 
   <!-- ===================== VIEW: DATOS DE INSTALACION ===================== -->
   <div class="view" id="view-instalacion">
@@ -1077,8 +1217,9 @@
   <!-- ===================== VIEW: HERRAMIENTAS ===================== -->
   <div class="view" id="view-herramientas">
     <div class="tools-grid">
-      <div class="tool-card">
-        <h3><span class="dot2 navy"></span>Cargar Datos (CSV / TXT)</h3>
+      <div class="tool-card open" data-tool="cargar">
+        <h3><span class="dot2 navy"></span>Cargar Datos (CSV / TXT)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <div class="tool-body">
         <p class="tool-desc">Subí el CSV general del ensayo (export Echometer) y/o los archivos TXT de Dina y Sonolog para ver una vista previa. La carga permanente a la base de datos se habilita cuando conectemos el servidor (Tarea 4, pendiente).</p>
 
         <div class="tool-upload-row">
@@ -1116,11 +1257,119 @@
         </button>
 
         <div id="uploadPreviewArea" class="upload-preview"></div>
+        </div>
       </div>
-    
+
+      <!-- CARD: Importador de Planilleros (Bitácora histórica) -->
+      <div class="tool-card" data-tool="planillero">
+        <h3><span class="dot2 navy"></span>Importador de Planilleros (Bitácora)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <div class="tool-body">
+        <p class="tool-desc">Subí el Excel del Planillero Diario. Cada hoja se identifica por la fecha en su <strong>nombre</strong> (no la interna). Elegí una hoja puntual o un rango de fechas para cargar a Bitácora (tabla <code>field_log</code>). Las columnas A-B-C no se usan; los datos arrancan en D6. El campo Batería (col. E) se ignora por ahora.</p>
+
+        <div class="tool-upload-row">
+          <label class="tool-file-btn">
+            Excel Planillero
+            <input type="file" id="planilleroFile" accept=".xlsx,.xls" hidden>
+          </label>
+          <span class="tool-file-name" id="planilleroFileName">Ningún archivo</span>
+        </div>
+
+        <div id="planilleroConfigArea" style="display:none;">
+          <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr 1fr; margin-top:14px;">
+            <div>
+              <label>Operadora</label>
+              <select id="planilleroOperadora" class="bit-input">
+                <option value="">Elegir…</option>
+                <option value="PECOM">PECOM</option>
+                <option value="BREST">BREST</option>
+                <option value="CROWN POINT">CROWN POINT</option>
+                <option value="VISTA OIL">VISTA OIL</option>
+              </select>
+            </div>
+            <div>
+              <label>Hoja puntual</label>
+              <select id="planilleroHojaCombo" class="bit-input"><option value="">— Rango de fechas —</option></select>
+            </div>
+            <div>
+              <label>Desde</label>
+              <input type="date" id="planilleroDesde" class="bit-input">
+            </div>
+            <div>
+              <label>Hasta</label>
+              <input type="date" id="planilleroHasta" class="bit-input">
+            </div>
+          </div>
+          <p class="tool-desc" id="planilleroHojasInfo" style="margin-top:8px;"></p>
+
+          <button class="details-btn" id="planilleroPreviewBtn" type="button" style="margin-top:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Ver vista previa
+          </button>
+          <button class="details-btn" id="planilleroSaveBtn" type="button" style="margin-top:6px; margin-left:8px; border-color:var(--navy-glow);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Guardar en Bitácora
+          </button>
+        </div>
+
+        <div id="planilleroPreviewArea" class="upload-preview"></div>
+        </div>
+      </div>
+
+      <!-- CARD: Importador de Baterías (Instalación / wells) -->
+      <div class="tool-card" data-tool="baterias">
+        <h3><span class="dot2 navy"></span>Importador de Baterías / Coordenadas GPS<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <div class="tool-body">
+        <p class="tool-desc">Subí la planilla de Instalaciones/Baterías (Excel o CSV). Cada planilla puede traer columnas distintas — el importador detecta automáticamente Pozo, Batería, Zona, Yacimiento y Coordenadas GPS (Lat/Lon, o columnas "GPS East/West" / "GPS North/South") por nombre de columna, y te muestra cuáles encontró antes de guardar. El nombre de pozo <strong>de esta planilla manda</strong>: si coincide con lo cargado no se toca; si el número de pozo coincide pero la grafía difiere (ej. mal tipeado a mano), se corrige. Pozos sin match se crean igual, marcados como pendientes de revisión.</p>
+
+        <div class="tool-upload-row">
+          <label class="tool-file-btn">
+            Excel/CSV Baterías
+            <input type="file" id="bateriasFile" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <span class="tool-file-name" id="bateriasFileName">Ningún archivo</span>
+        </div>
+
+        <div id="bateriasConfigArea" style="display:none;">
+          <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; margin-top:14px;">
+            <div>
+              <label>Operadora (obligatoria)</label>
+              <select id="bateriasOperadora" class="bit-input">
+                <option value="">Elegir…</option>
+                <option value="PECOM">PECOM</option>
+                <option value="BREST">BREST</option>
+                <option value="CROWN POINT">CROWN POINT</option>
+                <option value="VISTA OIL">VISTA OIL</option>
+              </select>
+            </div>
+            <div>
+              <label>Zona (opcional, si la planilla no la trae)</label>
+              <input type="text" id="bateriasZona" class="bit-input" placeholder="Se aplica a todo el archivo">
+            </div>
+            <div>
+              <label>Yacimiento (opcional, si la planilla no la trae)</label>
+              <input type="text" id="bateriasYacimiento" class="bit-input" placeholder="Se aplica a todo el archivo">
+            </div>
+          </div>
+          <p class="tool-desc" id="bateriasColsInfo" style="margin-top:8px;"></p>
+
+          <button class="details-btn" id="bateriasPreviewBtn" type="button" style="margin-top:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Ver vista previa
+          </button>
+          <button class="details-btn" id="bateriasSaveBtn" type="button" style="margin-top:6px; margin-left:8px; border-color:var(--navy-glow);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Guardar en Wells
+          </button>
+        </div>
+
+        <div id="bateriasPreviewArea" class="upload-preview"></div>
+        </div>
+      </div>
+
         <!-- CARD: Administración de Usuarios -->
-      <div class="tool-card">
-        <h3><span class="dot2 navy"></span>Administración de Usuarios</h3>
+      <div class="tool-card" data-tool="usuarios">
+        <h3><span class="dot2 navy"></span>Administración de Usuarios<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <div class="tool-body">
         <p class="tool-desc">Creá, editá y asigná operadoras a operadores y clientes.</p>
 
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
@@ -1147,9 +1396,25 @@
             <span style="font-size:11px; color:var(--ink-dim);">Cargando…</span>
           </div>
         </div>
+        </div>
       </div>
     </div>
   </div>
+  <script>
+  // Herramientas: menu desplegable estilo Windows (acordeón, un item a la vez)
+  document.addEventListener('DOMContentLoaded', function(){
+    var toolsGrid = document.querySelector('#view-herramientas .tools-grid');
+    if(!toolsGrid) return;
+    toolsGrid.querySelectorAll('.tool-card > h3').forEach(function(h){
+      h.addEventListener('click', function(){
+        var card = h.closest('.tool-card');
+        var wasOpen = card.classList.contains('open');
+        toolsGrid.querySelectorAll('.tool-card.open').forEach(function(c){ c.classList.remove('open'); });
+        if(!wasOpen) card.classList.add('open');
+      });
+    });
+  });
+  </script>
   <!-- ===================== VIEW: BITACORA (Operador — prueba real) ===================== -->
   <div class="view" id="view-bitacora">
     <div class="panel">
@@ -1334,7 +1599,7 @@
       // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
       // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
       const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
-        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria'),
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m'),
         fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb, pump_designation_api, total_rod_weight_lb'),
         fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
         fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id'),
@@ -1370,7 +1635,7 @@
       const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
 
       wells.forEach(w => {
-        const entry = { operadora: w.operadora, zona: w.zona, bateria: w.bateria };
+        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null };
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
@@ -1482,6 +1747,17 @@
         // diferencia de la sospecha "nunca tuvo Dina" que es solo un indicio.
         const commentsBlob = `${entry.commentDyn||''} ${entry.commentAcu||''}`.toUpperCase();
         entry.besConfirmado = /\bBES\b|ELECTRO|\bHZ\b/.test(commentsBlob);
+        // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
+        // (ver nota en memoria: "rota"/"rotador" sueltos son un accesorio de un AIB, no un Rotaflex).
+        // AIB se infiere por marca de unidad de bombeo (Lufkin/Siam/Vulcan) o, en su defecto,
+        // por tener carta dinamometrica cargada (solo un AIB puede generar carta).
+        const unitBlob = `${entry.surfaceUnitMfr||''} ${entry.surfaceUnitModel||''}`.toUpperCase();
+        if(/\bROTAFLEX\b/.test(commentsBlob) || /\bROTAFLEX\b/.test(unitBlob)) entry.sistema = 'ROTAFLEX';
+        else if(entry.besConfirmado) entry.sistema = 'BES';
+        else if(/\bPCP\b|CAVIDAD PROGRESIVA/.test(commentsBlob)) entry.sistema = 'PCP';
+        else if(/\bSSE\b/.test(commentsBlob)) entry.sistema = 'SSE';
+        else if(/LUFKIN|\bLFK\b|\bSIAM\b|VULCAN/.test(unitBlob) || entry.hasDyn) entry.sistema = 'AIB';
+        else entry.sistema = null;
 
         // Historial completo de ensayos del pozo (para el selector "Todos los ensayos"
         // en Inicio). Cada ensayo Dina y cada ensayo Nivel queda como fila propia,
@@ -1683,12 +1959,12 @@
 
   function fmt(v, dec=0){
     if(v === null || v === undefined) return "—";
-    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec, useGrouping:false});
   }
 
   function fmtN(v, dec=1){
     if(v === null || v === undefined || v === '') return "—";
-    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+    return Number(v).toLocaleString('es-AR', {minimumFractionDigits:dec, maximumFractionDigits:dec, useGrouping:false});
   }
 
   function fmtDate(dateStr){
@@ -1782,15 +2058,31 @@
       } else classifEl.textContent = 'Sin ensayos';
     }
 
+    const pkrBadgeEl = document.getElementById('rp-pkr-badge');
+    if(pkrBadgeEl){
+      if(w.packerM != null && w.packerM > 0){
+        pkrBadgeEl.textContent = `PKR ${fmtN(w.packerM,0)} mts`;
+        pkrBadgeEl.style.display = 'inline-block';
+      } else {
+        pkrBadgeEl.style.display = 'none';
+      }
+    }
+
     const sistemaEl = document.getElementById('rp-sistema');
-    const esBes = !!w.besConfirmado;
+    const esBes = w.sistema === 'BES' || w.sistema === 'PCP' || w.sistema === 'SSE';
     if(sistemaEl){
-      if(esBes){
-        sistemaEl.textContent = 'Sistema: BES (confirmado por comentario)';
+      const sis = w.sistema; // AIB / BES / Rotaflex / PCP / SSE / null
+      if(sis){
+        let txt = `Sistema de Extracción: ${sis}`;
+        // Para AIB que solo tiene Nivel (sin Dina) se suma el estado del pozo
+        // (Producing/Static del CSV) para saber si el nivel es dinamico o estatico.
+        if(sis === 'AIB' && w.hasAcu && !w.hasDyn){
+          const estado = (w.wellState || '').toUpperCase();
+          if(estado.includes('STATIC')) txt += ' — Nivel Estático';
+          else if(estado.includes('PRODUC')) txt += ' — Nivel Dinámico';
+        }
+        sistemaEl.textContent = txt;
         sistemaEl.className = 'rp-badge rp-badge-confirm';
-      } else if(w.neverHadDyn && w.hasAcu){
-        sistemaEl.textContent = 'Sistema: no es AIB (sin Dina histórico) — confirmar BES/PCP en Bitácora';
-        sistemaEl.className = 'rp-badge rp-badge-warn';
       } else {
         sistemaEl.textContent = 'Sistema: pendiente';
         sistemaEl.className = 'rp-badge rp-badge-pending';
@@ -2119,6 +2411,11 @@
     initHistoryNav('ACU');
     const bitacoraViewEl = document.getElementById('view-bitacora');
     if(bitacoraViewEl && bitacoraViewEl.classList.contains('active')){ bitLoadForWell(currentWell); }
+    histSelectedWell = null; // el pozo elegido en la grilla/topbar vuelve a mandar en Historial ECO
+    const histWellSearchEl = document.getElementById('histWellSearch');
+    if(histWellSearchEl) histWellSearchEl.value = '';
+    const historialViewEl = document.getElementById('view-historial');
+    if(historialViewEl && historialViewEl.classList.contains('active')){ renderHistorialTimeline(); }
 
     // Tarea 2: Operadora (asignada) · Zona (Group, si aplica) · Batería (Sub Group)
     const fieldTagEl = document.getElementById('fieldTag');
@@ -2337,36 +2634,182 @@
 
   // ---- Funciones de búsqueda de pozo y grilla Inicio ----
   let inicioPage = 0;
+  const inicioColumnFilters = {}; // colKey -> Set de valores permitidos (vacío/ausente = sin filtro)
+  const inicioSort = { col: null, dir: 'asc' };
+  let inicioBaseRowsForColFilters = [];
+
+  // Devuelve el valor "de columna" ya formateado tal cual se ve en la celda —
+  // se usa tanto para armar la lista de valores unicos del filtro tipo Excel
+  // como para ordenar y para aplicar el filtro elegido.
+  function inicioColValue(r, col){
+    switch(col){
+      case 'well': return r.well || '—';
+      case 'dt': return fmtDate(r.dt);
+      case 'bateria': return r.bateria || '—';
+      case 'operacion': return r.operacion || '—';
+      case 'tipo': return r.tipo || '—';
+      case 'sistema': return r.sistema || '—';
+      case 'nivel': return r.nivel != null ? fmtN(r.nivel,0) : '—';
+      case 'sumerg': return r.sumerg != null ? fmtN(r.sumerg,0) : '—';
+      case 'fillage': return r.fillage != null ? fmtN(r.fillage,1) : '—';
+      case 'spm': return r.spm != null ? fmtN(r.spm,2) : '—';
+      default: return '—';
+    }
+  }
+
+  function setupThFilters(){
+    const table = document.getElementById('inicioTable');
+    if(!table) return;
+    table.querySelectorAll('.th-filter-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const col = btn.dataset.col;
+        const existingPanel = btn.parentElement.querySelector('.th-filter-panel');
+        // Si ya esta abierto este mismo panel, se cierra (toggle); si no, se cierran los demas y se abre este.
+        const wasOpen = existingPanel && existingPanel.classList.contains('open');
+        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+        if(wasOpen) return;
+        openThFilterPanel(btn, col);
+      });
+    });
+    document.addEventListener('click', (ev) => {
+      if(!ev.target.closest('.th-filter-panel') && !ev.target.closest('.th-filter-btn')){
+        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+      }
+    });
+  }
+
+  function openThFilterPanel(btn, col){
+    // Valores unicos disponibles: se calculan sobre las filas ya filtradas por
+    // el resto de filtros (barra general + otras columnas), para que la lista
+    // siempre refleje lo que realmente se puede elegir en este momento.
+    const uniques = [...new Set(inicioBaseRowsForColFilters.map(r => inicioColValue(r, col)))].sort((a,b)=> String(a).localeCompare(String(b),'es'));
+    const selected = inicioColumnFilters[col];
+
+    const panel = document.createElement('div');
+    panel.className = 'th-filter-panel open';
+    panel.innerHTML = `
+      <div class="th-sort-row">
+        <button type="button" class="th-sort-btn${inicioSort.col===col && inicioSort.dir==='asc' ? ' th-sort-active' : ''}" data-dir="asc">A→Z</button>
+        <button type="button" class="th-sort-btn${inicioSort.col===col && inicioSort.dir==='desc' ? ' th-sort-active' : ''}" data-dir="desc">Z→A</button>
+      </div>
+      <input type="text" class="th-search" placeholder="Buscar valor…">
+      <div class="th-check-list">
+        ${uniques.map(v => `<label class="th-check-item"><input type="checkbox" value="${v.replace(/"/g,'&quot;')}" ${(!selected || selected.has(v)) ? 'checked' : ''}> ${v}</label>`).join('')}
+      </div>
+      <div class="th-filter-actions">
+        <button type="button" class="th-clear">Limpiar</button>
+        <button type="button" class="th-apply">Aplicar</button>
+      </div>`;
+    btn.parentElement.appendChild(panel);
+
+    panel.querySelectorAll('.th-sort-btn').forEach(sb => {
+      sb.addEventListener('click', () => {
+        inicioSort.col = col; inicioSort.dir = sb.dataset.dir;
+        panel.remove();
+        renderInicioGrid();
+      });
+    });
+    const searchInput = panel.querySelector('.th-search');
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      panel.querySelectorAll('.th-check-item').forEach(item => {
+        item.style.display = item.textContent.trim().toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    panel.querySelector('.th-clear').addEventListener('click', () => {
+      delete inicioColumnFilters[col];
+      if(inicioSort.col === col) inicioSort.col = null;
+      panel.remove();
+      inicioPage = 0;
+      renderInicioGrid();
+    });
+    panel.querySelector('.th-apply').addEventListener('click', () => {
+      const checked = [...panel.querySelectorAll('.th-check-item input:checked')].map(c => c.value);
+      if(checked.length === uniques.length){
+        delete inicioColumnFilters[col]; // todo tildado equivale a "sin filtro"
+      } else {
+        inicioColumnFilters[col] = new Set(checked);
+      }
+      panel.remove();
+      inicioPage = 0;
+      renderInicioGrid();
+    });
+  }
+
+
   const INICIO_PAGE_SIZE = 25;
 
   function initWellSearch(){
     const input = document.getElementById('wellSearch');
     if(!input) return;
-    // Busca el mejor match del texto tipeado y salta a ese pozo — usada al
-    // escribir (automatico), al tocar Enter, y al clickear la lupa (boton).
+
+    let dropdown = document.getElementById('wellSearchDropdown');
+    if(!dropdown){
+      dropdown = document.createElement('div');
+      dropdown.id = 'wellSearchDropdown';
+      dropdown.className = 'ws-dropdown';
+      input.closest('.well-search').style.position = 'relative';
+      input.closest('.well-search').appendChild(dropdown);
+    }
+
+    function closeDropdown(){ dropdown.style.display = 'none'; dropdown.innerHTML = ''; }
+
+    function jumpTo(name){
+      if(name && name !== currentWell){
+        currentWell = name;
+        renderWell();
+      }
+      closeDropdown();
+    }
+
+    // Navega directo solo con Enter, clic en la lupa, o al elegir una sugerencia
+    // del desplegable — nunca automaticamente con cada letra tipeada.
     function performSearch(){
       const q = input.value.trim().toLowerCase();
       if(!q) return;
       const match = wellNames.find(n => n.toLowerCase() === q) ||
                     wellNames.find(n => n.toLowerCase().startsWith(q)) ||
                     wellNames.find(n => n.toLowerCase().includes(q));
-      if(match && match !== currentWell){
-        currentWell = match;
-        renderWell();
-      }
+      if(match) jumpTo(match);
       return match;
     }
+
+    function showMatches(q){
+      const query = q.trim().toLowerCase();
+      if(!query){ closeDropdown(); return; }
+      const matches = wellNames.filter(n => n.toLowerCase().includes(query)).slice(0, 12);
+      if(!matches.length){ closeDropdown(); return; }
+      dropdown.innerHTML = matches.map(n => `<span class="ws-match" data-well="${n.replace(/"/g,'&quot;')}">${n}</span>`).join('');
+      dropdown.style.display = 'block';
+      dropdown.querySelectorAll('.ws-match').forEach(el => {
+        el.addEventListener('click', () => jumpTo(el.dataset.well));
+      });
+    }
+
     input.addEventListener('input', ()=>{
       const ifSearchEl = document.getElementById('ifSearch');
-      if(ifSearchEl && ifSearchEl.value !== input.value) ifSearchEl.value = input.value;
-      performSearch();
+      if(ifSearchEl && ifSearchEl.value !== input.value){
+        ifSearchEl.value = input.value;
+        // Al setear .value por JS el evento 'input' de ifSearch no se dispara solo —
+        // hay que forzar el refresco de la grilla para que quede marcado el pozo tipeado.
+        if(typeof renderInicioGrid === 'function'){ inicioPage = 0; renderInicioGrid(); }
+      }
+      showMatches(input.value);
     });
+    input.addEventListener('focus', ()=>{ if(input.value.trim()) showMatches(input.value); });
     input.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter'){
         e.preventDefault();
         performSearch();
         input.blur();
+        closeDropdown();
+      } else if(e.key === 'Escape'){
+        closeDropdown();
       }
+    });
+    document.addEventListener('click', (ev)=>{
+      if(!input.closest('.well-search').contains(ev.target)) closeDropdown();
     });
     const searchBtn = document.getElementById('wellSearchBtn');
     if(searchBtn) searchBtn.addEventListener('click', ()=>{ performSearch(); input.focus(); });
@@ -2376,15 +2819,18 @@
     const opSel = document.getElementById('ifOperadora');
     const batSel = document.getElementById('ifBateria');
     const fechaSel = document.getElementById('ifFecha');
+    const operacionSel = document.getElementById('ifOperacion');
+    const sistemaSel = document.getElementById('ifSistema');
     if(!opSel || !batSel || !fechaSel) return;
 
-    const ops = new Set(), bats = new Set();
+    const ops = new Set(), bats = new Set(), sistemas = new Set();
     const wellsByFecha = {}; // fecha ISO -> Set de pozos (para el conteo "20 pozos" por campaña)
     wellNames.forEach(n => {
       const w = WELLS_DB[n];
       if(!w) return;
       if(w.operadora) ops.add(w.operadora);
       if(w.bateria) bats.add(w.bateria);
+      if(w.sistema) sistemas.add(w.sistema);
       // Se juntan TODAS las fechas de la historia de ensayos del pozo, no
       // solo la del ultimo ensayo — si no, las campañas viejas (que ya no
       // son "la ultima" de ningun pozo) desaparecian del filtro.
@@ -2404,6 +2850,21 @@
     };
     fillSelect(opSel, ops);
     fillSelect(batSel, bats);
+    if(operacionSel){
+      const current = operacionSel.value;
+      const opciones = ['Combinada','Dina','Nivel','Sin ensayo'];
+      operacionSel.innerHTML = '<option value="">Todas</option>' + opciones.map(v => `<option value="${v}">${v}</option>`).join('');
+      if(opciones.includes(current)) operacionSel.value = current;
+    }
+    if(sistemaSel){
+      const current = sistemaSel.value;
+      // Lista fija (no solo lo que haya en los datos ahora) para que PCP/SSE/ROTAFLEX
+      // siempre esten disponibles como opcion, aunque hoy no haya ningun pozo asi cargado.
+      const opcionesFijas = ['AIB','BES','ROTAFLEX','PCP','SSE'];
+      sistemaSel.innerHTML = '<option value="">Todos</option>' +
+        opcionesFijas.map(v => `<option value="${v}">${v}</option>`).join('');
+      if(opcionesFijas.includes(current)) sistemaSel.value = current;
+    }
 
     // Fecha de campaña: se muestra en DD/MM/AAAA (no el ISO crudo) y con la
     // cantidad de pozos trabajados ese dia, ej. "07/08/2026 — 20 pozos".
@@ -2481,6 +2942,20 @@
     renderInicioGrid();
   }
 
+  async function toggleWellOculto(wellName){
+    const w = WELLS_DB[wellName];
+    if(!w || !w.well_id) return;
+    const nuevoValor = !w.oculto;
+    w.oculto = nuevoValor; // optimista, se revierte si falla
+    renderInicioGrid();
+    const { error } = await supabaseClient.from('wells').update({ oculto: nuevoValor }).eq('well_id', w.well_id);
+    if(error){
+      console.error('Error actualizando oculto:', error);
+      w.oculto = !nuevoValor;
+      renderInicioGrid();
+    }
+  }
+
   function renderInicioGrid(){
     const tbody = document.getElementById('inicioTableBody');
     const stamp = document.getElementById('inicioCountStamp');
@@ -2491,8 +2966,10 @@
     const opFilter = document.getElementById('ifOperadora') ? document.getElementById('ifOperadora').value : '';
     const batFilter = document.getElementById('ifBateria') ? document.getElementById('ifBateria').value : '';
     const fechaFilter = document.getElementById('ifFecha') ? document.getElementById('ifFecha').value : '';
-    const ensayoFilter = document.getElementById('ifEnsayo') ? document.getElementById('ifEnsayo').value : '';
     const modo = document.getElementById('ifModo') ? document.getElementById('ifModo').value : 'ultimo';
+    const operacionFilter = document.getElementById('ifOperacion') ? document.getElementById('ifOperacion').value : '';
+    const sistemaFilter = document.getElementById('ifSistema') ? document.getElementById('ifSistema').value : '';
+    const comentarioFilter = document.getElementById('ifComentario') ? document.getElementById('ifComentario').value.trim().toLowerCase() : '';
 
     // Resalta (mismo efecto que los botones de sistema en Bitacora) los
     // filtros que estan en uso, para ver de un vistazo cuales estan aplicados.
@@ -2500,16 +2977,21 @@
     const ifOpEl0 = document.getElementById('ifOperadora'); if(ifOpEl0) ifOpEl0.classList.toggle('if-active', !!opFilter);
     const ifBatEl0 = document.getElementById('ifBateria'); if(ifBatEl0) ifBatEl0.classList.toggle('if-active', !!batFilter);
     const ifFechaEl0 = document.getElementById('ifFecha'); if(ifFechaEl0) ifFechaEl0.classList.toggle('if-active', !!fechaFilter);
-    const ifEnsEl0 = document.getElementById('ifEnsayo'); if(ifEnsEl0) ifEnsEl0.classList.toggle('if-active', !!ensayoFilter);
     const ifModoEl0 = document.getElementById('ifModo'); if(ifModoEl0) ifModoEl0.classList.toggle('if-active', modo === 'todos');
+    const ifOperacionEl0 = document.getElementById('ifOperacion'); if(ifOperacionEl0) ifOperacionEl0.classList.toggle('if-active', !!operacionFilter);
+    const ifSistemaEl0 = document.getElementById('ifSistema'); if(ifSistemaEl0) ifSistemaEl0.classList.toggle('if-active', !!sistemaFilter);
 
-    // Pozos que pasan los filtros "de pozo" (nombre, operadora, batería) — independientes del modo.
+    const mostrarOcultos = document.getElementById('ifMostrarOcultos') ? document.getElementById('ifMostrarOcultos').checked : false;
+
+    // Pozos que pasan los filtros "de pozo" (nombre, operadora, batería, sistema) — independientes del modo.
     const wellsPass = wellNames.filter(n => {
       const w = WELLS_DB[n];
       if(!w) return false;
+      if(w.oculto && !mostrarOcultos) return false;
       if(qRaw && !n.toLowerCase().includes(qRaw)) return false;
       if(opFilter && w.operadora !== opFilter) return false;
       if(batFilter && w.bateria !== batFilter) return false;
+      if(sistemaFilter && (w.sistema || '—') !== sistemaFilter) return false;
       return true;
     });
 
@@ -2522,17 +3004,18 @@
         const hist = w.history || [];
         hist.forEach(h => {
           if(fechaFilter && h.dt !== fechaFilter) return;
-          if(ensayoFilter === 'dyn' && h.tipo !== 'Dina') return;
-          if(ensayoFilter === 'acu' && h.tipo !== 'Nivel') return;
+          if(operacionFilter && h.tipo !== operacionFilter) return;
+          if(comentarioFilter && !(h.comment||'').toLowerCase().includes(comentarioFilter)) return;
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
+            operacion: h.tipo, sistema: w.sistema || '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : []
           });
         });
         // Pozo sin ningún ensayo: se muestra igual una fila "pendiente" (como en modo Último).
-        if(!hist.length && !fechaFilter && !ensayoFilter){
-          rows.push({ well: n, dt: w.dt, tipo: null, bateria: w.bateria, operadora: w.operadora, pendiente: true, testIds: [] });
+        if(!hist.length && !fechaFilter && !operacionFilter && !comentarioFilter){
+          rows.push({ well: n, dt: w.dt, tipo: null, bateria: w.bateria, operadora: w.operadora, operacion: 'Sin ensayo', sistema: w.sistema || '—', pendiente: true, testIds: [] });
         }
       });
       // Orden: pozo (natural), y dentro del pozo lo más reciente primero.
@@ -2552,17 +3035,57 @@
           const enEsaFecha = w.dt === fechaFilter || (w.history || []).some(h => h.dt === fechaFilter);
           if(!enEsaFecha) return false;
         }
-        if(ensayoFilter === 'dyn' && !w.hasDyn) return false;
-        if(ensayoFilter === 'acu' && !w.hasAcu) return false;
+        if(operacionFilter){
+          const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo';
+          if(op !== operacionFilter) return false;
+        }
+        if(comentarioFilter){
+          const cmt = `${w.commentDyn||''} ${w.commentAcu||''}`.toLowerCase();
+          if(!cmt.includes(comentarioFilter)) return false;
+        }
         return true;
       }).map(n => {
         const w = WELLS_DB[n];
+        // "Operación": Combinada si el pozo tiene Dina Y Nivel cargados, o el tipo único si solo tiene uno.
+        const operacion = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo';
+        // "Ensayo" (último): cual de los dos ensayos es mas reciente (por fecha) — determina tambien
+        // que comentario mostrar, ya que Nivel y Dina tienen cada uno el suyo propio.
+        let tipoUltimo = null, comentarioUltimo = null;
+        if(w.hasDyn && w.hasAcu){
+          tipoUltimo = (w.dynDate || '') >= (w.acuDate || '') ? 'Dina' : 'Nivel';
+          comentarioUltimo = tipoUltimo === 'Dina' ? w.commentDyn : w.commentAcu;
+        } else if(w.hasDyn){
+          tipoUltimo = 'Dina'; comentarioUltimo = w.commentDyn;
+        } else if(w.hasAcu){
+          tipoUltimo = 'Nivel'; comentarioUltimo = w.commentAcu;
+        }
         return {
-          well: n, dt: w.dt, tipo: null, bateria: w.bateria, operadora: w.operadora,
+          well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
+          operacion, sistema: w.sistema || '—',
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
-          comment: w.comment, pendiente: !w.hasDyn && !w.hasAcu,
+          comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null)
         };
+      });
+    }
+
+    // Se guarda el set "base" (antes del filtro por columna) para poblar las listas de valores
+    // del desplegable tipo Excel, y luego se aplican los filtros/orden por columna sobre "rows".
+    inicioBaseRowsForColFilters = rows;
+    Object.keys(inicioColumnFilters).forEach(col => {
+      const allowed = inicioColumnFilters[col];
+      if(!allowed || !allowed.size) return;
+      rows = rows.filter(r => allowed.has(inicioColValue(r, col)));
+    });
+    if(inicioSort.col){
+      const col = inicioSort.col, dir = inicioSort.dir;
+      rows = rows.slice().sort((a,b) => {
+        const av = inicioColValue(a, col), bv = inicioColValue(b, col);
+        const an = Number(av), bn = Number(bv);
+        let c;
+        if(!isNaN(an) && !isNaN(bn) && av !== '—' && bv !== '—') c = an - bn;
+        else c = String(av).localeCompare(String(bv), 'es');
+        return dir === 'asc' ? c : -c;
       });
     }
 
@@ -2577,6 +3100,12 @@
     if(inicioPage < 0) inicioPage = 0;
     const pageRows = rows.slice(inicioPage * INICIO_PAGE_SIZE, (inicioPage + 1) * INICIO_PAGE_SIZE);
 
+    document.querySelectorAll('.th-filter-btn').forEach(btn => {
+      const col = btn.dataset.col;
+      const activo = !!inicioColumnFilters[col] || inicioSort.col === col;
+      btn.classList.toggle('th-active', activo);
+    });
+
     inicioRowTestIdsMap = {};
 
     if(!pageRows.length){
@@ -2589,12 +3118,20 @@
         const canDelete = r.testIds && r.testIds.length > 0;
         const checked = inicioSelectedRowKeys.has(rowKey) ? 'checked' : '';
         const rowClass = r.pendiente ? 'row-pendiente' : '';
+        const w0 = WELLS_DB[n];
+        const isHidden = w0 && w0.oculto;
+        const eyeIcon = isHidden
+          ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.4 4.6A10.4 10.4 0 0112 4.5c6 0 10 7.5 10 7.5a17.6 17.6 0 01-3.2 4.1M6.2 6.2A17.9 17.9 0 002 12s4 7.5 10 7.5a10 10 0 004.6-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>`;
         const pendingDot = r.pendiente ? '<span class="row-pending-dot" title="Pendiente: sin ensayos cargados"></span>' : '';
         const tipoTag = r.tipo ? `<span class="pending-badge" style="color:var(--steel-glow); background:rgba(143,180,214,.14); border-color:rgba(143,180,214,.35);">${r.tipo}</span>` : '';
         return `<tr class="${rowClass}" data-rowkey="${rowKey}">
           <td><div class="row-actions">
             ${canDelete ? `<input type="checkbox" class="row-check" data-rowkey="${rowKey.replace(/"/g,'&quot;')}" onchange="toggleInicioRowSelect(this)" ${checked}>` : '<span style="width:13px;display:inline-block;flex-shrink:0;"></span>'}
             ${pendingDot}
+            <button class="row-preview-btn" type="button" onclick="toggleWellOculto('${n.replace(/'/g,"\\'")}')" title="${isHidden ? 'Mostrar pozo' : 'Ocultar pozo'}" style="${isHidden ? 'color:#2ea05a;' : ''}">
+              ${eyeIcon}
+            </button>
             <button class="row-preview-btn" type="button" onclick="openQuickPreview('${n.replace(/'/g,"\\'")}')" title="Vista rápida">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
             </button>
@@ -2604,15 +3141,15 @@
           </div></td>
           <td class="well-name" onclick="currentWell='${n.replace(/'/g,"\\'")}'; renderWell(); goToView('resumen');">${n}</td>
           <td>${fmtDate(r.dt)}${tipoTag}</td>
-          <td class="dim">${r.bateria || '—'}</td>
-          <td class="dim">${r.operadora || '—'}</td>
+          <td>${r.bateria || '—'}</td>
+          <td>${r.operacion || '—'}</td>
+          <td>${r.tipo || '—'}</td>
+          <td>${r.sistema || '—'}</td>
           <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
-          <td>${r.fomax != null ? fmtN(r.fomax,0) : '—'}</td>
-          <td>${r.tv != null ? fmtN(r.tv,0) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td class="dim" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
+          <td class="cmt-cell" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
     }
@@ -2637,9 +3174,9 @@
   function initInicioGrid(){
     populateInicioFilterOptions();
     renderInicioGrid();
-    ['ifSearch','ifOperadora','ifBateria','ifFecha','ifEnsayo','ifModo'].forEach(id=>{
+    ['ifSearch','ifOperadora','ifBateria','ifFecha','ifModo','ifMostrarOcultos','ifOperacion','ifSistema','ifComentario'].forEach(id=>{
       const el = document.getElementById(id);
-      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', ()=>{ inicioPage = 0; renderInicioGrid(); });
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : (el.type === 'checkbox' ? 'change' : 'input'), ()=>{ inicioPage = 0; renderInicioGrid(); });
     });    // Sincroniza el buscador de la grilla con el del header (son un solo buscador).
     document.getElementById('ifSearch').addEventListener('input', ()=>{
       const wellSearch = document.getElementById('wellSearch');
@@ -2653,8 +3190,12 @@
       document.getElementById('ifOperadora').value = '';
       document.getElementById('ifBateria').value = '';
       document.getElementById('ifFecha').value = '';
-      document.getElementById('ifEnsayo').value = '';
       document.getElementById('ifModo').value = 'ultimo';
+      document.getElementById('ifOperacion').value = '';
+      document.getElementById('ifSistema').value = '';
+      document.getElementById('ifComentario').value = '';
+      Object.keys(inicioColumnFilters).forEach(k => delete inicioColumnFilters[k]);
+      inicioSort.col = null;
       renderInicioGrid();
     });
     const selectAllBox = document.getElementById('inicioSelectAll');
@@ -3475,7 +4016,7 @@
     ctx.fillText('Carta de Fondo', legX+40, legY+36);
 
     // Caja de datos (arriba a la izquierda)
-    const f = (v, nd) => (v === null || v === undefined) ? 's/d' : Number(v).toLocaleString('es-AR', { minimumFractionDigits: nd||0, maximumFractionDigits: nd||0 });
+    const f = (v, nd) => (v === null || v === undefined) ? 's/d' : Number(v).toLocaleString('es-AR', { minimumFractionDigits: nd||0, maximumFractionDigits: nd||0, useGrouping:false });
     const lines = [
       `Wrf = ${f(meta.wrf)} lb`,
       `Fo Max = ${f(meta.foMax,1)} lb`,
@@ -3667,27 +4208,242 @@
     }
     const row = CONTRAPESOS_CACHE[wellName];
     if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
-    if(!row || !row.contrapesos || !row.contrapesos.cranks || !row.contrapesos.cranks.length){
+    const cp = row && row.contrapesos;
+    // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
+    // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
+    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.placas == null && cp.cm == null && cp.cm2 == null)){
       table.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo (no hay bitácora cargada, o no trae este dato).</p>';
       return;
     }
     let cardsHtml = '';
-    row.contrapesos.cranks.forEach(crank => {
-      (crank.counterweights || []).forEach(cw => {
-        const crankClass = crank.crank_no === 2 ? 'crank-2' : 'crank-1';
+    if(cp.cranks && cp.cranks.length){
+      cp.cranks.forEach(crank => {
+        (crank.counterweights || []).forEach(cw => {
+          const crankClass = crank.crank_no === 2 ? 'crank-2' : 'crank-1';
+          cardsHtml += `<div class="cp-card">
+            <div class="cp-card-title ${crankClass}">Manivela ${crank.crank_no}${crank.crank_code ? ' ('+crank.crank_code+')' : ''} · Contrapeso ${cw.cw_no}</div>
+            <div class="cp-grid">
+              <div class="cp-lbl">Placa Ppal.</div><div class="cp-val">${cw.principal || '—'}</div>
+              <div class="cp-lbl">Aux 1</div><div class="cp-val">${cw.aux1 || '—'}</div>
+              <div class="cp-lbl">Aux 2</div><div class="cp-val">${cw.aux2 || '—'}</div>
+              <div class="cp-lbl">Distancia</div><div class="cp-val">${cw.distancia_cm != null ? cw.distancia_cm+' cm' : '—'}</div>
+            </div>
+          </div>`;
+        });
+      });
+    } else {
+      // Reparto acordado: la planilla trae el TOTAL del pozo (Placa Principal = tipo/cant,
+      // Placa Auxiliar = cm/cant2) y se divide por igual entre las 2 manivelas del contrapesado.
+      // No hay campo de distancia en los datos migrados del planillero, asi que no se muestra
+      // (no se inventa un valor que no esta en la base).
+      const tipoPrincipal = cp.tipo ? String(cp.tipo).toUpperCase() : null;
+      const tipoAux = cp.cm ? String(cp.cm).toUpperCase() : null;
+      const cantPrincipalTotal = cp.cant != null ? Number(cp.cant) : null;
+      const cantAuxTotal = cp.cant2 != null ? Number(cp.cant2) : null;
+      const cantPrincipalMitad = cantPrincipalTotal != null ? cantPrincipalTotal / 2 : null;
+      const cantAuxMitad = cantAuxTotal != null ? cantAuxTotal / 2 : null;
+
+      [1, 2].forEach(manivelaNo => {
+        const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
         cardsHtml += `<div class="cp-card">
-          <div class="cp-card-title ${crankClass}">Manivela ${crank.crank_no}${crank.crank_code ? ' ('+crank.crank_code+')' : ''} · Contrapeso ${cw.cw_no}</div>
+          <div class="cp-card-title ${crankClass}">Manivela ${manivelaNo}</div>
           <div class="cp-grid">
-            <div class="cp-lbl">Placa Ppal.</div><div class="cp-val">${cw.principal || '—'}</div>
-            <div class="cp-lbl">Aux 1</div><div class="cp-val">${cw.aux1 || '—'}</div>
-            <div class="cp-lbl">Aux 2</div><div class="cp-val">${cw.aux2 || '—'}</div>
-            <div class="cp-lbl">Distancia</div><div class="cp-val">${cw.distancia_cm != null ? cw.distancia_cm+' cm' : '—'}</div>
+            <div class="cp-lbl">Placa Princ.</div><div class="cp-val">${tipoPrincipal || '—'}</div>
+            <div class="cp-lbl">Cant. Princ.</div><div class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</div>
+            <div class="cp-lbl">Placa Aux.</div><div class="cp-val">${tipoAux || '—'}</div>
+            <div class="cp-lbl">Cant. Aux.</div><div class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</div>
           </div>
         </div>`;
       });
-    });
-    table.innerHTML = cardsHtml;
+
+      // Datos generales del pozo (no son por-manivela): secundaria, placas totales,
+      // y fecha del ultimo relevamiento cargado desde el planillero.
+      if(cp.secu != null || cp.placas != null || row.fecha){
+        cardsHtml += `<div class="cp-card">
+          <div class="cp-card-title" style="color:var(--ink-faint);">General${row.fecha ? ' · '+fmtDate(row.fecha) : ''}</div>
+          <div class="cp-grid">
+            <div class="cp-lbl">Secundaria</div><div class="cp-val">${cp.secu != null ? cp.secu : '—'}</div>
+            <div class="cp-lbl">Placas (total)</div><div class="cp-val">${cp.placas != null ? cp.placas : '—'}</div>
+          </div>
+        </div>`;
+      }
+    }
+    table.innerHTML = cardsHtml || '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>';
   }
+
+  // ===================== HISTORIAL ECO: linea de tiempo (Nivel Medido) =====================
+  let histSelectedWell = null; // null = usa currentWell (pozo de la grilla/topbar)
+
+  async function renderHistorialTimeline(){
+    const chartEl = document.getElementById('histChart');
+    const stampEl = document.getElementById('histStamp');
+    if(!chartEl) return;
+    const wellName = histSelectedWell || currentWell;
+    if(!wellName){
+      chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Elegí un pozo para ver su historial.</p>';
+      if(stampEl) stampEl.textContent = '—';
+      return;
+    }
+    chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Cargando historial…</p>';
+    if(stampEl) stampEl.textContent = wellName + ' · cargando…';
+
+    const list = await loadWellHistory(wellName, 'ACU');
+    // el usuario puede haber cambiado el pozo mientras esperabamos la respuesta
+    if((histSelectedWell || currentWell) !== wellName) return;
+
+    const pts = (list || [])
+      .filter(t => t.results && t.results.liquid_level_tvd_m != null && t.test_date)
+      .map(t => ({
+        date: t.test_date,
+        time: t.test_time,
+        nivel: Number(t.results.liquid_level_tvd_m),
+        pip: t.results.pip_ll_kg != null ? Number(t.results.pip_ll_kg) : null,
+        sumerg: t.results.fluid_above_pump_m != null ? Number(t.results.fluid_above_pump_m) : null,
+      }))
+      .sort((a,b) => new Date(a.date+'T'+(a.time||'00:00:00')) - new Date(b.date+'T'+(b.time||'00:00:00')));
+
+    if(stampEl) stampEl.textContent = wellName + (pts.length ? ` · ${pts.length} medición${pts.length===1?'':'es'}` : ' · sin mediciones');
+
+    if(!pts.length){
+      chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Sin mediciones de Nivel Acústico cargadas para este pozo.</p>';
+      return;
+    }
+
+    // ---- geometria (compacta) ----
+    const W = 760, H = 190, padL = 46, padR = 18, padT = 18, padB = 34;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const niveles = pts.map(p => p.nivel);
+    let minV = Math.min(...niveles), maxV = Math.max(...niveles);
+    if(minV === maxV){ minV -= 10; maxV += 10; }
+    const pad = (maxV - minV) * 0.12;
+    minV -= pad; maxV += pad;
+
+    const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
+    // Nivel medido: valores mas ALTOS (mas profundo) hacia ABAJO del grafico (convencion de nivel de pozo)
+    const yFor = (v) => padT + ((v - minV) / (maxV - minV)) * plotH;
+
+    const coords = pts.map((p,i) => ({ x: xFor(i), y: yFor(p.nivel), p }));
+
+    // grilla horizontal (4 lineas) + eje
+    let gridSvg = '';
+    const gridN = 3;
+    for(let g=0; g<=gridN; g++){
+      const gy = padT + (g/gridN)*plotH;
+      const gv = maxV - (g/gridN)*(maxV-minV);
+      gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
+      gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)} m</text>`;
+    }
+
+    // etiquetas de fecha en eje X (evita amontonar: max ~8 labels)
+    const maxLabels = 6;
+    const step = Math.max(1, Math.ceil(pts.length / maxLabels));
+    let dateLabels = '';
+    coords.forEach((c,i) => {
+      if(i % step === 0 || i === coords.length-1){
+        const dd = fmtDate ? fmtDate(c.p.date) : c.p.date;
+        dateLabels += `<text class="hist-tl-datelbl" x="${c.x}" y="${H-padB+18}" text-anchor="middle">${dd}</text>`;
+      }
+    });
+
+    // linea + area
+    const linePath = coords.map((c,i) => (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
+    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${padT+plotH} L${coords[0].x.toFixed(1)},${padT+plotH} Z`;
+
+    // puntos (delicados, sin etiquetas fijas — el valor aparece en el tooltip al pasar el cursor)
+    let ptsSvg = '';
+    coords.forEach((c,i) => {
+      const isLast = i === coords.length-1;
+      ptsSvg += `<circle class="hist-tl-pt${isLast?' active':''}" cx="${c.x}" cy="${c.y}" r="${isLast?4:2.6}" data-idx="${i}"/>`;
+    });
+
+    chartEl.innerHTML = `
+      <div style="position:relative;">
+        <svg class="hist-timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="histAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--steel-glow)" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="var(--steel-glow)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${gridSvg}
+          <path class="hist-tl-area" d="${areaPath}"/>
+          <path class="hist-tl-line" d="${linePath}"/>
+          ${ptsSvg}
+          <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
+          ${dateLabels}
+        </svg>
+        <div class="hist-tooltip" id="histTooltip"></div>
+      </div>`;
+
+    const svgEl = chartEl.querySelector('svg');
+    const tooltip = document.getElementById('histTooltip');
+    const wrap = chartEl.querySelector('div');
+
+    function showTooltip(idx, clientX, clientY){
+      const p = coords[idx].p;
+      const rect = wrap.getBoundingClientRect();
+      tooltip.innerHTML = `
+        <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
+        <div class="htt-row"><span>Nivel medido</span><span>${Math.round(p.nivel)} m</span></div>
+        <div class="htt-row"><span>PIP</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
+        <div class="htt-row"><span>Sumergencia</span><span>${p.sumerg != null ? p.sumerg.toFixed(1)+' m' : '—'}</span></div>
+      `;
+      let left = clientX - rect.left + 14;
+      let top = clientY - rect.top - 10;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+      tooltip.style.opacity = '1';
+      chartEl.querySelectorAll('.hist-tl-pt').forEach(el => el.classList.remove('active'));
+      chartEl.querySelector(`.hist-tl-pt[data-idx="${idx}"]`).classList.add('active');
+    }
+    function hideTooltip(){
+      tooltip.style.opacity = '0';
+      chartEl.querySelectorAll('.hist-tl-pt').forEach((el,i) => {
+        el.classList.toggle('active', i === coords.length-1);
+      });
+    }
+
+    chartEl.querySelectorAll('.hist-tl-pt, .hist-tl-ptgroup').forEach(el => {
+      el.addEventListener('mouseenter', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mousemove', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  function setupHistWellSearch(){
+    const input = document.getElementById('histWellSearch');
+    if(!input) return;
+    let dropdown = document.getElementById('histWellDropdown');
+    if(!dropdown){
+      dropdown = document.createElement('div');
+      dropdown.id = 'histWellDropdown';
+      input.closest('.well-search').style.position = 'relative';
+      input.closest('.well-search').appendChild(dropdown);
+    }
+    function closeDropdown(){ dropdown.style.display = 'none'; }
+    function openMatches(q){
+      const query = q.trim().toUpperCase();
+      if(!query){ closeDropdown(); return; }
+      const matches = wellNames.filter(n => n.toUpperCase().includes(query)).slice(0, 12);
+      if(!matches.length){ closeDropdown(); return; }
+      dropdown.innerHTML = matches.map(n => `<span class="hist-well-match" data-well="${n.replace(/"/g,'&quot;')}">${n}</span>`).join('');
+      dropdown.style.display = 'block';
+      dropdown.querySelectorAll('.hist-well-match').forEach(el => {
+        el.addEventListener('click', () => {
+          histSelectedWell = el.dataset.well;
+          input.value = histSelectedWell;
+          closeDropdown();
+          renderHistorialTimeline();
+        });
+      });
+    }
+    input.addEventListener('input', () => openMatches(input.value));
+    input.addEventListener('focus', () => { if(input.value.trim()) openMatches(input.value); });
+    document.addEventListener('click', (ev) => {
+      if(!input.closest('.well-search').contains(ev.target)) closeDropdown();
+    });
+  }
+
 
   async function loadWellHistory(wellName, type){
     const cacheKey = wellName;
@@ -4426,6 +5182,550 @@
   }
 
   initToolsUpload();
+
+  // =========================================================
+  // ---- Módulo Importador de Planilleros (Bitácora histórica) ----
+  // =========================================================
+  (function initPlanilleroImporter(){
+    const fileInput = document.getElementById('planilleroFile');
+    const fileName = document.getElementById('planilleroFileName');
+    const configArea = document.getElementById('planilleroConfigArea');
+    const hojaCombo = document.getElementById('planilleroHojaCombo');
+    const desdeInput = document.getElementById('planilleroDesde');
+    const hastaInput = document.getElementById('planilleroHasta');
+    const hojasInfo = document.getElementById('planilleroHojasInfo');
+    const operadoraSel = document.getElementById('planilleroOperadora');
+    const previewBtn = document.getElementById('planilleroPreviewBtn');
+    const saveBtn = document.getElementById('planilleroSaveBtn');
+    const previewArea = document.getElementById('planilleroPreviewArea');
+    if(!fileInput) return;
+
+    let workbook = null;
+    let sheetDates = []; // [{ name, date: Date, label: 'dd/mm/yyyy' }] ordenado por fecha
+    let lastParsedRows = null; // cache de la última vista previa, para "Guardar" sin re-parsear
+
+    // ---- Utilidades de fecha ----
+    function parseSheetDate(sheetName){
+      // Busca un patrón d[-/.]m[-/.]y en el NOMBRE de la hoja (year 2 o 4 dígitos). Ignora hojas sin año (no se puede ubicar en un rango sin año).
+      const m = String(sheetName).match(/(\d{1,2})[\-\/\.](\d{1,2})[\-\/\.](\d{2,4})/);
+      if(!m) return null;
+      let d = parseInt(m[1],10), mo = parseInt(m[2],10), y = parseInt(m[3],10);
+      if(y < 100) y += 2000;
+      if(mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+      const dt = new Date(Date.UTC(y, mo-1, d));
+      if(isNaN(dt.getTime())) return null;
+      return dt;
+    }
+    function fmtDDMMYYYY(dt){
+      const d = String(dt.getUTCDate()).padStart(2,'0');
+      const m = String(dt.getUTCMonth()+1).padStart(2,'0');
+      const y = dt.getUTCFullYear();
+      return `${d}/${m}/${y}`;
+    }
+    function toIsoDate(dt){
+      const d = String(dt.getUTCDate()).padStart(2,'0');
+      const m = String(dt.getUTCMonth()+1).padStart(2,'0');
+      return `${dt.getUTCFullYear()}-${m}-${d}`;
+    }
+
+    // ---- Carga y detección de hojas ----
+    fileInput.addEventListener('change', async ()=>{
+      const f = fileInput.files[0];
+      if(!f) return;
+      fileName.textContent = f.name;
+      previewArea.innerHTML = `<div class="up-block"><p class="up-note">Leyendo archivo…</p></div>`;
+      try{
+        const buf = await f.arrayBuffer();
+        workbook = XLSX.read(buf, { type:'array', cellDates:false });
+        sheetDates = workbook.SheetNames
+          .map(name => ({ name, date: parseSheetDate(name) }))
+          .filter(s => s.date)
+          .sort((a,b) => a.date - b.date);
+
+        hojaCombo.innerHTML = '<option value="">— Rango de fechas —</option>' +
+          sheetDates.map(s => `<option value="${s.name}">${fmtDDMMYYYY(s.date)} — ${s.name.trim()}</option>`).join('');
+
+        const descartadas = workbook.SheetNames.length - sheetDates.length;
+        hojasInfo.textContent = `${sheetDates.length} hojas con fecha reconocida en el nombre (de ${workbook.SheetNames.length} totales; ${descartadas} descartadas por no tener fecha o estar vacías).`;
+
+        if(sheetDates.length){
+          desdeInput.value = toIsoDate(sheetDates[0].date);
+          hastaInput.value = toIsoDate(sheetDates[sheetDates.length-1].date);
+        }
+        configArea.style.display = '';
+        previewArea.innerHTML = '';
+      } catch(e){
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al leer el Excel: ${e.message||e}</p></div>`;
+      }
+    });
+
+    // ---- Extracción de filas desde D6 en adelante de una hoja ----
+    function extractRowsFromSheet(sheetName, fechaISO){
+      const ws = workbook.Sheets[sheetName];
+      if(!ws || !ws['!ref']) return [];
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      const rows = [];
+      let orden = 0;
+      for(let r = 5; r <= range.e.r; r++){ // fila 6 = índice 5 (0-based)
+        const get = (col) => {
+          const cell = ws[XLSX.utils.encode_cell({ r, c: col })];
+          return cell ? cell.v : null;
+        };
+        const pozoRaw = get(3); // D
+        if(pozoRaw === null || pozoRaw === undefined || String(pozoRaw).trim() === '') continue;
+        const pozo = String(pozoRaw).trim();
+        // Fila totalmente vacía salvo el pozo: igual la tomamos, pero si el pozo no parece un nombre de pozo válido, se salta.
+        const tipoEnsayoRaw = String(get(10) || '').trim().toLowerCase(); // K
+        const tipoOperacionRaw = String(get(11) || '').trim().toLowerCase(); // L
+        const unidadDescripcion = get(12) ? String(get(12)).trim() : null; // M
+
+        const tipoEnsayo = tipoEnsayoRaw.startsWith('din') ? 'Dinamico' : tipoEnsayoRaw.startsWith('est') ? 'Estatico' : null;
+        let tipoOperacion = null;
+        if(tipoOperacionRaw.includes('comb')) tipoOperacion = 'COMBINADA';
+        else if(tipoOperacionRaw.includes('cancel')) tipoOperacion = 'CANCELADA';
+        else if(tipoOperacionRaw.includes('nivel')) tipoOperacion = 'NIVEL';
+        else if(tipoOperacionRaw.includes('dina')) tipoOperacion = 'DINA';
+
+        // Clasificación de sistema de extracción (regla Crown Point / texto libre del campo AIB/unidad)
+        const udLower = (unidadDescripcion || '').toLowerCase();
+        let sistemaExtraccionTipo = null;
+        if(/\brotaflex\b/.test(udLower)) sistemaExtraccionTipo = 'ROTAFLEX';
+        else if(/\bbes\b|electro/.test(udLower)) sistemaExtraccionTipo = 'BES';
+        else if(/lfk|lufkin|siam|vulcan/.test(udLower)) sistemaExtraccionTipo = 'AIB';
+
+        rows.push({
+          orden_en_hoja: orden++,
+          well_name_raw: pozo,
+          well_number: pozo.replace(/\D/g,'') || null,
+          fecha: fechaISO,
+          source_sheet_name: sheetName,
+          carrera_in: numOrNull(get(6)), // G
+          presion_tubing_kg: numOrNull(get(7)), // H
+          presion_casing_kg: numOrNull(get(8)), // I
+          estado_pozo: get(9) ? String(get(9)).trim() : null, // J (libre, si existe)
+          tipo_ensayo: tipoEnsayo,
+          tipo_operacion: tipoOperacion,
+          sistema_extraccion: unidadDescripcion,
+          sistema_extraccion_tipo: sistemaExtraccionTipo,
+          unidad_descripcion: unidadDescripcion,
+          contrapesos: {
+            tipo: get(13), placas: get(14), cant: get(15), cm: get(16),
+            secu: get(17), cant2: get(18), cm2: get(19)
+          }, // N-S
+          motor_marca: get(19+1) ? String(get(20)).trim() : null, // T
+          motor_rpm: numOrNull(get(21)), // U
+          motor_potencia_hp: numOrNull(get(22)), // V
+          motor_polea: get(23) ? String(get(23)).trim() : null, // W
+          observaciones: get(23+1) ? String(get(24)).trim() : null, // X
+          extra_fields: { pulg_pip_torque: get(5) } // F, campo multiuso, sin tipar todavía
+        });
+      }
+      return rows;
+    }
+    function numOrNull(v){
+      if(v === null || v === undefined || v === '') return null;
+      const n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    }
+
+    function sheetsToProcess(){
+      const single = hojaCombo.value;
+      if(single) return sheetDates.filter(s => s.name === single);
+      if(!desdeInput.value || !hastaInput.value) return [];
+      const desde = new Date(desdeInput.value + 'T00:00:00Z');
+      const hasta = new Date(hastaInput.value + 'T00:00:00Z');
+      return sheetDates.filter(s => s.date >= desde && s.date <= hasta);
+    }
+
+    function buildAllRows(){
+      const sheets = sheetsToProcess();
+      let all = [];
+      sheets.forEach(s => { all = all.concat(extractRowsFromSheet(s.name, toIsoDate(s.date))); });
+      return { sheets, rows: all };
+    }
+
+    previewBtn.addEventListener('click', ()=>{
+      if(!workbook){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Subí primero el Excel.</p></div>`; return; }
+      const { sheets, rows } = buildAllRows();
+      lastParsedRows = rows;
+      if(!sheets.length){
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">No hay hojas que coincidan con la hoja elegida o el rango de fechas.</p></div>`;
+        return;
+      }
+      const sample = rows.slice(0, 25);
+      let html = `<div class="up-block"><h4>Vista previa — ${sheets.length} hoja(s), ${rows.length} fila(s) de pozo</h4>`;
+      html += `<table><tr><th>Fecha</th><th>Pozo</th><th>Ensayo</th><th>Operación</th><th>Sistema</th><th>Unidad</th><th>Carrera</th><th>P.Tbg</th></tr>`;
+      html += sample.map(r => `<tr>
+        <td>${fmtDDMMYYYY(new Date(r.fecha+'T00:00:00Z'))}</td>
+        <td>${r.well_name_raw}</td>
+        <td>${r.tipo_ensayo||'—'}</td>
+        <td>${r.tipo_operacion||'—'}</td>
+        <td>${r.sistema_extraccion_tipo||'—'}</td>
+        <td>${(r.unidad_descripcion||'—').slice(0,28)}</td>
+        <td>${r.carrera_in ?? '—'}</td>
+        <td>${r.presion_tubing_kg ?? '—'}</td>
+      </tr>`).join('');
+      html += `</table>`;
+      if(rows.length > sample.length) html += `<p class="up-note">Mostrando 25 de ${rows.length} filas. El resto se procesa igual al guardar.</p>`;
+      html += `<p class="up-note">Hojas incluidas: ${sheets.map(s=>fmtDDMMYYYY(s.date)).join(', ')}</p>`;
+      html += `</div>`;
+      previewArea.innerHTML = html;
+    });
+
+    saveBtn.addEventListener('click', async ()=>{
+      if(!workbook){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Subí primero el Excel.</p></div>`; return; }
+      if(!operadoraSel.value){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Elegí la operadora antes de guardar.</p></div>`; return; }
+      const { sheets, rows } = lastParsedRows ? { sheets: sheetsToProcess(), rows: lastParsedRows } : buildAllRows();
+      if(!rows.length){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">No hay filas para guardar (elegí hoja o rango).</p></div>`; return; }
+
+      previewArea.innerHTML = `<div class="up-block"><p class="up-note">Guardando ${rows.length} filas de ${sheets.length} hoja(s)…</p></div>`;
+      try{
+        // Carga cruzada well_id contra wells.well_number, para linkear cuando existe.
+        const numbers = [...new Set(rows.map(r => r.well_number).filter(Boolean))];
+        let wellMap = {};
+        if(numbers.length){
+          const { data: wellsData, error: wellsErr } = await supabaseClient
+            .from('wells').select('well_id, well_number').in('well_number', numbers);
+          if(wellsErr) throw wellsErr;
+          (wellsData||[]).forEach(w => { wellMap[w.well_number] = w.well_id; });
+        }
+        const finalRows = rows.map(r => ({ ...r, operadora: operadoraSel.value, well_id: wellMap[r.well_number] || null }));
+
+        // Carga incremental: por cada fecha a procesar, borra lo existente de esa fecha+operadora (fuente=hoja) y vuelve a insertar,
+        // asi se puede recargar "solo un dia" sin duplicar filas viejas de la misma hoja.
+        const fechasUnicas = [...new Set(sheets.map(s => toIsoDate(s.date)))];
+        for(const fecha of fechasUnicas){
+          const { error: delErr } = await supabaseClient
+            .from('field_log').delete()
+            .eq('fecha', fecha).eq('operadora', operadoraSel.value);
+          if(delErr) throw delErr;
+        }
+
+        const chunkSize = 200;
+        for(let i=0; i<finalRows.length; i+=chunkSize){
+          const chunk = finalRows.slice(i, i+chunkSize);
+          const { error } = await supabaseClient.from('field_log').insert(chunk);
+          if(error) throw error;
+        }
+
+        previewArea.innerHTML = `<div class="up-block"><h4>Listo</h4>
+          <p class="up-note">${finalRows.length} filas guardadas en Bitácora (field_log), de ${sheets.length} hoja(s): ${fechasUnicas.map(f=>fmtDDMMYYYY(new Date(f+'T00:00:00Z'))).join(', ')}.</p>
+          <p class="up-note">${Object.keys(wellMap).length} pozos linkeados a wells por well_number; el resto queda con well_id nulo (solo well_name_raw) hasta que el pozo exista en wells.</p>
+        </div>`;
+      } catch(e){
+        console.error('Error guardando planillero:', e);
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al guardar: ${e.message || e}</p></div>`;
+      }
+    });
+  })();
+
+  // ---- Módulo Importador de Baterías (Instalación / wells) ----
+  (function initBateriasImporter(){
+    const fileInput = document.getElementById('bateriasFile');
+    const fileName = document.getElementById('bateriasFileName');
+    const configArea = document.getElementById('bateriasConfigArea');
+    const operadoraSel = document.getElementById('bateriasOperadora');
+    const zonaInput = document.getElementById('bateriasZona');
+    const yacimientoInput = document.getElementById('bateriasYacimiento');
+    const colsInfo = document.getElementById('bateriasColsInfo');
+    const previewBtn = document.getElementById('bateriasPreviewBtn');
+    const saveBtn = document.getElementById('bateriasSaveBtn');
+    const previewArea = document.getElementById('bateriasPreviewArea');
+    if(!fileInput) return;
+
+    let rawAoa = null; // array-of-arrays de la hoja
+    let colMap = null; // { pozo: idx, bateria: idx, zona: idx, yacimiento: idx, lat: idx, lon: idx }
+    let lastPreview = null;
+
+    // Sinónimos de encabezado -> campo. Coincidencia por "incluye", en minúsculas sin acentos.
+    const HEADER_SYNONYMS = {
+      pozo: ['nombre infoprod', 'pozo', 'well', 'nombre pozo', 'well name'],
+      bateria: ['bateria', 'bat'],
+      zona: ['zona'],
+      yacimiento: ['yacimiento', 'campo'],
+      lat: ['latitud', 'lat', 'gps_lat', 'gps lat', 'gps north/south (coordinates)', 'gps north/south', 'north/south'],
+      lon: ['longitud', 'long', 'lon', 'gps_lon', 'gps lon', 'gps east/west (coordinates)', 'gps east/west', 'east/west'],
+    };
+    function stripAccents(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+    function detectColumns(headerRow){
+      const map = {};
+      headerRow.forEach((h, idx) => {
+        if(h === null || h === undefined) return;
+        const norm = stripAccents(String(h)).trim().toLowerCase();
+        for(const field in HEADER_SYNONYMS){
+          if(map[field] !== undefined) continue;
+          if(HEADER_SYNONYMS[field].some(syn => norm === syn || norm.includes(syn))){
+            map[field] = idx;
+          }
+        }
+      });
+      return map;
+    }
+
+    function cleanWellName(raw){
+      // Normaliza espacios (colapsa multiples, arregla " - " -> "-") sin tocar mayus/minus
+      // ni sufijos como (d)/(h), para no perder informacion que trae la planilla.
+      return String(raw).trim().replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-');
+    }
+    function wellNumberOf(name){ return String(name).replace(/\D/g, '') || null; }
+    function wellPrefixOf(name){
+      // Letras antes del primer numero (ej "PQO-1004" -> "PQO", "LT-1009" -> "LT", "S-2732(d)" -> "S").
+      // Se usa junto al numero para evitar confundir pozos distintos que comparten digitos
+      // con prefijo diferente (ej. LT-1009 no es lo mismo que PQ-1009).
+      const m = String(name).trim().match(/^([A-Za-z.\s\-]*)(\d+)/);
+      const base = m ? m[1] : String(name);
+      return base.replace(/[^A-Za-z]/g, '').toUpperCase();
+    }
+    function numOrNull(v){
+      if(v === null || v === undefined || v === '') return null;
+      const n = parseFloat(String(v).replace(',', '.'));
+      return isNaN(n) ? null : n;
+    }
+    function parseCoord(raw){
+      // Acepta: numero decimal ya firmado, decimal con letra de hemisferio (ej "51.53 S"),
+      // o formato DMS ("51°32'18.5\"S" / "51 32 18.5 S"). Devuelve grados decimales con signo
+      // (Sur y Oeste negativos), o null si no se pudo interpretar.
+      if(raw === null || raw === undefined || raw === '') return null;
+      if(typeof raw === 'number') return isNaN(raw) ? null : raw;
+      const s = String(raw).trim();
+      if(!s) return null;
+      const hemMatch = s.match(/([NSEWnsew])/);
+      const hem = hemMatch ? hemMatch[1].toUpperCase() : null;
+      const core = s.replace(/[NSEWnsew]/g, '').trim();
+      let value;
+      const dms = core.match(/(-?\d+(?:[.,]\d+)?)[°\s]+(\d+(?:[.,]\d+)?)['\s]+(\d+(?:[.,]\d+)?)/);
+      const dm = !dms ? core.match(/(-?\d+(?:[.,]\d+)?)[°\s]+(\d+(?:[.,]\d+)?)'?\s*$/) : null;
+      if(dms){
+        const d = parseFloat(dms[1].replace(',','.'));
+        const m = parseFloat(dms[2].replace(',','.'));
+        const sec = parseFloat(dms[3].replace(',','.'));
+        value = Math.abs(d) + m/60 + sec/3600;
+        if(d < 0) value = -value;
+      } else if(dm){
+        const d = parseFloat(dm[1].replace(',','.'));
+        const m = parseFloat(dm[2].replace(',','.'));
+        value = Math.abs(d) + m/60;
+        if(d < 0) value = -value;
+      } else {
+        value = parseFloat(core.replace(',', '.'));
+      }
+      if(isNaN(value)) return null;
+      if(hem === 'S' || hem === 'W') value = -Math.abs(value);
+      else if(hem === 'N' || hem === 'E') value = Math.abs(value);
+      return value;
+    }
+
+    fileInput.addEventListener('change', async ()=>{
+      const f = fileInput.files[0];
+      if(!f) return;
+      fileName.textContent = f.name;
+      previewArea.innerHTML = `<div class="up-block"><p class="up-note">Leyendo archivo…</p></div>`;
+      try{
+        const buf = await f.arrayBuffer();
+        const workbook = XLSX.read(buf, { type:'array', cellDates:false });
+        const ws = workbook.Sheets[workbook.SheetNames[0]];
+        rawAoa = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+        if(!rawAoa.length){ throw new Error('El archivo no tiene filas.'); }
+        colMap = detectColumns(rawAoa[0]);
+        if(colMap.pozo === undefined){ throw new Error('No se encontró una columna de Pozo (probé: ' + HEADER_SYNONYMS.pozo.join(', ') + ').'); }
+
+        const found = Object.keys(colMap).map(f => `${f}: col ${colMap[f]+1}`).join(' · ');
+        const missing = Object.keys(HEADER_SYNONYMS).filter(f => colMap[f] === undefined);
+        colsInfo.innerHTML = `<strong>Detectado:</strong> ${found}.` +
+          (missing.length ? `<br><strong style="color:var(--rust,#c0603a);">No encontrado en la planilla:</strong> ${missing.join(', ')}` +
+            (missing.includes('zona') || missing.includes('yacimiento') ? ' — completá el campo arriba si querés aplicarlo a todo el archivo, o dejalo para después.' : '') : '');
+
+        configArea.style.display = '';
+        previewArea.innerHTML = '';
+      } catch(e){
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al leer el archivo: ${e.message||e}</p></div>`;
+      }
+    });
+
+    function parseRows(){
+      const out = [];
+      const seen = new Map(); // dedupe por pozo: nos quedamos con la primera fila que traiga coordenadas
+      for(let r=1; r<rawAoa.length; r++){
+        const row = rawAoa[r];
+        if(!row) continue;
+        const pozoRaw = row[colMap.pozo];
+        if(pozoRaw === null || pozoRaw === undefined || String(pozoRaw).trim() === '') continue;
+        const rec = {
+          well_name_file: cleanWellName(pozoRaw),
+          well_number: wellNumberOf(pozoRaw),
+          bateria: colMap.bateria !== undefined ? (row[colMap.bateria] != null ? String(row[colMap.bateria]).trim() : null) : null,
+          zona: colMap.zona !== undefined ? (row[colMap.zona] != null ? String(row[colMap.zona]).trim() : null) : (zonaInput.value.trim() || null),
+          yacimiento: colMap.yacimiento !== undefined ? (row[colMap.yacimiento] != null ? String(row[colMap.yacimiento]).trim() : null) : (yacimientoInput.value.trim() || null),
+          gps_lat: colMap.lat !== undefined ? parseCoord(row[colMap.lat]) : null,
+          gps_lon: colMap.lon !== undefined ? parseCoord(row[colMap.lon]) : null,
+        };
+        const key = rec.well_name_file.toLowerCase();
+        const prev = seen.get(key);
+        if(!prev){
+          seen.set(key, rec);
+        } else if((prev.gps_lat == null || prev.gps_lon == null) && rec.gps_lat != null && rec.gps_lon != null){
+          // Archivos como el export de Echometer traen varias filas (una por ensayo) por pozo;
+          // nos quedamos con la primera que tenga coordenadas completas.
+          if(!prev.bateria && rec.bateria) rec.bateria = rec.bateria;
+          seen.set(key, { ...prev, gps_lat: rec.gps_lat, gps_lon: rec.gps_lon });
+        }
+      }
+      seen.forEach(rec => out.push(rec));
+      return out;
+    }
+
+    async function matchAgainstWells(rows){
+      const { data: wellsData, error } = await supabaseClient.from('wells').select('well_id, well_name, well_number');
+      if(error) throw error;
+      const byExactName = {};
+      const byNumPrefix = {};
+      (wellsData||[]).forEach(w => {
+        byExactName[String(w.well_name).trim().toLowerCase()] = w;
+        if(w.well_number){
+          const key = w.well_number + '|' + wellPrefixOf(w.well_name);
+          if(!byNumPrefix[key]) byNumPrefix[key] = [];
+          byNumPrefix[key].push(w);
+        }
+      });
+      const actualizados = [], corregidos = [], nuevos = [], ambiguos = [];
+      const seenNew = new Set(); // evita duplicar "nuevos" con mismo nombre dentro del mismo archivo
+      rows.forEach(r => {
+        const exact = byExactName[r.well_name_file.toLowerCase()];
+        if(exact){
+          actualizados.push({ ...r, well_id: exact.well_id, well_name_final: exact.well_name });
+          return;
+        }
+        // Corrección solo si coincide numero DE POZO Y prefijo de letras (evita confundir
+        // pozos distintos que comparten digitos con prefijo diferente, ej. LT-1009 vs PQ-1009).
+        const key = r.well_number ? (r.well_number + '|' + wellPrefixOf(r.well_name_file)) : null;
+        const byNum = key ? (byNumPrefix[key] || []) : [];
+        if(byNum.length === 1){
+          // La planilla que se sube es la fuente de verdad: si el nombre cargado a mano en
+          // Supabase difiere (ej. "s-2732" vs "S-2732(d)" en el archivo), se corrige la base
+          // para que quede como dice la planilla — nunca al revés.
+          corregidos.push({ ...r, well_id: byNum[0].well_id, well_name_final: r.well_name_file, well_name_original: byNum[0].well_name });
+          return;
+        }
+        if(byNum.length > 1){
+          ambiguos.push({ ...r, candidatos: byNum.map(w=>w.well_name) });
+          return;
+        }
+        const nameKey = r.well_name_file.toLowerCase();
+        if(seenNew.has(nameKey)) return; // pozo repetido en el archivo, sin match -> solo se crea una vez
+        seenNew.add(nameKey);
+        nuevos.push({ ...r, well_name_final: r.well_name_file });
+      });
+      return { actualizados, corregidos, nuevos, ambiguos };
+    }
+
+    previewBtn.addEventListener('click', async ()=>{
+      if(!rawAoa){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Subí primero el archivo.</p></div>`; return; }
+      previewArea.innerHTML = `<div class="up-block"><p class="up-note">Cruzando contra la base…</p></div>`;
+      try{
+        const rows = parseRows();
+        const grouped = await matchAgainstWells(rows);
+        lastPreview = grouped;
+        const { actualizados, corregidos, nuevos, ambiguos } = grouped;
+
+        let html = `<div class="up-block"><h4>Vista previa — ${rows.length} pozo(s) en el archivo</h4>`;
+        html += `<p class="up-note">
+          <strong style="color:#5fd68a;">${actualizados.length}</strong> ya existen y coinciden exacto (se actualiza Batería${zonaInput.value||colMap.zona!==undefined?'/Zona':''}) ·
+          <strong style="color:#8fb4d6;">${corregidos.length}</strong> se corrigen por número de pozo ·
+          <strong style="color:#e6a95c;">${nuevos.length}</strong> son pozos nuevos (se crean) ·
+          <strong style="color:#ff7373;">${ambiguos.length}</strong> ambiguos (mismo número, varios pozos — se omiten)
+        </p>`;
+
+        if(corregidos.length){
+          html += `<h4 style="margin-top:10px;">Correcciones de nombre (la planilla manda)</h4><table><tr><th>Estaba en la base</th><th>→ Corregido según planilla</th><th>Batería</th></tr>`;
+          html += corregidos.slice(0,25).map(r => `<tr><td>${r.well_name_original}</td><td>${r.well_name_final}</td><td>${r.bateria||'—'}</td></tr>`).join('');
+          html += `</table>`;
+          if(corregidos.length>25) html += `<p class="up-note">... y ${corregidos.length-25} más.</p>`;
+        }
+        if(nuevos.length){
+          html += `<h4 style="margin-top:10px;">Pozos nuevos (muestra)</h4><table><tr><th>Pozo</th><th>Batería</th><th>Zona</th><th>Lat/Lon</th></tr>`;
+          html += nuevos.slice(0,25).map(r => `<tr><td>${r.well_name_final}</td><td>${r.bateria||'—'}</td><td>${r.zona||'—'}</td><td>${r.gps_lat!=null?r.gps_lat+', '+r.gps_lon:'—'}</td></tr>`).join('');
+          html += `</table>`;
+          if(nuevos.length>25) html += `<p class="up-note">... y ${nuevos.length-25} más.</p>`;
+        }
+        if(ambiguos.length){
+          html += `<h4 style="margin-top:10px;" class="up-warn">Ambiguos (no se van a guardar)</h4><table><tr><th>Pozo (archivo)</th><th>Candidatos existentes</th></tr>`;
+          html += ambiguos.slice(0,15).map(r => `<tr><td>${r.well_name_file}</td><td>${r.candidatos.join(' / ')}</td></tr>`).join('');
+          html += `</table>`;
+        }
+        html += `</div>`;
+        previewArea.innerHTML = html;
+      } catch(e){
+        console.error('Error en vista previa de baterías:', e);
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error: ${e.message||e}</p></div>`;
+      }
+    });
+
+    saveBtn.addEventListener('click', async ()=>{
+      if(!rawAoa){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Subí primero el archivo.</p></div>`; return; }
+      if(!operadoraSel.value){ previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Elegí la operadora antes de guardar.</p></div>`; return; }
+      try{
+        const rows = parseRows();
+        const grouped = lastPreview || await matchAgainstWells(rows);
+        const { actualizados, corregidos, nuevos, ambiguos } = grouped;
+        previewArea.innerHTML = `<div class="up-block"><p class="up-note">Guardando…</p></div>`;
+
+        // ---- Actualizaciones (existentes + corregidos): UPDATE por well_id, en tandas paralelas ----
+        const toUpdate = [...actualizados, ...corregidos];
+        const chunkSize = 25;
+        let updErrors = 0;
+        for(let i=0; i<toUpdate.length; i+=chunkSize){
+          const chunk = toUpdate.slice(i, i+chunkSize);
+          const results = await Promise.all(chunk.map(r => {
+            const patch = { operadora: operadoraSel.value };
+            if(r.bateria) patch.bateria = r.bateria;
+            if(r.zona) patch.zona = r.zona;
+            if(r.yacimiento) patch.lease_name = r.yacimiento;
+            if(r.gps_lat != null) patch.gps_lat = r.gps_lat;
+            if(r.gps_lon != null) patch.gps_lon = r.gps_lon;
+            // Solo los "corregidos" (match por numero de pozo, no exacto) tocan well_name —
+            // la planilla subida manda sobre lo cargado a mano. Los "actualizados" (match
+            // exacto) no necesitan tocar el nombre porque ya coincide tal cual.
+            if(r.well_name_original !== undefined) patch.well_name = r.well_name_final;
+            return supabaseClient.from('wells').update(patch).eq('well_id', r.well_id);
+          }));
+          results.forEach(res => { if(res.error){ updErrors++; console.error('Error actualizando well:', res.error); } });
+        }
+
+        // ---- Inserciones (pozos nuevos) ----
+        let insErrors = 0, insCount = 0;
+        if(nuevos.length){
+          const toInsert = nuevos.map(r => ({
+            well_name: r.well_name_final,
+            well_number: r.well_number,
+            operadora: operadoraSel.value,
+            bateria: r.bateria || null,
+            zona: r.zona || null,
+            lease_name: r.yacimiento || null,
+            gps_lat: r.gps_lat,
+            gps_lon: r.gps_lon,
+            pendiente_revision: true,
+          }));
+          for(let i=0; i<toInsert.length; i+=chunkSize){
+            const chunk = toInsert.slice(i, i+chunkSize);
+            const { error, data } = await supabaseClient.from('wells').insert(chunk).select('well_id');
+            if(error){ insErrors += chunk.length; console.error('Error insertando wells:', error); }
+            else insCount += (data||chunk).length;
+          }
+        }
+
+        previewArea.innerHTML = `<div class="up-block"><h4>Listo</h4>
+          <p class="up-note">${actualizados.length + corregidos.length - updErrors} pozo(s) existentes actualizados (Batería/Operadora${updErrors?` — ${updErrors} con error`:''}).</p>
+          <p class="up-note">${insCount} pozo(s) nuevos creados${insErrors?` (${insErrors} con error, revisá nombres duplicados)`:''}${insCount?' — marcados como pendientes de revisión.':''}</p>
+          <p class="up-note">${ambiguos.length} pozo(s) ambiguos se omitieron (mismo número de pozo, varios candidatos existentes) — revisalos a mano.</p>
+        </div>`;
+        lastPreview = null;
+      } catch(e){
+        console.error('Error guardando baterías:', e);
+        previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al guardar: ${e.message||e}</p></div>`;
+      }
+    });
+  })();
+
     // ---- Módulo Administración de Usuarios ----
   async function loadUsuariosTable(){
     const tbody = document.getElementById('usuariosTableBody');
@@ -4518,6 +5818,7 @@
     const viewEl = document.getElementById('view-'+viewName);
     if(viewEl) viewEl.classList.add('active');
     if(viewName === 'bitacora'){ bitLoadForWell(currentWell); }
+    if(viewName === 'historial'){ renderHistorialTimeline(); }
   }
 
   document.querySelectorAll('.bit-pill').forEach(btn=>{
@@ -4525,6 +5826,8 @@
   });
   const bitGuardarBtnEl = document.getElementById('bitGuardarBtn');
   if(bitGuardarBtnEl) bitGuardarBtnEl.addEventListener('click', bitGuardar);
+  setupHistWellSearch();
+  setupThFilters();
 
 </script>
 
