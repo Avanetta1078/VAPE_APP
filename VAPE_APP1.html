@@ -613,38 +613,39 @@
   /* Separador interno entre las tarjetas de resumen y los controles (dias sin
      Dina / vista / columnas), todo ahora DENTRO del mismo recuadro para que
      ocupe menos alto en pantalla y la grilla quede mas arriba. */
-  .cq-panel-divider{border-top:1px solid var(--border); margin:9px 0 8px;}
-  .cq-controls-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+  /* (el separador y la fila de controles aparte ya no se usan: todo vive
+     ahora en una sola fila horizontal dentro de cq-resumen-grid, ver abajo) */
 
   /* Barra de "dias sin Dina": mismo color/estilo de antes (acento azul),
-     pero ahora vive EN LA MISMA FILA que las tarjetas de resumen (pedido de
-     Ale) y bien compacta — no se estira, no ocupa una fila propia. */
-  .cq-dsd-bar{display:flex; align-items:center; gap:5px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
-    border-radius:6px; padding:4px 9px; flex:0 0 auto; white-space:nowrap;}
-  .cq-dsd-lbl{font-size:10px; color:var(--ink); font-weight:700; white-space:nowrap;}
-  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9.5px; padding:2px 4px;}
-  .cq-dsd-inline .cq-mini-input{width:48px;}
-  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:2px 7px;}
+     compacta, en la MISMA FILA que las tarjetas de resumen. */
+  .cq-dsd-bar{display:flex; align-items:center; gap:4px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
+    border-radius:6px; padding:3px 8px; flex:0 0 auto; white-space:nowrap;}
+  .cq-dsd-lbl{font-size:9.5px; color:var(--ink); font-weight:700; white-space:nowrap;}
+  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9px; padding:2px 3px;}
+  .cq-dsd-inline .cq-mini-input{width:42px;}
+  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:2px 6px;}
 
-  .cq-viewmode{display:flex; align-items:center; gap:12px; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:0 12px; flex:0 0 auto;}
-  .cq-vm-opt{display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 0;}
+  .cq-viewmode{display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:0 10px; flex:0 0 auto;}
+  .cq-vm-opt{display:flex; align-items:center; gap:5px; cursor:pointer; padding:5px 0;}
   .cq-vm-opt input{position:absolute; opacity:0; width:0; height:0;}
-  .cq-vm-radio{width:12px; height:12px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .cq-vm-radio{width:11px; height:11px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
   .cq-vm-radio.on{border-color:#5b76e0;}
   .cq-vm-radio.on::after{content:""; width:5px; height:5px; border-radius:50%; background:#5b76e0;}
-  .cq-vm-label{font-size:10.5px; color:var(--ink); white-space:nowrap;}
+  .cq-vm-label{font-size:10px; color:var(--ink); white-space:nowrap;}
 
-  /* El panel de columnas/filtros avanzados ahora es un bloque interno (sin
-     fondo/borde propio, ya esta contenido por cq-resumen-panel) para que al
-     desplegarse TODO su contenido quede dentro del recuadro, no afuera. */
-  .cq-fields-panel{border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--panel-2); width:100%; box-sizing:border-box;}
-  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; justify-content:space-between; padding:7px 12px; cursor:pointer;}
+  /* El panel de columnas/filtros avanzados es un item mas de la misma fila;
+     al abrirse NO empuja el resto (no reserva alto) — se despliega como
+     dropdown flotante debajo del boton, igual que un filtro de columna. */
+  .cq-fields-panel{border:1px solid var(--border); border-radius:7px; background:var(--panel-2); flex:0 0 auto; position:relative;}
+  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; gap:6px; padding:6px 11px; cursor:pointer; white-space:nowrap;}
   .cq-fields-panel summary::-webkit-details-marker{display:none;}
-  .cq-fields-head-title{font-size:11px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px;}
-  .cq-fields-head-title .cnt{font-size:9.5px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 7px;}
-  .cq-fields-head-chev{color:var(--ink-faint); font-size:10px; transition:transform .15s;}
+  .cq-fields-head-title{font-size:10.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; white-space:nowrap;}
+  .cq-fields-head-title .cnt{font-size:9px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 6px;}
+  .cq-fields-head-chev{color:var(--ink-faint); font-size:9px; transition:transform .15s;}
   .cq-fields-panel[open] .cq-fields-head-chev{transform:rotate(180deg);}
-  .cq-fields-body{padding:0 12px 10px; display:flex; flex-direction:column; gap:7px; border-top:1px solid var(--border); padding-top:9px; box-sizing:border-box; width:100%;}
+  .cq-fields-dropdown{position:absolute; top:100%; right:0; margin-top:5px; width:420px; max-width:80vw;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 32px rgba(0,0,0,.5); z-index:40; overflow:hidden;}
+  .cq-fields-body{padding:9px 12px 10px; display:flex; flex-direction:column; gap:7px; box-sizing:border-box; width:100%; max-height:340px; overflow-y:auto;}
   .cq-fgroup{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;}
   .cq-fgroup-lbl{font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#5b76e0; font-weight:700; width:48px; flex:0 0 auto; padding-top:3px;}
   .cq-fchecks{display:flex; flex-wrap:wrap; gap:5px 11px; min-width:0;}
@@ -1332,7 +1333,7 @@
           </div>
           <canvas id="acuInteractiveCanvas" style="display:none; width:100%; cursor:grab; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);"></canvas>
         <img src="" alt="Nivel acústico real ED-316"/></div>
-        <div class="comment-box" id="sonologCommentBox">
+        <div class="comment-box" id="sonologCommentBox" style="max-width:520px;">
           <span class="lbl">Comentario del operador (Eco)</span>
           <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
         </div>
@@ -1739,29 +1740,25 @@
           <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
           <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕</button>
         </div>
-      </div>
-      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
-
-      <div class="cq-panel-divider"></div>
-
-      <div class="cq-controls-row">
         <div class="cq-viewmode">
           <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
           <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
         </div>
+        <details class="cq-fields-panel" id="cq-fields-panel">
+          <summary>
+            <div class="cq-fields-head-title">+ Columnas / filtros avanzados <span class="cnt" id="cq-fields-cnt">0 activos</span></div>
+            <div class="cq-fields-head-chev">▾</div>
+          </summary>
+          <div class="cq-fields-dropdown">
+            <div class="cq-fields-body" id="cq-fields-body"></div>
+            <div class="cq-fields-savebar">
+              <input type="text" id="cq-savegrid-name" class="cq-mini-input" placeholder="Nombre de la grilla…">
+              <button id="cq-savegrid-btn" class="cq-mini-btn primary" type="button">💾 Guardar "Armado de grilla"</button>
+            </div>
+          </div>
+        </details>
       </div>
-
-      <details class="cq-fields-panel" id="cq-fields-panel">
-        <summary>
-          <div class="cq-fields-head-title">+ Columnas / filtros avanzados <span class="cnt" id="cq-fields-cnt">0 activos</span></div>
-          <div class="cq-fields-head-chev">▾</div>
-        </summary>
-        <div class="cq-fields-body" id="cq-fields-body"></div>
-        <div class="cq-fields-savebar">
-          <input type="text" id="cq-savegrid-name" class="cq-mini-input" placeholder="Nombre de la grilla…">
-          <button id="cq-savegrid-btn" class="cq-mini-btn primary" type="button">💾 Guardar "Armado de grilla"</button>
-        </div>
-      </details>
+      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
     </div>
 
     <div class="cq-chipsrow" id="cq-chips"></div>
