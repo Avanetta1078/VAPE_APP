@@ -328,7 +328,7 @@
   .rp-chip-highlight .rp-val{color:#185FA5; font-size:13.5px;}
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-faint); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .rp-chart-box{height:436px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
+  .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
   .rp-chart-box img{max-width:100%; max-height:100%; object-fit:contain;}
   .rp-nivel-row{display:flex; gap:6px; height:538px; margin-bottom:8px;}
   .rp-side-stack{display:flex; flex-direction:column; justify-content:center; gap:6px; width:74px; flex-shrink:0;}
@@ -346,9 +346,9 @@
   .rp-tramos-table tr:nth-child(even){background:var(--panel-2);}
   .rp-apibba-lbl{font-size:9px; color:var(--ink-faint); margin-top:10px; padding-left:2px;}
   .rp-apibba-val{font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-dim); padding-left:2px; word-break:break-all;}
-  .rp-comment-box{background:var(--panel-2); border-radius:7px; padding:6px 9px; height:36px; box-sizing:border-box; overflow:hidden;}
-  .rp-comment-lbl{font-size:8.5px; color:var(--ink-faint); margin-bottom:2px;}
-  .rp-comment-val{font-size:10.5px; color:var(--ink-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .rp-comment-box{background:var(--panel-2); border-radius:7px; padding:8px 10px; height:64px; box-sizing:border-box; overflow-y:auto;}
+  .rp-comment-lbl{font-size:8.5px; color:var(--ink-faint); margin-bottom:3px;}
+  .rp-comment-val{font-size:13px; line-height:1.35; color:var(--ink); white-space:normal; overflow-wrap:break-word;}
   #rp-wellsvg text{font-family:'IBM Plex Sans'; fill:var(--ink-dim);}
   #rp-wellsvg .rp-svg-muted{fill:var(--ink-faint);}
   #rp-wellsvg .rp-svg-strong{fill:var(--ink); font-weight:600;}
@@ -559,6 +559,106 @@
     .qr-charts-row{grid-template-columns:1fr 1fr; page-break-inside:avoid;}
     .qr-sarta-row{page-break-inside:avoid;}
   }
+
+  /* ---- Consultas ---- */
+  .cq-resumen-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:8px;}
+  .cq-resumen-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; gap:8px;}
+  .cq-resumen-title{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .cq-resumen-refresh{font-size:10px; color:var(--ink-faint); border:1px solid var(--border); border-radius:999px; padding:3px 9px; background:transparent; cursor:pointer;}
+  .cq-resumen-refresh:hover{color:var(--ink); border-color:#5b76e0;}
+  .cq-mini-select, .cq-mini-input{background:var(--panel); border:1px solid var(--border); color:var(--ink); border-radius:5px; font-size:10.5px; font-family:'IBM Plex Mono'; padding:3px 5px;}
+  .cq-mini-input{width:70px;}
+  .cq-mini-btn{font-size:10px; border:1px solid var(--border); border-radius:999px; padding:3px 9px; background:var(--panel); color:var(--ink-faint); cursor:pointer;}
+  .cq-mini-btn:hover{color:var(--ink); border-color:#5b76e0;}
+  .cq-mini-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
+  .cq-mini-btn.primary:hover{background:#4a63c9;}
+  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:wrap;}
+  .cq-resumen-card{background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:5px 11px; cursor:pointer;
+    display:flex; align-items:center; gap:8px; min-width:0; position:relative;}
+  .cq-resumen-card:hover{border-color:#5b76e0;}
+  .cq-resumen-card.active{border-color:#5b76e0; background:rgba(91,118,224,.12);}
+  .cq-resumen-card .lbl{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint);}
+  .cq-resumen-card .num{font-family:'IBM Plex Mono'; font-weight:700; font-size:14px; color:var(--navy-glow);}
+  .cq-resumen-foot{display:flex; align-items:center; justify-content:space-between; margin-top:7px; font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:6px;}
+  .cq-resumen-foot b{color:var(--ink);}
+
+  .cq-card-popover{position:absolute; top:100%; left:0; margin-top:6px; width:300px; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; box-shadow:0 10px 28px rgba(0,0,0,.4); z-index:30; padding:12px;}
+  .cq-cp-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .cq-cp-title{font-size:11.5px; font-weight:600; color:var(--ink);}
+  .cq-cp-close{color:var(--ink-faint); font-size:11px; cursor:pointer; background:none; border:none;}
+  .cq-cp-list{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:1px;}
+  .cq-cp-item{display:flex; justify-content:space-between; font-size:11px; padding:5px 6px; border-radius:5px; color:var(--ink-dim);}
+  .cq-cp-item span:last-child{color:var(--ink-faint); font-family:'IBM Plex Mono'; font-size:10px;}
+  .cq-cp-foot{margin-top:9px; padding-top:8px; border-top:1px solid var(--border); display:flex; gap:8px;}
+  .cq-cp-btn{flex:1; font-size:10.5px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--ink); background:var(--panel-2); cursor:pointer;}
+  .cq-cp-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
+
+  /* Barra de "dias sin Dina": destacada aparte, no escondida en una esquina —
+     pedido explicito de Ale porque es un filtro que usa seguido. */
+  .cq-dsd-bar{display:flex; align-items:center; gap:8px; background:rgba(91,118,224,.09); border:1px solid rgba(91,118,224,.4);
+    border-radius:9px; padding:8px 12px; margin-bottom:8px; flex-wrap:wrap;}
+  .cq-dsd-lbl{font-size:11.5px; color:var(--ink); font-weight:600; white-space:nowrap;}
+
+  .cq-toolbar-row{display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .cq-viewmode{display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:0 14px; flex:0 0 auto;}
+  .cq-vm-opt{display:flex; align-items:center; gap:6px; cursor:pointer; padding:7px 0;}
+  .cq-vm-opt input{position:absolute; opacity:0; width:0; height:0;}
+  .cq-vm-radio{width:12px; height:12px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .cq-vm-radio.on{border-color:#5b76e0;}
+  .cq-vm-radio.on::after{content:""; width:5px; height:5px; border-radius:50%; background:#5b76e0;}
+  .cq-vm-label{font-size:11px; color:var(--ink);}
+
+  .cq-fields-panel{border:1px solid var(--border); border-radius:9px; overflow:hidden; background:var(--panel); flex:1; min-width:220px; align-self:flex-start;}
+  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; height:100%;}
+  .cq-fields-panel summary::-webkit-details-marker{display:none;}
+  .cq-fields-head-title{font-size:11px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px;}
+  .cq-fields-head-title .cnt{font-size:9.5px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 7px;}
+  .cq-fields-head-chev{color:var(--ink-faint); font-size:10px; transition:transform .15s;}
+  .cq-fields-panel[open] .cq-fields-head-chev{transform:rotate(180deg);}
+  .cq-fields-body{padding:0 14px 12px; display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:10px; box-sizing:border-box; width:100%;}
+  .cq-fgroup{display:flex; gap:10px; align-items:baseline;}
+  .cq-fgroup-lbl{font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#5b76e0; font-weight:700; width:48px; flex:0 0 auto; padding-top:3px;}
+  .cq-fchecks{display:flex; flex-wrap:wrap; gap:5px 11px;}
+  .cq-fcheck{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-dim); cursor:pointer;}
+  .cq-fcheck input{accent-color:#5b76e0; width:11px; height:11px; cursor:pointer;}
+  .cq-fcheck.on{color:var(--ink);}
+
+  .cq-chipsrow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; min-height:0;}
+  .cq-chip{display:inline-flex; align-items:center; gap:5px; background:var(--panel-2); border:1px solid var(--border); border-radius:999px;
+    padding:3px 5px 3px 10px; font-size:10.5px; font-family:'IBM Plex Mono'; color:var(--ink-faint); line-height:1.4;}
+  .cq-chip b{color:var(--ink); font-weight:600;}
+  .cq-chip-rm{width:15px; height:15px; border-radius:50%; border:none; background:rgba(255,255,255,.06); color:var(--ink-faint);
+    font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .cq-chip-rm:hover{background:rgba(255,115,115,.25); color:#ff7373;}
+  .cq-clearall{font-size:10.5px; color:var(--ink-faint); background:transparent; border:1px solid var(--border); border-radius:999px; padding:3px 10px; cursor:pointer;}
+  .cq-clearall:hover{color:#ff7373; border-color:#ff7373;}
+
+  .cq-savedrow{display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;}
+  .cq-saved-lbl{font-size:10.5px; color:var(--ink-faint); margin-right:2px;}
+  .cq-slot-btn{border:1px solid var(--border); background:var(--panel-2); color:var(--ink-faint); font-size:10.5px;
+    font-family:'IBM Plex Mono'; padding:4px 9px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px;}
+  .cq-slot-btn:hover{background:#242c37; color:var(--ink);}
+  .cq-slot-btn.filled{color:var(--steel-glow); border-color:rgba(143,180,214,.4);}
+  .cq-slot-btn.add{color:var(--ink-faint); border-style:dashed;}
+  .cq-slot-save{opacity:.55; font-size:9px;}
+  .cq-slot-save:hover{opacity:1;}
+
+  .cq-resultbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px;}
+  .cq-resultcount{font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--ink-faint);}
+  .cq-resultcount b{color:var(--ink); font-weight:700;}
+  .cq-exportbtns{display:flex; gap:8px;}
+
+  .cq-grillawrap{overflow:auto; max-height:72vh; border:1px solid var(--border); border-radius:10px;}
+  table.cq-table{width:100%; border-collapse:collapse; font-size:11.5px;}
+  table.cq-table th{position:sticky; top:0; background:var(--panel-2); text-align:left; font-weight:600; color:var(--ink-faint);
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; padding:0; border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;}
+  table.cq-table th .th-inner{display:flex; align-items:center; gap:2px; padding:7px 10px; position:relative;}
+  table.cq-table td{padding:5px 10px; border-bottom:1px solid var(--border); color:var(--ink); font-family:'IBM Plex Mono'; white-space:nowrap;}
+  table.cq-table tr:hover td{background:rgba(255,255,255,.03);}
+  .cq-tag{display:inline-block; font-size:9px; padding:1px 6px; border-radius:999px; background:rgba(212,120,45,.18); color:#f0975a; margin:0 3px 2px 0;}
+  .cq-numpanel{padding:9px; display:flex; flex-direction:column; gap:7px;}
+  .cq-numpanel-row{display:flex; gap:5px;}
   .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .modal-grid .mini{border-top:1px solid var(--border); padding-top:7px;}
 
@@ -608,7 +708,7 @@
   .inicio-bulkbar .clear-sel{background:none; border-color:var(--border); color:var(--ink-dim); font-weight:400;}
   .inicio-bulkbar .clear-sel:hover{background:var(--panel-2); color:var(--ink);}
 
-  .inicio-table-wrap{overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 340px); border:1px solid var(--border); border-radius:10px;}
+  .inicio-table-wrap{overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 340px); min-height:190px; padding-bottom:6px; border:1px solid var(--border); border-radius:10px; scrollbar-gutter:stable;}
   .inicio-table{width:100%; border-collapse:collapse; font-size:11px; table-layout:auto;}
   .inicio-table thead th{
     position:sticky; top:0; background:var(--panel-2); text-align:left; font-size:9px;
@@ -812,7 +912,9 @@
   <div class="menu" id="menu">
     <button data-view="inicio" class="active"><span class="dot"></span>Inicio</button>
     <button data-view="resumen"><span class="dot"></span>Resumen Pozo</button>
-    <button data-view="consultas" class="disabled" disabled><span class="dot"></span>Consultas <span style="font-size:9px;opacity:.7;">(a definir)</span></button>
+    <button data-view="consultas"><span class="dot"></span>Consultas</button>
+    <button data-view="rotador" class="disabled" disabled><span class="dot"></span>Rotador de Varillas <span style="font-size:9px;opacity:.7;">(pendiente)</span></button>
+    <button data-view="sam" class="disabled" disabled><span class="dot"></span>SAM <span style="font-size:9px;opacity:.7;">(pendiente)</span></button>
     <button data-view="dina"><span class="dot"></span>Dina</button>
     <button data-view="sonolog"><span class="dot"></span>Sonolog</button>
     <button data-view="historial"><span class="dot"></span>Historial ECO</button>
@@ -1191,7 +1293,7 @@
             <span id="acu-hist-label">—</span>
             <button id="acu-hist-next" title="Ensayo siguiente">›</button>
           </div>
-        <span class="stamp">CG 561 · 29/06/2026 · 14:57:21</span></div>
+        <span class="stamp" id="sonologStamp">—</span></div>
         <div class="scope-real" id="acuScopeReal">
           <div class="acu-toolbar" id="acuToolbar" style="display:none;">
             <span class="acu-hint">Rueda del mouse: zoom · Arrastrar: mover · Doble clic: reset</span>
@@ -1588,9 +1690,55 @@
 
   <!-- ===================== VIEW: CONSULTAS (placeholder) ===================== -->
   <div class="view" id="view-consultas">
-    <div class="placeholder">
-      <div class="big">Consultas</div>
-      <div>Sección a definir</div>
+    <div class="cq-resumen-panel">
+      <div class="cq-resumen-head">
+        <div class="cq-resumen-title">Resumen del yacimiento — pozos por sistema</div>
+        <button class="cq-resumen-refresh" id="cq-resumen-refresh" type="button">⟳ recalcular</button>
+      </div>
+      <div class="cq-resumen-grid" id="cq-resumen-grid"></div>
+      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
+    </div>
+
+    <div class="cq-dsd-bar">
+      <span class="cq-dsd-lbl">⏱ Filtrar por días sin Dina:</span>
+      <select id="cq-dsd-op" class="cq-mini-select">
+        <option value=">">Mayor a:</option>
+        <option value="<">Menor a:</option>
+        <option value="=">Igual a:</option>
+      </select>
+      <input id="cq-dsd-val" class="cq-mini-input" type="number" min="0" placeholder="cant. de días">
+      <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
+      <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕ Quitar</button>
+    </div>
+
+    <div class="cq-toolbar-row">
+      <div class="cq-viewmode">
+        <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
+        <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
+      </div>
+      <details class="cq-fields-panel" id="cq-fields-panel">
+        <summary>
+          <div class="cq-fields-head-title">+ Columnas / filtros avanzados <span class="cnt" id="cq-fields-cnt">0 activos</span></div>
+          <div class="cq-fields-head-chev">▾</div>
+        </summary>
+        <div class="cq-fields-body" id="cq-fields-body"></div>
+      </details>
+    </div>
+
+    <div class="cq-chipsrow" id="cq-chips"></div>
+
+    <div class="cq-savedrow" id="cq-savedviews"></div>
+
+    <div class="cq-resultbar">
+      <span class="cq-resultcount" id="cq-resultcount">0 pozos</span>
+      <div class="cq-exportbtns">
+        <button id="cq-exportfiltered" class="details-btn" type="button">⬇ CSV de lo armado</button>
+        <button id="cq-exportall" class="details-btn" type="button">⬇ CSV general completo</button>
+      </div>
+    </div>
+
+    <div class="cq-grillawrap">
+      <table class="gtab cq-table" id="cq-table"></table>
     </div>
   </div>
   </div>
@@ -1833,6 +1981,7 @@
           entry.pipEco = a.pip_ll_kg;
           entry.wellState = a.well_state; // "Producing" (dinamico) / "Static" (estatico), del CSV
           entry.acuDate = t.test_date;
+          entry.acuTime = t.test_time;
           entry.buildupPsi = a.buildup_psi;
           entry.buildupTimeSec = a.buildup_time_sec;
           if(entry.oil != null && entry.water != null){
@@ -2100,6 +2249,16 @@
     el.textContent = (val !== null && val !== undefined) ? fmt(val, dec) + (unit || '') : '—';
   }
 
+  // % Torque de Reductor = SIEMPRE el mayor entre Upstroke Peak y Downstroke
+  // Peak (el que manda es el pico mas alto de los dos, no uno fijo) * 100 /
+  // Gear Box Rating. Se usa igual para Existente y para En Balance.
+  function torquePctMax(up, down, rating){
+    if(!rating) return null;
+    const vals = [up, down].filter(v => v != null);
+    if(!vals.length) return null;
+    return Math.max(...vals) / rating * 100;
+  }
+
   // Semaforo de % de carga del reductor (Existente / Balanced): mismos cortes
   // para ambos indicadores. Colores existentes en el sistema (bal-verde/
   // amarillo/naranja/rojo); ademas se agrega el pulso sobre el mismo color
@@ -2362,14 +2521,8 @@
 
     const csgLbl = w.casingOd != null ? fmt(w.casingOd,2)+'"' : '—';
     const tbgLbl = w.tubingOd != null ? fmt(w.tubingOd,2)+'"' : '—';
-    // Semaforo de presion: 0-5 verde, 5-15 amarillo, 15-25 naranja, +25 rojo.
-    // (Cortes provisorios, ajustables si no reflejan bien el pozo real.)
-    function pressureColor(kg){
-      if(kg <= 5) return '#5fd68a';
-      if(kg <= 15) return '#e6c34d';
-      if(kg <= 25) return '#f0975a';
-      return '#ff7373';
-    }
+    // (Se saco el semaforo de presion que tenia el badge Tbg — ahora usa el
+    // mismo formato fijo/verde que el badge Csg, por pedido de Ale.)
     // Si no hay dato de presion, se muestra 0 kg (es representativo: el pozo
     // esta sin presion registrada, no es que falte el dato del todo) en vez
     // de un guion vacio.
@@ -2385,10 +2538,9 @@
     if(!w.hasDyn && w.hasAcu){
       const m = (w.commentAcu || '').match(/presi[oó]n\s*(?:de)?\s*l[ií]nea\s*[:\-]?\s*([\d.,]+)\s*kg/i);
       const ptbgVal = m ? parseFloat(m[1].replace(',', '.')) : 0;
-      const ptbgColor = pressureColor(ptbgVal);
       ptbgLineaSvg = `
-        <rect x="4" y="4" width="90" height="24" rx="5" fill="${ptbgColor}" opacity="0.85"/>
-        <text x="49" y="20" font-size="12" fill="#0d1117" text-anchor="middle" font-weight="700">Tbg ${fmt(ptbgVal,1)} kg</text>`;
+        <rect x="4" y="4" width="90" height="24" rx="5" fill="${pcsgBg}"/>
+        <text x="49" y="20" font-size="12" fill="${pcsgColor}" text-anchor="middle" font-weight="700">Tbg ${fmt(ptbgVal,1)} kg</text>`;
     }
 
     // Segmentos de sarta por tramo, proporcionales a su longitud real (modo
@@ -2503,6 +2655,10 @@
       if(fieldTagEl0) fieldTagEl0.textContent = '—';
       const daysSinceEl = document.getElementById('daysSinceDyn');
       if(daysSinceEl) daysSinceEl.textContent = 'Sin Dina';
+      const dinaStampEl0 = document.getElementById('dinaStamp');
+      if(dinaStampEl0) dinaStampEl0.textContent = '—';
+      const sonologStampEl0 = document.getElementById('sonologStamp');
+      if(sonologStampEl0) sonologStampEl0.textContent = '—';
       // No hay pozos (base vacia u operadora sin datos): blanquea todos los
       // campos en vez de dejar los valores viejos que traia el HTML de fabrica.
       ['v-nivel','v-sumerg','v-sumergc','v-fomax','v-tvsv','v-wrf',
@@ -2584,6 +2740,15 @@
     if(tubpresEl) tubpresEl.innerHTML = w.tubpres !== null && w.tubpres !== undefined ? `${fmt(w.tubpres,1)} <span class="unit">kg</span>` : '—';
     if(spmEl) spmEl.textContent = w.spm !== null && w.spm !== undefined ? fmt(w.spm,2) : '—';
 
+    // Sello de fecha/hora del ensayo Dina que se ve arriba de la carta (antes
+    // quedaba un texto fijo de fabrica "WPRT 490 · 29/06/2026..." que nunca se
+    // actualizaba con el pozo — ahora refleja la fecha/hora real de ESTE ensayo,
+    // o se limpia si el pozo no tiene Dina.
+    const dinaStampEl = document.getElementById('dinaStamp');
+    if(dinaStampEl){
+      dinaStampEl.textContent = w.hasDyn ? `Ensayo Dina · ${fmtDate(w.dynDate)}${w.dynTime ? ' · ' + w.dynTime : ''}` : '—';
+    }
+
     // Comentario del operador
     const commentBox = document.getElementById('dinaCommentBox');
     const commentEl = document.getElementById('d-comment');
@@ -2605,6 +2770,13 @@
     if(sNivel) sNivel.textContent = w.nivel !== null && w.nivel !== undefined ? `${fmt(w.nivel)} m` : '—';
     if(sSumerg) sSumerg.textContent = w.sumerg !== null && w.sumerg !== undefined ? `${fmt(w.sumerg)} m` : '—';
     if(sSumergc) sSumergc.textContent = w.sumergc !== null && w.sumergc !== undefined ? `${fmt(w.sumergc)} m` : '—';
+
+    // Idem dinaStamp: sello de fecha/hora del ensayo de Nivel, antes fijo
+    // ("CG 561 · 29/06/2026...") sin importar el pozo — ahora real.
+    const sonologStampEl = document.getElementById('sonologStamp');
+    if(sonologStampEl){
+      sonologStampEl.textContent = w.hasAcu ? `Ensayo Nivel · ${fmtDate(w.acuDate)}${w.acuTime ? ' · ' + w.acuTime : ''}` : '—';
+    }
     if(sPcsg) sPcsg.textContent = w.pcsg !== null && w.pcsg !== undefined ? `${fmt(w.pcsg,1)} kg` : '—';
     // s-vel, s-jts, s-rttt todavia no se capturan del CSV en el flujo de carga: quedan pendientes.
     ['s-vel','s-jts','s-rttt','s-pctliq'].forEach(id => {
@@ -2701,8 +2873,10 @@
     // % Torque Existente y % Torque en Balance no vienen calculados de la
     // base: se calculan aca como torque / gearbox rating, con semaforo.
     {
-      const pctDown = (w.torqueDown != null && w.gearboxRating) ? w.torqueDown / w.gearboxRating * 100 : null;
-      const pctBal = (w.torqueDownBal != null && w.gearboxRating) ? w.torqueDownBal / w.gearboxRating * 100 : null;
+      // % Torque = MAX(Upstroke Peak, Downstroke Peak) * 100 / Gear Box Rating
+      // (formula corregida a pedido de Ale — siempre toma el mayor de los dos).
+      const pctDown = torquePctMax(w.torqueUp, w.torqueDown, w.gearboxRating);
+      const pctBal = torquePctMax(w.torqueUpBal, w.torqueDownBal, w.gearboxRating);
       setGearboxPct('d-gb-pctbal', pctBal);
       setGearboxPctExisting('d-gb-pctdown', pctDown, pctBal);
     }
@@ -3453,6 +3627,694 @@
     modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
     if(pdfBtn) pdfBtn.addEventListener('click', ()=> window.print());
+  }
+
+  // ===================== CONSULTAS =====================
+  // Grilla + resumen sobre WELLS_DB. El resumen cuenta POZOS unicos (no
+  // registros). Los encabezados de columna usan el mismo patron de filtro
+  // (flechita -> panel) que ya existe en Inicio, reutilizando esas mismas
+  // clases CSS (th-filter-btn/th-filter-panel/th-check-list/etc.) para que
+  // se sienta igual, pero con logica propia (cqColumnFilters, etc.) para no
+  // pisar el estado de la grilla de Inicio.
+  const CQ_ESTADO_CATS = [
+    { key: 'Golpe de fluido', re: /golpe\s*de\s*fluido|fluid\s*pound/i },
+    { key: 'Golpe de bomba', re: /golpe\s*de\s*b(?:o|b)a\b/i },
+    { key: 'Nivel pegado a bomba', re: /pegad[oa]\s*a?\s*b(?:o|b)a|nivel\s*pegado/i },
+    { key: 'Cerrado / bloqueado', re: /cerrad[oa]|bloquead[oa]/i },
+    { key: 'Fuga / pérdida', re: /\bfuga\b|p[eé]rdida/i },
+    { key: 'Rotura / falla mecánica', re: /rotur[ao]|\brota\b|\bfalla\b/i },
+  ];
+  function cqClassifyEstado(text){
+    if(!text) return [];
+    return CQ_ESTADO_CATS.filter(c => c.re.test(text)).map(c => c.key);
+  }
+  function cqTorquePct(torqueUp, torqueDown, rating){
+    return torquePctMax(torqueUp, torqueDown, rating);
+  }
+  function cqDiasSinDina(dynDate){
+    if(!dynDate) return null;
+    return Math.floor((new Date() - new Date(dynDate + 'T00:00:00')) / 86400000);
+  }
+  function cqOpLabel(op){
+    if(op === '>') return 'Mayor a';
+    if(op === '<') return 'Menor a';
+    if(op === '=') return 'Igual a';
+    if(op === 'between') return 'Entre';
+    return op;
+  }
+  function cqCondicionFromWellState(wellState){
+    if(wellState === 'Static') return 'Estático';
+    if(wellState === 'Producing') return 'Dinámico';
+    return '—';
+  }
+
+  // ---- Definicion de columnas ----
+  // filterType: 'checkbox' (multi-select por valores unicos, con buscador,
+  // igual a Inicio) | 'numeric' (operador + valor) | 'text' (contiene) |
+  // 'date' (lista de fechas de campaña con cantidad de pozos, + rango manual)
+  const CQ_BASE_DEFS = [
+    { key:'well', label:'Pozo', filterType:'checkbox', get:r=>r.name },
+    { key:'fecha', label:'Fecha', filterType:'date', get:r=>r.fecha },
+    { key:'bateria', label:'Batería', filterType:'checkbox', get:r=>r.bateria },
+    { key:'tipoEnsayo', label:'Tipo Ensayo', filterType:'checkbox', get:r=>r.tipoEnsayo },
+    { key:'condicion', label:'Condición', filterType:'checkbox', get:r=>r.condicion },
+    { key:'sistema', label:'Sistema', filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
+  ];
+  const CQ_EXTRA_DEFS = [
+    { key:'cargamax', label:'Carga Máx', unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.tv },
+    { key:'cargamin', label:'Carga Mín', unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
+    { key:'llenado', label:'Llenado', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
+    { key:'spm', label:'GPM / SPM', unit:'', dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
+    { key:'prestbg', label:'Pres. Tbg', unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
+    { key:'pipdyn', label:'PIP Dyn', unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
+    { key:'torqueex', label:'Torque Existente', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cqTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating) },
+    { key:'torquebal', label:'Torque En Balance', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cqTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating) },
+    { key:'desviotorque', label:'Desvío Torque', unit:' pts', dec:1, group:'Dina', filterType:'numeric', get:r=>{
+        const a = cqTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating), b = cqTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating);
+        return (a != null && b != null) ? a - b : null;
+      } },
+    { key:'fabricante', label:'Fabricante', group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
+    { key:'modelo', label:'Modelo / API', group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitApi },
+    { key:'carrera', label:'Carrera', unit:' in', dec:1, group:'Dina', filterType:'numeric', get:r=>r.strokeComputed },
+    { key:'diampiston', label:'Diám. Pistón', unit:' in', dec:3, group:'Dina', filterType:'numeric', get:r=>r.plungerDiameter },
+    { key:'profbba', label:'Prof. de Bba', unit:' m', dec:0, group:'Dina', filterType:'numeric', get:r=>r.pumpIntakeDepth },
+    { key:'commentDyn', label:'Comentario Dina', group:'Dina', filterType:'text', get:r=>r.commentDyn },
+
+    { key:'nivel', label:'Nivel', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
+    { key:'sumerg', label:'Sumergencia', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumerg },
+    { key:'sumergc', label:'Sum. Corr.', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumergc },
+    { key:'pipeco', label:'PIP Eco', unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pipEco },
+    { key:'pcsg', label:'P. Casing', unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pcsg },
+    { key:'commentAcu', label:'Comentario Nivel', group:'Nivel', filterType:'text', get:r=>r.commentAcu },
+
+    { key:'operadora', label:'Operadora', group:'Otros', filterType:'checkbox', get:r=>r.operadora },
+    { key:'diasSinDina', label:'Días sin Dina', dec:0, group:'Otros', filterType:'numeric', get:r=>r.diasSinDina },
+    { key:'estado', label:'Estado del equipo', group:'Otros', filterType:'checkbox', multiVal:true, get:r=>r.estadoTags },
+  ];
+  const CQ_ALL_DEFS = CQ_BASE_DEFS.concat(CQ_EXTRA_DEFS);
+  const CQ_DEFS_BY_KEY = {}; CQ_ALL_DEFS.forEach(d => CQ_DEFS_BY_KEY[d.key] = d);
+  const CQ_BASE_KEYS = CQ_BASE_DEFS.map(d => d.key);
+
+  const cqState = {
+    scope: 'ultimo',
+    extraCols: [],
+    colFilters: {},   // key -> Set(valores)
+    numFilters: {},   // key -> {op, value, value2}
+    textFilters: {},  // key -> string
+    dateFilter: null, // {dates:Set} | {from,to}
+    dsdFilter: null,  // {op, value}
+    sort: { col: null, dir: null },
+    savedSlots: [null,null,null,null,null],
+  };
+
+  // ---- Construccion de filas ----
+  function cqBuildRowsUltimo(){
+    return wellNames.map(n => {
+      const w = WELLS_DB[n] || {};
+      const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
+      const commentBlob = `${w.commentDyn || ''} ${w.commentAcu || ''}`;
+      return Object.assign({}, w, {
+        name: n, tipoEnsayo, condicion: cqCondicionFromWellState(w.wellState), fecha: w.dt,
+        estadoTags: cqClassifyEstado(commentBlob), diasSinDina: w.hasDyn ? cqDiasSinDina(w.dynDate) : null,
+        __isLatest: true,
+      });
+    });
+  }
+  function cqBuildRowsTodos(){
+    const rows = [];
+    wellNames.forEach(n => {
+      const w = WELLS_DB[n] || {};
+      const hist = (w.history || []).slice().sort((a,b) => (a.dt < b.dt ? 1 : -1));
+      if(!hist.length){
+        rows.push(Object.assign({}, w, {
+          name: n, tipoEnsayo: 'Sin ensayo', condicion: '—', fecha: w.dt || null,
+          estadoTags: [], diasSinDina: null, __isLatest: true,
+        }));
+        return;
+      }
+      hist.forEach((h, idx) => {
+        const isLatest = idx === 0;
+        rows.push(Object.assign({}, w, h, {
+          name: n, fecha: h.dt, tipoEnsayo: h.tipo,
+          condicion: isLatest ? cqCondicionFromWellState(w.wellState) : '—',
+          sistema: h.sistema || w.sistema || 'Sin clasificar',
+          estadoTags: cqClassifyEstado(h.comment || ''),
+          diasSinDina: (h.tipo === 'Dina') ? cqDiasSinDina(h.dt) : null,
+          __isLatest: isLatest,
+          // Campos que son de la CONFIG actual del pozo (no quedan guardados
+          // por ensayo historico) — solo se muestran en la fila mas reciente
+          // para no inventar un valor viejo que no corresponde a esa fecha.
+          torqueDown: isLatest ? w.torqueDown : null,
+          torqueUp: isLatest ? w.torqueUp : null,
+          torqueUpBal: isLatest ? w.torqueUpBal : null,
+          torqueDownBal: isLatest ? w.torqueDownBal : null,
+          gearboxRating: isLatest ? w.gearboxRating : null,
+          plungerDiameter: isLatest ? w.plungerDiameter : null,
+          pumpIntakeDepth: isLatest ? w.pumpIntakeDepth : null,
+          strokeComputed: isLatest ? w.strokeComputed : null,
+          surfaceUnitMfr: isLatest ? w.surfaceUnitMfr : null,
+          surfaceUnitApi: isLatest ? w.surfaceUnitApi : null,
+          commentDyn: h.tipo === 'Dina' ? h.comment : null,
+          commentAcu: h.tipo === 'Nivel' ? h.comment : null,
+        }));
+      });
+    });
+    return rows;
+  }
+  function cqBuildRows(){ return cqState.scope === 'todos' ? cqBuildRowsTodos() : cqBuildRowsUltimo(); }
+
+  // ---- Filtro ----
+  function cqRowMatches(row, opts){
+    const excludeKey = (opts && opts.excludeKey) || null;
+    for(const key in cqState.colFilters){
+      if(key === excludeKey) continue;
+      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
+      const sel = cqState.colFilters[key]; if(!sel || !sel.size) continue;
+      const val = def.get(row);
+      if(def.multiVal){ if(!(val || []).some(v => sel.has(v))) return false; }
+      else { if(!sel.has(val == null || val === '' ? '—' : val)) return false; }
+    }
+    for(const key in cqState.numFilters){
+      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
+      const f = cqState.numFilters[key]; if(!f) continue;
+      const val = def.get(row);
+      if(val == null) return false;
+      const num = parseFloat(f.value);
+      if(!Number.isNaN(num)){
+        if(f.op === '=' && Math.abs(val - num) > 1e-6) return false;
+        if(f.op === '>' && !(val > num)) return false;
+        if(f.op === '<' && !(val < num)) return false;
+        if(f.op === 'between'){
+          const num2 = parseFloat(f.value2);
+          if(!Number.isNaN(num2) && !(val >= num && val <= num2)) return false;
+        }
+      }
+    }
+    for(const key in cqState.textFilters){
+      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
+      const q = (cqState.textFilters[key] || '').toLowerCase(); if(!q) continue;
+      const val = (def.get(row) || '').toString().toLowerCase();
+      if(!val.includes(q)) return false;
+    }
+    if(cqState.dateFilter){
+      const val = row.fecha;
+      if(!val) return false;
+      if(cqState.dateFilter.dates){ if(!cqState.dateFilter.dates.has(val)) return false; }
+      else {
+        if(cqState.dateFilter.from && val < cqState.dateFilter.from) return false;
+        if(cqState.dateFilter.to && val > cqState.dateFilter.to) return false;
+      }
+    }
+    if(!excludeKey && cqState.dsdFilter){
+      const val = row.diasSinDina;
+      if(val == null) return false;
+      const num = cqState.dsdFilter.value;
+      if(cqState.dsdFilter.op === '>' && !(val > num)) return false;
+      if(cqState.dsdFilter.op === '<' && !(val < num)) return false;
+      if(cqState.dsdFilter.op === '=' && val !== num) return false;
+    }
+    return true;
+  }
+  function cqApplyFilters(rows, opts){ return rows.filter(r => cqRowMatches(r, opts)); }
+  function cqHasActiveFilters(){
+    return Object.values(cqState.colFilters).some(s => s && s.size) ||
+      Object.keys(cqState.numFilters).length > 0 ||
+      Object.values(cqState.textFilters).some(v => v) ||
+      !!cqState.dateFilter || !!cqState.dsdFilter;
+  }
+
+  function cqFmtVal(def, val){
+    if(val == null || val === '') return '—';
+    if(def.multiVal){ if(!val.length) return '—'; return val.map(t => `<span class="cq-tag">${t}</span>`).join(''); }
+    if(def.filterType === 'numeric') return fmt(val, def.dec != null ? def.dec : 1) + (def.unit || '');
+    return String(val);
+  }
+  function cqCsvVal(def, row){
+    const val = def.get(row);
+    if(val == null || val === '') return '';
+    if(def.multiVal) return (val || []).join(' / ');
+    if(def.filterType === 'numeric') return fmt(val, def.dec != null ? def.dec : 1);
+    return String(val).replace(/\r?\n/g, ' ');
+  }
+
+  // ---- Resumen: siempre 1 fila = 1 pozo (independiente del toggle Ultimo/Todos) ----
+  function cqRenderResumen(){
+    const grid = document.getElementById('cq-resumen-grid');
+    const foot = document.getElementById('cq-resumen-foot');
+    if(!grid) return;
+    const base = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'sistema' });
+    const counts = {};
+    base.forEach(r => { const s = r.sistema || 'Sin clasificar'; counts[s] = (counts[s]||0) + 1; });
+    const order = ['AIB','BES','PCP','ROTAFLEX','SSE','Sin clasificar'];
+    const keys = order.filter(k => counts[k]).concat(Object.keys(counts).filter(k => !order.includes(k)));
+    const selectedSistemas = cqState.colFilters.sistema;
+    grid.innerHTML = keys.map(k => `
+      <div class="cq-resumen-card ${selectedSistemas && selectedSistemas.has(k) ? 'active' : ''}" data-sistema="${k}">
+        <span class="lbl">${k}</span><span class="num">${counts[k]}</span>
+      </div>`).join('');
+    grid.querySelectorAll('.cq-resumen-card').forEach(card => {
+      card.addEventListener('click', (ev) => {
+        if(ev.target.closest('.cq-card-popover')) return;
+        document.querySelectorAll('.cq-card-popover').forEach(p => p.remove());
+        cqOpenCardPopover(card, card.dataset.sistema);
+      });
+    });
+    const totalPozos = wellNames.length;
+    foot.innerHTML = `<span>Total yacimiento: <b>${totalPozos} pozos</b></span><span>Click en una tarjeta → ver esos pozos y seguir filtrando</span>`;
+  }
+  function cqOpenCardPopover(card, sistemaKey){
+    const rows = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'sistema' }).filter(r => (r.sistema || 'Sin clasificar') === sistemaKey);
+    const pop = document.createElement('div');
+    pop.className = 'cq-card-popover';
+    pop.innerHTML = `
+      <div class="cq-cp-head"><span class="cq-cp-title">${sistemaKey} — ${rows.length} pozo${rows.length===1?'':'s'}</span><button class="cq-cp-close" type="button">✕</button></div>
+      <div class="cq-cp-list">${rows.slice(0,60).map(r => `<div class="cq-cp-item"><span>${r.name}</span><span>${r.fecha ? fmtDate(r.fecha) : '—'}</span></div>`).join('') || '<div style="color:var(--ink-faint); font-size:11px; padding:6px;">Sin pozos con este filtro.</div>'}${rows.length>60 ? `<div style="opacity:.5; font-size:10px; padding:4px 6px;">… ${rows.length-60} más</div>` : ''}</div>
+      <div class="cq-cp-foot">
+        <button class="cq-cp-btn" type="button" data-act="close">Cerrar</button>
+        <button class="cq-cp-btn primary" type="button" data-act="apply">Ver todo en la grilla ↓</button>
+      </div>`;
+    card.appendChild(pop);
+    pop.querySelector('.cq-cp-close').addEventListener('click', () => pop.remove());
+    pop.querySelector('[data-act="close"]').addEventListener('click', () => pop.remove());
+    pop.querySelector('[data-act="apply"]').addEventListener('click', () => {
+      cqState.colFilters.sistema = new Set([sistemaKey]);
+      pop.remove();
+      cqRenderAll();
+      const grillaEl = document.getElementById('cq-grillawrap');
+      if(grillaEl) grillaEl.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+    setTimeout(() => {
+      document.addEventListener('click', function onDoc(ev){
+        if(!ev.target.closest('.cq-card-popover') && !ev.target.closest('.cq-resumen-card')){
+          pop.remove(); document.removeEventListener('click', onDoc);
+        }
+      });
+    }, 0);
+  }
+
+  // ---- Panel de columnas / filtros avanzados ----
+  function cqRenderFieldsPanel(){
+    const body = document.getElementById('cq-fields-body');
+    const cnt = document.getElementById('cq-fields-cnt');
+    if(!body) return;
+    const groups = {};
+    CQ_EXTRA_DEFS.forEach(d => { (groups[d.group] = groups[d.group] || []).push(d); });
+    body.innerHTML = Object.keys(groups).map(g => `
+      <div class="cq-fgroup">
+        <div class="cq-fgroup-lbl">${g}</div>
+        <div class="cq-fchecks">
+          ${groups[g].map(d => `<label class="cq-fcheck ${cqState.extraCols.includes(d.key)?'on':''}"><input type="checkbox" data-col="${d.key}" ${cqState.extraCols.includes(d.key)?'checked':''}> ${d.label}</label>`).join('')}
+        </div>
+      </div>`).join('');
+    body.querySelectorAll('input[data-col]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const key = cb.dataset.col;
+        if(cb.checked){ if(!cqState.extraCols.includes(key)) cqState.extraCols.push(key); }
+        else { cqState.extraCols = cqState.extraCols.filter(k => k !== key); }
+        cqRenderFieldsPanel();
+        cqRenderAll();
+      });
+    });
+    if(cnt) cnt.textContent = `${cqState.extraCols.length} activo${cqState.extraCols.length===1?'':'s'}`;
+  }
+
+  // ---- Chips de filtros activos ----
+  function cqFilterChips(){
+    const chips = [];
+    Object.keys(cqState.colFilters).forEach(key => {
+      const sel = cqState.colFilters[key]; if(!sel || !sel.size) return;
+      const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
+      chips.push({ label: `${def.label}: ${Array.from(sel).join(', ')}`, remove: () => delete cqState.colFilters[key] });
+    });
+    Object.keys(cqState.numFilters).forEach(key => {
+      const f = cqState.numFilters[key]; const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
+      const label = f.op === 'between' ? `${def.label} entre ${f.value} y ${f.value2}${def.unit||''}` : `${def.label} ${cqOpLabel(f.op).toLowerCase()} ${f.value}${def.unit||''}`;
+      chips.push({ label, remove: () => delete cqState.numFilters[key] });
+    });
+    Object.keys(cqState.textFilters).forEach(key => {
+      const v = cqState.textFilters[key]; if(!v) return;
+      const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
+      chips.push({ label: `${def.label} contiene "${v}"`, remove: () => delete cqState.textFilters[key] });
+    });
+    if(cqState.dateFilter){
+      const df = cqState.dateFilter;
+      const label = df.dates ? `Fecha campaña: ${Array.from(df.dates).map(d=>fmtDate(d)).join(', ')}` : `Fecha: ${df.from||'…'} — ${df.to||'…'}`;
+      chips.push({ label, remove: () => { cqState.dateFilter = null; } });
+    }
+    if(cqState.dsdFilter){
+      chips.push({ label: `Días sin Dina ${cqOpLabel(cqState.dsdFilter.op).toLowerCase()} ${cqState.dsdFilter.value}`, remove: () => cqClearDsdFilter() });
+    }
+    return chips;
+  }
+  function cqRenderChips(){
+    const el = document.getElementById('cq-chips');
+    if(!el) return;
+    const chips = cqFilterChips();
+    if(!chips.length){ el.innerHTML = ''; return; }
+    el.innerHTML = chips.map((c,i) => `<span class="cq-chip">${c.label}<button class="cq-chip-rm" data-i="${i}" type="button">✕</button></span>`).join('')
+      + `<button class="cq-clearall" id="cq-clearall-btn" type="button">Limpiar todo</button>`;
+    el.querySelectorAll('.cq-chip-rm').forEach(btn => btn.addEventListener('click', (e) => {
+      chips[parseInt(e.target.dataset.i)].remove();
+      cqRenderAll();
+    }));
+    const clearBtn = document.getElementById('cq-clearall-btn');
+    if(clearBtn) clearBtn.addEventListener('click', () => {
+      cqState.colFilters = {}; cqState.numFilters = {}; cqState.textFilters = {}; cqState.dateFilter = null;
+      cqClearDsdFilter();
+      cqRenderAll();
+    });
+  }
+  function cqClearDsdFilter(){
+    cqState.dsdFilter = null;
+    const valEl = document.getElementById('cq-dsd-val'); if(valEl) valEl.value = '';
+    const clearBtn = document.getElementById('cq-dsd-clear'); if(clearBtn) clearBtn.style.display = 'none';
+  }
+
+  // ---- Grilla principal ----
+  function cqColumns(){ return CQ_BASE_KEYS.concat(cqState.extraCols); }
+  function cqRenderGrid(){
+    const table = document.getElementById('cq-table');
+    const countEl = document.getElementById('cq-resultcount');
+    if(!table) return;
+    let rows = cqApplyFilters(cqBuildRows());
+    if(cqState.sort.col){
+      const def = CQ_DEFS_BY_KEY[cqState.sort.col];
+      if(def){
+        rows = rows.slice().sort((a,b) => {
+          const va = def.get(a), vb = def.get(b);
+          if(va == null && vb == null) return 0;
+          if(va == null) return 1; if(vb == null) return -1;
+          let cmp;
+          if(def.filterType === 'numeric') cmp = va - vb;
+          else cmp = String(va).localeCompare(String(vb), 'es');
+          return cqState.sort.dir === 'desc' ? -cmp : cmp;
+        });
+      }
+    }
+    const cols = cqColumns();
+    const thead = `<tr>${cols.map(k => {
+      const def = CQ_DEFS_BY_KEY[k]; if(!def) return '';
+      const hasFilter = (cqState.colFilters[k] && cqState.colFilters[k].size) || cqState.numFilters[k] || cqState.textFilters[k] || (k === 'fecha' && cqState.dateFilter);
+      return `<th data-col="${k}"><div class="th-inner">${def.label}<button class="th-filter-btn ${hasFilter?'th-active':''}" data-col="${k}" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></th>`;
+    }).join('')}</tr>`;
+    const tbody = rows.slice(0, 500).map(r => `<tr>${cols.map(k => {
+      const def = CQ_DEFS_BY_KEY[k];
+      let val = def ? def.get(r) : null;
+      if(k === 'fecha' && val) val = fmtDate(val);
+      return `<td>${def ? (k === 'fecha' ? (val || '—') : cqFmtVal(def, def.get(r))) : '—'}</td>`;
+    }).join('')}</tr>`).join('');
+    table.innerHTML = thead + tbody;
+    if(countEl){
+      const universo = cqState.scope === 'todos' ? `${cqBuildRowsTodos().length} registros` : `${wellNames.length} pozos`;
+      countEl.innerHTML = `<b>${rows.length}</b> ${cqState.scope === 'todos' ? 'registro'+(rows.length===1?'':'s') : 'pozo'+(rows.length===1?'':'s')} (de ${universo})${rows.length>500 ? ' — mostrando primeros 500' : ''}`;
+    }
+    cqSetupThFilters();
+  }
+
+  // ---- Popovers de encabezado (flechita por columna) ----
+  function cqSetupThFilters(){
+    const table = document.getElementById('cq-table');
+    if(!table) return;
+    table.querySelectorAll('.th-filter-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const col = btn.dataset.col;
+        const existing = btn.closest('.th-inner').querySelector('.th-filter-panel');
+        const wasOpen = existing && existing.classList.contains('open');
+        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+        if(wasOpen) return;
+        cqOpenThPanel(btn, col);
+      });
+    });
+    document.addEventListener('click', (ev) => {
+      if(!ev.target.closest('.th-filter-panel') && !ev.target.closest('.th-filter-btn')){
+        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+      }
+    });
+  }
+  function cqOpenThPanel(btn, col){
+    const def = CQ_DEFS_BY_KEY[col]; if(!def) return;
+    const wrap = btn.closest('.th-inner');
+    const panel = document.createElement('div');
+    panel.className = 'th-filter-panel open';
+    panel.style.left = '0'; panel.style.right = 'auto';
+
+    if(def.filterType === 'numeric'){
+      const cur = cqState.numFilters[col] || { op:'>', value:'', value2:'' };
+      panel.innerHTML = `<div class="cq-numpanel">
+          <select class="cq-mini-select" id="cq-np-op" style="width:100%;">
+            <option value=">" ${cur.op==='>'?'selected':''}>Mayor a:</option>
+            <option value="<" ${cur.op==='<'?'selected':''}>Menor a:</option>
+            <option value="=" ${cur.op==='='?'selected':''}>Igual a:</option>
+            <option value="between" ${cur.op==='between'?'selected':''}>Entre:</option>
+          </select>
+          <div class="cq-numpanel-row">
+            <input class="cq-mini-input" id="cq-np-val" type="number" step="any" style="width:100%;" placeholder="valor${def.unit?(' '+def.unit.trim()):''}" value="${cur.value}">
+            <input class="cq-mini-input" id="cq-np-val2" type="number" step="any" style="width:100%; ${cur.op==='between'?'':'display:none;'}" placeholder="y…" value="${cur.value2}">
+          </div>
+          <div class="th-filter-actions">
+            <button type="button" class="th-clear">Limpiar</button>
+            <button type="button" class="th-apply">Aplicar</button>
+          </div>
+        </div>`;
+      wrap.appendChild(panel);
+      const opSel = panel.querySelector('#cq-np-op');
+      const val2 = panel.querySelector('#cq-np-val2');
+      opSel.addEventListener('change', () => { val2.style.display = opSel.value === 'between' ? '' : 'none'; });
+      panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.numFilters[col]; panel.remove(); cqRenderAll(); });
+      panel.querySelector('.th-apply').addEventListener('click', () => {
+        const v = panel.querySelector('#cq-np-val').value;
+        if(v === ''){ delete cqState.numFilters[col]; }
+        else { cqState.numFilters[col] = { op: opSel.value, value: v, value2: val2.value }; }
+        panel.remove(); cqRenderAll();
+      });
+      return;
+    }
+    if(def.filterType === 'text'){
+      const cur = cqState.textFilters[col] || '';
+      panel.innerHTML = `<div class="cq-numpanel">
+          <input class="cq-mini-input" id="cq-tp-val" type="text" style="width:100%;" placeholder="contiene…" value="${cur}">
+          <div class="th-filter-actions">
+            <button type="button" class="th-clear">Limpiar</button>
+            <button type="button" class="th-apply">Aplicar</button>
+          </div>
+        </div>`;
+      wrap.appendChild(panel);
+      panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.textFilters[col]; panel.remove(); cqRenderAll(); });
+      panel.querySelector('.th-apply').addEventListener('click', () => {
+        const v = panel.querySelector('#cq-tp-val').value.trim();
+        if(!v) delete cqState.textFilters[col]; else cqState.textFilters[col] = v;
+        panel.remove(); cqRenderAll();
+      });
+      return;
+    }
+    if(def.filterType === 'date'){
+      const rowsForDates = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'fecha' });
+      const countByDate = {};
+      rowsForDates.forEach(r => { if(r.fecha) countByDate[r.fecha] = (countByDate[r.fecha]||0) + 1; });
+      const dates = Object.keys(countByDate).sort((a,b) => a < b ? 1 : -1);
+      const selected = (cqState.dateFilter && cqState.dateFilter.dates) || null;
+      panel.style.width = '210px';
+      panel.innerHTML = `
+        <div class="th-check-list" style="max-height:170px;">
+          ${dates.map(d => `<label class="th-check-item"><input type="checkbox" value="${d}" ${(!selected || selected.has(d))?'checked':''}> ${fmtDate(d)} <span style="margin-left:auto; color:var(--ink-faint); font-family:'IBM Plex Mono'; font-size:9.5px;">${countByDate[d]} pzs</span></label>`).join('') || '<div style="font-size:10.5px; color:var(--ink-faint); padding:4px;">Sin fechas.</div>'}
+        </div>
+        <div style="border-top:1px solid var(--border); margin-top:7px; padding-top:7px; display:flex; gap:5px;">
+          <input type="date" class="cq-mini-input" id="cq-date-from" style="width:100%;" value="${(cqState.dateFilter && cqState.dateFilter.from) || ''}">
+          <input type="date" class="cq-mini-input" id="cq-date-to" style="width:100%;" value="${(cqState.dateFilter && cqState.dateFilter.to) || ''}">
+        </div>
+        <div class="th-filter-actions">
+          <button type="button" class="th-clear">Limpiar</button>
+          <button type="button" class="th-apply">Aplicar</button>
+        </div>`;
+      wrap.appendChild(panel);
+      panel.querySelector('.th-clear').addEventListener('click', () => { cqState.dateFilter = null; panel.remove(); cqRenderAll(); });
+      panel.querySelector('.th-apply').addEventListener('click', () => {
+        const from = panel.querySelector('#cq-date-from').value;
+        const to = panel.querySelector('#cq-date-to').value;
+        if(from || to){ cqState.dateFilter = { from: from || null, to: to || null }; }
+        else {
+          const checked = [...panel.querySelectorAll('.th-check-list input:checked')].map(c => c.value);
+          if(checked.length && checked.length < dates.length) cqState.dateFilter = { dates: new Set(checked) };
+          else cqState.dateFilter = null;
+        }
+        panel.remove(); cqRenderAll();
+      });
+      return;
+    }
+    // checkbox (default): igual patron que Inicio, con buscador
+    const rowsForCol = cqApplyFilters(cqBuildRows(), { excludeKey: col });
+    let uniques;
+    if(def.multiVal){ uniques = Array.from(new Set(rowsForCol.flatMap(r => def.get(r) || []))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
+    else { uniques = Array.from(new Set(rowsForCol.map(r => { const v = def.get(r); return (v == null || v === '') ? '—' : v; }))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
+    const selected = cqState.colFilters[col];
+    panel.innerHTML = `
+      <input type="text" class="th-search" placeholder="Buscar valor…">
+      <div class="th-check-list">
+        ${uniques.map(v => `<label class="th-check-item"><input type="checkbox" value="${String(v).replace(/"/g,'&quot;')}" ${(!selected || selected.has(v))?'checked':''}> ${v}</label>`).join('') || '<div style="font-size:10.5px; color:var(--ink-faint); padding:4px;">Sin valores.</div>'}
+      </div>
+      <div class="th-filter-actions">
+        <button type="button" class="th-clear">Limpiar</button>
+        <button type="button" class="th-apply">Aplicar</button>
+      </div>`;
+    wrap.appendChild(panel);
+    const searchInput = panel.querySelector('.th-search');
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      panel.querySelectorAll('.th-check-item').forEach(item => { item.style.display = item.textContent.trim().toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.colFilters[col]; panel.remove(); cqRenderAll(); });
+    panel.querySelector('.th-apply').addEventListener('click', () => {
+      const checked = [...panel.querySelectorAll('.th-check-item input:checked')].map(c => c.value);
+      if(checked.length === uniques.length) delete cqState.colFilters[col];
+      else cqState.colFilters[col] = new Set(checked);
+      panel.remove(); cqRenderAll();
+    });
+  }
+
+  function cqRenderAll(){
+    cqRenderResumen();
+    cqRenderChips();
+    cqRenderGrid();
+  }
+
+  // ---- CSV export ----
+  function cqDownloadCsv(filename, defs, rows){
+    const esc = (v) => { const s = v == null ? '' : String(v); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+    const header = defs.map(d => esc(d.label + (d.unit ? ' ' + d.unit.trim() : ''))).join(';');
+    const lines = rows.map(r => defs.map(d => esc(cqCsvVal(d, r))).join(';'));
+    const csv = '\uFEFF' + [header, ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Grillas guardadas (5 slots por usuario, tabla Supabase 'saved_grids') ----
+  async function cqLoadSavedSlots(){
+    if(!currentUser) return;
+    try{
+      const { data, error } = await supabaseClient.from('saved_grids').select('*').eq('username', currentUser.user);
+      if(error) throw error;
+      cqState.savedSlots = [null,null,null,null,null];
+      (data || []).forEach(row => { if(row.slot >= 1 && row.slot <= 5) cqState.savedSlots[row.slot-1] = row; });
+    } catch(e){
+      console.warn('Consultas: no se pudieron cargar grillas guardadas (¿falta crear la tabla saved_grids?)', e.message || e);
+    }
+    cqRenderSavedSlots();
+  }
+  function cqRenderSavedSlots(){
+    const el = document.getElementById('cq-savedviews');
+    if(!el) return;
+    el.innerHTML = `<span class="cq-saved-lbl">Mis grillas:</span>` + cqState.savedSlots.map((slot, i) => {
+      const filled = !!slot;
+      const name = filled ? slot.name : `Slot ${i+1}`;
+      return `<button class="cq-slot-btn ${filled?'filled':''}" data-slot="${i+1}" data-action="load" type="button">${name}${filled?` <span class="cq-slot-save" data-slot="${i+1}" data-action="save" title="Sobrescribir este slot con la configuración actual">💾</span>`:''}</button>`;
+    }).join('') + `<button class="cq-slot-btn add" data-action="savenew" type="button">+ Guardar actual</button>`;
+
+    el.querySelectorAll('[data-action="load"]').forEach(btn => btn.addEventListener('click', (e) => {
+      if(e.target.dataset.action === 'save') return;
+      const idx = parseInt(btn.dataset.slot) - 1;
+      const slot = cqState.savedSlots[idx];
+      if(!slot){ cqSaveToSlot(idx + 1); return; }
+      const cfg = slot.config || {};
+      cqState.scope = cfg.scope || 'ultimo';
+      cqState.extraCols = (cfg.extraCols || []).slice();
+      cqState.colFilters = {}; (cfg.colFilters || []).forEach(([k,vals]) => { cqState.colFilters[k] = new Set(vals); });
+      cqState.numFilters = cfg.numFilters || {};
+      cqState.textFilters = cfg.textFilters || {};
+      cqState.dateFilter = cfg.dateFilter ? (cfg.dateFilter.dates ? { dates: new Set(cfg.dateFilter.dates) } : cfg.dateFilter) : null;
+      cqState.dsdFilter = cfg.dsdFilter || null;
+      const scopeRadio = document.getElementById(cqState.scope === 'todos' ? 'cq-scope-todos' : 'cq-scope-ultimo');
+      if(scopeRadio) scopeRadio.checked = true;
+      cqSyncScopeRadios();
+      cqRenderFieldsPanel();
+      cqRenderAll();
+    }));
+    el.querySelectorAll('[data-action="save"]').forEach(icon => icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cqSaveToSlot(parseInt(icon.dataset.slot));
+    }));
+    const newBtn = el.querySelector('[data-action="savenew"]');
+    if(newBtn) newBtn.addEventListener('click', () => {
+      const free = cqState.savedSlots.findIndex(s => !s);
+      cqSaveToSlot(free === -1 ? 1 : free + 1);
+    });
+  }
+  async function cqSaveToSlot(slotNum){
+    if(!currentUser){ alert('Necesitás estar logueado para guardar una grilla.'); return; }
+    const name = prompt('Nombre para esta grilla guardada:', cqState.savedSlots[slotNum-1] ? cqState.savedSlots[slotNum-1].name : `Mi grilla ${slotNum}`);
+    if(!name) return;
+    const config = {
+      scope: cqState.scope,
+      extraCols: cqState.extraCols,
+      colFilters: Object.keys(cqState.colFilters).map(k => [k, Array.from(cqState.colFilters[k])]),
+      numFilters: cqState.numFilters,
+      textFilters: cqState.textFilters,
+      dateFilter: cqState.dateFilter ? (cqState.dateFilter.dates ? { dates: Array.from(cqState.dateFilter.dates) } : cqState.dateFilter) : null,
+      dsdFilter: cqState.dsdFilter,
+    };
+    try{
+      const { error } = await supabaseClient.from('saved_grids').upsert({
+        username: currentUser.user, slot: slotNum, name, config, updated_at: new Date().toISOString()
+      }, { onConflict: 'username,slot' });
+      if(error) throw error;
+      await cqLoadSavedSlots();
+    } catch(e){
+      alert('No se pudo guardar (¿falta crear la tabla saved_grids en Supabase?): ' + (e.message || e));
+    }
+  }
+
+  function cqSyncScopeRadios(){
+    document.querySelectorAll('.cq-vm-opt').forEach(opt => {
+      const input = opt.querySelector('input');
+      const radio = opt.querySelector('.cq-vm-radio');
+      const label = opt.querySelector('.cq-vm-label');
+      const on = input.checked;
+      radio.classList.toggle('on', on);
+      label.style.color = on ? 'var(--ink)' : 'var(--ink-faint)';
+    });
+  }
+
+  function initConsultas(){
+    document.querySelectorAll('input[name="cqScope"]').forEach(radio => radio.addEventListener('change', (e) => {
+      cqState.scope = e.target.value;
+      cqSyncScopeRadios();
+      cqRenderAll();
+    }));
+    cqSyncScopeRadios();
+
+    const dsdApply = document.getElementById('cq-dsd-apply');
+    if(dsdApply) dsdApply.addEventListener('click', () => {
+      const op = document.getElementById('cq-dsd-op').value;
+      const val = parseFloat(document.getElementById('cq-dsd-val').value);
+      if(Number.isNaN(val)) return;
+      cqState.dsdFilter = { op, value: val };
+      document.getElementById('cq-dsd-clear').style.display = '';
+      cqRenderAll();
+    });
+    const dsdClear = document.getElementById('cq-dsd-clear');
+    if(dsdClear) dsdClear.addEventListener('click', () => { cqClearDsdFilter(); cqRenderAll(); });
+
+    const refreshBtn = document.getElementById('cq-resumen-refresh');
+    if(refreshBtn) refreshBtn.addEventListener('click', cqRenderAll);
+
+    const expFiltered = document.getElementById('cq-exportfiltered');
+    if(expFiltered) expFiltered.addEventListener('click', () => {
+      const defs = cqColumns().map(k => CQ_DEFS_BY_KEY[k]).filter(Boolean);
+      cqDownloadCsv('consultas_armado.csv', defs, cqApplyFilters(cqBuildRows()));
+    });
+    const expAll = document.getElementById('cq-exportall');
+    if(expAll) expAll.addEventListener('click', () => {
+      // "General completo": TODOS los campos, TODOS los pozos (ultimo ensayo),
+      // sin ningun filtro aplicado — el respaldo integro que pidio Ale.
+      cqDownloadCsv('consultas_general_completo.csv', CQ_ALL_DEFS, cqBuildRowsUltimo());
+    });
+
+    cqRenderFieldsPanel();
+    cqRenderAll();
+    cqLoadSavedSlots();
   }
 
   function initDinaDetailsModal(){
@@ -4471,16 +5333,20 @@
         });
       });
     } else {
-      // Reparto acordado: la planilla trae el TOTAL del pozo (Placa Principal = tipo/cant,
-      // Placa Auxiliar = cm/cant2) y se divide por igual entre las 2 manivelas del contrapesado.
-      // No hay campo de distancia en los datos migrados del planillero, asi que no se muestra
-      // (no se inventa un valor que no esta en la base).
+      // Reparto acordado: la planilla trae el TOTAL del pozo (columnas del
+      // planillero: tipo/cant/cm = Placa Principal, secu/cant2/cm2 = Placa
+      // Auxiliar) y se divide por igual entre las 2 manivelas del contrapesado.
+      // OJO: "cm" y "cm2" son la DISTANCIA en centimetros (no un tipo de placa
+      // como se interpretaba antes) — ahora se muestran como tal, integradas
+      // en la misma tarjeta de cada Manivela junto con las cantidades.
       const tipoPrincipal = cp.tipo ? String(cp.tipo).toUpperCase() : null;
-      const tipoAux = cp.cm ? String(cp.cm).toUpperCase() : null;
+      const tipoAux = cp.secu ? String(cp.secu).toUpperCase() : null;
       const cantPrincipalTotal = cp.cant != null ? Number(cp.cant) : null;
       const cantAuxTotal = cp.cant2 != null ? Number(cp.cant2) : null;
       const cantPrincipalMitad = cantPrincipalTotal != null ? cantPrincipalTotal / 2 : null;
       const cantAuxMitad = cantAuxTotal != null ? cantAuxTotal / 2 : null;
+      const distPrincipal = cp.cm != null && cp.cm !== '' ? Number(cp.cm) : null;
+      const distAux = cp.cm2 != null && cp.cm2 !== '' ? Number(cp.cm2) : null;
 
       [1, 2].forEach(manivelaNo => {
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
@@ -4489,19 +5355,20 @@
           <div class="cp-grid">
             <div class="cp-lbl">Placa Princ.</div><div class="cp-val">${tipoPrincipal || '—'}</div>
             <div class="cp-lbl">Cant. Princ.</div><div class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</div>
+            <div class="cp-lbl">Dist. Princ.</div><div class="cp-val">${distPrincipal != null ? distPrincipal + ' cm' : '—'}</div>
             <div class="cp-lbl">Placa Aux.</div><div class="cp-val">${tipoAux || '—'}</div>
             <div class="cp-lbl">Cant. Aux.</div><div class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</div>
+            <div class="cp-lbl">Dist. Aux.</div><div class="cp-val">${distAux != null ? distAux + ' cm' : '—'}</div>
           </div>
         </div>`;
       });
 
-      // Datos generales del pozo (no son por-manivela): secundaria, placas totales,
-      // y fecha del ultimo relevamiento cargado desde el planillero.
-      if(cp.secu != null || cp.placas != null || row.fecha){
+      // Dato general del pozo (no es por-manivela): placas totales y fecha
+      // del ultimo relevamiento cargado desde el planillero.
+      if(cp.placas != null || row.fecha){
         cardsHtml += `<div class="cp-card">
           <div class="cp-card-title" style="color:var(--ink-faint);">General${row.fecha ? ' · '+fmtDate(row.fecha) : ''}</div>
           <div class="cp-grid">
-            <div class="cp-lbl">Secundaria</div><div class="cp-val">${cp.secu != null ? cp.secu : '—'}</div>
             <div class="cp-lbl">Placas (total)</div><div class="cp-val">${cp.placas != null ? cp.placas : '—'}</div>
           </div>
         </div>`;
@@ -4844,8 +5711,9 @@
       const moveEl2 = document.getElementById('d-gb-move');
       if(moveEl2) moveEl2.textContent = formatGbMove(r.to_balance_move_note) || '—';
       {
-        const pctDown2 = (r.existing_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.existing_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null;
-        const pctBal2 = (r.in_balance_max_torque_downstroke_inlb != null && c.gearbox_rating_inlb) ? r.in_balance_max_torque_downstroke_inlb / c.gearbox_rating_inlb * 100 : null;
+        // % Torque = MAX(Upstroke Peak, Downstroke Peak) * 100 / Gear Box Rating.
+        const pctDown2 = torquePctMax(r.existing_max_torque_upstroke_inlb, r.existing_max_torque_downstroke_inlb, c.gearbox_rating_inlb);
+        const pctBal2 = torquePctMax(r.in_balance_max_torque_upstroke_inlb, r.in_balance_max_torque_downstroke_inlb, c.gearbox_rating_inlb);
         setGearboxPct('d-gb-pctbal', pctBal2);
         setGearboxPctExisting('d-gb-pctdown', pctDown2, pctBal2);
       }
@@ -6034,6 +6902,7 @@
   if(acuHistNext) acuHistNext.addEventListener('click', ()=> navHistory('ACU', -1));
   initDinaDetailsModal();
   initQuickReportModal();
+  initConsultas();
 
   document.getElementById('prevBtn').addEventListener('click', ()=>{
     const i = wellNames.indexOf(currentWell);
@@ -6061,6 +6930,7 @@
     if(viewEl) viewEl.classList.add('active');
     if(viewName === 'bitacora'){ bitLoadForWell(currentWell); }
     if(viewName === 'historial'){ renderHistorialTimeline(); }
+    if(viewName === 'consultas'){ cqRenderFieldsPanel(); cqRenderAll(); }
   }
 
   document.querySelectorAll('.bit-pill').forEach(btn=>{
