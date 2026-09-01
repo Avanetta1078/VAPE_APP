@@ -587,7 +587,8 @@
   .cq-mini-btn:hover{color:var(--ink); border-color:#5b76e0;}
   .cq-mini-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
   .cq-mini-btn.primary:hover{background:#4a63c9;}
-  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:wrap;}
+  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .cq-resumen-cards{display:flex; gap:6px; flex-wrap:wrap;}
   .cq-resumen-card{background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:5px 11px; cursor:pointer;
     display:flex; align-items:center; gap:8px; min-width:0; position:relative;}
   .cq-resumen-card:hover{border-color:#5b76e0;}
@@ -615,11 +616,15 @@
   .cq-panel-divider{border-top:1px solid var(--border); margin:9px 0 8px;}
   .cq-controls-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 
-  /* Barra de "dias sin Dina": destacada, pedido explicito de Ale porque es un
-     filtro que usa seguido — ahora vive adentro del panel de resumen. */
-  .cq-dsd-bar{display:flex; align-items:center; gap:7px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
-    border-radius:8px; padding:6px 11px; flex-wrap:wrap; flex:1 1 auto;}
-  .cq-dsd-lbl{font-size:11.5px; color:var(--ink); font-weight:700; white-space:nowrap;}
+  /* Barra de "dias sin Dina": mismo color/estilo de antes (acento azul),
+     pero ahora vive EN LA MISMA FILA que las tarjetas de resumen (pedido de
+     Ale) y bien compacta — no se estira, no ocupa una fila propia. */
+  .cq-dsd-bar{display:flex; align-items:center; gap:5px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
+    border-radius:6px; padding:4px 9px; flex:0 0 auto; white-space:nowrap;}
+  .cq-dsd-lbl{font-size:10px; color:var(--ink); font-weight:700; white-space:nowrap;}
+  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9.5px; padding:2px 4px;}
+  .cq-dsd-inline .cq-mini-input{width:48px;}
+  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:2px 7px;}
 
   .cq-viewmode{display:flex; align-items:center; gap:12px; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:0 12px; flex:0 0 auto;}
   .cq-vm-opt{display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 0;}
@@ -909,7 +914,7 @@
         <button type="button" id="wellSearchBtn" title="Buscar pozo" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a919d" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="#8a919d" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
-        <input type="text" id="wellSearch" placeholder="Buscar… (ej. 966)" value="ED-316">
+        <input type="text" id="wellSearch" placeholder="Buscar… (ej. 966)">
       </div>
       <div class="date-stepper">
         <button id="prevBtn" title="Prueba anterior">
@@ -1327,6 +1332,10 @@
           </div>
           <canvas id="acuInteractiveCanvas" style="display:none; width:100%; cursor:grab; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);"></canvas>
         <img src="" alt="Nivel acústico real ED-316"/></div>
+        <div class="comment-box" id="sonologCommentBox">
+          <span class="lbl">Comentario del operador (Eco)</span>
+          <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
+        </div>
         <div class="panel-foot">
           <div class="mini"><span class="lbl">Nivel Medido</span><span class="val mono" id="s-nivel">1,216 m</span></div>
           <div class="mini"><span class="lbl">Sumergencia</span><span class="val mono" id="s-sumerg">8 m</span></div>
@@ -1336,10 +1345,6 @@
           <div class="mini"><span class="lbl">RTTT</span><span class="val mono" id="s-rttt">6.088 s</span></div>
           <div class="mini"><span class="lbl">P. Casing</span><span class="val mono" id="s-pcsg">4.9 kg</span></div>
           <div class="mini"><span class="lbl">% Líq. s/Bomba</span><span class="val mono" id="s-pctliq">78.1 %</span></div>
-        </div>
-        <div class="comment-box" id="sonologCommentBox" style="margin:0 16px 16px;">
-          <span class="lbl">Comentario del operador (Eco)</span>
-          <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
         </div>
       </div>
     </div>
@@ -1721,13 +1726,9 @@
         <div class="cq-resumen-title">Resumen del yacimiento — pozos por sistema</div>
         <button class="cq-resumen-refresh" id="cq-resumen-refresh" type="button">⟳ recalcular</button>
       </div>
-      <div class="cq-resumen-grid" id="cq-resumen-grid"></div>
-      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
-
-      <div class="cq-panel-divider"></div>
-
-      <div class="cq-controls-row">
-        <div class="cq-dsd-bar">
+      <div class="cq-resumen-grid" id="cq-resumen-grid">
+        <div class="cq-resumen-cards" id="cq-resumen-cards"></div>
+        <div class="cq-dsd-bar cq-dsd-inline">
           <span class="cq-dsd-lbl">⏱ Días sin Dina</span>
           <select id="cq-dsd-op" class="cq-mini-select">
             <option value=">">Mayor a</option>
@@ -1738,6 +1739,12 @@
           <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
           <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕</button>
         </div>
+      </div>
+      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
+
+      <div class="cq-panel-divider"></div>
+
+      <div class="cq-controls-row">
         <div class="cq-viewmode">
           <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
           <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
@@ -2255,6 +2262,11 @@
   }
 
   let currentWell = "ED-316";
+  // El buscador de pozo no debe arrancar con un numero precargado: se deja
+  // vacio en el primer render real (con datos ya cargados) y a partir de ahi
+  // el sincronizado normal (buscador <-> pozo actual) sigue funcionando igual
+  // que siempre al navegar, seleccionar de la grilla, usar ‹ / ›, etc.
+  let wellSearchSyncedOnce = false;
 
   function fmt(v, dec=0){
     if(v === null || v === undefined) return "—";
@@ -2765,7 +2777,10 @@
 
     // Punto 1: sincronizar el campo buscar con el pozo actual
     const searchInput = document.getElementById('wellSearch');
-    if(searchInput){ searchInput.value = currentWell; }
+    if(searchInput){
+      if(wellSearchSyncedOnce) searchInput.value = currentWell;
+      else { searchInput.value = ''; wellSearchSyncedOnce = true; }
+    }
 
     // Punto 4: tiles prominentes (Fillage, Presión Tubing, SPM)
     const fillageEl = document.getElementById('d-fillage');
@@ -3894,7 +3909,7 @@
 
   // ---- Resumen: siempre 1 fila = 1 pozo (independiente del toggle Ultimo/Todos) ----
   function cqRenderResumen(){
-    const grid = document.getElementById('cq-resumen-grid');
+    const grid = document.getElementById('cq-resumen-cards');
     const foot = document.getElementById('cq-resumen-foot');
     if(!grid) return;
     const base = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'sistema' });
