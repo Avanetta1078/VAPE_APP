@@ -346,7 +346,7 @@
   .rp-tramos-table tr:nth-child(even){background:var(--panel-2);}
   .rp-apibba-lbl{font-size:9px; color:var(--ink-faint); margin-top:10px; padding-left:2px;}
   .rp-apibba-val{font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-dim); padding-left:2px; word-break:break-all;}
-  .rp-comment-box{background:var(--panel-2); border-radius:7px; padding:8px 10px; height:64px; box-sizing:border-box; overflow-y:auto;}
+  .rp-comment-box{background:var(--panel-2); border-radius:7px; padding:9px 11px; min-height:96px; max-height:150px; box-sizing:border-box; overflow-y:auto;}
   .rp-comment-lbl{font-size:8.5px; color:var(--ink-faint); margin-bottom:3px;}
   .rp-comment-val{font-size:13px; line-height:1.35; color:var(--ink); white-space:normal; overflow-wrap:break-word;}
   #rp-wellsvg text{font-family:'IBM Plex Sans'; fill:var(--ink-dim);}
@@ -422,6 +422,14 @@
     0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
     50% { box-shadow: 0 0 8px 1px currentColor; opacity: .78; }
   }
+  /* Pulso mas intenso, reservado para el desfasaje de Torque Existente vs En
+     Balance: tiene que "saltar a la vista" mas que los demas resaltes,
+     porque indica un problema real de contrabalanceo del equipo. */
+  .gtab td.bal-pulse-strong{animation:balPulseStrong 1s ease-in-out infinite; outline:2px solid currentColor; outline-offset:-2px;}
+  @keyframes balPulseStrong{
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; transform:scale(1); }
+    50% { box-shadow: 0 0 16px 4px currentColor; transform:scale(1.045); }
+  }
   /* Resalte con pulso para valores destacados (Carga Maxima, Peso Total de Sarta) */
   .gtab td.hl-pulse{background:rgba(91,118,224,.20); color:var(--navy-glow,#5b76e0); font-weight:700; border-radius:5px; animation:hlPulse 1.7s ease-in-out infinite;}
   @keyframes hlPulse{
@@ -493,6 +501,13 @@
   .cp-cards .cp-grid{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-family:'IBM Plex Mono'; font-size:10.5px;}
   .cp-cards .cp-grid .cp-lbl{color:var(--ink-faint);}
   .cp-cards .cp-grid .cp-val{color:var(--ink); text-align:right;}
+  /* Fila "Plac. Prin: OORO  Cant: 4  cm: xxx" / "Plac. Sec: OOS  Cant: 8  cm: xxx" */
+  .cp-cards .cp-triplet-row{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono'; font-size:10.5px; padding:3px 0;}
+  .cp-cards .cp-triplet-row + .cp-triplet-row{border-top:1px dashed var(--border); margin-top:2px;}
+  .cp-cards .cp-triplet-row .cp-t-placa{color:var(--ink); font-weight:700; flex:1 1 auto; min-width:0;}
+  .cp-cards .cp-triplet-row .cp-t-item{display:flex; align-items:center; gap:4px; flex:0 0 auto;}
+  .cp-cards .cp-triplet-row .cp-t-item .cp-lbl{color:var(--ink-faint);}
+  .cp-cards .cp-triplet-row .cp-t-item .cp-val{color:var(--ink);}
   .sarta-img{display:block; width:auto; max-width:100%; max-height:210px; object-fit:contain; margin:0 auto 6px; border-radius:6px; background:var(--panel); border:1px solid var(--border);}
 
   .prom-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 6px;}
@@ -561,7 +576,7 @@
   }
 
   /* ---- Consultas ---- */
-  .cq-resumen-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:8px;}
+  .cq-resumen-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; overflow:visible;}
   .cq-resumen-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; gap:8px;}
   .cq-resumen-title{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
   .cq-resumen-refresh{font-size:10px; color:var(--ink-faint); border:1px solid var(--border); border-radius:999px; padding:3px 9px; background:transparent; cursor:pointer;}
@@ -579,7 +594,7 @@
   .cq-resumen-card.active{border-color:#5b76e0; background:rgba(91,118,224,.12);}
   .cq-resumen-card .lbl{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint);}
   .cq-resumen-card .num{font-family:'IBM Plex Mono'; font-weight:700; font-size:14px; color:var(--navy-glow);}
-  .cq-resumen-foot{display:flex; align-items:center; justify-content:space-between; margin-top:7px; font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:6px;}
+  .cq-resumen-foot{display:flex; align-items:center; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:6px;}
   .cq-resumen-foot b{color:var(--ink);}
 
   .cq-card-popover{position:absolute; top:100%; left:0; margin-top:6px; width:300px; background:var(--panel); border:1px solid var(--border);
@@ -594,35 +609,46 @@
   .cq-cp-btn{flex:1; font-size:10.5px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--ink); background:var(--panel-2); cursor:pointer;}
   .cq-cp-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
 
-  /* Barra de "dias sin Dina": destacada aparte, no escondida en una esquina —
-     pedido explicito de Ale porque es un filtro que usa seguido. */
-  .cq-dsd-bar{display:flex; align-items:center; gap:8px; background:rgba(91,118,224,.09); border:1px solid rgba(91,118,224,.4);
-    border-radius:9px; padding:8px 12px; margin-bottom:8px; flex-wrap:wrap;}
-  .cq-dsd-lbl{font-size:11.5px; color:var(--ink); font-weight:600; white-space:nowrap;}
+  /* Separador interno entre las tarjetas de resumen y los controles (dias sin
+     Dina / vista / columnas), todo ahora DENTRO del mismo recuadro para que
+     ocupe menos alto en pantalla y la grilla quede mas arriba. */
+  .cq-panel-divider{border-top:1px solid var(--border); margin:9px 0 8px;}
+  .cq-controls-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 
-  .cq-toolbar-row{display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
-  .cq-viewmode{display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:0 14px; flex:0 0 auto;}
-  .cq-vm-opt{display:flex; align-items:center; gap:6px; cursor:pointer; padding:7px 0;}
+  /* Barra de "dias sin Dina": destacada, pedido explicito de Ale porque es un
+     filtro que usa seguido — ahora vive adentro del panel de resumen. */
+  .cq-dsd-bar{display:flex; align-items:center; gap:7px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
+    border-radius:8px; padding:6px 11px; flex-wrap:wrap; flex:1 1 auto;}
+  .cq-dsd-lbl{font-size:11.5px; color:var(--ink); font-weight:700; white-space:nowrap;}
+
+  .cq-viewmode{display:flex; align-items:center; gap:12px; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:0 12px; flex:0 0 auto;}
+  .cq-vm-opt{display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 0;}
   .cq-vm-opt input{position:absolute; opacity:0; width:0; height:0;}
   .cq-vm-radio{width:12px; height:12px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
   .cq-vm-radio.on{border-color:#5b76e0;}
   .cq-vm-radio.on::after{content:""; width:5px; height:5px; border-radius:50%; background:#5b76e0;}
-  .cq-vm-label{font-size:11px; color:var(--ink);}
+  .cq-vm-label{font-size:10.5px; color:var(--ink); white-space:nowrap;}
 
-  .cq-fields-panel{border:1px solid var(--border); border-radius:9px; overflow:hidden; background:var(--panel); flex:1; min-width:220px; align-self:flex-start;}
-  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; height:100%;}
+  /* El panel de columnas/filtros avanzados ahora es un bloque interno (sin
+     fondo/borde propio, ya esta contenido por cq-resumen-panel) para que al
+     desplegarse TODO su contenido quede dentro del recuadro, no afuera. */
+  .cq-fields-panel{border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--panel-2); width:100%; box-sizing:border-box;}
+  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; justify-content:space-between; padding:7px 12px; cursor:pointer;}
   .cq-fields-panel summary::-webkit-details-marker{display:none;}
   .cq-fields-head-title{font-size:11px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px;}
   .cq-fields-head-title .cnt{font-size:9.5px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 7px;}
   .cq-fields-head-chev{color:var(--ink-faint); font-size:10px; transition:transform .15s;}
   .cq-fields-panel[open] .cq-fields-head-chev{transform:rotate(180deg);}
-  .cq-fields-body{padding:0 14px 12px; display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:10px; box-sizing:border-box; width:100%;}
-  .cq-fgroup{display:flex; gap:10px; align-items:baseline;}
+  .cq-fields-body{padding:0 12px 10px; display:flex; flex-direction:column; gap:7px; border-top:1px solid var(--border); padding-top:9px; box-sizing:border-box; width:100%;}
+  .cq-fgroup{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;}
   .cq-fgroup-lbl{font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#5b76e0; font-weight:700; width:48px; flex:0 0 auto; padding-top:3px;}
-  .cq-fchecks{display:flex; flex-wrap:wrap; gap:5px 11px;}
-  .cq-fcheck{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-dim); cursor:pointer;}
+  .cq-fchecks{display:flex; flex-wrap:wrap; gap:5px 11px; min-width:0;}
+  .cq-fcheck{display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--ink-dim); cursor:pointer;}
   .cq-fcheck input{accent-color:#5b76e0; width:11px; height:11px; cursor:pointer;}
   .cq-fcheck.on{color:var(--ink);}
+  .cq-fields-savebar{display:flex; gap:7px; padding:9px 12px 11px; border-top:1px solid var(--border); box-sizing:border-box;}
+  .cq-fields-savebar .cq-mini-input{flex:1; width:auto;}
+  .cq-fields-savebar .cq-mini-btn{white-space:nowrap;}
 
   .cq-chipsrow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; min-height:0;}
   .cq-chip{display:inline-flex; align-items:center; gap:5px; background:var(--panel-2); border:1px solid var(--border); border-radius:999px;
@@ -1688,7 +1714,7 @@
     </div>
   </div>
 
-  <!-- ===================== VIEW: CONSULTAS (placeholder) ===================== -->
+  <!-- ===================== VIEW: CONSULTAS ===================== -->
   <div class="view" id="view-consultas">
     <div class="cq-resumen-panel">
       <div class="cq-resumen-head">
@@ -1697,37 +1723,44 @@
       </div>
       <div class="cq-resumen-grid" id="cq-resumen-grid"></div>
       <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
-    </div>
 
-    <div class="cq-dsd-bar">
-      <span class="cq-dsd-lbl">⏱ Filtrar por días sin Dina:</span>
-      <select id="cq-dsd-op" class="cq-mini-select">
-        <option value=">">Mayor a:</option>
-        <option value="<">Menor a:</option>
-        <option value="=">Igual a:</option>
-      </select>
-      <input id="cq-dsd-val" class="cq-mini-input" type="number" min="0" placeholder="cant. de días">
-      <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
-      <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕ Quitar</button>
-    </div>
+      <div class="cq-panel-divider"></div>
 
-    <div class="cq-toolbar-row">
-      <div class="cq-viewmode">
-        <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
-        <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
+      <div class="cq-controls-row">
+        <div class="cq-dsd-bar">
+          <span class="cq-dsd-lbl">⏱ Días sin Dina</span>
+          <select id="cq-dsd-op" class="cq-mini-select">
+            <option value=">">Mayor a</option>
+            <option value="<">Menor a</option>
+            <option value="=">Igual a</option>
+          </select>
+          <input id="cq-dsd-val" class="cq-mini-input" type="number" min="0" placeholder="días">
+          <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
+          <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕</button>
+        </div>
+        <div class="cq-viewmode">
+          <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
+          <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
+        </div>
       </div>
+
       <details class="cq-fields-panel" id="cq-fields-panel">
         <summary>
           <div class="cq-fields-head-title">+ Columnas / filtros avanzados <span class="cnt" id="cq-fields-cnt">0 activos</span></div>
           <div class="cq-fields-head-chev">▾</div>
         </summary>
         <div class="cq-fields-body" id="cq-fields-body"></div>
+        <div class="cq-fields-savebar">
+          <input type="text" id="cq-savegrid-name" class="cq-mini-input" placeholder="Nombre de la grilla…">
+          <button id="cq-savegrid-btn" class="cq-mini-btn primary" type="button">💾 Guardar "Armado de grilla"</button>
+        </div>
       </details>
     </div>
 
     <div class="cq-chipsrow" id="cq-chips"></div>
 
     <div class="cq-savedrow" id="cq-savedviews"></div>
+
 
     <div class="cq-resultbar">
       <span class="cq-resultcount" id="cq-resultcount">0 pozos</span>
@@ -2286,7 +2319,7 @@
   function setGearboxPctExisting(id, pctExisting, pctBalanced){
     const el = document.getElementById(id);
     if(!el) return;
-    el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo','bal-pulse');
+    el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo','bal-pulse','bal-pulse-strong');
     if(pctExisting == null){ el.textContent = '—'; return; }
     el.textContent = fmt(pctExisting, 1) + ' %';
     if(pctBalanced == null){
@@ -2301,7 +2334,9 @@
     else if(diff >= 20) clase = 'bal-naranja';
     else if(diff >= 10) clase = 'bal-amarillo';
     el.classList.add(clase);
-    if(diff >= 10) el.classList.add('bal-pulse');
+    // Pulso mas intenso (parpadeo + glow + leve zoom) para que el desfasaje
+    // sea imposible de pasar por alto — a mas diferencia, mas urgente se ve.
+    if(diff >= 10) el.classList.add('bal-pulse-strong');
   }
 
   // "24976.0 weights IN 11.38" (formato crudo del TAM: peso en lb + sentido +
@@ -2669,7 +2704,7 @@
        'd-gb-rating','d-gb-up','d-gb-down','d-gb-pctdown','d-gb-oob','d-gb-move','d-gb-balanced','d-gb-pctbal',
        'd-pump-depth','d-pump-pip','d-pump-pip-eco','d-plunger','d-cbm','d-wcw',
        'd-sarta-cat','d-sarta-peso','d-sarta-apibba']
-        .forEach(id => { const el = document.getElementById(id); if(el){ el.textContent = '—'; el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo','bal-pulse'); } });
+        .forEach(id => { const el = document.getElementById(id); if(el){ el.textContent = '—'; el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo','bal-pulse','bal-pulse-strong'); } });
       const commentEl = document.getElementById('d-comment');
       if(commentEl) commentEl.textContent = 'Sin pozos cargados.';
       const sartaTable = document.getElementById('d-sarta-table');
@@ -4211,7 +4246,10 @@
       const filled = !!slot;
       const name = filled ? slot.name : `Slot ${i+1}`;
       return `<button class="cq-slot-btn ${filled?'filled':''}" data-slot="${i+1}" data-action="load" type="button">${name}${filled?` <span class="cq-slot-save" data-slot="${i+1}" data-action="save" title="Sobrescribir este slot con la configuración actual">💾</span>`:''}</button>`;
-    }).join('') + `<button class="cq-slot-btn add" data-action="savenew" type="button">+ Guardar actual</button>`;
+    }).join('');
+    // (El "+ Guardar actual" que vivia aca se saco: ahora el guardado se hace
+    // desde el boton "Armado de grilla" dentro del panel de columnas/filtros
+    // avanzados, para no tener dos lugares distintos para la misma accion.)
 
     el.querySelectorAll('[data-action="load"]').forEach(btn => btn.addEventListener('click', (e) => {
       if(e.target.dataset.action === 'save') return;
@@ -4242,9 +4280,9 @@
       cqSaveToSlot(free === -1 ? 1 : free + 1);
     });
   }
-  async function cqSaveToSlot(slotNum){
+  async function cqSaveToSlot(slotNum, presetName){
     if(!currentUser){ alert('Necesitás estar logueado para guardar una grilla.'); return; }
-    const name = prompt('Nombre para esta grilla guardada:', cqState.savedSlots[slotNum-1] ? cqState.savedSlots[slotNum-1].name : `Mi grilla ${slotNum}`);
+    const name = presetName || prompt('Nombre para esta grilla guardada:', cqState.savedSlots[slotNum-1] ? cqState.savedSlots[slotNum-1].name : `Mi grilla ${slotNum}`);
     if(!name) return;
     const config = {
       scope: cqState.scope,
@@ -4310,6 +4348,18 @@
       // "General completo": TODOS los campos, TODOS los pozos (ultimo ensayo),
       // sin ningun filtro aplicado — el respaldo integro que pidio Ale.
       cqDownloadCsv('consultas_general_completo.csv', CQ_ALL_DEFS, cqBuildRowsUltimo());
+    });
+
+    // Boton "Guardar Armado de grilla" (dentro del panel de columnas/filtros
+    // avanzados): usa el nombre tipiado, o el primer slot libre si no elige
+    // uno puntual; si ya estan los 5 usados, sobrescribe el slot 1.
+    const saveGridBtn = document.getElementById('cq-savegrid-btn');
+    if(saveGridBtn) saveGridBtn.addEventListener('click', () => {
+      const nameInput = document.getElementById('cq-savegrid-name');
+      const name = (nameInput && nameInput.value.trim()) || 'Armado de grilla';
+      const free = cqState.savedSlots.findIndex(s => !s);
+      cqSaveToSlot(free === -1 ? 1 : free + 1, name);
+      if(nameInput) nameInput.value = '';
     });
 
     cqRenderFieldsPanel();
@@ -5352,27 +5402,18 @@
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
         cardsHtml += `<div class="cp-card">
           <div class="cp-card-title ${crankClass}">Manivela ${manivelaNo}</div>
-          <div class="cp-grid">
-            <div class="cp-lbl">Placa Princ.</div><div class="cp-val">${tipoPrincipal || '—'}</div>
-            <div class="cp-lbl">Cant. Princ.</div><div class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</div>
-            <div class="cp-lbl">Dist. Princ.</div><div class="cp-val">${distPrincipal != null ? distPrincipal + ' cm' : '—'}</div>
-            <div class="cp-lbl">Placa Aux.</div><div class="cp-val">${tipoAux || '—'}</div>
-            <div class="cp-lbl">Cant. Aux.</div><div class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</div>
-            <div class="cp-lbl">Dist. Aux.</div><div class="cp-val">${distAux != null ? distAux + ' cm' : '—'}</div>
+          <div class="cp-triplet-row">
+            <span class="cp-t-placa">${tipoPrincipal || '—'}</span>
+            <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</span></span>
+            <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distPrincipal != null ? distPrincipal : '—'}</span></span>
+          </div>
+          <div class="cp-triplet-row">
+            <span class="cp-t-placa">${tipoAux || '—'}</span>
+            <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</span></span>
+            <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distAux != null ? distAux : '—'}</span></span>
           </div>
         </div>`;
       });
-
-      // Dato general del pozo (no es por-manivela): placas totales y fecha
-      // del ultimo relevamiento cargado desde el planillero.
-      if(cp.placas != null || row.fecha){
-        cardsHtml += `<div class="cp-card">
-          <div class="cp-card-title" style="color:var(--ink-faint);">General${row.fecha ? ' · '+fmtDate(row.fecha) : ''}</div>
-          <div class="cp-grid">
-            <div class="cp-lbl">Placas (total)</div><div class="cp-val">${cp.placas != null ? cp.placas : '—'}</div>
-          </div>
-        </div>`;
-      }
     }
     table.innerHTML = cardsHtml || '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>';
   }
