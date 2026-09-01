@@ -587,8 +587,8 @@
   .cq-mini-btn:hover{color:var(--ink); border-color:#5b76e0;}
   .cq-mini-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
   .cq-mini-btn.primary:hover{background:#4a63c9;}
-  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
-  .cq-resumen-cards{display:flex; gap:6px; flex-wrap:wrap;}
+  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:nowrap; align-items:center; overflow-x:auto; overflow-y:hidden; padding-bottom:2px;}
+  .cq-resumen-cards{display:flex; gap:6px; flex-wrap:nowrap; flex:0 0 auto;}
   .cq-resumen-card{background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:5px 11px; cursor:pointer;
     display:flex; align-items:center; gap:8px; min-width:0; position:relative;}
   .cq-resumen-card:hover{border-color:#5b76e0;}
@@ -618,12 +618,13 @@
 
   /* Barra de "dias sin Dina": mismo color/estilo de antes (acento azul),
      compacta, en la MISMA FILA que las tarjetas de resumen. */
-  .cq-dsd-bar{display:flex; align-items:center; gap:4px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
-    border-radius:6px; padding:3px 8px; flex:0 0 auto; white-space:nowrap;}
-  .cq-dsd-lbl{font-size:9.5px; color:var(--ink); font-weight:700; white-space:nowrap;}
-  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9px; padding:2px 3px;}
-  .cq-dsd-inline .cq-mini-input{width:42px;}
-  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:2px 6px;}
+  .cq-dsd-bar{display:flex; align-items:center; gap:3px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
+    border-radius:6px; padding:2px 6px; flex:0 0 auto; white-space:nowrap;}
+  .cq-dsd-lbl{font-size:9px; color:var(--ink); font-weight:700; white-space:nowrap;}
+  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9px; padding:1px 2px;}
+  .cq-dsd-inline .cq-mini-select{width:44px;}
+  .cq-dsd-inline .cq-mini-input{width:36px;}
+  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:1px 5px;}
 
   .cq-viewmode{display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:0 10px; flex:0 0 auto;}
   .cq-vm-opt{display:flex; align-items:center; gap:5px; cursor:pointer; padding:5px 0;}
@@ -1333,7 +1334,7 @@
           </div>
           <canvas id="acuInteractiveCanvas" style="display:none; width:100%; cursor:grab; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);"></canvas>
         <img src="" alt="Nivel acústico real ED-316"/></div>
-        <div class="comment-box" id="sonologCommentBox" style="max-width:520px;">
+        <div class="comment-box" id="sonologCommentBox">
           <span class="lbl">Comentario del operador (Eco)</span>
           <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
         </div>
@@ -1731,10 +1732,10 @@
         <div class="cq-resumen-cards" id="cq-resumen-cards"></div>
         <div class="cq-dsd-bar cq-dsd-inline">
           <span class="cq-dsd-lbl">⏱ Días sin Dina</span>
-          <select id="cq-dsd-op" class="cq-mini-select">
-            <option value=">">Mayor a</option>
-            <option value="<">Menor a</option>
-            <option value="=">Igual a</option>
+          <select id="cq-dsd-op" class="cq-mini-select" title="Operador">
+            <option value=">" title="Mayor a">&gt;</option>
+            <option value="<" title="Menor a">&lt;</option>
+            <option value="=" title="Igual a">=</option>
           </select>
           <input id="cq-dsd-val" class="cq-mini-input" type="number" min="0" placeholder="días">
           <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
