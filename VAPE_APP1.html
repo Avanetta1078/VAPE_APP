@@ -455,9 +455,6 @@
   .hist-label{font-family:'IBM Plex Mono'; font-size:10px; fill:var(--ink-dim);}
 
   /* ---------- Install data table ---------- */
-  .install-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
-  .install-card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px;}
-  .install-card h3{margin:0 0 14px; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink);}
   .kv{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:12.5px;}
   .kv span:first-child{color:var(--ink-dim);}
   .kv span:last-child{font-family:'IBM Plex Mono'; color:var(--ink);}
@@ -470,7 +467,7 @@
   .placeholder .big{font-family:'IBM Plex Sans Condensed'; font-size:16px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
 
   @media (max-width:1050px){
-    .main-grid, .install-grid, .grid-strip{grid-template-columns:1fr;}
+    .main-grid, .grid-strip{grid-template-columns:1fr;}
     .instrument-strip{grid-template-columns:repeat(3,1fr);}
   }
 
@@ -638,130 +635,73 @@
   .qr-page + .qr-page{margin-top:22px; padding-top:18px; border-top:2px dashed #d7dbe1;}
   @page{ size:A4; margin:14mm; }
 
-  /* ---- Consultas ---- */
-  .cq-resumen-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; overflow:visible;}
-  .cq-resumen-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; gap:8px;}
-  .cq-resumen-title{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
-  .cq-resumen-refresh{font-size:10px; color:var(--ink-faint); border:1px solid var(--border); border-radius:999px; padding:3px 9px; background:transparent; cursor:pointer;}
-  .cq-resumen-refresh:hover{color:var(--ink); border-color:#5b76e0;}
-  .cq-mini-select, .cq-mini-input{background:var(--panel); border:1px solid var(--border); color:var(--ink); border-radius:5px; font-size:10.5px; font-family:'IBM Plex Mono'; padding:3px 5px;}
-  .cq-mini-input{width:70px;}
-  .cq-mini-btn{font-size:10px; border:1px solid var(--border); border-radius:999px; padding:3px 9px; background:var(--panel); color:var(--ink-faint); cursor:pointer;}
-  .cq-mini-btn:hover{color:var(--ink); border-color:#5b76e0;}
-  .cq-mini-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
-  .cq-mini-btn.primary:hover{background:#4a63c9;}
-  .cq-resumen-grid{display:flex; gap:6px; flex-wrap:nowrap; align-items:center; overflow-x:auto; overflow-y:hidden; padding-bottom:2px;}
-  .cq-resumen-cards{display:flex; gap:6px; flex-wrap:nowrap; flex:0 0 auto;}
-  .cq-resumen-card{background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:5px 11px; cursor:pointer;
-    display:flex; align-items:center; gap:8px; min-width:0; position:relative;}
-  .cq-resumen-card:hover{border-color:#5b76e0;}
-  .cq-resumen-card.active{border-color:#5b76e0; background:rgba(91,118,224,.12);}
-  .cq-resumen-card .lbl{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint);}
-  .cq-resumen-card .num{font-family:'IBM Plex Mono'; font-weight:700; font-size:14px; color:var(--navy-glow);}
-  .cq-resumen-foot{display:flex; align-items:center; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:6px;}
-  .cq-resumen-foot b{color:var(--ink);}
-
-  .cq-card-popover{position:absolute; top:100%; left:0; margin-top:6px; width:300px; background:var(--panel); border:1px solid var(--border);
-    border-radius:10px; box-shadow:0 10px 28px rgba(0,0,0,.4); z-index:30; padding:12px;}
-  .cq-cp-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
-  .cq-cp-title{font-size:11.5px; font-weight:600; color:var(--ink);}
-  .cq-cp-close{color:var(--ink-faint); font-size:11px; cursor:pointer; background:none; border:none;}
-  .cq-cp-list{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:1px;}
-  .cq-cp-item{display:flex; justify-content:space-between; font-size:11px; padding:5px 6px; border-radius:5px; color:var(--ink-dim);}
-  .cq-cp-item span:last-child{color:var(--ink-faint); font-family:'IBM Plex Mono'; font-size:10px;}
-  .cq-cp-foot{margin-top:9px; padding-top:8px; border-top:1px solid var(--border); display:flex; gap:8px;}
-  .cq-cp-btn{flex:1; font-size:10.5px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:6px; color:var(--ink); background:var(--panel-2); cursor:pointer;}
-  .cq-cp-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
-
-  /* Separador interno entre las tarjetas de resumen y los controles (dias sin
-     Dina / vista / columnas), todo ahora DENTRO del mismo recuadro para que
-     ocupe menos alto en pantalla y la grilla quede mas arriba. */
-  /* (el separador y la fila de controles aparte ya no se usan: todo vive
-     ahora en una sola fila horizontal dentro de cq-resumen-grid, ver abajo) */
-
-  /* Barra de "dias sin Dina": mismo color/estilo de antes (acento azul),
-     compacta, en la MISMA FILA que las tarjetas de resumen. */
-  .cq-dsd-bar{display:flex; align-items:center; gap:3px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
-    border-radius:6px; padding:2px 6px; flex:0 0 auto; white-space:nowrap;}
-  .cq-dsd-lbl{font-size:11px; color:var(--ink); font-weight:700; white-space:nowrap;}
-  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:11px; padding:1px 2px;}
-  .cq-dsd-inline .cq-mini-select{width:44px;}
-  .cq-dsd-inline .cq-mini-input{width:36px;}
-  .cq-dsd-inline .cq-mini-btn{font-size:11px; padding:1px 5px;}
-
-  .cq-viewmode{display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:0 10px; flex:0 0 auto;}
-  .cq-vm-opt{display:flex; align-items:center; gap:5px; cursor:pointer; padding:5px 0;}
-  .cq-vm-opt input{position:absolute; opacity:0; width:0; height:0;}
-  .cq-vm-radio{width:11px; height:11px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
-  .cq-vm-radio.on{border-color:#5b76e0;}
-  .cq-vm-radio.on::after{content:""; width:5px; height:5px; border-radius:50%; background:#5b76e0;}
-  .cq-vm-label{font-size:12px; color:var(--ink); white-space:nowrap;}
-
-  /* El panel de columnas/filtros avanzados es un item mas de la misma fila;
-     al abrirse NO empuja el resto (no reserva alto) — se despliega como
-     dropdown flotante debajo del boton, igual que un filtro de columna. */
-  .cq-fields-panel{border:1px solid var(--border); border-radius:7px; background:var(--panel-2); flex:0 0 auto; position:relative;}
-  .cq-fields-panel summary{list-style:none; display:flex; align-items:center; gap:6px; padding:6px 11px; cursor:pointer; white-space:nowrap;}
-  .cq-fields-panel summary::-webkit-details-marker{display:none;}
-  .cq-fields-head-title{font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; white-space:nowrap;}
-  .cq-fields-head-title .cnt{font-size:9px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 6px;}
-  .cq-fields-head-chev{color:var(--ink-faint); font-size:9px; transition:transform .15s;}
-  .cq-fields-panel[open] .cq-fields-head-chev{transform:rotate(180deg);}
-  .cq-fields-dropdown{position:absolute; top:100%; right:0; margin-top:5px; width:420px; max-width:80vw;
-    background:var(--panel-2); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 32px rgba(0,0,0,.5); z-index:40; overflow:hidden;}
-  .cq-fields-body{padding:9px 12px 10px; display:flex; flex-direction:column; gap:7px; box-sizing:border-box; width:100%; max-height:340px; overflow-y:auto;}
-  .cq-fgroup{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;}
-  .cq-fgroup-lbl{font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#5b76e0; font-weight:700; width:48px; flex:0 0 auto; padding-top:3px;}
-  .cq-fchecks{display:flex; flex-wrap:wrap; gap:5px 11px; min-width:0;}
-  .cq-fcheck{display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--ink-dim); cursor:pointer;}
-  .cq-fcheck input{accent-color:#5b76e0; width:11px; height:11px; cursor:pointer;}
-  .cq-fcheck.on{color:var(--ink);}
-  .cq-fields-savebar{display:flex; gap:7px; padding:9px 12px 11px; border-top:1px solid var(--border); box-sizing:border-box;}
-  .cq-fields-savebar .cq-mini-input{flex:1; width:auto;}
-  .cq-fields-savebar .cq-mini-btn{white-space:nowrap;}
-
-  .cq-chipsrow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; min-height:0;}
-  .cq-chip{display:inline-flex; align-items:center; gap:5px; background:var(--panel-2); border:1px solid var(--border); border-radius:999px;
-    padding:3px 5px 3px 10px; font-size:10.5px; font-family:'IBM Plex Mono'; color:var(--ink-faint); line-height:1.4;}
-  .cq-chip b{color:var(--ink); font-weight:600;}
-  .cq-chip-rm{width:15px; height:15px; border-radius:50%; border:none; background:rgba(255,255,255,.06); color:var(--ink-faint);
-    font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
-  .cq-chip-rm:hover{background:rgba(255,115,115,.25); color:#ff7373;}
-  .cq-clearall{font-size:10.5px; color:var(--ink-faint); background:transparent; border:1px solid var(--border); border-radius:999px; padding:3px 10px; cursor:pointer;}
-  .cq-clearall:hover{color:#ff7373; border-color:#ff7373;}
-
-  .cq-savedrow{display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;}
-  .cq-saved-lbl{font-size:10.5px; color:var(--ink-faint); margin-right:2px;}
-  .cq-slot-btn{border:1px solid var(--border); background:var(--panel-2); color:var(--ink-faint); font-size:10.5px;
-    font-family:'IBM Plex Mono'; padding:4px 9px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px;}
-  .cq-slot-btn:hover{background:#242c37; color:var(--ink);}
-  .cq-slot-btn.filled{color:var(--steel-glow); border-color:rgba(143,180,214,.4);}
-  .cq-slot-btn.add{color:var(--ink-faint); border-style:dashed;}
-  .cq-slot-save{opacity:.55; font-size:9px;}
-  .cq-slot-save:hover{opacity:1;}
-
-  .cq-resultbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px;}
-  .cq-resultcount{font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--ink-faint);}
-  .cq-resultcount b{color:var(--ink); font-weight:700;}
-  .cq-exportbtns{display:flex; gap:8px;}
-
-  .cq-grillawrap{overflow:auto; max-height:72vh; border:1px solid var(--border); border-radius:10px;}
-  table.cq-table{width:100%; border-collapse:collapse; font-size:11.5px;}
-  table.cq-table th{position:sticky; top:0; background:var(--panel-2); text-align:left; font-weight:600; color:var(--ink-faint);
-    font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding:0; border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;}
-  table.cq-table th .th-inner{display:flex; align-items:center; gap:2px; padding:7px 10px; position:relative;}
-  table.cq-table td{padding:5px 10px; border-bottom:1px solid var(--border); color:var(--ink); font-family:'IBM Plex Mono'; white-space:nowrap;}
-  table.cq-table tr:hover td{background:rgba(255,255,255,.03);}
-  .cq-tag{display:inline-block; font-size:9px; padding:1px 6px; border-radius:999px; background:rgba(212,120,45,.18); color:#f0975a; margin:0 3px 2px 0;}
-  .cq-numpanel{padding:9px; display:flex; flex-direction:column; gap:7px;}
-  .cq-numpanel-row{display:flex; gap:5px;}
-  .modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .modal-grid .mini{border-top:1px solid var(--border); padding-top:7px;}
-
-  @media (max-width:900px){
-    .dina-layout{flex-direction:column;}
-    .dina-side{width:100%; flex-direction:column;}
+  /* ---- Consulta (rehecho desde cero) ---- */
+  .cn-toolbar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:var(--panel);
+    border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin-bottom:10px;}
+  .cn-stat{display:flex; flex-direction:column; gap:1px; padding:2px 10px; border-right:1px solid var(--border); flex:0 0 auto;}
+  .cn-stat .lbl{font-size:8.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .cn-stat .num{font-family:'IBM Plex Mono'; font-weight:700; font-size:15px; color:var(--navy-glow);}
+  .cn-field{display:flex; flex-direction:column; gap:2px; flex:0 0 auto;}
+  .cn-field label{font-size:8.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .cn-field select, .cn-field input{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:6px; color:var(--ink);
+    font-family:'IBM Plex Sans'; font-size:11px; padding:4px 6px; height:24px; box-sizing:border-box;
   }
+  .cn-field select{min-width:118px;}
+  .cn-field.cn-sistema select{min-width:104px;}
+  .cn-dias{display:flex; align-items:center; gap:4px;}
+  .cn-dias select{min-width:56px;}
+  .cn-dias input{width:52px;}
+  .cn-search input{width:150px;}
+  .cn-btnrow{display:flex; align-items:center; gap:6px; margin-left:auto; flex-wrap:wrap;}
+  .cn-btn{font-size:11px; border:1px solid var(--border); border-radius:6px; padding:5px 10px;
+    background:var(--panel-2); color:var(--ink-dim); cursor:pointer; white-space:nowrap;}
+  .cn-btn:hover{color:var(--ink); border-color:#5b76e0;}
+  .cn-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
+  .cn-btn.primary:hover{background:#4a63c9;}
+  .cn-btn.ghost{background:transparent;}
+  .cn-chipsrow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; min-height:0;}
+  .cn-chip{display:inline-flex; align-items:center; gap:5px; background:var(--panel-2); border:1px solid var(--border);
+    border-radius:999px; padding:3px 5px 3px 10px; font-size:10.5px; font-family:'IBM Plex Mono'; color:var(--ink-faint);}
+  .cn-chip b{color:var(--ink); font-weight:600;}
+  .cn-chip-rm{width:15px; height:15px; border-radius:50%; border:none; background:rgba(255,255,255,.06); color:var(--ink-faint);
+    cursor:pointer; font-size:10px; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .cn-chip-rm:hover{background:rgba(255,115,115,.25); color:#ff7373;}
+  .cn-resultbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px;}
+  .cn-resultcount{font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--ink-faint);}
+  .cn-resultcount b{color:var(--ink); font-weight:700;}
+  .cn-grillawrap{overflow:auto; max-height:72vh; border:1px solid var(--border); border-radius:10px;}
+  .cn-table{width:100%; border-collapse:collapse; font-size:11px; table-layout:auto;}
+  .cn-table thead th{
+    position:sticky; top:0; background:var(--panel-2); text-align:left; font-size:9px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); padding:5px 6px;
+    border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;
+  }
+  .cn-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35; max-width:220px;}
+  .cn-table tbody tr:hover{background:var(--panel-2);}
+  .cn-table td.well-name{font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:11.5px;}
+  .cn-table th{position:relative;}
+  /* Modal Armado Consulta */
+  .cn-modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:none;
+    align-items:center; justify-content:center;}
+  .cn-modal-backdrop.active{display:flex;}
+  .cn-modal{background:var(--panel); border:1px solid var(--border); border-radius:12px; width:min(760px,92vw);
+    max-height:84vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,.5);}
+  .cn-modal-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px;
+    border-bottom:1px solid var(--border);}
+  .cn-modal-head h3{margin:0; font-family:'IBM Plex Sans Condensed'; font-size:14px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink);}
+  .cn-modal-close{background:none; border:none; color:var(--ink-faint); font-size:18px; cursor:pointer; line-height:1;}
+  .cn-modal-close:hover{color:var(--ink);}
+  .cn-modal-body{padding:14px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;}
+  .cn-modal-group-lbl{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#5b76e0; font-weight:700; margin-bottom:6px;}
+  .cn-modal-checks{display:flex; flex-wrap:wrap; gap:6px 14px;}
+  .cn-mcheck{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-dim); cursor:pointer;}
+  .cn-mcheck input{accent-color:#5b76e0; width:12px; height:12px; cursor:pointer;}
+  .cn-mcheck.on{color:var(--ink);}
+  .cn-modal-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 18px;
+    border-top:1px solid var(--border);}
 
   /* ---- Inicio: grilla general (Tarea 3) ---- */
   .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:12px 0 14px;}
@@ -1009,15 +949,14 @@
     <button data-view="inicio" class="active"><span class="dot"></span>Inicio</button>
     <button data-view="resumen"><span class="dot"></span>Resumen Pozo</button>
     <button data-view="consultas"><span class="dot"></span>Consultas</button>
-    <button data-view="rotador" class="disabled" disabled><span class="dot"></span>Rotador de Varillas <span style="font-size:9px;opacity:.7;">(pendiente)</span></button>
-    <button data-view="sam" class="disabled" disabled><span class="dot"></span>SAM <span style="font-size:9px;opacity:.7;">(pendiente)</span></button>
     <button data-view="dina"><span class="dot"></span>Dina</button>
     <button data-view="sonolog"><span class="dot"></span>Sonolog</button>
     <button data-view="historial"><span class="dot"></span>Historial ECO</button>
-    <button data-view="instalacion"><span class="dot"></span>Datos de Instalación</button>
     <button data-view="herramientas"><span class="dot"></span>Herramientas</button>
-    <button data-view="bitacora"><span class="dot"></span>Bitácora</button>
   </div>
+  <!-- Nota: "Bitácora" se sacó del menú por pedido (no ocupar lugar en el
+       menu cliente por ahora); su HTML/CSS/JS (view-bitacora, bitacora_final.html,
+       initBitacora, etc.) sigue intacto en el archivo, sin borrar nada. -->
 
   <!-- ===================== VIEW: INICIO ===================== -->
   <div class="view active" id="view-inicio">
@@ -1616,41 +1555,6 @@
   .ws-match:hover{ background:var(--panel-2); color:var(--steel-glow); }
   </style>
 
-  <!-- ===================== VIEW: DATOS DE INSTALACION ===================== -->
-  <div class="view" id="view-instalacion">
-    <div class="install-grid" id="installGrid">
-      <div class="install-card">
-        <h3>Tubing / Casing</h3>
-        <div class="kv"><span>Tubing OD</span><span>2.875 in</span></div>
-        <div class="kv"><span>Casing OD</span><span>5.500 in</span></div>
-        <div class="kv"><span>Formation Depth</span><span>1,231 m</span></div>
-        <div class="kv"><span>Plugback</span><span>1,231 m</span></div>
-      </div>
-      <div class="install-card">
-        <h3>Bomba</h3>
-        <div class="kv"><span>API</span><span>25-175 RHBC 24-4</span></div>
-        <div class="kv"><span>Prof de bba</span><span>1,225 m</span></div>
-        <div class="kv"><span>Plunger</span><span>1.750 in</span></div>
-        <div class="kv"><span>Pump HP</span><span>2.97 HP</span></div>
-      </div>
-      <div class="install-card">
-        <h3>Unidad de Bombeo</h3>
-        <div class="kv"><span>Modelo</span><span>C-228D-173-74</span></div>
-        <div class="kv"><span>Fabricante</span><span>SIAM</span></div>
-        <div class="kv"><span>Gearbox Rating</span><span>228,000 in-lb</span></div>
-        <div class="kv"><span>Stroke Length</span><span>74.00 in</span></div>
-      </div>
-      <div class="install-card">
-        <h3>Sarta de Varillas</h3>
-        <table class="gtab">
-          <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>API</th><th>Long.</th></tr>
-          <tr><td>1</td><td>0.875"</td><td>D</td><td>API</td><td>587 m</td></tr>
-          <tr><td>2</td><td>0.750"</td><td>D</td><td>API</td><td>625 m</td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- ===================== VIEW: HERRAMIENTAS ===================== -->
   <div class="view" id="view-herramientas">
     <div class="tools-grid">
@@ -1920,61 +1824,76 @@
   </div>
 
   <!-- ===================== VIEW: CONSULTAS ===================== -->
+  <!-- ===================== VIEW: CONSULTA (reconstruida desde cero) ===================== -->
   <div class="view" id="view-consultas">
-    <div class="cq-resumen-panel">
-      <div class="cq-resumen-head">
-        <div class="cq-resumen-title">Resumen del yacimiento — pozos por sistema</div>
-        <button class="cq-resumen-refresh" id="cq-resumen-refresh" type="button">⟳ recalcular</button>
+
+    <div class="cn-toolbar">
+      <div class="cn-stat">
+        <span class="lbl">Pozos yacimiento</span>
+        <span class="num" id="cn-stat-pozos">0</span>
       </div>
-      <div class="cq-resumen-grid" id="cq-resumen-grid">
-        <div class="cq-resumen-cards" id="cq-resumen-cards"></div>
-        <div class="cq-dsd-bar cq-dsd-inline">
-          <span class="cq-dsd-lbl">⏱ Días sin Dina</span>
-          <select id="cq-dsd-op" class="cq-mini-select" title="Operador">
-            <option value=">" title="Mayor a">&gt;</option>
-            <option value="<" title="Menor a">&lt;</option>
-            <option value="=" title="Igual a">=</option>
+
+      <div class="cn-field cn-sistema">
+        <label>Sistema</label>
+        <select id="cn-f-sistema">
+          <option value="">Todos</option>
+          <option value="AIB">AIB</option>
+          <option value="BES">BES</option>
+          <option value="PCP">PCP</option>
+          <option value="Rotaflex">Rotaflex</option>
+          <option value="SSE">SSE</option>
+        </select>
+      </div>
+
+      <div class="cn-field">
+        <label>Días s/dinas</label>
+        <div class="cn-dias">
+          <select id="cn-f-dias-op">
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value="=">=</option>
           </select>
-          <input id="cq-dsd-val" class="cq-mini-input" type="number" min="0" placeholder="días">
-          <button id="cq-dsd-apply" class="cq-mini-btn primary" type="button">Aplicar</button>
-          <button id="cq-dsd-clear" class="cq-mini-btn" type="button" style="display:none;" title="Quitar filtro">✕</button>
+          <input id="cn-f-dias-val" type="number" min="0" placeholder="días">
         </div>
-        <div class="cq-viewmode">
-          <label class="cq-vm-opt"><input type="radio" name="cqScope" value="ultimo" id="cq-scope-ultimo" checked><div class="cq-vm-radio on"></div><span class="cq-vm-label">Último ensayo por pozo</span></label>
-          <label class="cq-vm-opt"><input type="radio" name="cqScope" value="todos" id="cq-scope-todos"><div class="cq-vm-radio"></div><span class="cq-vm-label" style="color:var(--ink-faint);">Todos los ensayos</span></label>
-        </div>
-        <details class="cq-fields-panel" id="cq-fields-panel">
-          <summary>
-            <div class="cq-fields-head-title">+ Columnas / filtros avanzados <span class="cnt" id="cq-fields-cnt">0 activos</span></div>
-            <div class="cq-fields-head-chev">▾</div>
-          </summary>
-          <div class="cq-fields-dropdown">
-            <div class="cq-fields-body" id="cq-fields-body"></div>
-            <div class="cq-fields-savebar">
-              <input type="text" id="cq-savegrid-name" class="cq-mini-input" placeholder="Nombre de la grilla…">
-              <button id="cq-savegrid-btn" class="cq-mini-btn primary" type="button">💾 Guardar "Armado de grilla"</button>
-            </div>
-          </div>
-        </details>
       </div>
-      <div class="cq-resumen-foot" id="cq-resumen-foot"></div>
-    </div>
 
-    <div class="cq-chipsrow" id="cq-chips"></div>
+      <div class="cn-field cn-search">
+        <label>Buscar en comentarios (Dina/Nivel)</label>
+        <input id="cn-f-comment" type="text" placeholder="texto…">
+      </div>
 
-    <div class="cq-savedrow" id="cq-savedviews"></div>
-
-
-    <div class="cq-resultbar">
-      <span class="cq-resultcount" id="cq-resultcount">0 pozos</span>
-      <div class="cq-exportbtns">
-        <button id="cq-exportfiltered" class="details-btn" type="button">⬇ CSV de lo armado</button>
-        <button id="cq-exportall" class="details-btn" type="button">⬇ CSV general completo</button>
+      <div class="cn-btnrow">
+        <button id="cn-btn-clear" class="cn-btn" type="button">Limpiar Filtros</button>
+        <button id="cn-btn-armado" class="cn-btn" type="button">Armado Consulta</button>
+        <button id="cn-btn-guardar" class="cn-btn" type="button">Guardar Configuración</button>
+        <button id="cn-btn-xls-grilla" class="cn-btn primary" type="button">⬇ Excel Grilla</button>
+        <button id="cn-btn-xls-general" class="cn-btn ghost" type="button">⬇ Excel General</button>
       </div>
     </div>
 
-    <div class="cq-grillawrap">
-      <table class="gtab cq-table" id="cq-table"></table>
+    <div class="cn-chipsrow" id="cn-chips"></div>
+
+    <div class="cn-resultbar">
+      <span class="cn-resultcount" id="cn-resultcount">0 pozos</span>
+    </div>
+
+    <div class="cn-grillawrap">
+      <table class="cn-table" id="cn-table"></table>
+    </div>
+  </div>
+
+  <!-- Modal: Armado Consulta -->
+  <div class="cn-modal-backdrop" id="cn-modal-backdrop">
+    <div class="cn-modal">
+      <div class="cn-modal-head">
+        <h3>Armado de Consulta — Columnas adicionales</h3>
+        <button class="cn-modal-close" id="cn-modal-close" type="button">✕</button>
+      </div>
+      <div class="cn-modal-body" id="cn-modal-body"></div>
+      <div class="cn-modal-foot">
+        <span style="font-size:10.5px; color:var(--ink-faint);" id="cn-modal-cnt">0 columnas activas</span>
+        <button class="cn-btn primary" id="cn-modal-apply" type="button">Aplicar</button>
+      </div>
     </div>
   </div>
   </div>
@@ -2926,8 +2845,6 @@
       if(commentAcuEl) commentAcuEl.textContent = 'Sin pozos cargados.';
       const histChart = document.getElementById('histChart');
       if(histChart) histChart.innerHTML = '<p style="color:var(--ink-faint); font-size:12px; padding:30px; text-align:center;">Sin pozos/mediciones cargados.</p>';
-      const installGrid = document.getElementById('installGrid');
-      if(installGrid) installGrid.innerHTML = '<p style="color:var(--ink-faint); font-size:12px; padding:20px;">Sin pozos cargados.</p>';
       const contrapesosTable = document.getElementById('d-contrapesos-table');
       if(contrapesosTable) contrapesosTable.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin pozos cargados.</p>';
       renderResumenPozo();
@@ -3591,7 +3508,7 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: h.tipo === 'Nivel' ? cqCondicionFromWellState(h.wellState) : '—',
+            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : []
           });
@@ -3654,7 +3571,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: cqCondicionFromWellState(w.wellState),
+          condicion: cnCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null)
@@ -4062,722 +3979,365 @@
     if(pdfBtn) pdfBtn.addEventListener('click', ()=> window.print());
   }
 
-  // ===================== CONSULTAS =====================
-  // Grilla + resumen sobre WELLS_DB. El resumen cuenta POZOS unicos (no
-  // registros). Los encabezados de columna usan el mismo patron de filtro
-  // (flechita -> panel) que ya existe en Inicio, reutilizando esas mismas
-  // clases CSS (th-filter-btn/th-filter-panel/th-check-list/etc.) para que
-  // se sienta igual, pero con logica propia (cqColumnFilters, etc.) para no
-  // pisar el estado de la grilla de Inicio.
-  const CQ_ESTADO_CATS = [
-    { key: 'Golpe de fluido', re: /golpe\s*de\s*fluido|fluid\s*pound/i },
-    { key: 'Golpe de bomba', re: /golpe\s*de\s*b(?:o|b)a\b/i },
-    { key: 'Nivel pegado a bomba', re: /pegad[oa]\s*a?\s*b(?:o|b)a|nivel\s*pegado/i },
-    { key: 'Cerrado / bloqueado', re: /cerrad[oa]|bloquead[oa]/i },
-    { key: 'Fuga / pérdida', re: /\bfuga\b|p[eé]rdida/i },
-    { key: 'Rotura / falla mecánica', re: /rotur[ao]|\brota\b|\bfalla\b/i },
-  ];
-  function cqClassifyEstado(text){
-    if(!text) return [];
-    return CQ_ESTADO_CATS.filter(c => c.re.test(text)).map(c => c.key);
-  }
-  function cqTorquePct(torqueUp, torqueDown, rating){
-    return torquePctMax(torqueUp, torqueDown, rating);
-  }
-  function cqDiasSinDina(dynDate){
+  // ===================== CONSULTA (reconstruida desde cero) =====================
+  // Grilla nueva sobre WELLS_DB, con logica propia (prefijo cn*) independiente
+  // de la vieja implementacion de Consultas. Reutiliza SOLO helpers globales ya
+  // existentes en otros modulos (torquePctMax, classifySistema, wellNames,
+  // WELLS_DB) y el patron visual de flechas de filtro (th-filter-btn /
+  // th-filter-panel / th-check-list) que ya usa Inicio, para mantener el mismo
+  // look & feel pedido.
+
+  function cnTorquePct(up, down, rating){ return torquePctMax(up, down, rating); }
+  function cnDiasSinDina(dynDate){
     if(!dynDate) return null;
     return Math.floor((new Date() - new Date(dynDate + 'T00:00:00')) / 86400000);
   }
-  function cqOpLabel(op){
-    if(op === '>') return 'Mayor a';
-    if(op === '<') return 'Menor a';
-    if(op === '=') return 'Igual a';
-    if(op === 'between') return 'Entre';
-    return op;
-  }
-  function cqCondicionFromWellState(wellState){
+  function cnCondicionFromWellState(wellState){
     if(wellState === 'Static') return 'Estático';
     if(wellState === 'Producing') return 'Dinámico';
     return '—';
   }
+  function cnOpLabel(op){ return op === '>' ? 'Mayor a' : (op === '<' ? 'Menor a' : (op === '=' ? 'Igual a' : op)); }
 
-  // ---- Definicion de columnas ----
-  // filterType: 'checkbox' (multi-select por valores unicos, con buscador,
-  // igual a Inicio) | 'numeric' (operador + valor) | 'text' (contiene) |
-  // 'date' (lista de fechas de campaña con cantidad de pozos, + rango manual)
-  const CQ_BASE_DEFS = [
-    { key:'well', label:'Pozo', filterType:'checkbox', get:r=>r.name },
-    { key:'fecha', label:'Fecha', filterType:'date', get:r=>r.fecha },
-    { key:'bateria', label:'Batería', filterType:'checkbox', get:r=>r.bateria },
-    { key:'tipoEnsayo', label:'Tipo Ensayo', filterType:'checkbox', get:r=>r.tipoEnsayo },
-    { key:'condicion', label:'Condición', filterType:'checkbox', get:r=>r.condicion },
-    { key:'sistema', label:'Sistema', filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
+  // ---- Columnas base (siempre visibles, orden fijo pedido) ----
+  const CN_BASE_DEFS = [
+    { key:'well',        label:'Pozo',          filterType:'checkbox', get:r=>r.name },
+    { key:'fecha',       label:'Fecha',         filterType:'date',     get:r=>r.fecha },
+    { key:'bateria',     label:'Batería',       filterType:'checkbox', get:r=>r.bateria },
+    { key:'diasSinDina', label:'Días s/dinas',  filterType:'numeric',  get:r=>r.diasSinDina },
+    { key:'operadora',   label:'Operación',     filterType:'checkbox', get:r=>r.operadora },
+    { key:'tipoEnsayo',  label:'Tipo ensayo',   filterType:'checkbox', get:r=>r.tipoEnsayo },
+    { key:'sistema',     label:'Sistema',       filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
   ];
-  const CQ_EXTRA_DEFS = [
-    { key:'cargamax', label:'Carga Máx', unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.tv },
-    { key:'cargamin', label:'Carga Mín', unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
-    { key:'llenado', label:'Llenado', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
-    { key:'spm', label:'GPM / SPM', unit:'', dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
-    { key:'prestbg', label:'Pres. Tbg', unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
-    { key:'pipdyn', label:'PIP Dyn', unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
-    { key:'torqueex', label:'Torque Existente', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cqTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating) },
-    { key:'torquebal', label:'Torque En Balance', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cqTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating) },
+  // ---- Columnas opcionales (modal "Armado Consulta"): Dina + Nivel + Resumen Pozo ----
+  const CN_EXTRA_DEFS = [
+    { key:'condicion',    label:'Condición',          group:'Resumen Pozo', filterType:'checkbox', get:r=>r.condicion },
+    { key:'cargamax',     label:'Carga Máx',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.tv },
+    { key:'cargamin',     label:'Carga Mín',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
+    { key:'llenado',      label:'Llenado',      unit:' %',  dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
+    { key:'spm',          label:'GPM / SPM',    unit:'',    dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
+    { key:'prestbg',      label:'Pres. Tbg',    unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
+    { key:'pipdyn',       label:'PIP Dyn',      unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
+    { key:'torqueex',     label:'Torque Existente', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cnTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating) },
+    { key:'torquebal',    label:'Torque En Balance', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>cnTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating) },
     { key:'desviotorque', label:'Desvío Torque', unit:' pts', dec:1, group:'Dina', filterType:'numeric', get:r=>{
-        const a = cqTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating), b = cqTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating);
+        const a = cnTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating), b = cnTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating);
         return (a != null && b != null) ? a - b : null;
       } },
-    { key:'fabricante', label:'Fabricante', group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
-    { key:'modelo', label:'Modelo / API', group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitApi },
-    { key:'carrera', label:'Carrera', unit:' in', dec:1, group:'Dina', filterType:'numeric', get:r=>r.strokeComputed },
-    { key:'diampiston', label:'Diám. Pistón', unit:' in', dec:3, group:'Dina', filterType:'numeric', get:r=>r.plungerDiameter },
-    { key:'profbba', label:'Prof. de Bba', unit:' m', dec:0, group:'Dina', filterType:'numeric', get:r=>r.pumpIntakeDepth },
-    { key:'commentDyn', label:'Comentario Dina', group:'Dina', filterType:'text', get:r=>r.commentDyn },
+    { key:'fabricante',   label:'Fabricante',   group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
+    { key:'modelo',       label:'Modelo / API', group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitApi },
+    { key:'carrera',      label:'Carrera',      unit:' in', dec:1, group:'Dina', filterType:'numeric', get:r=>r.strokeComputed },
+    { key:'diampiston',   label:'Diám. Pistón', unit:' in', dec:3, group:'Dina', filterType:'numeric', get:r=>r.plungerDiameter },
+    { key:'profbba',      label:'Prof. de Bba', unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>r.pumpIntakeDepth },
+    { key:'commentDyn',   label:'Comentario Dina', group:'Dina', filterType:'text', get:r=>r.commentDyn },
 
-    { key:'nivel', label:'Nivel', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
-    { key:'sumerg', label:'Sumergencia', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumerg },
-    { key:'sumergc', label:'Sum. Corr.', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumergc },
-    { key:'pipeco', label:'PIP Eco', unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pipEco },
-    { key:'pcsg', label:'P. Casing', unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pcsg },
-    { key:'commentAcu', label:'Comentario Nivel', group:'Nivel', filterType:'text', get:r=>r.commentAcu },
-
-    { key:'operadora', label:'Operadora', group:'Otros', filterType:'checkbox', get:r=>r.operadora },
-    { key:'diasSinDina', label:'Días sin Dina', dec:0, group:'Otros', filterType:'numeric', get:r=>r.diasSinDina },
-    { key:'estado', label:'Estado del equipo', group:'Otros', filterType:'checkbox', multiVal:true, get:r=>r.estadoTags },
+    { key:'nivel',        label:'Nivel',        unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
+    { key:'sumerg',       label:'Sumergencia',  unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumerg },
+    { key:'sumergc',      label:'Sum. Corr.',   unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumergc },
+    { key:'pipeco',       label:'PIP Eco',      unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pipEco },
+    { key:'pcsg',         label:'P. Casing',    unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pcsg },
+    { key:'commentAcu',   label:'Comentario Nivel', group:'Nivel', filterType:'text', get:r=>r.commentAcu },
   ];
-  const CQ_ALL_DEFS = CQ_BASE_DEFS.concat(CQ_EXTRA_DEFS);
-  const CQ_DEFS_BY_KEY = {}; CQ_ALL_DEFS.forEach(d => CQ_DEFS_BY_KEY[d.key] = d);
-  const CQ_BASE_KEYS = CQ_BASE_DEFS.map(d => d.key);
+  const CN_ALL_DEFS = CN_BASE_DEFS.concat(CN_EXTRA_DEFS);
+  const CN_DEFS_BY_KEY = {}; CN_ALL_DEFS.forEach(d => CN_DEFS_BY_KEY[d.key] = d);
+  const CN_BASE_KEYS = CN_BASE_DEFS.map(d => d.key);
 
-  const cqState = {
-    scope: 'ultimo',
-    extraCols: [],
-    colFilters: {},   // key -> Set(valores)
-    numFilters: {},   // key -> {op, value, value2}
-    textFilters: {},  // key -> string
-    dateFilter: null, // {dates:Set} | {from,to}
-    dsdFilter: null,  // {op, value}
-    sort: { col: null, dir: null },
-    savedSlots: [null,null,null,null,null],
+  const cnState = {
+    extraCols: [],           // columnas adicionales activas (via modal Armado Consulta)
+    sistema: '',             // '' = todos
+    dias: null,              // {op, value}
+    commentSearch: '',       // busca en commentDyn y commentAcu
+    colFilters: {},          // key -> Set(valores), via flechitas de columna
   };
 
-  // ---- Construccion de filas ----
-  function cqBuildRowsUltimo(){
+  // ---- Construccion de filas: una fila por pozo (ultimo estado conocido) ----
+  function cnBuildRows(){
     return wellNames.map(n => {
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
-      const commentBlob = `${w.commentDyn || ''} ${w.commentAcu || ''}`;
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: cqCondicionFromWellState(w.wellState), fecha: w.dt,
-        estadoTags: cqClassifyEstado(commentBlob), diasSinDina: w.hasDyn ? cqDiasSinDina(w.dynDate) : null,
-        __isLatest: true,
+        name: n, tipoEnsayo, condicion: cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
   }
-  function cqBuildRowsTodos(){
+  // ---- Filas para "Excel General (Completo)": todo el historial, sin filtros ----
+  function cnBuildRowsTodos(){
     const rows = [];
     wellNames.forEach(n => {
       const w = WELLS_DB[n] || {};
       const hist = (w.history || []).slice().sort((a,b) => (a.dt < b.dt ? 1 : -1));
       if(!hist.length){
-        rows.push(Object.assign({}, w, {
-          name: n, tipoEnsayo: 'Sin ensayo', condicion: '—', fecha: w.dt || null,
-          estadoTags: [], diasSinDina: null, __isLatest: true,
-        }));
+        rows.push(Object.assign({}, w, { name:n, tipoEnsayo:'Sin ensayo', condicion:'—', fecha:w.dt||null, diasSinDina:null }));
         return;
       }
       hist.forEach((h, idx) => {
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
-          name: n, fecha: h.dt, tipoEnsayo: h.tipo,
-          condicion: isLatest ? cqCondicionFromWellState(w.wellState) : '—',
+          name:n, fecha:h.dt, tipoEnsayo:h.tipo,
+          condicion: isLatest ? cnCondicionFromWellState(w.wellState) : '—',
           sistema: h.sistema || w.sistema || 'Sin clasificar',
-          estadoTags: cqClassifyEstado(h.comment || ''),
-          diasSinDina: (h.tipo === 'Dina') ? cqDiasSinDina(h.dt) : null,
-          __isLatest: isLatest,
-          // Campos que son de la CONFIG actual del pozo (no quedan guardados
-          // por ensayo historico) — solo se muestran en la fila mas reciente
-          // para no inventar un valor viejo que no corresponde a esa fecha.
-          torqueDown: isLatest ? w.torqueDown : null,
-          torqueUp: isLatest ? w.torqueUp : null,
-          torqueUpBal: isLatest ? w.torqueUpBal : null,
-          torqueDownBal: isLatest ? w.torqueDownBal : null,
-          gearboxRating: isLatest ? w.gearboxRating : null,
-          plungerDiameter: isLatest ? w.plungerDiameter : null,
-          pumpIntakeDepth: isLatest ? w.pumpIntakeDepth : null,
-          strokeComputed: isLatest ? w.strokeComputed : null,
-          surfaceUnitMfr: isLatest ? w.surfaceUnitMfr : null,
-          surfaceUnitApi: isLatest ? w.surfaceUnitApi : null,
-          commentDyn: h.tipo === 'Dina' ? h.comment : null,
-          commentAcu: h.tipo === 'Nivel' ? h.comment : null,
+          diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
+          torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
+          torqueUpBal: isLatest ? w.torqueUpBal : null, torqueDownBal: isLatest ? w.torqueDownBal : null,
+          gearboxRating: isLatest ? w.gearboxRating : null, plungerDiameter: isLatest ? w.plungerDiameter : null,
+          pumpIntakeDepth: isLatest ? w.pumpIntakeDepth : null, strokeComputed: isLatest ? w.strokeComputed : null,
+          surfaceUnitMfr: isLatest ? w.surfaceUnitMfr : null, surfaceUnitApi: isLatest ? w.surfaceUnitApi : null,
+          commentDyn: h.tipo === 'Dina' ? h.comment : null, commentAcu: h.tipo === 'Nivel' ? h.comment : null,
         }));
       });
     });
     return rows;
   }
-  function cqBuildRows(){ return cqState.scope === 'todos' ? cqBuildRowsTodos() : cqBuildRowsUltimo(); }
 
   // ---- Filtro ----
-  function cqRowMatches(row, opts){
-    const excludeKey = (opts && opts.excludeKey) || null;
-    for(const key in cqState.colFilters){
-      if(key === excludeKey) continue;
-      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
-      const sel = cqState.colFilters[key]; if(!sel || !sel.size) continue;
+  function cnRowMatches(row){
+    if(cnState.sistema && (row.sistema || '') !== cnState.sistema) return false;
+    if(cnState.dias && cnState.dias.value !== '' && cnState.dias.value != null){
+      const val = row.diasSinDina; if(val == null) return false;
+      const num = Number(cnState.dias.value);
+      if(cnState.dias.op === '>' && !(val > num)) return false;
+      if(cnState.dias.op === '<' && !(val < num)) return false;
+      if(cnState.dias.op === '=' && val !== num) return false;
+    }
+    if(cnState.commentSearch){
+      const q = cnState.commentSearch.toLowerCase();
+      const blob = `${row.commentDyn || ''} ${row.commentAcu || ''}`.toLowerCase();
+      if(!blob.includes(q)) return false;
+    }
+    for(const key in cnState.colFilters){
+      const sel = cnState.colFilters[key]; if(!sel || !sel.size) continue;
+      const def = CN_DEFS_BY_KEY[key]; if(!def) continue;
       const val = def.get(row);
-      if(def.multiVal){ if(!(val || []).some(v => sel.has(v))) return false; }
-      else { if(!sel.has(val == null || val === '' ? '—' : val)) return false; }
-    }
-    for(const key in cqState.numFilters){
-      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
-      const f = cqState.numFilters[key]; if(!f) continue;
-      const val = def.get(row);
-      if(val == null) return false;
-      const num = parseFloat(f.value);
-      if(!Number.isNaN(num)){
-        if(f.op === '=' && Math.abs(val - num) > 1e-6) return false;
-        if(f.op === '>' && !(val > num)) return false;
-        if(f.op === '<' && !(val < num)) return false;
-        if(f.op === 'between'){
-          const num2 = parseFloat(f.value2);
-          if(!Number.isNaN(num2) && !(val >= num && val <= num2)) return false;
-        }
-      }
-    }
-    for(const key in cqState.textFilters){
-      const def = CQ_DEFS_BY_KEY[key]; if(!def) continue;
-      const q = (cqState.textFilters[key] || '').toLowerCase(); if(!q) continue;
-      const val = (def.get(row) || '').toString().toLowerCase();
-      if(!val.includes(q)) return false;
-    }
-    if(cqState.dateFilter){
-      const val = row.fecha;
-      if(!val) return false;
-      if(cqState.dateFilter.dates){ if(!cqState.dateFilter.dates.has(val)) return false; }
-      else {
-        if(cqState.dateFilter.from && val < cqState.dateFilter.from) return false;
-        if(cqState.dateFilter.to && val > cqState.dateFilter.to) return false;
-      }
-    }
-    if(!excludeKey && cqState.dsdFilter){
-      const val = row.diasSinDina;
-      if(val == null) return false;
-      const num = cqState.dsdFilter.value;
-      if(cqState.dsdFilter.op === '>' && !(val > num)) return false;
-      if(cqState.dsdFilter.op === '<' && !(val < num)) return false;
-      if(cqState.dsdFilter.op === '=' && val !== num) return false;
+      if(!sel.has(val == null || val === '' ? '(vacío)' : String(val))) return false;
     }
     return true;
   }
-  function cqApplyFilters(rows, opts){ return rows.filter(r => cqRowMatches(r, opts)); }
-  function cqHasActiveFilters(){
-    return Object.values(cqState.colFilters).some(s => s && s.size) ||
-      Object.keys(cqState.numFilters).length > 0 ||
-      Object.values(cqState.textFilters).some(v => v) ||
-      !!cqState.dateFilter || !!cqState.dsdFilter;
+  function cnHasActiveFilters(){
+    return !!cnState.sistema || !!(cnState.dias && cnState.dias.value !== '' && cnState.dias.value != null) ||
+      !!cnState.commentSearch || Object.values(cnState.colFilters).some(s => s && s.size);
   }
-
-  function cqFmtVal(def, val){
+  function cnColumns(){ return CN_BASE_KEYS.concat(cnState.extraCols); }
+  function cnFmtVal(def, val){
     if(val == null || val === '') return '—';
-    if(def.multiVal){ if(!val.length) return '—'; return val.map(t => `<span class="cq-tag">${t}</span>`).join(''); }
-    if(def.filterType === 'numeric') return fmt(val, def.dec != null ? def.dec : 1) + (def.unit || '');
+    if(def.filterType === 'numeric' && typeof val === 'number'){
+      return val.toFixed(def.dec != null ? def.dec : 1) + (def.unit || '');
+    }
+    if(def.key === 'fecha') return fmtDate(val);
     return String(val);
   }
-  function cqCsvVal(def, row){
-    const val = def.get(row);
-    if(val == null || val === '') return '';
-    if(def.multiVal) return (val || []).join(' / ');
-    if(def.filterType === 'numeric') return fmt(val, def.dec != null ? def.dec : 1);
-    return String(val).replace(/\r?\n/g, ' ');
-  }
 
-  // ---- Resumen: siempre 1 fila = 1 pozo (independiente del toggle Ultimo/Todos) ----
-  function cqRenderResumen(){
-    const grid = document.getElementById('cq-resumen-cards');
-    const foot = document.getElementById('cq-resumen-foot');
-    if(!grid) return;
-    const base = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'sistema' });
-    const counts = {};
-    base.forEach(r => { const s = r.sistema || 'Sin clasificar'; counts[s] = (counts[s]||0) + 1; });
-    const order = ['AIB','BES','PCP','ROTAFLEX','SSE','Sin clasificar'];
-    const keys = order.filter(k => k !== 'Sin clasificar' || counts[k]).concat(Object.keys(counts).filter(k => !order.includes(k)));
-    const selectedSistemas = cqState.colFilters.sistema;
-    grid.innerHTML = keys.map(k => `
-      <div class="cq-resumen-card ${selectedSistemas && selectedSistemas.has(k) ? 'active' : ''}" data-sistema="${k}">
-        <span class="lbl">${k}</span><span class="num">${counts[k] || 0}</span>
-      </div>`).join('');
-    grid.querySelectorAll('.cq-resumen-card').forEach(card => {
-      card.addEventListener('click', (ev) => {
-        if(ev.target.closest('.cq-card-popover')) return;
-        document.querySelectorAll('.cq-card-popover').forEach(p => p.remove());
-        cqOpenCardPopover(card, card.dataset.sistema);
-      });
-    });
-    const totalPozos = wellNames.length;
-    foot.innerHTML = `<span>Total yacimiento: <b>${totalPozos} pozos</b></span><span>Click en una tarjeta → ver esos pozos y seguir filtrando</span>`;
+  // ---- Render ----
+  function cnRenderStat(){
+    const rows = cnBuildRows().filter(cnRowMatches);
+    const el = document.getElementById('cn-stat-pozos');
+    if(el) el.textContent = rows.length;
   }
-  function cqOpenCardPopover(card, sistemaKey){
-    const rows = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'sistema' }).filter(r => (r.sistema || 'Sin clasificar') === sistemaKey);
-    const pop = document.createElement('div');
-    pop.className = 'cq-card-popover';
-    pop.innerHTML = `
-      <div class="cq-cp-head"><span class="cq-cp-title">${sistemaKey} — ${rows.length} pozo${rows.length===1?'':'s'}</span><button class="cq-cp-close" type="button">✕</button></div>
-      <div class="cq-cp-list">${rows.slice(0,60).map(r => `<div class="cq-cp-item"><span>${r.name}</span><span>${r.fecha ? fmtDate(r.fecha) : '—'}</span></div>`).join('') || '<div style="color:var(--ink-faint); font-size:11px; padding:6px;">Sin pozos con este filtro.</div>'}${rows.length>60 ? `<div style="opacity:.5; font-size:10px; padding:4px 6px;">… ${rows.length-60} más</div>` : ''}</div>
-      <div class="cq-cp-foot">
-        <button class="cq-cp-btn" type="button" data-act="close">Cerrar</button>
-        <button class="cq-cp-btn primary" type="button" data-act="apply">Ver todo en la grilla ↓</button>
-      </div>`;
-    card.appendChild(pop);
-    pop.querySelector('.cq-cp-close').addEventListener('click', () => pop.remove());
-    pop.querySelector('[data-act="close"]').addEventListener('click', () => pop.remove());
-    pop.querySelector('[data-act="apply"]').addEventListener('click', () => {
-      cqState.colFilters.sistema = new Set([sistemaKey]);
-      pop.remove();
-      cqRenderAll();
-      const grillaEl = document.getElementById('cq-grillawrap');
-      if(grillaEl) grillaEl.scrollIntoView({ behavior:'smooth', block:'start' });
-    });
-    setTimeout(() => {
-      document.addEventListener('click', function onDoc(ev){
-        if(!ev.target.closest('.cq-card-popover') && !ev.target.closest('.cq-resumen-card')){
-          pop.remove(); document.removeEventListener('click', onDoc);
-        }
-      });
-    }, 0);
-  }
-
-  // ---- Panel de columnas / filtros avanzados ----
-  function cqRenderFieldsPanel(){
-    const body = document.getElementById('cq-fields-body');
-    const cnt = document.getElementById('cq-fields-cnt');
-    if(!body) return;
-    const groups = {};
-    CQ_EXTRA_DEFS.forEach(d => { (groups[d.group] = groups[d.group] || []).push(d); });
-    body.innerHTML = Object.keys(groups).map(g => `
-      <div class="cq-fgroup">
-        <div class="cq-fgroup-lbl">${g}</div>
-        <div class="cq-fchecks">
-          ${groups[g].map(d => `<label class="cq-fcheck ${cqState.extraCols.includes(d.key)?'on':''}"><input type="checkbox" data-col="${d.key}" ${cqState.extraCols.includes(d.key)?'checked':''}> ${d.label}</label>`).join('')}
-        </div>
-      </div>`).join('');
-    body.querySelectorAll('input[data-col]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const key = cb.dataset.col;
-        if(cb.checked){ if(!cqState.extraCols.includes(key)) cqState.extraCols.push(key); }
-        else { cqState.extraCols = cqState.extraCols.filter(k => k !== key); }
-        cqRenderFieldsPanel();
-        cqRenderAll();
-      });
-    });
-    if(cnt) cnt.textContent = `${cqState.extraCols.length} activo${cqState.extraCols.length===1?'':'s'}`;
-  }
-
-  // ---- Chips de filtros activos ----
-  function cqFilterChips(){
+  function cnRenderChips(){
     const chips = [];
-    Object.keys(cqState.colFilters).forEach(key => {
-      const sel = cqState.colFilters[key]; if(!sel || !sel.size) return;
-      const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
-      chips.push({ label: `${def.label}: ${Array.from(sel).join(', ')}`, remove: () => delete cqState.colFilters[key] });
-    });
-    Object.keys(cqState.numFilters).forEach(key => {
-      const f = cqState.numFilters[key]; const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
-      const label = f.op === 'between' ? `${def.label} entre ${f.value} y ${f.value2}${def.unit||''}` : `${def.label} ${cqOpLabel(f.op).toLowerCase()} ${f.value}${def.unit||''}`;
-      chips.push({ label, remove: () => delete cqState.numFilters[key] });
-    });
-    Object.keys(cqState.textFilters).forEach(key => {
-      const v = cqState.textFilters[key]; if(!v) return;
-      const def = CQ_DEFS_BY_KEY[key]; if(!def) return;
-      chips.push({ label: `${def.label} contiene "${v}"`, remove: () => delete cqState.textFilters[key] });
-    });
-    if(cqState.dateFilter){
-      const df = cqState.dateFilter;
-      const label = df.dates ? `Fecha campaña: ${Array.from(df.dates).map(d=>fmtDate(d)).join(', ')}` : `Fecha: ${df.from||'…'} — ${df.to||'…'}`;
-      chips.push({ label, remove: () => { cqState.dateFilter = null; } });
+    if(cnState.sistema) chips.push({ label:`Sistema: ${cnState.sistema}`, remove:()=>{ cnState.sistema=''; document.getElementById('cn-f-sistema').value=''; } });
+    if(cnState.dias && cnState.dias.value !== '' && cnState.dias.value != null){
+      chips.push({ label:`Días s/dinas ${cnOpLabel(cnState.dias.op).toLowerCase()} ${cnState.dias.value}`, remove:()=>{ cnState.dias=null; document.getElementById('cn-f-dias-val').value=''; } });
     }
-    if(cqState.dsdFilter){
-      chips.push({ label: `Días sin Dina ${cqOpLabel(cqState.dsdFilter.op).toLowerCase()} ${cqState.dsdFilter.value}`, remove: () => cqClearDsdFilter() });
-    }
-    return chips;
-  }
-  function cqRenderChips(){
-    const el = document.getElementById('cq-chips');
+    if(cnState.commentSearch) chips.push({ label:`Comentario contiene "${cnState.commentSearch}"`, remove:()=>{ cnState.commentSearch=''; document.getElementById('cn-f-comment').value=''; } });
+    Object.keys(cnState.colFilters).forEach(key => {
+      const sel = cnState.colFilters[key]; if(!sel || !sel.size) return;
+      const def = CN_DEFS_BY_KEY[key]; if(!def) return;
+      chips.push({ label:`${def.label}: ${Array.from(sel).join(', ')}`, remove:()=> delete cnState.colFilters[key] });
+    });
+    const el = document.getElementById('cn-chips');
     if(!el) return;
-    const chips = cqFilterChips();
-    if(!chips.length){ el.innerHTML = ''; return; }
-    el.innerHTML = chips.map((c,i) => `<span class="cq-chip">${c.label}<button class="cq-chip-rm" data-i="${i}" type="button">✕</button></span>`).join('')
-      + `<button class="cq-clearall" id="cq-clearall-btn" type="button">Limpiar todo</button>`;
-    el.querySelectorAll('.cq-chip-rm').forEach(btn => btn.addEventListener('click', (e) => {
-      chips[parseInt(e.target.dataset.i)].remove();
-      cqRenderAll();
-    }));
-    const clearBtn = document.getElementById('cq-clearall-btn');
-    if(clearBtn) clearBtn.addEventListener('click', () => {
-      cqState.colFilters = {}; cqState.numFilters = {}; cqState.textFilters = {}; cqState.dateFilter = null;
-      cqClearDsdFilter();
-      cqRenderAll();
+    el.innerHTML = chips.map((c,i)=>`<span class="cn-chip">${c.label}<button class="cn-chip-rm" data-i="${i}" type="button">✕</button></span>`).join('');
+    el.querySelectorAll('.cn-chip-rm').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ chips[+btn.dataset.i].remove(); cnRenderAll(); });
     });
   }
-  function cqClearDsdFilter(){
-    cqState.dsdFilter = null;
-    const valEl = document.getElementById('cq-dsd-val'); if(valEl) valEl.value = '';
-    const clearBtn = document.getElementById('cq-dsd-clear'); if(clearBtn) clearBtn.style.display = 'none';
-  }
-
-  // ---- Grilla principal ----
-  function cqColumns(){ return CQ_BASE_KEYS.concat(cqState.extraCols); }
-  function cqRenderGrid(){
-    const table = document.getElementById('cq-table');
-    const countEl = document.getElementById('cq-resultcount');
+  function cnRenderTable(){
+    const cols = cnColumns();
+    const rows = cnBuildRows().filter(cnRowMatches);
+    const table = document.getElementById('cn-table');
     if(!table) return;
-    let rows = cqApplyFilters(cqBuildRows());
-    if(cqState.sort.col){
-      const def = CQ_DEFS_BY_KEY[cqState.sort.col];
-      if(def){
-        rows = rows.slice().sort((a,b) => {
-          const va = def.get(a), vb = def.get(b);
-          if(va == null && vb == null) return 0;
-          if(va == null) return 1; if(vb == null) return -1;
-          let cmp;
-          if(def.filterType === 'numeric') cmp = va - vb;
-          else cmp = String(va).localeCompare(String(vb), 'es');
-          return cqState.sort.dir === 'desc' ? -cmp : cmp;
-        });
-      }
-    }
-    const cols = cqColumns();
-    const thead = `<tr>${cols.map(k => {
-      const def = CQ_DEFS_BY_KEY[k]; if(!def) return '';
-      const hasFilter = (cqState.colFilters[k] && cqState.colFilters[k].size) || cqState.numFilters[k] || cqState.textFilters[k] || (k === 'fecha' && cqState.dateFilter);
-      return `<th data-col="${k}"><div class="th-inner">${def.label}<button class="th-filter-btn ${hasFilter?'th-active':''}" data-col="${k}" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></th>`;
-    }).join('')}</tr>`;
-    const tbody = rows.slice(0, 500).map(r => `<tr>${cols.map(k => {
-      const def = CQ_DEFS_BY_KEY[k];
-      let val = def ? def.get(r) : null;
-      if(k === 'fecha' && val) val = fmtDate(val);
-      return `<td>${def ? (k === 'fecha' ? (val || '—') : cqFmtVal(def, def.get(r))) : '—'}</td>`;
-    }).join('')}</tr>`).join('');
+    const thead = `<thead><tr>${cols.map(k=>{
+      const def = CN_DEFS_BY_KEY[k]; if(!def) return '';
+      const hasFilter = (cnState.colFilters[k] && cnState.colFilters[k].size);
+      return `<th data-col="${k}">${def.label}<button class="th-filter-btn ${hasFilter?'th-active':''}" data-col="${k}" type="button" title="Filtrar">▾</button></th>`;
+    }).join('')}</tr></thead>`;
+    const tbody = `<tbody>${rows.slice(0,800).map(r=>{
+      return `<tr>${cols.map(k=>{
+        const def = CN_DEFS_BY_KEY[k]; if(!def) return '<td>—</td>';
+        const val = def.get(r);
+        const cls = k === 'well' ? ' class="well-name"' : '';
+        return `<td${cls}>${cnFmtVal(def, val)}</td>`;
+      }).join('')}</tr>`;
+    }).join('')}</tbody>`;
     table.innerHTML = thead + tbody;
-    if(countEl){
-      const universo = cqState.scope === 'todos' ? `${cqBuildRowsTodos().length} registros` : `${wellNames.length} pozos`;
-      countEl.innerHTML = `<b>${rows.length}</b> ${cqState.scope === 'todos' ? 'registro'+(rows.length===1?'':'s') : 'pozo'+(rows.length===1?'':'s')} (de ${universo})${rows.length>500 ? ' — mostrando primeros 500' : ''}`;
-    }
-    cqSetupThFilters();
-  }
 
-  // ---- Popovers de encabezado (flechita por columna) ----
-  function cqSetupThFilters(){
-    const table = document.getElementById('cq-table');
-    if(!table) return;
-    table.querySelectorAll('.th-filter-btn').forEach(btn => {
-      btn.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        const col = btn.dataset.col;
-        const existing = btn.closest('.th-inner').querySelector('.th-filter-panel');
-        const wasOpen = existing && existing.classList.contains('open');
-        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
-        if(wasOpen) return;
-        cqOpenThPanel(btn, col);
-      });
+    table.querySelectorAll('.th-filter-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{ e.stopPropagation(); cnOpenColFilter(btn.dataset.col, btn); });
     });
-    document.addEventListener('click', (ev) => {
-      if(!ev.target.closest('.th-filter-panel') && !ev.target.closest('.th-filter-btn')){
-        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
-      }
-    });
+
+    const countEl = document.getElementById('cn-resultcount');
+    if(countEl) countEl.innerHTML = `<b>${rows.length}</b> pozo${rows.length===1?'':'s'}${rows.length>800 ? ' — mostrando primeros 800' : ''}`;
   }
-  function cqOpenThPanel(btn, col){
-    const def = CQ_DEFS_BY_KEY[col]; if(!def) return;
-    const wrap = btn.closest('.th-inner');
+  function cnOpenColFilter(col, anchorBtn){
+    document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove());
+    const def = CN_DEFS_BY_KEY[col]; if(!def) return;
+    const allRows = cnBuildRows();
+    const values = Array.from(new Set(allRows.map(r => { const v = def.get(r); return (v==null||v==='') ? '(vacío)' : String(v); }))).sort(naturalCompare);
     const panel = document.createElement('div');
     panel.className = 'th-filter-panel open';
-    panel.style.left = '0'; panel.style.right = 'auto';
-
-    if(def.filterType === 'numeric'){
-      const cur = cqState.numFilters[col] || { op:'>', value:'', value2:'' };
-      panel.innerHTML = `<div class="cq-numpanel">
-          <select class="cq-mini-select" id="cq-np-op" style="width:100%;">
-            <option value=">" ${cur.op==='>'?'selected':''}>Mayor a:</option>
-            <option value="<" ${cur.op==='<'?'selected':''}>Menor a:</option>
-            <option value="=" ${cur.op==='='?'selected':''}>Igual a:</option>
-            <option value="between" ${cur.op==='between'?'selected':''}>Entre:</option>
-          </select>
-          <div class="cq-numpanel-row">
-            <input class="cq-mini-input" id="cq-np-val" type="number" step="any" style="width:100%;" placeholder="valor${def.unit?(' '+def.unit.trim()):''}" value="${cur.value}">
-            <input class="cq-mini-input" id="cq-np-val2" type="number" step="any" style="width:100%; ${cur.op==='between'?'':'display:none;'}" placeholder="y…" value="${cur.value2}">
-          </div>
-          <div class="th-filter-actions">
-            <button type="button" class="th-clear">Limpiar</button>
-            <button type="button" class="th-apply">Aplicar</button>
-          </div>
-        </div>`;
-      wrap.appendChild(panel);
-      const opSel = panel.querySelector('#cq-np-op');
-      const val2 = panel.querySelector('#cq-np-val2');
-      opSel.addEventListener('change', () => { val2.style.display = opSel.value === 'between' ? '' : 'none'; });
-      panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.numFilters[col]; panel.remove(); cqRenderAll(); });
-      panel.querySelector('.th-apply').addEventListener('click', () => {
-        const v = panel.querySelector('#cq-np-val').value;
-        if(v === ''){ delete cqState.numFilters[col]; }
-        else { cqState.numFilters[col] = { op: opSel.value, value: v, value2: val2.value }; }
-        panel.remove(); cqRenderAll();
-      });
-      return;
-    }
-    if(def.filterType === 'text'){
-      const cur = cqState.textFilters[col] || '';
-      panel.innerHTML = `<div class="cq-numpanel">
-          <input class="cq-mini-input" id="cq-tp-val" type="text" style="width:100%;" placeholder="contiene…" value="${cur}">
-          <div class="th-filter-actions">
-            <button type="button" class="th-clear">Limpiar</button>
-            <button type="button" class="th-apply">Aplicar</button>
-          </div>
-        </div>`;
-      wrap.appendChild(panel);
-      panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.textFilters[col]; panel.remove(); cqRenderAll(); });
-      panel.querySelector('.th-apply').addEventListener('click', () => {
-        const v = panel.querySelector('#cq-tp-val').value.trim();
-        if(!v) delete cqState.textFilters[col]; else cqState.textFilters[col] = v;
-        panel.remove(); cqRenderAll();
-      });
-      return;
-    }
-    if(def.filterType === 'date'){
-      const rowsForDates = cqApplyFilters(cqBuildRowsUltimo(), { excludeKey: 'fecha' });
-      const countByDate = {};
-      rowsForDates.forEach(r => { if(r.fecha) countByDate[r.fecha] = (countByDate[r.fecha]||0) + 1; });
-      const dates = Object.keys(countByDate).sort((a,b) => a < b ? 1 : -1);
-      const selected = (cqState.dateFilter && cqState.dateFilter.dates) || null;
-      panel.style.width = '210px';
-      panel.innerHTML = `
-        <div class="th-check-list" style="max-height:170px;">
-          ${dates.map(d => `<label class="th-check-item"><input type="checkbox" value="${d}" ${(!selected || selected.has(d))?'checked':''}> ${fmtDate(d)} <span style="margin-left:auto; color:var(--ink-faint); font-family:'IBM Plex Mono'; font-size:9.5px;">${countByDate[d]} pzs</span></label>`).join('') || '<div style="font-size:10.5px; color:var(--ink-faint); padding:4px;">Sin fechas.</div>'}
-        </div>
-        <div style="border-top:1px solid var(--border); margin-top:7px; padding-top:7px; display:flex; gap:5px;">
-          <input type="date" class="cq-mini-input" id="cq-date-from" style="width:100%;" value="${(cqState.dateFilter && cqState.dateFilter.from) || ''}">
-          <input type="date" class="cq-mini-input" id="cq-date-to" style="width:100%;" value="${(cqState.dateFilter && cqState.dateFilter.to) || ''}">
-        </div>
-        <div class="th-filter-actions">
-          <button type="button" class="th-clear">Limpiar</button>
-          <button type="button" class="th-apply">Aplicar</button>
-        </div>`;
-      wrap.appendChild(panel);
-      panel.querySelector('.th-clear').addEventListener('click', () => { cqState.dateFilter = null; panel.remove(); cqRenderAll(); });
-      panel.querySelector('.th-apply').addEventListener('click', () => {
-        const from = panel.querySelector('#cq-date-from').value;
-        const to = panel.querySelector('#cq-date-to').value;
-        if(from || to){ cqState.dateFilter = { from: from || null, to: to || null }; }
-        else {
-          const checked = [...panel.querySelectorAll('.th-check-list input:checked')].map(c => c.value);
-          if(checked.length && checked.length < dates.length) cqState.dateFilter = { dates: new Set(checked) };
-          else cqState.dateFilter = null;
-        }
-        panel.remove(); cqRenderAll();
-      });
-      return;
-    }
-    // checkbox (default): igual patron que Inicio, con buscador
-    const rowsForCol = cqApplyFilters(cqBuildRows(), { excludeKey: col });
-    let uniques;
-    if(def.multiVal){ uniques = Array.from(new Set(rowsForCol.flatMap(r => def.get(r) || []))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
-    else { uniques = Array.from(new Set(rowsForCol.map(r => { const v = def.get(r); return (v == null || v === '') ? '—' : v; }))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
-    const selected = cqState.colFilters[col];
+    const selected = cnState.colFilters[col] || new Set();
     panel.innerHTML = `
-      <input type="text" class="th-search" placeholder="Buscar valor…">
-      <div class="th-check-list">
-        ${uniques.map(v => `<label class="th-check-item"><input type="checkbox" value="${String(v).replace(/"/g,'&quot;')}" ${(!selected || selected.has(v))?'checked':''}> ${v}</label>`).join('') || '<div style="font-size:10.5px; color:var(--ink-faint); padding:4px;">Sin valores.</div>'}
-      </div>
-      <div class="th-filter-actions">
-        <button type="button" class="th-clear">Limpiar</button>
-        <button type="button" class="th-apply">Aplicar</button>
-      </div>`;
-    wrap.appendChild(panel);
-    const searchInput = panel.querySelector('.th-search');
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      panel.querySelectorAll('.th-check-item').forEach(item => { item.style.display = item.textContent.trim().toLowerCase().includes(q) ? '' : 'none'; });
+      <input type="text" class="th-search" placeholder="Buscar…">
+      <div class="th-check-list">${values.map(v=>`<label class="th-check-item"><input type="checkbox" value="${v}" ${selected.has(v)?'checked':''}> ${v}</label>`).join('')}</div>
+      <div class="th-filter-actions"><button class="th-clear" type="button">Limpiar</button><button class="th-apply" type="button">Aplicar</button></div>`;
+    anchorBtn.parentElement.appendChild(panel);
+    panel.querySelector('.th-search').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      panel.querySelectorAll('.th-check-item').forEach(item=>{ item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none'; });
     });
-    panel.querySelector('.th-clear').addEventListener('click', () => { delete cqState.colFilters[col]; panel.remove(); cqRenderAll(); });
-    panel.querySelector('.th-apply').addEventListener('click', () => {
-      const checked = [...panel.querySelectorAll('.th-check-item input:checked')].map(c => c.value);
-      if(checked.length === uniques.length) delete cqState.colFilters[col];
-      else cqState.colFilters[col] = new Set(checked);
-      panel.remove(); cqRenderAll();
+    panel.querySelector('.th-clear').addEventListener('click', ()=>{ delete cnState.colFilters[col]; panel.remove(); cnRenderAll(); });
+    panel.querySelector('.th-apply').addEventListener('click', ()=>{
+      const checked = Array.from(panel.querySelectorAll('.th-check-item input:checked')).map(i=>i.value);
+      if(checked.length) cnState.colFilters[col] = new Set(checked); else delete cnState.colFilters[col];
+      panel.remove(); cnRenderAll();
     });
+    document.addEventListener('click', function onDoc(e){ if(!panel.contains(e.target) && e.target !== anchorBtn){ panel.remove(); document.removeEventListener('click', onDoc); } });
   }
+  function cnRenderAll(){ cnRenderStat(); cnRenderChips(); cnRenderTable(); }
 
-  function cqRenderAll(){
-    cqRenderResumen();
-    cqRenderChips();
-    cqRenderGrid();
-  }
-
-  // ---- CSV export ----
-  function cqDownloadCsv(filename, defs, rows){
-    const esc = (v) => { const s = v == null ? '' : String(v); return /[",;\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
-    const header = defs.map(d => esc(d.label + (d.unit ? ' ' + d.unit.trim() : ''))).join(';');
-    const lines = rows.map(r => defs.map(d => esc(cqCsvVal(d, r))).join(';'));
-    const csv = '\uFEFF' + [header, ...lines].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // ---- Grillas guardadas (5 slots por usuario, tabla Supabase 'saved_grids') ----
-  async function cqLoadSavedSlots(){
-    if(!currentUser) return;
-    try{
-      const { data, error } = await supabaseClient.from('saved_grids').select('*').eq('username', currentUser.user);
-      if(error) throw error;
-      cqState.savedSlots = [null,null,null,null,null];
-      (data || []).forEach(row => { if(row.slot >= 1 && row.slot <= 5) cqState.savedSlots[row.slot-1] = row; });
-    } catch(e){
-      console.warn('Consultas: no se pudieron cargar grillas guardadas (¿falta crear la tabla saved_grids?)', e.message || e);
-    }
-    cqRenderSavedSlots();
-  }
-  function cqRenderSavedSlots(){
-    const el = document.getElementById('cq-savedviews');
-    if(!el) return;
-    el.innerHTML = `<span class="cq-saved-lbl">Mis grillas:</span>` + cqState.savedSlots.map((slot, i) => {
-      const filled = !!slot;
-      const name = filled ? slot.name : `Slot ${i+1}`;
-      return `<button class="cq-slot-btn ${filled?'filled':''}" data-slot="${i+1}" data-action="load" type="button">${name}${filled?` <span class="cq-slot-save" data-slot="${i+1}" data-action="save" title="Sobrescribir este slot con la configuración actual">💾</span>`:''}</button>`;
-    }).join('');
-    // (El "+ Guardar actual" que vivia aca se saco: ahora el guardado se hace
-    // desde el boton "Armado de grilla" dentro del panel de columnas/filtros
-    // avanzados, para no tener dos lugares distintos para la misma accion.)
-
-    el.querySelectorAll('[data-action="load"]').forEach(btn => btn.addEventListener('click', (e) => {
-      if(e.target.dataset.action === 'save') return;
-      const idx = parseInt(btn.dataset.slot) - 1;
-      const slot = cqState.savedSlots[idx];
-      if(!slot){ cqSaveToSlot(idx + 1); return; }
-      const cfg = slot.config || {};
-      cqState.scope = cfg.scope || 'ultimo';
-      cqState.extraCols = (cfg.extraCols || []).slice();
-      cqState.colFilters = {}; (cfg.colFilters || []).forEach(([k,vals]) => { cqState.colFilters[k] = new Set(vals); });
-      cqState.numFilters = cfg.numFilters || {};
-      cqState.textFilters = cfg.textFilters || {};
-      cqState.dateFilter = cfg.dateFilter ? (cfg.dateFilter.dates ? { dates: new Set(cfg.dateFilter.dates) } : cfg.dateFilter) : null;
-      cqState.dsdFilter = cfg.dsdFilter || null;
-      const scopeRadio = document.getElementById(cqState.scope === 'todos' ? 'cq-scope-todos' : 'cq-scope-ultimo');
-      if(scopeRadio) scopeRadio.checked = true;
-      cqSyncScopeRadios();
-      cqRenderFieldsPanel();
-      cqRenderAll();
-    }));
-    el.querySelectorAll('[data-action="save"]').forEach(icon => icon.addEventListener('click', (e) => {
-      e.stopPropagation();
-      cqSaveToSlot(parseInt(icon.dataset.slot));
-    }));
-    const newBtn = el.querySelector('[data-action="savenew"]');
-    if(newBtn) newBtn.addEventListener('click', () => {
-      const free = cqState.savedSlots.findIndex(s => !s);
-      cqSaveToSlot(free === -1 ? 1 : free + 1);
+  // ---- Modal "Armado Consulta" ----
+  function cnRenderModal(){
+    const groups = {};
+    CN_EXTRA_DEFS.forEach(d => { (groups[d.group] = groups[d.group] || []).push(d); });
+    const body = document.getElementById('cn-modal-body');
+    if(!body) return;
+    body.innerHTML = Object.keys(groups).map(g => `
+      <div>
+        <div class="cn-modal-group-lbl">${g}</div>
+        <div class="cn-modal-checks">
+          ${groups[g].map(d => `<label class="cn-mcheck ${cnState.extraCols.includes(d.key)?'on':''}"><input type="checkbox" data-col="${d.key}" ${cnState.extraCols.includes(d.key)?'checked':''}> ${d.label}</label>`).join('')}
+        </div>
+      </div>`).join('');
+    body.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change', ()=>{
+        const key = cb.dataset.col;
+        if(cb.checked){ if(!cnState.extraCols.includes(key)) cnState.extraCols.push(key); }
+        else { cnState.extraCols = cnState.extraCols.filter(k=>k!==key); }
+        cb.closest('label').classList.toggle('on', cb.checked);
+        cnUpdateModalCnt();
+      });
     });
+    cnUpdateModalCnt();
   }
-  async function cqSaveToSlot(slotNum, presetName){
-    if(!currentUser){ alert('Necesitás estar logueado para guardar una grilla.'); return; }
-    const name = presetName || prompt('Nombre para esta grilla guardada:', cqState.savedSlots[slotNum-1] ? cqState.savedSlots[slotNum-1].name : `Mi grilla ${slotNum}`);
-    if(!name) return;
-    const config = {
-      scope: cqState.scope,
-      extraCols: cqState.extraCols,
-      colFilters: Object.keys(cqState.colFilters).map(k => [k, Array.from(cqState.colFilters[k])]),
-      numFilters: cqState.numFilters,
-      textFilters: cqState.textFilters,
-      dateFilter: cqState.dateFilter ? (cqState.dateFilter.dates ? { dates: Array.from(cqState.dateFilter.dates) } : cqState.dateFilter) : null,
-      dsdFilter: cqState.dsdFilter,
+  function cnUpdateModalCnt(){
+    const cnt = document.getElementById('cn-modal-cnt');
+    if(cnt) cnt.textContent = `${cnState.extraCols.length} columna${cnState.extraCols.length===1?'':'s'} activa${cnState.extraCols.length===1?'':'s'}`;
+  }
+
+  // ---- Guardar configuración (localStorage) ----
+  const CN_LS_KEY = 'vape_consulta_config';
+  function cnSaveConfig(){
+    const cfg = {
+      extraCols: cnState.extraCols, sistema: cnState.sistema, dias: cnState.dias, commentSearch: cnState.commentSearch,
+      colFilters: Object.fromEntries(Object.entries(cnState.colFilters).map(([k,v])=>[k, Array.from(v)])),
     };
+    try{ localStorage.setItem(CN_LS_KEY, JSON.stringify(cfg)); alert('Configuración de la grilla guardada en este navegador.'); }
+    catch(e){ alert('No se pudo guardar la configuración: ' + (e.message || e)); }
+  }
+  function cnLoadConfig(){
     try{
-      const { error } = await supabaseClient.from('saved_grids').upsert({
-        username: currentUser.user, slot: slotNum, name, config, updated_at: new Date().toISOString()
-      }, { onConflict: 'username,slot' });
-      if(error) throw error;
-      await cqLoadSavedSlots();
-    } catch(e){
-      alert('No se pudo guardar (¿falta crear la tabla saved_grids en Supabase?): ' + (e.message || e));
-    }
+      const raw = localStorage.getItem(CN_LS_KEY); if(!raw) return;
+      const cfg = JSON.parse(raw);
+      cnState.extraCols = cfg.extraCols || [];
+      cnState.sistema = cfg.sistema || '';
+      cnState.dias = cfg.dias || null;
+      cnState.commentSearch = cfg.commentSearch || '';
+      cnState.colFilters = Object.fromEntries(Object.entries(cfg.colFilters || {}).map(([k,v])=>[k, new Set(v)]));
+      const selSistema = document.getElementById('cn-f-sistema'); if(selSistema) selSistema.value = cnState.sistema;
+      const selDiasOp = document.getElementById('cn-f-dias-op'); if(selDiasOp && cnState.dias) selDiasOp.value = cnState.dias.op;
+      const inpDiasVal = document.getElementById('cn-f-dias-val'); if(inpDiasVal && cnState.dias) inpDiasVal.value = cnState.dias.value;
+      const inpComment = document.getElementById('cn-f-comment'); if(inpComment) inpComment.value = cnState.commentSearch;
+    } catch(e){ console.warn('Consulta: no se pudo cargar configuración guardada', e.message || e); }
   }
 
-  function cqSyncScopeRadios(){
-    document.querySelectorAll('.cq-vm-opt').forEach(opt => {
-      const input = opt.querySelector('input');
-      const radio = opt.querySelector('.cq-vm-radio');
-      const label = opt.querySelector('.cq-vm-label');
-      const on = input.checked;
-      radio.classList.toggle('on', on);
-      label.style.color = on ? 'var(--ink)' : 'var(--ink-faint)';
+  // ---- Export Excel ----
+  function cnExportGrilla(){
+    if(typeof XLSX === 'undefined'){ alert('Librería Excel no disponible.'); return; }
+    const cols = cnColumns();
+    const rows = cnBuildRows().filter(cnRowMatches);
+    const data = rows.map(r=>{
+      const obj = {};
+      cols.forEach(k=>{ const def = CN_DEFS_BY_KEY[k]; if(def) obj[def.label] = def.get(r); });
+      return obj;
     });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Consulta');
+    XLSX.writeFile(wb, `VAPE_Consulta_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+  function cnExportGeneral(){
+    if(typeof XLSX === 'undefined'){ alert('Librería Excel no disponible.'); return; }
+    const rows = cnBuildRowsTodos();
+    const data = rows.map(r=>{
+      const obj = {};
+      CN_ALL_DEFS.forEach(def => { obj[def.label] = def.get(r); });
+      return obj;
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'General');
+    XLSX.writeFile(wb, `VAPE_General_Completo_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
+  // ---- Init ----
   function initConsultas(){
-    // Refuerzo manual del toggle del panel de columnas/filtros: no depende
-    // solo del comportamiento nativo de <details>/<summary>, para que abra
-    // siempre pase lo que pase con el navegador.
-    const fieldsPanel = document.getElementById('cq-fields-panel');
-    if(fieldsPanel){
-      const summary = fieldsPanel.querySelector('summary');
-      if(summary){
-        summary.addEventListener('click', (e) => {
-          e.preventDefault();
-          fieldsPanel.open = !fieldsPanel.open;
-        });
-      }
+    cnLoadConfig();
+
+    const selSistema = document.getElementById('cn-f-sistema');
+    if(selSistema) selSistema.addEventListener('change', ()=>{ cnState.sistema = selSistema.value; cnRenderAll(); });
+
+    const diasOp = document.getElementById('cn-f-dias-op'), diasVal = document.getElementById('cn-f-dias-val');
+    function cnSyncDias(){
+      const v = diasVal.value;
+      cnState.dias = (v === '' ? null : { op: diasOp.value, value: v });
+      cnRenderAll();
     }
+    if(diasOp) diasOp.addEventListener('change', cnSyncDias);
+    if(diasVal) diasVal.addEventListener('input', cnSyncDias);
 
-    document.querySelectorAll('input[name="cqScope"]').forEach(radio => radio.addEventListener('change', (e) => {
-      cqState.scope = e.target.value;
-      cqSyncScopeRadios();
-      cqRenderAll();
-    }));
-    cqSyncScopeRadios();
+    const commentInp = document.getElementById('cn-f-comment');
+    if(commentInp) commentInp.addEventListener('input', ()=>{ cnState.commentSearch = commentInp.value.trim(); cnRenderAll(); });
 
-    const dsdApply = document.getElementById('cq-dsd-apply');
-    if(dsdApply) dsdApply.addEventListener('click', () => {
-      const op = document.getElementById('cq-dsd-op').value;
-      const val = parseFloat(document.getElementById('cq-dsd-val').value);
-      if(Number.isNaN(val)) return;
-      cqState.dsdFilter = { op, value: val };
-      document.getElementById('cq-dsd-clear').style.display = '';
-      cqRenderAll();
-    });
-    const dsdClear = document.getElementById('cq-dsd-clear');
-    if(dsdClear) dsdClear.addEventListener('click', () => { cqClearDsdFilter(); cqRenderAll(); });
-
-    const refreshBtn = document.getElementById('cq-resumen-refresh');
-    if(refreshBtn) refreshBtn.addEventListener('click', cqRenderAll);
-
-    const expFiltered = document.getElementById('cq-exportfiltered');
-    if(expFiltered) expFiltered.addEventListener('click', () => {
-      const defs = cqColumns().map(k => CQ_DEFS_BY_KEY[k]).filter(Boolean);
-      cqDownloadCsv('consultas_armado.csv', defs, cqApplyFilters(cqBuildRows()));
-    });
-    const expAll = document.getElementById('cq-exportall');
-    if(expAll) expAll.addEventListener('click', () => {
-      // "General completo": TODOS los campos, TODOS los pozos (ultimo ensayo),
-      // sin ningun filtro aplicado — el respaldo integro que pidio Ale.
-      cqDownloadCsv('consultas_general_completo.csv', CQ_ALL_DEFS, cqBuildRowsUltimo());
+    const clearBtn = document.getElementById('cn-btn-clear');
+    if(clearBtn) clearBtn.addEventListener('click', ()=>{
+      cnState.sistema = ''; cnState.dias = null; cnState.commentSearch = ''; cnState.colFilters = {};
+      if(selSistema) selSistema.value = '';
+      if(diasVal) diasVal.value = '';
+      if(commentInp) commentInp.value = '';
+      cnRenderAll();
     });
 
-    // Boton "Guardar Armado de grilla" (dentro del panel de columnas/filtros
-    // avanzados): usa el nombre tipiado, o el primer slot libre si no elige
-    // uno puntual; si ya estan los 5 usados, sobrescribe el slot 1.
-    const saveGridBtn = document.getElementById('cq-savegrid-btn');
-    if(saveGridBtn) saveGridBtn.addEventListener('click', () => {
-      const nameInput = document.getElementById('cq-savegrid-name');
-      const name = (nameInput && nameInput.value.trim()) || 'Armado de grilla';
-      const free = cqState.savedSlots.findIndex(s => !s);
-      cqSaveToSlot(free === -1 ? 1 : free + 1, name);
-      if(nameInput) nameInput.value = '';
-    });
+    const armadoBtn = document.getElementById('cn-btn-armado');
+    const modalBackdrop = document.getElementById('cn-modal-backdrop');
+    const modalClose = document.getElementById('cn-modal-close');
+    const modalApply = document.getElementById('cn-modal-apply');
+    if(armadoBtn) armadoBtn.addEventListener('click', ()=>{ cnRenderModal(); modalBackdrop.classList.add('active'); });
+    if(modalClose) modalClose.addEventListener('click', ()=> modalBackdrop.classList.remove('active'));
+    if(modalBackdrop) modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) modalBackdrop.classList.remove('active'); });
+    if(modalApply) modalApply.addEventListener('click', ()=>{ modalBackdrop.classList.remove('active'); cnRenderAll(); });
 
-    cqRenderFieldsPanel();
-    cqRenderAll();
-    cqLoadSavedSlots();
+    const guardarBtn = document.getElementById('cn-btn-guardar');
+    if(guardarBtn) guardarBtn.addEventListener('click', cnSaveConfig);
+
+    const xlsGrillaBtn = document.getElementById('cn-btn-xls-grilla');
+    if(xlsGrillaBtn) xlsGrillaBtn.addEventListener('click', cnExportGrilla);
+    const xlsGeneralBtn = document.getElementById('cn-btn-xls-general');
+    if(xlsGeneralBtn) xlsGeneralBtn.addEventListener('click', cnExportGeneral);
+
+    cnRenderAll();
   }
+
 
   function initDinaDetailsModal(){
     const btn = document.getElementById('dinaDetailsBtn');
@@ -7485,7 +7045,7 @@
     if(viewEl) viewEl.classList.add('active');
     if(viewName === 'bitacora'){ bitLoadForWell(currentWell); }
     if(viewName === 'historial'){ renderHistorialTimeline(); }
-    if(viewName === 'consultas'){ cqRenderFieldsPanel(); cqRenderAll(); }
+    if(viewName === 'consultas'){ cnRenderAll(); }
   }
 
   document.querySelectorAll('.bit-pill').forEach(btn=>{
