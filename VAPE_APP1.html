@@ -307,6 +307,8 @@
   .rp-badge-confirm{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.35);}
   .rp-grid{display:grid; grid-template-columns:50% 50%; gap:14px; align-items:stretch;}
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
+  .rp-panel-nivel{height:auto;}
+  .rp-panel-nivel .rp-comment-box{min-height:44px; max-height:70px;}
   .rp-pkr-badge{
     position:absolute; top:-9px; right:14px; z-index:5;
     background:#c8342c; color:#fff; font-family:'IBM Plex Mono'; font-size:10px; font-weight:700;
@@ -326,11 +328,12 @@
   .rp-chip{background:var(--panel-2); border-radius:6px; padding:3px 7px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; flex:0 0 auto;}
   .rp-chip-highlight{border:1px solid #185FA5;}
   .rp-chip-highlight .rp-val{color:#185FA5; font-size:13.5px;}
-  .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-faint); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
   .rp-chart-box img{max-width:100%; max-height:100%; object-fit:contain;}
-  .rp-nivel-row{display:flex; gap:6px; height:538px; margin-bottom:8px;}
+  .rp-nivel-row{display:flex; gap:6px; margin-bottom:8px;}
+  .rp-nivel-graph-col{display:flex; flex-direction:column; align-items:stretch; gap:8px; width:188px; flex-shrink:0;}
   .rp-side-stack{display:flex; flex-direction:column; justify-content:center; gap:6px; width:74px; flex-shrink:0;}
   .rp-side-stack .rp-chip{padding:6px 7px;}
   .rp-side-col{display:flex; flex-direction:column; flex-shrink:0; margin-left:2px; height:468px;}
@@ -542,7 +545,10 @@
   /* ---- Informe Rapido (Dina + Sonolog) ---- */
   .qr-modal-box{width:min(920px, 94vw); max-height:90vh; overflow-y:auto;}
   .qr-toolbar{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; position:sticky; top:0; background:var(--panel); padding-bottom:6px; z-index:2;}
-  .qr-body{background:#fff; color:#1a1d22; border-radius:10px; padding:22px 24px; font-family:'IBM Plex Sans', sans-serif;}
+  .qr-body{background:#fff; color:#1a1d22; border-radius:10px; padding:22px 24px; font-family:'IBM Plex Sans', sans-serif;
+    --panel:#ffffff; --panel-2:#eef0f3; --border:#d7dbe1; --ink:#1c2128; --ink-dim:#5b6470; --ink-faint:#8b93a0;
+    --navy:#3a54b8; --navy-glow:#2743a0; --rust:#c8492c; --rust-glow:#b43c22; --bronze:#b5761f; --bronze-glow:#9c6318;
+    --steel:#3f6f96; --steel-glow:#2f5a7d;}
   .qr-head{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #1a2038; padding-bottom:12px; margin-bottom:14px;}
   .qr-brand{font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.06em; color:#5b76e0; text-transform:uppercase; margin-bottom:4px;}
   .qr-well{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:22px; color:#1a1d22;}
@@ -573,7 +579,55 @@
     #quickReportModal .qr-body{position:absolute; top:0; left:0; width:100%; border-radius:0; padding:14px 18px;}
     .qr-charts-row{grid-template-columns:1fr 1fr; page-break-inside:avoid;}
     .qr-sarta-row{page-break-inside:avoid;}
+
+    #fullReportModal, #fullReportModal .qr-body, #fullReportModal .qr-body *{visibility:visible;}
+    #fullReportModal{position:absolute; inset:0; background:#fff !important; display:block !important; z-index:9999;}
+    #fullReportModal .modal-box{box-shadow:none; width:100%; max-height:none; padding:0; border:none;}
+    #fullReportModal .qr-toolbar{display:none;}
+    #fullReportModal .qr-body{position:absolute; top:0; left:0; width:100%; border-radius:0; padding:14px 18px;}
+    .qr-minicard{break-inside:avoid;}
+    .qr-nivel-row{page-break-inside:avoid;}
+    /* Sin salto forzado entre hojas: Nivel fluye justo despues de Contrapesos
+       y ocupa el espacio que quede en la pagina, en vez de arrancar una hoja
+       nueva de entrada. El navegador corta solo donde el contenido no entra. */
+    .qr-page + .qr-page{margin-top:0; padding-top:0; border-top:none;}
   }
+  .qr-section-title{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:#1a1d22; border-bottom:2px solid #1a2038; padding-bottom:5px; margin-bottom:10px;}
+  .qr-minigrid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0 4px;}
+  .qr-minicard{background:#f4f5f7; border:1px solid #d7dbe1; border-radius:8px; padding:10px 12px;}
+  .qr-minicard-wide{grid-column:1 / -1;}
+  .qr-minicard-h{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#3a54b8; margin-bottom:7px;}
+  .qr-nivel-row{display:flex; gap:20px; align-items:flex-start; margin-top:10px;}
+  .qr-nivel-svg-col{flex-shrink:0; padding:6px;}
+  .qr-nivel-svg-col svg{display:block;}
+  .qr-nivel-side-col{flex:1; min-width:0;}
+  .qr-kv{display:flex; flex-direction:column; gap:5px;}
+  .qr-kv-row{display:flex; justify-content:space-between; gap:10px; font-size:11.5px; padding:3px 0; border-bottom:1px dashed #e2e5e9;}
+  .qr-kv-row:last-child{border-bottom:none;}
+  .qr-kv-row .qr-kv-lbl{color:#5b6470;}
+  .qr-kv-row .qr-kv-val{color:#1a1d22; font-family:'IBM Plex Mono'; font-weight:600; text-align:right;}
+  .qr-chart-detail-row{display:grid; grid-template-columns:1.3fr 1fr; gap:14px; align-items:stretch; margin-bottom:4px;}
+  .qr-cp-cards{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .qr-cp-card{background:#fff; border:1px solid #d7dbe1; border-radius:8px; padding:10px 12px;}
+  .qr-cp-card-h{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#2743a0; margin-bottom:7px;}
+  .qr-cp-plate-row{display:grid; grid-template-columns:80px 1fr 56px 64px; gap:6px; align-items:center; font-size:11.5px; padding:4px 0;}
+  .qr-cp-plate-lbl{color:#8b93a0; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;}
+  .qr-cp-plate-nombre{font-weight:600; color:#1a1d22;}
+  .qr-cp-plate-cant{font-family:'IBM Plex Mono'; color:#5b6470; text-align:right;}
+  .qr-cp-plate-dist{font-family:'IBM Plex Mono'; font-weight:600; color:#2743a0; text-align:right;}
+  .qr-cp-plate-sep{grid-column:1/-1; border-top:1px dashed #e2e5e9; margin:4px 0;}
+  #fullReportModal .qr-sub{font-size:12.5px;}
+  #fullReportModal .qr-chips-row .qr-chip .qr-lbl{font-size:10px;}
+  #fullReportModal .qr-chips-row .qr-chip .qr-val{font-size:15px;}
+  #fullReportModal .qr-comment{font-size:12.5px;}
+  #fullReportModal .qr-body table.gtab{font-size:12.5px;}
+  #fullReportModal .qr-minicard-h{font-size:11.5px;}
+  #fullReportModal .qr-kv-row{font-size:12.5px;}
+  #fullReportModal .qr-cp-card-h{font-size:12px;}
+  #fullReportModal .qr-cp-plate-row{font-size:12.5px;}
+  #fullReportModal .qr-cp-plate-lbl{font-size:10.5px;}
+  .qr-page + .qr-page{margin-top:22px; padding-top:18px; border-top:2px dashed #d7dbe1;}
+  @page{ size:A4; margin:14mm; }
 
   /* ---- Consultas ---- */
   .cq-resumen-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; overflow:visible;}
@@ -1021,7 +1075,7 @@
               <th class="col-fixed">Fecha<button class="th-filter-btn" data-col="dt" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th class="col-fixed">Batería<button class="th-filter-btn" data-col="bateria" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Operación<button class="th-filter-btn" data-col="operacion" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
-              <th>Estado<button class="th-filter-btn" data-col="tipo" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Tipo de Ensayo<button class="th-filter-btn" data-col="condicion" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sistema<button class="th-filter-btn" data-col="sistema" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Nivel (m)<button class="th-filter-btn" data-col="nivel" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sumerg. (m)<button class="th-filter-btn" data-col="sumerg" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
@@ -1073,17 +1127,23 @@
         </div>
         <div class="rp-chart-box"><img id="rp-dyn-img" src="" alt="Carta dinamométrica"></div>
         <div class="rp-comment-box">
-          <div class="rp-comment-lbl">Comentario Dina</div>
           <div class="rp-comment-val" id="rp-dyn-comment">Sin comentarios registrados.</div>
         </div>
       </div>
 
-      <div class="panel rp-panel" style="position:relative;">
+      <div class="panel rp-panel rp-panel-nivel" style="position:relative;">
         <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
           <span id="rp-sistema" class="rp-badge rp-badge-pending" style="margin-left:8px; font-size:9px; padding:2px 8px;">Sistema: pendiente</span>
+          <button id="fullReportBtn" type="button" title="Reporte completo (Dina + Nivel) para descargar en PDF" style="margin-left:8px; font-size:9px; padding:2px 8px; border-radius:7px; background:none; border:1px dashed var(--border); color:var(--ink-dim); cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M9 15h6M9 11h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Reporte completo
+          </button>
           <span class="stamp" id="rp-acu-stamp">—</span>
+        </div>
+        <div class="rp-comment-box">
+          <div class="rp-comment-val" id="rp-acu-comment">Sin comentarios registrados.</div>
         </div>
         <div class="rp-nivel-row">
           <div class="rp-side-stack">
@@ -1093,10 +1153,12 @@
             <div class="rp-chip" style="border:1px solid #185FA5;"><span class="rp-lbl" style="color:#185FA5;">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
             <div class="rp-chip"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
           </div>
-          <svg id="rp-wellsvg" viewBox="0 0 220 538" width="256" height="538" role="img">
-            <title>Esquema de pozo</title>
-            <desc>Casing y tubing con la sarta de varillas por tramos al centro, presion de boca, nivel de liquido, PIP acustico y profundidad de bomba</desc>
-          </svg>
+          <div class="rp-nivel-graph-col">
+            <svg id="rp-wellsvg" viewBox="0 0 220 538" width="188" height="460" role="img">
+              <title>Esquema de pozo</title>
+              <desc>Casing y tubing con la sarta de varillas por tramos al centro, presion de boca, nivel de liquido, PIP acustico y profundidad de bomba</desc>
+            </svg>
+          </div>
           <div class="rp-side-col">
             <div class="rp-tramos-col">
               <div class="rp-tramos-title">Sarta (tramos)</div>
@@ -1114,10 +1176,6 @@
               </svg>
             </div>
           </div>
-        </div>
-        <div class="rp-comment-box">
-          <div class="rp-comment-lbl">Comentario Nivel</div>
-          <div class="rp-comment-val" id="rp-acu-comment">Sin comentarios registrados.</div>
         </div>
       </div>
 
@@ -1311,6 +1369,139 @@
         </div>
 
         <div class="qr-foot" id="qr-foot">Generado por VA&amp;PE App · —</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: REPORTE COMPLETO (DINA COMPLETO + NIVEL) ===================== -->
+  <div class="modal-overlay" id="fullReportModal">
+    <div class="modal-box qr-modal-box">
+      <div class="qr-toolbar">
+        <h3 style="margin:0;">Reporte completo <button class="modal-close" id="fullReportClose" type="button">&#10005;</button></h3>
+        <button class="details-btn" id="fullReportPdfBtn" type="button" style="border-color:var(--navy-glow);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Descargar PDF
+        </button>
+      </div>
+      <div id="frBody" class="qr-body">
+        <div class="qr-head">
+          <div class="qr-title-block">
+            <div class="qr-brand">VA&amp;PE · Reporte Completo de Pozo</div>
+            <div class="qr-well" id="fr-well">—</div>
+            <div class="qr-sub" id="fr-sub">—</div>
+          </div>
+          <div class="qr-classif" id="fr-classif">—</div>
+        </div>
+
+        <div class="qr-page" id="fr-page-dina">
+          <div class="qr-section-title">1. Carta Dinamométrica</div>
+          <div class="qr-chips-row" id="fr-dyn-chips"></div>
+
+          <div class="qr-chart-detail-row">
+            <div>
+              <div class="scope-real qr-chart-box"><img id="fr-dyn-img" src="" alt="Carta dinamométrica"></div>
+              <div class="qr-comment" id="fr-dyn-comment">Sin comentarios registrados.</div>
+            </div>
+            <div class="qr-minicard">
+              <div class="qr-minicard-h">Detalle Técnico</div>
+              <div class="qr-kv">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Wrf</span><span class="qr-kv-val" id="fr-wrf">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Fo Max</span><span class="qr-kv-val" id="fr-fomax">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">TV medido</span><span class="qr-kv-val" id="fr-tv">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">SV medido</span><span class="qr-kv-val" id="fr-sv">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">MPT</span><span class="qr-kv-val" id="fr-mpt">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">EPT</span><span class="qr-kv-val" id="fr-ept">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">PIP Dyn</span><span class="qr-kv-val" id="fr-pipdyn">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Potencia Vástago</span><span class="qr-kv-val" id="fr-rodpower">—</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="qr-minigrid">
+            <div class="qr-minicard">
+              <div class="qr-minicard-h">Bomba</div>
+              <div class="qr-kv">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Prof de bba</span><span class="qr-kv-val" id="fr-pump-depth">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">PIP Dina</span><span class="qr-kv-val" id="fr-pump-pip">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">PIP Eco</span><span class="qr-kv-val" id="fr-pump-pip-eco">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Pistón</span><span class="qr-kv-val" id="fr-plunger">—</span></div>
+              </div>
+            </div>
+            <div class="qr-minicard">
+              <div class="qr-minicard-h">Producción</div>
+              <div class="qr-kv">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Neta</span><span class="qr-kv-val" id="fr-oil">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Agua</span><span class="qr-kv-val" id="fr-water">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Bruta</span><span class="qr-kv-val" id="fr-bruta">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">% Agua</span><span class="qr-kv-val" id="fr-pctagua">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Gas</span><span class="qr-kv-val" id="fr-gas">—</span></div>
+              </div>
+            </div>
+            <div class="qr-minicard">
+              <div class="qr-minicard-h">Unidad de Bombeo</div>
+              <div class="qr-kv">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Carga Estruct.</span><span class="qr-kv-val" id="fr-beam">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Carrera</span><span class="qr-kv-val" id="fr-carrera">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">SPM</span><span class="qr-kv-val" id="fr-spm2">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Carga Máx.</span><span class="qr-kv-val" id="fr-cargamax">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Carga Mín.</span><span class="qr-kv-val" id="fr-cargamin">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Fabricante</span><span class="qr-kv-val" id="fr-unit-mfr">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Unidad</span><span class="qr-kv-val" id="fr-unit-class">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Descripción (API)</span><span class="qr-kv-val" id="fr-unit-api">—</span></div>
+              </div>
+            </div>
+            <div class="qr-minicard">
+              <div class="qr-minicard-h">Reductor</div>
+              <div class="qr-kv">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Gear Box Rating</span><span class="qr-kv-val" id="fr-gb-rating">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Torque Existente</span><span class="qr-kv-val" id="fr-gb-down">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">% Torque Existente</span><span class="qr-kv-val" id="fr-gb-pctdown">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Out of Balance</span><span class="qr-kv-val" id="fr-gb-oob">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Move</span><span class="qr-kv-val" id="fr-gb-move">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Torque en Balance</span><span class="qr-kv-val" id="fr-gb-balanced">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">% Torque en Balance</span><span class="qr-kv-val" id="fr-gb-pctbal">—</span></div>
+              </div>
+            </div>
+            <div class="qr-minicard qr-minicard-wide">
+              <div class="qr-minicard-h">Sarta de Varillas</div>
+              <div style="display:flex; gap:14px; align-items:flex-start;">
+                <img class="sarta-img" id="fr-sarta-img" src="" alt="Esquema de sarta de varillas" style="max-height:200px; flex-shrink:0;">
+                <div style="flex:1; display:flex; gap:16px;">
+                  <table class="gtab" id="fr-sarta-table" style="flex:1;"><tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr></table>
+                  <div class="qr-kv" style="flex:0 0 160px;">
+                    <div class="qr-kv-row"><span class="qr-kv-lbl">Peso Total Sarta</span><span class="qr-kv-val" id="fr-sarta-peso">—</span></div>
+                    <div class="qr-kv-row"><span class="qr-kv-lbl">API Bba.</span><span class="qr-kv-val" id="fr-sarta-apibba">—</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="qr-minicard qr-minicard-wide">
+              <div class="qr-minicard-h">Contrapesos</div>
+              <div class="qr-kv" style="margin-bottom:8px;">
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Counter Balance Moment</span><span class="qr-kv-val" id="fr-cbm">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Weight of Counter Weights</span><span class="qr-kv-val" id="fr-wcw">—</span></div>
+              </div>
+              <div class="qr-cp-cards" id="fr-cp-cards"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-page" id="fr-page-nivel">
+          <div class="qr-section-title">2. Nivel</div>
+          <div class="qr-chips-row" id="fr-acu-chips" style="margin-bottom:12px;"></div>
+          <div class="qr-comment" id="fr-acu-comment" style="margin-bottom:18px;">Sin comentarios registrados.</div>
+          <div class="qr-nivel-row">
+            <div class="qr-nivel-svg-col" id="fr-wellsvg-wrap"></div>
+            <div class="qr-nivel-side-col">
+              <div class="qr-minicard-h">Sarta (tramos)</div>
+              <table class="gtab" id="fr-tramos-table"><tr><th>T</th><th>Diám</th><th>Long</th></tr></table>
+              <div class="qr-minicard-h" style="margin-top:20px;">Buildup de presión</div>
+              <div id="fr-buildup-wrap"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-foot" id="fr-foot">Generado por VA&amp;PE App · —</div>
       </div>
     </div>
   </div>
@@ -2081,7 +2272,8 @@
             dt: t.test_date, tipo: 'Nivel', testId: t.test_id,
             nivel: a.liquid_level_tvd_m, sumerg: a.fluid_above_pump_m,
             comment: t.test_comments || null,
-            sistema: classifySistema(cBlob, unitBlob, false)
+            sistema: classifySistema(cBlob, unitBlob, false),
+            wellState: a.well_state // "Producing" (dinamico) / "Static" (estatico), propio de ESTE ensayo de Nivel
           });
         });
         entry.history.sort((a, b) => (a.dt < b.dt ? 1 : (a.dt > b.dt ? -1 : 0)));
@@ -2673,8 +2865,8 @@
 
       <text x="55" y="42" font-size="10" class="rp-svg-strong" text-anchor="middle">Csg</text>
       <text x="55" y="54" font-size="9" class="rp-svg-muted" text-anchor="middle">${csgLbl}</text>
-      <text x="165" y="42" font-size="10" class="rp-svg-strong" text-anchor="middle">Tbg</text>
-      <text x="165" y="54" font-size="9" class="rp-svg-muted" text-anchor="middle">${tbgLbl}</text>
+      <text x="130" y="42" font-size="10" class="rp-svg-strong" text-anchor="middle">Tbg</text>
+      <text x="130" y="54" font-size="9" class="rp-svg-muted" text-anchor="middle">${tbgLbl}</text>
 
       ${levelBgSvg}
 
@@ -2929,6 +3121,18 @@
       setGearboxPctExisting('d-gb-pctdown', pctDown, pctBal);
     }
 
+    // Detalles (modal "Ver detalles"): WRF, Fo Max, TV, SV, MPT, EPT, PIP Dyn,
+    // Potencia — este bloque nunca se llenaba con datos reales, quedaba con el
+    // texto de ejemplo original del HTML. Se completa aca con el ensayo Dina actual.
+    setDinaField('dd-wrf', w.wrf, ' lb', 0);
+    setDinaField('dd-fomax', w.fomax, ' lb', 0);
+    setDinaField('dd-tv', w.tv, ' lb', 0);
+    setDinaField('dd-sv', w.sv, ' lb', 0);
+    setDinaField('dd-mpt', w.mpt, ' in', 2);
+    setDinaField('dd-ept', w.ept, ' in', 2);
+    setDinaField('dd-pipdyn', w.pipdyn, ' kg', 1);
+    setDinaField('dd-rodpower', w.rodpower, ' HP', 1);
+
     // Contrapesos: CBM/WCW son de la config fija; la tabla de manivela/placas
     // viene de la Bitácora (field_log), se busca aparte de forma asincrónica.
     setDinaField('d-cbm', w.cbm, ' in-lb', 0);
@@ -3016,6 +3220,7 @@
       case 'bateria': return r.bateria || '—';
       case 'operacion': return r.operacion || '—';
       case 'tipo': return r.tipo || '—';
+      case 'condicion': return r.condicion || '—';
       case 'sistema': return r.sistema || '—';
       case 'nivel': return r.nivel != null ? fmtN(r.nivel,0) : '—';
       case 'sumerg': return r.sumerg != null ? fmtN(r.sumerg,0) : '—';
@@ -3377,13 +3582,14 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
+            condicion: h.tipo === 'Nivel' ? cqCondicionFromWellState(h.wellState) : '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : []
           });
         });
         // Pozo sin ningún ensayo: se muestra igual una fila "pendiente" (como en modo Último).
         if(!hist.length && !fechaFilter && !operacionFilter && !comentarioFilter){
-          rows.push({ well: n, dt: w.dt, tipo: null, bateria: w.bateria, operadora: w.operadora, operacion: 'Sin ensayo', sistema: w.sistema || '—', pendiente: true, testIds: [] });
+          rows.push({ well: n, dt: w.dt, tipo: null, bateria: w.bateria, operadora: w.operadora, operacion: 'Sin ensayo', sistema: w.sistema || '—', condicion: '—', pendiente: true, testIds: [] });
         }
       });
       // Orden: pozo (natural), y dentro del pozo lo más reciente primero.
@@ -3439,6 +3645,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
+          condicion: cqCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null)
@@ -3520,7 +3727,7 @@
           <td>${fmtDate(r.dt)}${tipoTag}</td>
           <td>${r.bateria || '—'}</td>
           <td>${r.operacion || '—'}</td>
-          <td>${r.tipo || '—'}</td>
+          <td>${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
           <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
@@ -3668,6 +3875,172 @@
 
       const now = new Date();
       document.getElementById('qr-foot').textContent = `Generado por VA&PE App · ${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
+    }
+
+    btn.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
+    closeBtn.addEventListener('click', ()=> modal.classList.remove('active'));
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
+    if(pdfBtn) pdfBtn.addEventListener('click', ()=> window.print());
+  }
+
+  function initFullReportModal(){
+    const btn = document.getElementById('fullReportBtn');
+    const modal = document.getElementById('fullReportModal');
+    const closeBtn = document.getElementById('fullReportClose');
+    const pdfBtn = document.getElementById('fullReportPdfBtn');
+    if(!btn || !modal || !closeBtn) return;
+
+    function txt(id){ const el = document.getElementById(id); return el ? el.textContent : '—'; }
+
+    function fillReport(){
+      const w = WELLS_DB[currentWell] || {};
+
+      document.getElementById('fr-well').textContent = currentWell || '—';
+      const fechaTxt = w.dynDate ? fmtDate(w.dynDate) : (w.acuDate ? fmtDate(w.acuDate) : '—');
+      document.getElementById('fr-sub').textContent = `${w.bateria || '—'} · ${w.operadora || '—'} · ${fechaTxt}`;
+      const esCombinada = w.hasDyn && w.hasAcu;
+      document.getElementById('fr-classif').textContent = esCombinada ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayos'));
+
+      // Muestra solo la(s) hoja(s) que corresponden al tipo de ensayo del
+      // pozo: si es solo Nivel (sin Dina) no se imprime una hoja de Dina
+      // vacia, y viceversa. Combinada muestra ambas.
+      const pageDinaEl = document.getElementById('fr-page-dina');
+      const pageNivelEl = document.getElementById('fr-page-nivel');
+      if(pageDinaEl) pageDinaEl.style.display = w.hasDyn ? '' : 'none';
+      if(pageNivelEl) pageNivelEl.style.display = w.hasAcu ? '' : 'none';
+      if(pageDinaEl) pageDinaEl.classList.remove('qr-page-last');
+      if(pageNivelEl) pageNivelEl.classList.remove('qr-page-last');
+      const lastPageEl = w.hasAcu ? pageNivelEl : (w.hasDyn ? pageDinaEl : null);
+      const frFootEl = document.getElementById('fr-foot');
+      if(lastPageEl){
+        lastPageEl.classList.add('qr-page-last');
+        // El pie de pagina se muda dentro de la ultima hoja visible, para que
+        // nunca quede como un tercer elemento suelto generando una hoja en
+        // blanco extra despues del salto de pagina.
+        if(frFootEl) lastPageEl.appendChild(frFootEl);
+      }
+
+      // ---- Seccion 1: Dina ----
+      const dynChips = [
+        ['Llenado', w.fillage != null ? fmt(w.fillage,1) + ' %' : '—'],
+        ['P. Tubing', w.tubpres != null ? fmt(w.tubpres,1) + ' kg' : '—'],
+        ['GPM', w.spm != null ? fmt(w.spm,2) : '—'],
+        ['Carga Máx', w.tv != null ? fmt(w.tv,0) + ' lb' : '—'],
+        ['Carga Mín', w.sv != null ? fmt(w.sv,0) + ' lb' : '—'],
+        ['PIP Dyn', w.pipdyn != null ? fmt(w.pipdyn,1) + ' kg' : '—'],
+      ];
+      document.getElementById('fr-dyn-chips').innerHTML = dynChips.map(([lbl,val]) => `<div class="qr-chip"><span class="qr-lbl">${lbl}</span><span class="qr-val">${val}</span></div>`).join('');
+
+      const liveDyn = document.querySelector('#view-dina .dina-main .scope-real img');
+      const frDynImg = document.getElementById('fr-dyn-img');
+      if(liveDyn && liveDyn.src && liveDyn.style.display !== 'none'){ frDynImg.src = liveDyn.src; frDynImg.style.display = 'block'; }
+      else { frDynImg.style.display = 'none'; }
+      document.getElementById('fr-dyn-comment').textContent = w.commentDyn || 'Sin comentarios registrados.';
+
+      // Bomba
+      document.getElementById('fr-pump-depth').textContent = txt('d-pump-depth');
+      document.getElementById('fr-pump-pip').textContent = txt('d-pump-pip');
+      document.getElementById('fr-pump-pip-eco').textContent = txt('d-pump-pip-eco');
+      document.getElementById('fr-plunger').textContent = txt('d-plunger');
+      // Produccion
+      document.getElementById('fr-oil').textContent = txt('d-oil');
+      document.getElementById('fr-water').textContent = txt('d-water');
+      document.getElementById('fr-bruta').textContent = txt('d-bruta');
+      document.getElementById('fr-pctagua').textContent = txt('d-pctagua');
+      document.getElementById('fr-gas').textContent = txt('d-gas');
+      // Unidad de bombeo
+      document.getElementById('fr-beam').textContent = txt('d-beam');
+      document.getElementById('fr-carrera').textContent = txt('d-carrera');
+      document.getElementById('fr-spm2').textContent = txt('d-spm2');
+      document.getElementById('fr-cargamax').textContent = txt('d-cargamax');
+      document.getElementById('fr-cargamin').textContent = txt('d-cargamin');
+      document.getElementById('fr-unit-mfr').textContent = txt('d-unit-mfr');
+      document.getElementById('fr-unit-class').textContent = txt('d-unit-class');
+      document.getElementById('fr-unit-api').textContent = txt('d-unit-api');
+      // Reductor
+      document.getElementById('fr-gb-rating').textContent = txt('d-gb-rating');
+      document.getElementById('fr-gb-down').textContent = txt('d-gb-down');
+      document.getElementById('fr-gb-pctdown').textContent = txt('d-gb-pctdown');
+      document.getElementById('fr-gb-oob').textContent = txt('d-gb-oob');
+      document.getElementById('fr-gb-move').textContent = txt('d-gb-move');
+      document.getElementById('fr-gb-balanced').textContent = txt('d-gb-balanced');
+      document.getElementById('fr-gb-pctbal').textContent = txt('d-gb-pctbal');
+      // Sarta
+      const liveSarta = document.getElementById('d-sarta-img');
+      const frSartaImg = document.getElementById('fr-sarta-img');
+      if(liveSarta && liveSarta.src && liveSarta.style.display !== 'none'){ frSartaImg.src = liveSarta.src; frSartaImg.style.display = 'block'; }
+      else { frSartaImg.style.display = 'none'; }
+      const liveSartaTable = document.getElementById('d-sarta-table');
+      const frSartaTable = document.getElementById('fr-sarta-table');
+      if(frSartaTable && liveSartaTable) frSartaTable.innerHTML = liveSartaTable.innerHTML;
+      document.getElementById('fr-sarta-peso').textContent = txt('d-sarta-peso');
+      document.getElementById('fr-sarta-apibba').textContent = txt('d-sarta-apibba');
+      // Contrapesos
+      document.getElementById('fr-cbm').textContent = txt('d-cbm');
+      document.getElementById('fr-wcw').textContent = txt('d-wcw');
+      const frCpCards = document.getElementById('fr-cp-cards');
+      if(frCpCards){
+        frCpCards.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#8b93a0; padding:8px; font-size:11px;">Cargando contrapesos…</p>';
+        const wellAtRequest = currentWell;
+        loadContrapesosDetalladoForWell(wellAtRequest).then(det => {
+          if(currentWell !== wellAtRequest) return;
+          frCpCards.innerHTML = renderContrapesosDetalleHtml(det);
+        });
+      }
+      // Detalle tecnico
+      document.getElementById('fr-wrf').textContent = txt('dd-wrf');
+      document.getElementById('fr-fomax').textContent = txt('dd-fomax');
+      document.getElementById('fr-tv').textContent = txt('dd-tv');
+      document.getElementById('fr-sv').textContent = txt('dd-sv');
+      document.getElementById('fr-mpt').textContent = txt('dd-mpt');
+      document.getElementById('fr-ept').textContent = txt('dd-ept');
+      document.getElementById('fr-pipdyn').textContent = txt('dd-pipdyn');
+      document.getElementById('fr-rodpower').textContent = txt('dd-rodpower');
+
+      // ---- Seccion 2: Nivel ----
+      const acuChips = [
+        ['Nivel', w.nivel != null ? fmt(w.nivel,0) + ' m' : '—'],
+        ['Sumerg.', w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—'],
+        ['Sum. corr.', w.sumergc != null ? fmt(w.sumergc,0) + ' m' : '—'],
+        ['PIP Acu', w.pipEco != null ? fmt(w.pipEco,1) + ' kg' : '—'],
+        ['Prof. bba', w.pumpIntakeDepth != null ? fmt(w.pumpIntakeDepth,0) + ' m' : '—'],
+      ];
+      document.getElementById('fr-acu-chips').innerHTML = acuChips.map(([lbl,val]) => `<div class="qr-chip"><span class="qr-lbl">${lbl}</span><span class="qr-val">${val}</span></div>`).join('');
+      document.getElementById('fr-acu-comment').textContent = w.commentAcu || 'Sin comentarios registrados.';
+
+      // Esquema de pozo y buildup: se clonan directo del SVG ya dibujado en
+      // Resumen Pozo, para que el reporte coincida exacto con lo que se ve ahi.
+      const liveWellSvg = document.getElementById('rp-wellsvg');
+      const wellSvgWrap = document.getElementById('fr-wellsvg-wrap');
+      if(wellSvgWrap){
+        wellSvgWrap.innerHTML = '';
+        if(liveWellSvg){
+          const clone = liveWellSvg.cloneNode(true);
+          clone.removeAttribute('id');
+          clone.setAttribute('width', '260');
+          clone.setAttribute('height', '635');
+          wellSvgWrap.appendChild(clone);
+        }
+      }
+      const liveBuildupSvg = document.getElementById('rp-buildup-svg');
+      const buildupWrap = document.getElementById('fr-buildup-wrap');
+      if(buildupWrap){
+        buildupWrap.innerHTML = '';
+        if(liveBuildupSvg){
+          const clone = liveBuildupSvg.cloneNode(true);
+          clone.removeAttribute('id');
+          clone.setAttribute('width', '260');
+          clone.setAttribute('height', '160');
+          buildupWrap.appendChild(clone);
+        }
+      }
+      const liveTramosTable = document.getElementById('rp-tramos-table');
+      const frTramosTable = document.getElementById('fr-tramos-table');
+      if(frTramosTable && liveTramosTable) frTramosTable.innerHTML = liveTramosTable.innerHTML;
+
+      const now = new Date();
+      document.getElementById('fr-foot').textContent = `Generado por VA&PE App · ${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
     }
 
     btn.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
@@ -5345,6 +5718,107 @@
   const historyIdx = { DYN: 0, ACU: 0 }; // indice actual dentro del historial del pozo abierto
 
   const CONTRAPESOS_CACHE = {};
+  const CONTRAPESOS_DETALLE_CACHE = {};
+
+  // Desempaqueta "NOMBRE xN" -> {nombre, cant}, igual que Bitácora Online.
+  function unpackCantidadReporte(texto){
+    if(!texto) return { nombre: null, cant: null };
+    const m = /^(.*?)\s*[xX]\s*(\d+(?:[.,]\d+)?)\s*$/.exec(String(texto).trim());
+    if(m) return { nombre: m[1].trim() || null, cant: m[2] };
+    return { nombre: String(texto).trim() || null, cant: null };
+  }
+
+  // Trae los contrapesos REALES del pozo desde bitacora_contrapesos (la tabla
+  // detallada que carga Bitácora Online) — no la aproximacion vieja por mitades
+  // que usaba d-contrapesos-table. Devuelve { mode:'simple'|'detallado'|null, simple:{...}, manivelas:{1:[...],2:[...]} }.
+  async function loadContrapesosDetalladoForWell(wellName){
+    if(wellName in CONTRAPESOS_DETALLE_CACHE) return CONTRAPESOS_DETALLE_CACHE[wellName];
+    if(!supabaseClient){ CONTRAPESOS_DETALLE_CACHE[wellName] = null; return null; }
+    try {
+      const digits = String(wellName).replace(/\D/g, '');
+      let visitaId = null;
+      for(const val of [wellName, digits]){
+        if(!val) continue;
+        const { data, error } = await supabaseClient.from('bitacora_visitas')
+          .select('visita_id').ilike('well_name_raw', `%${val}%`)
+          .order('fecha', { ascending: false }).limit(1);
+        if(!error && data && data.length){ visitaId = data[0].visita_id; break; }
+      }
+      if(!visitaId){ CONTRAPESOS_DETALLE_CACHE[wellName] = null; return null; }
+
+      const { data: rows, error: cpErr } = await supabaseClient.from('bitacora_contrapesos').select('*').eq('visita_id', visitaId);
+      if(cpErr || !rows || !rows.length){ CONTRAPESOS_DETALLE_CACHE[wellName] = null; return null; }
+
+      let result = { mode: null, simple: null, manivelas: { 1: [], 2: [] } };
+      rows.forEach(cp => {
+        const manivela = cp.manivela_no;
+        const contrapeso = cp.contrapeso_no;
+        const placaPack = unpackCantidadReporte(cp.placa_principal);
+        const auxPack = unpackCantidadReporte(cp.aux1);
+        const distancia = cp.distancia_cm;
+        if(manivela === 0){
+          const aux2Raw = cp.aux2;
+          const cm2Match = aux2Raw && /^cm2:(.+)$/.exec(String(aux2Raw));
+          result.mode = 'simple';
+          result.simple = {
+            principal: { nombre: placaPack.nombre, cant: placaPack.cant, dist: distancia },
+            aux: { nombre: auxPack.nombre, cant: auxPack.cant, dist: cm2Match ? cm2Match[1] : null },
+          };
+        } else if(manivela === 1 || manivela === 2){
+          result.mode = result.mode || 'detallado';
+          result.manivelas[manivela].push({
+            contrapeso,
+            principal: { nombre: placaPack.nombre, cant: placaPack.cant, dist: distancia },
+            aux: { nombre: auxPack.nombre, cant: auxPack.cant, dist: distancia },
+          });
+        }
+      });
+      result.manivelas[1].sort((a,b) => a.contrapeso - b.contrapeso);
+      result.manivelas[2].sort((a,b) => a.contrapeso - b.contrapeso);
+      CONTRAPESOS_DETALLE_CACHE[wellName] = result;
+      return result;
+    } catch(e){
+      console.warn('contrapesos detallado:', e.message || e);
+      CONTRAPESOS_DETALLE_CACHE[wellName] = null;
+      return null;
+    }
+  }
+
+  // Arma el HTML prolijo (tarjetas Básico o Detallado) a partir del resultado
+  // de loadContrapesosDetalladoForWell, para el Reporte Completo.
+  function renderContrapesosDetalleHtml(det){
+    if(!det || !det.mode){
+      return '<p style="grid-column:1/-1; text-align:center; color:#8b93a0; padding:8px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>';
+    }
+    function placaRow(lbl, p){
+      if(!p || (!p.nombre && p.cant == null && p.dist == null)) return '';
+      return `<div class="qr-cp-plate-row">
+        <span class="qr-cp-plate-lbl">${lbl}</span>
+        <span class="qr-cp-plate-nombre">${p.nombre || '—'}</span>
+        <span class="qr-cp-plate-cant">Cant. ${p.cant != null ? p.cant : '—'}</span>
+        <span class="qr-cp-plate-dist">${p.dist != null ? p.dist+' cm' : '— cm'}</span>
+      </div>`;
+    }
+    if(det.mode === 'simple'){
+      return `<div class="qr-cp-card">
+        <div class="qr-cp-card-h">Contrapesos (Básico)</div>
+        ${placaRow('Placa Principal', det.simple.principal)}
+        ${placaRow('Placa Secundaria', det.simple.aux)}
+      </div>`;
+    }
+    return [1,2].map(m => {
+      const grupos = det.manivelas[m];
+      if(!grupos.length) return '';
+      const rows = grupos.map(g => `
+        ${placaRow('Placa Principal', g.principal)}
+        ${placaRow('Placa Secundaria', g.aux)}
+      `).join('<div class="qr-cp-plate-sep"></div>');
+      return `<div class="qr-cp-card">
+        <div class="qr-cp-card-h">Manivela ${m}</div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
 
   async function loadContrapesosForWell(wellName){
     const table = document.getElementById('d-contrapesos-table');
@@ -6956,6 +7430,7 @@
   if(acuHistNext) acuHistNext.addEventListener('click', ()=> navHistory('ACU', -1));
   initDinaDetailsModal();
   initQuickReportModal();
+  initFullReportModal();
   initConsultas();
 
   document.getElementById('prevBtn').addEventListener('click', ()=>{
