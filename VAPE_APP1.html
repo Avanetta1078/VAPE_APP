@@ -608,14 +608,23 @@
   .qr-kv-row .qr-kv-val{color:#1a1d22; font-family:'IBM Plex Mono'; font-weight:600; text-align:right;}
   .qr-chart-detail-row{display:grid; grid-template-columns:1.3fr 1fr; gap:14px; align-items:stretch; margin-bottom:4px;}
   .qr-cp-cards{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-  .qr-cp-card{background:#fff; border:1px solid #d7dbe1; border-radius:8px; padding:10px 12px;}
-  .qr-cp-card-h{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#2743a0; margin-bottom:7px;}
+  .qr-cp-card{background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px 12px;}
+  .qr-cp-card-h{font-family:'IBM Plex Sans Condensed'; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--navy-glow); margin-bottom:7px;}
   .qr-cp-plate-row{display:grid; grid-template-columns:80px 1fr 56px 64px; gap:6px; align-items:center; font-size:11.5px; padding:4px 0;}
-  .qr-cp-plate-lbl{color:#8b93a0; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;}
-  .qr-cp-plate-nombre{font-weight:600; color:#1a1d22;}
-  .qr-cp-plate-cant{font-family:'IBM Plex Mono'; color:#5b6470; text-align:right;}
-  .qr-cp-plate-dist{font-family:'IBM Plex Mono'; font-weight:600; color:#2743a0; text-align:right;}
-  .qr-cp-plate-sep{grid-column:1/-1; border-top:1px dashed #e2e5e9; margin:4px 0;}
+  .qr-cp-plate-lbl{color:var(--ink-faint); font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;}
+  .qr-cp-plate-nombre{font-weight:600; color:var(--ink);}
+  .qr-cp-plate-cant{font-family:'IBM Plex Mono'; color:var(--ink-dim); text-align:right;}
+  .qr-cp-plate-dist{font-family:'IBM Plex Mono'; font-weight:600; color:var(--navy-glow); text-align:right;}
+  .qr-cp-plate-sep{grid-column:1/-1; border-top:1px dashed var(--border); margin:4px 0;}
+  /* Version angosta: la columna lateral de Dina en vivo mide ~270px, mucho
+     menos que la hoja del reporte — se apila en 1 columna y las 4 columnas
+     fijas de cada placa pasan a envolver en 2 lineas, para que no se salga
+     del recuadro. */
+  #d-contrapesos-table.qr-cp-cards{grid-template-columns:1fr;}
+  #d-contrapesos-table .qr-cp-plate-row{display:flex; flex-wrap:wrap; column-gap:8px; row-gap:1px; font-size:10.5px; padding:3px 0;}
+  #d-contrapesos-table .qr-cp-plate-lbl{flex:0 0 100%; font-size:8.5px;}
+  #d-contrapesos-table .qr-cp-plate-nombre{flex:1 1 auto;}
+  #d-contrapesos-table .qr-cp-plate-cant, #d-contrapesos-table .qr-cp-plate-dist{flex:0 0 auto; text-align:left;}
   #fullReportModal .qr-sub{font-size:12.5px;}
   #fullReportModal .qr-chips-row .qr-chip .qr-lbl{font-size:10px;}
   #fullReportModal .qr-chips-row .qr-chip .qr-val{font-size:15px;}
@@ -674,11 +683,11 @@
      compacta, en la MISMA FILA que las tarjetas de resumen. */
   .cq-dsd-bar{display:flex; align-items:center; gap:3px; background:rgba(91,118,224,.12); border:1px solid rgba(91,118,224,.5);
     border-radius:6px; padding:2px 6px; flex:0 0 auto; white-space:nowrap;}
-  .cq-dsd-lbl{font-size:9px; color:var(--ink); font-weight:700; white-space:nowrap;}
-  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:9px; padding:1px 2px;}
+  .cq-dsd-lbl{font-size:11px; color:var(--ink); font-weight:700; white-space:nowrap;}
+  .cq-dsd-inline .cq-mini-select, .cq-dsd-inline .cq-mini-input{font-size:11px; padding:1px 2px;}
   .cq-dsd-inline .cq-mini-select{width:44px;}
   .cq-dsd-inline .cq-mini-input{width:36px;}
-  .cq-dsd-inline .cq-mini-btn{font-size:9px; padding:1px 5px;}
+  .cq-dsd-inline .cq-mini-btn{font-size:11px; padding:1px 5px;}
 
   .cq-viewmode{display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:0 10px; flex:0 0 auto;}
   .cq-vm-opt{display:flex; align-items:center; gap:5px; cursor:pointer; padding:5px 0;}
@@ -686,7 +695,7 @@
   .cq-vm-radio{width:11px; height:11px; border-radius:50%; border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
   .cq-vm-radio.on{border-color:#5b76e0;}
   .cq-vm-radio.on::after{content:""; width:5px; height:5px; border-radius:50%; background:#5b76e0;}
-  .cq-vm-label{font-size:10px; color:var(--ink); white-space:nowrap;}
+  .cq-vm-label{font-size:12px; color:var(--ink); white-space:nowrap;}
 
   /* El panel de columnas/filtros avanzados es un item mas de la misma fila;
      al abrirse NO empuja el resto (no reserva alto) — se despliega como
@@ -694,7 +703,7 @@
   .cq-fields-panel{border:1px solid var(--border); border-radius:7px; background:var(--panel-2); flex:0 0 auto; position:relative;}
   .cq-fields-panel summary{list-style:none; display:flex; align-items:center; gap:6px; padding:6px 11px; cursor:pointer; white-space:nowrap;}
   .cq-fields-panel summary::-webkit-details-marker{display:none;}
-  .cq-fields-head-title{font-size:10.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; white-space:nowrap;}
+  .cq-fields-head-title{font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; white-space:nowrap;}
   .cq-fields-head-title .cnt{font-size:9px; font-family:'IBM Plex Mono'; color:var(--steel-glow); background:rgba(143,180,214,.14); border-radius:999px; padding:1px 6px;}
   .cq-fields-head-chev{color:var(--ink-faint); font-size:9px; transition:transform .15s;}
   .cq-fields-panel[open] .cq-fields-head-chev{transform:rotate(180deg);}
@@ -739,7 +748,7 @@
   .cq-grillawrap{overflow:auto; max-height:72vh; border:1px solid var(--border); border-radius:10px;}
   table.cq-table{width:100%; border-collapse:collapse; font-size:11.5px;}
   table.cq-table th{position:sticky; top:0; background:var(--panel-2); text-align:left; font-weight:600; color:var(--ink-faint);
-    font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; padding:0; border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;}
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding:0; border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;}
   table.cq-table th .th-inner{display:flex; align-items:center; gap:2px; padding:7px 10px; position:relative;}
   table.cq-table td{padding:5px 10px; border-bottom:1px solid var(--border); color:var(--ink); font-family:'IBM Plex Mono'; white-space:nowrap;}
   table.cq-table tr:hover td{background:rgba(255,255,255,.03);}
@@ -836,27 +845,27 @@
   .th-filter-panel{
     position:absolute; top:100%; left:0; margin-top:2px; background:var(--panel); border:1px solid var(--border);
     border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.5); z-index:50; width:190px;
-    font-family:'IBM Plex Sans'; text-transform:none; letter-spacing:normal; font-size:11px; padding:8px; display:none;
+    font-family:'IBM Plex Sans'; text-transform:none; letter-spacing:normal; font-size:13px; padding:8px; display:none;
   }
   .th-filter-panel.open{ display:block; }
   .th-sort-row{ display:flex; gap:4px; margin-bottom:7px; }
   .th-sort-btn{
     flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink);
-    font-size:10px; padding:4px 2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;
+    font-size:12px; padding:4px 2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;
   }
   .th-sort-btn:hover, .th-sort-btn.th-sort-active{ border-color:#2ea05a; color:#2ea05a; }
   .th-search{
     width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink);
-    font-size:10.5px; padding:4px 6px; margin-bottom:6px; box-sizing:border-box;
+    font-size:12.5px; padding:4px 6px; margin-bottom:6px; box-sizing:border-box;
   }
   .th-check-list{ max-height:150px; overflow-y:auto; border-top:1px solid var(--border); padding-top:5px; }
-  .th-check-item{ display:flex; align-items:center; gap:6px; padding:3px 2px; cursor:pointer; font-size:10.5px; color:var(--ink); }
+  .th-check-item{ display:flex; align-items:center; gap:6px; padding:3px 2px; cursor:pointer; font-size:12.5px; color:var(--ink); }
   .th-check-item:hover{ color:#2ea05a; }
   .th-check-item input{ width:12px; height:12px; accent-color:#2ea05a; cursor:pointer; flex-shrink:0; }
   .th-filter-actions{ display:flex; gap:5px; margin-top:7px; }
   .th-filter-actions button{
     flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:5px; color:var(--ink-dim);
-    font-size:10px; padding:4px; cursor:pointer;
+    font-size:12px; padding:4px; cursor:pointer;
   }
   .th-filter-actions button:hover{ color:var(--ink); }
   .th-filter-actions .th-apply{ border-color:#2ea05a; color:#2ea05a; }
@@ -1125,7 +1134,7 @@
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">Carrera</span><span class="rp-val" id="rp-carrera">—</span></div>
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
         </div>
-        <div class="rp-chart-box"><img id="rp-dyn-img" src="" alt="Carta dinamométrica"></div>
+        <div class="rp-chart-box"><img id="rp-dyn-img" alt="Carta dinamométrica"></div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-dyn-comment">Sin comentarios registrados.</div>
         </div>
@@ -1136,10 +1145,6 @@
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
           <span id="rp-sistema" class="rp-badge rp-badge-pending" style="margin-left:8px; font-size:9px; padding:2px 8px;">Sistema: pendiente</span>
-          <button id="fullReportBtn" type="button" title="Reporte completo (Dina + Nivel) para descargar en PDF" style="margin-left:8px; font-size:9px; padding:2px 8px; border-radius:7px; background:none; border:1px dashed var(--border); color:var(--ink-dim); cursor:pointer; display:flex; align-items:center; gap:4px;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M9 15h6M9 11h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            Reporte completo
-          </button>
           <span class="stamp" id="rp-acu-stamp">—</span>
         </div>
         <div class="rp-comment-box">
@@ -1196,14 +1201,14 @@
             <button id="dyn-hist-next" title="Ensayo siguiente">›</button>
           </div>
           <div class="days-since-chip" id="daysSinceDyn">—</div>
-          <button class="details-btn" id="dinaReportBtn" type="button" style="margin-left:56px; padding:6px 12px; font-size:11px;" title="Informe rápido (Dina + Sonolog) para descargar en PDF">
+          <button class="details-btn" id="dinaReportBtn" type="button" style="margin-left:56px; padding:6px 12px; font-size:11px;" title="Informe Rápido (Dina + Nivel completo) para descargar en PDF">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M9 15h6M9 11h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            Informe rápido
+            Informe Rápido
           </button>
         </div><span class="stamp" id="dinaStamp">WPRT 490 · 29/06/2026 · 14:52:13 · Stroke 19/20</span></div>
         <div class="dina-layout">
         <div class="dina-main">
-        <div class="scope-real"><img src="" alt="Carta dinamométrica real ED-316"/></div>
+        <div class="scope-real"><img alt="Carta dinamométrica real ED-316"/></div>
         <div class="comment-box" id="dinaCommentBox">
           <span class="lbl">Comentario del operador</span>
           <span id="d-comment">Se observa golpe de fluido - leve golpe de bba inferior. Polea 30 - Nivel pegado a bba.-</span>
@@ -1236,6 +1241,8 @@
                 <td id="d-pctagua">100 %</td>
                 <td id="d-gas">155.1 m³/D</td>
               </tr>
+              <tr><th colspan="5">Efi Volumétrica</th></tr>
+              <tr><td colspan="5" id="d-voleff">—</td></tr>
             </table>
           </div>
           <div class="mini-grid">
@@ -1257,12 +1264,11 @@
         <div class="dina-side-col">
           <div class="mini-grid">
             <h4><i></i>Sarta de Varillas</h4>
-            <img class="sarta-img" id="d-sarta-img" src="" alt="Esquema de sarta de varillas">
+            <img class="sarta-img" id="d-sarta-img" alt="Esquema de sarta de varillas">
             <table class="gtab" id="d-sarta-table">
               <tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>
             </table>
             <table class="gtab" style="margin-top:8px;">
-              <tr><th>Cat. Varillas</th><td id="d-sarta-cat">—</td></tr>
               <tr><th>Peso Total Sarta</th><td id="d-sarta-peso" class="hl-pulse">—</td></tr>
               <tr><th>API Bba.</th><td id="d-sarta-apibba">—</td></tr>
             </table>
@@ -1341,12 +1347,12 @@
         <div class="qr-charts-row">
           <div class="qr-chart-col">
             <div class="qr-chart-lbl">Carta Dinamométrica</div>
-            <div class="scope-real qr-chart-box"><img id="qr-dyn-img" src="" alt="Carta dinamométrica"></div>
+            <div class="scope-real qr-chart-box"><img id="qr-dyn-img" alt="Carta dinamométrica"></div>
             <div class="qr-comment" id="qr-dyn-comment">Sin comentarios registrados.</div>
           </div>
           <div class="qr-chart-col">
             <div class="qr-chart-lbl">Nivel Acústico (Sonolog)</div>
-            <div class="scope-real qr-chart-box"><img id="qr-acu-img" src="" alt="Nivel acústico"></div>
+            <div class="scope-real qr-chart-box"><img id="qr-acu-img" alt="Nivel acústico"></div>
             <div class="qr-comment" id="qr-acu-comment">Sin comentarios registrados.</div>
           </div>
         </div>
@@ -1354,7 +1360,7 @@
         <div class="qr-sarta-row">
           <div class="qr-sarta-img-col">
             <div class="qr-chart-lbl">Sarta de Varillas</div>
-            <img class="sarta-img" id="qr-sarta-img" src="" alt="Esquema de sarta de varillas" style="max-height:260px;">
+            <img class="sarta-img" id="qr-sarta-img" alt="Esquema de sarta de varillas" style="max-height:260px;">
           </div>
           <div class="qr-sarta-table-col">
             <div class="qr-chart-lbl">Detalle de Sarta</div>
@@ -1399,7 +1405,7 @@
 
           <div class="qr-chart-detail-row">
             <div>
-              <div class="scope-real qr-chart-box"><img id="fr-dyn-img" src="" alt="Carta dinamométrica"></div>
+              <div class="scope-real qr-chart-box"><img id="fr-dyn-img" alt="Carta dinamométrica"></div>
               <div class="qr-comment" id="fr-dyn-comment">Sin comentarios registrados.</div>
             </div>
             <div class="qr-minicard">
@@ -1435,6 +1441,7 @@
                 <div class="qr-kv-row"><span class="qr-kv-lbl">Bruta</span><span class="qr-kv-val" id="fr-bruta">—</span></div>
                 <div class="qr-kv-row"><span class="qr-kv-lbl">% Agua</span><span class="qr-kv-val" id="fr-pctagua">—</span></div>
                 <div class="qr-kv-row"><span class="qr-kv-lbl">Gas</span><span class="qr-kv-val" id="fr-gas">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Efi Volumétrica</span><span class="qr-kv-val" id="fr-voleff">—</span></div>
               </div>
             </div>
             <div class="qr-minicard">
@@ -1465,7 +1472,7 @@
             <div class="qr-minicard qr-minicard-wide">
               <div class="qr-minicard-h">Sarta de Varillas</div>
               <div style="display:flex; gap:14px; align-items:flex-start;">
-                <img class="sarta-img" id="fr-sarta-img" src="" alt="Esquema de sarta de varillas" style="max-height:200px; flex-shrink:0;">
+                <img class="sarta-img" id="fr-sarta-img" alt="Esquema de sarta de varillas" style="max-height:200px; flex-shrink:0;">
                 <div style="flex:1; display:flex; gap:16px;">
                   <table class="gtab" id="fr-sarta-table" style="flex:1;"><tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr></table>
                   <div class="qr-kv" style="flex:0 0 160px;">
@@ -1524,7 +1531,7 @@
             <button id="acuResetZoom" class="details-btn" type="button" style="padding:5px 10px; font-size:11px;">Reset zoom</button>
           </div>
           <canvas id="acuInteractiveCanvas" style="display:none; width:100%; cursor:grab; border-radius:5px; box-shadow:0 2px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);"></canvas>
-        <img src="" alt="Nivel acústico real ED-316"/></div>
+        <img alt="Nivel acústico real ED-316"/></div>
         <div class="comment-box" id="sonologCommentBox">
           <span class="lbl">Comentario del operador (Eco)</span>
           <span id="s-comment">Sin comentarios registrados para este ensayo.</span>
@@ -2186,6 +2193,7 @@
           entry.wrf = d.calculated_buoyant_rod_weight_lb; entry.mpt = d.maximum_plunger_stroke_in; entry.ept = d.effective_plunger_travel_in;
           entry.fillage = d.adjusted_fillage_pct; entry.tubpres = d.dyn_tubing_pressure_kg; entry.pipdyn = d.pip_dyn_kg;
           entry.rodpower = d.polished_rod_power_hp; entry.spm = d.spm; entry.dt = t.test_date;
+          entry.volEff = d.volumetric_efficiency_pct;
           entry.torqueUp = d.existing_max_torque_upstroke_inlb;
           entry.torqueDown = d.existing_max_torque_downstroke_inlb;
           entry.cbExisting = d.existing_counterbalance_inlb;
@@ -2899,7 +2907,7 @@
       // No hay pozos (base vacia u operadora sin datos): blanquea todos los
       // campos en vez de dejar los valores viejos que traia el HTML de fabrica.
       ['v-nivel','v-sumerg','v-sumergc','v-fomax','v-tvsv','v-wrf',
-       'd-fillage','d-tubpres','d-spm','d-oil','d-water','d-bruta','d-pctagua','d-gas',
+       'd-fillage','d-tubpres','d-spm','d-oil','d-water','d-bruta','d-pctagua','d-gas','d-voleff',
        's-nivel','s-sumerg','s-sumergc','s-vel','s-jts','s-rttt','s-pcsg','s-pctliq',
        'dd-wrf','dd-fomax','dd-tv','dd-sv','dd-mpt','dd-ept','dd-pipdyn','dd-rodpower',
        'd-beam','d-carrera','d-spm2','d-cargamax','d-cargamin','d-unit-api','d-unit-class','d-unit-mfr',
@@ -3086,6 +3094,7 @@
     setDinaField('d-bruta', w.bruta, ' m³/D', 1);
     setDinaField('d-pctagua', w.pctagua, ' %', 1);
     setDinaField('d-gas', w.gas, ' m³/D', 1);
+    setDinaField('d-voleff', w.volEff, ' %', 1);
 
     // Unidad de Bombeo: Carrera/Carga Máx/Mín vienen del ensayo Dina actual;
     // Fabricante/Unidad/Descripción API son de la configuración fija del pozo.
@@ -3801,7 +3810,7 @@
   }
 
   function initQuickReportModal(){
-    const btn = document.getElementById('dinaReportBtn');
+    const btn = null; // dinaReportBtn ahora abre el Informe Rápido nuevo (fullReportModal), ver initFullReportModal()
     const modal = document.getElementById('quickReportModal');
     const closeBtn = document.getElementById('quickReportClose');
     const pdfBtn = document.getElementById('quickReportPdfBtn');
@@ -3885,11 +3894,11 @@
   }
 
   function initFullReportModal(){
-    const btn = document.getElementById('fullReportBtn');
+    const btn = document.getElementById('fullReportBtn'); // ya no existe (se saco de Resumen Pozo), se deja opcional
     const modal = document.getElementById('fullReportModal');
     const closeBtn = document.getElementById('fullReportClose');
     const pdfBtn = document.getElementById('fullReportPdfBtn');
-    if(!btn || !modal || !closeBtn) return;
+    if(!modal || !closeBtn) return;
 
     function txt(id){ const el = document.getElementById(id); return el ? el.textContent : '—'; }
 
@@ -3949,6 +3958,7 @@
       document.getElementById('fr-bruta').textContent = txt('d-bruta');
       document.getElementById('fr-pctagua').textContent = txt('d-pctagua');
       document.getElementById('fr-gas').textContent = txt('d-gas');
+      document.getElementById('fr-voleff').textContent = txt('d-voleff');
       // Unidad de bombeo
       document.getElementById('fr-beam').textContent = txt('d-beam');
       document.getElementById('fr-carrera').textContent = txt('d-carrera');
@@ -4043,7 +4053,9 @@
       document.getElementById('fr-foot').textContent = `Generado por VA&PE App · ${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
     }
 
-    btn.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
+    const btn2 = document.getElementById('dinaReportBtn');
+    if(btn) btn.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
+    if(btn2) btn2.addEventListener('click', ()=>{ fillReport(); modal.classList.add('active'); });
     closeBtn.addEventListener('click', ()=> modal.classList.remove('active'));
     modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
@@ -4287,11 +4299,11 @@
     const counts = {};
     base.forEach(r => { const s = r.sistema || 'Sin clasificar'; counts[s] = (counts[s]||0) + 1; });
     const order = ['AIB','BES','PCP','ROTAFLEX','SSE','Sin clasificar'];
-    const keys = order.filter(k => counts[k]).concat(Object.keys(counts).filter(k => !order.includes(k)));
+    const keys = order.filter(k => k !== 'Sin clasificar' || counts[k]).concat(Object.keys(counts).filter(k => !order.includes(k)));
     const selectedSistemas = cqState.colFilters.sistema;
     grid.innerHTML = keys.map(k => `
       <div class="cq-resumen-card ${selectedSistemas && selectedSistemas.has(k) ? 'active' : ''}" data-sistema="${k}">
-        <span class="lbl">${k}</span><span class="num">${counts[k]}</span>
+        <span class="lbl">${k}</span><span class="num">${counts[k] || 0}</span>
       </div>`).join('');
     grid.querySelectorAll('.cq-resumen-card').forEach(card => {
       card.addEventListener('click', (ev) => {
@@ -4702,6 +4714,20 @@
   }
 
   function initConsultas(){
+    // Refuerzo manual del toggle del panel de columnas/filtros: no depende
+    // solo del comportamiento nativo de <details>/<summary>, para que abra
+    // siempre pase lo que pase con el navegador.
+    const fieldsPanel = document.getElementById('cq-fields-panel');
+    if(fieldsPanel){
+      const summary = fieldsPanel.querySelector('summary');
+      if(summary){
+        summary.addEventListener('click', (e) => {
+          e.preventDefault();
+          fieldsPanel.open = !fieldsPanel.open;
+        });
+      }
+    }
+
     document.querySelectorAll('input[name="cqScope"]').forEach(radio => radio.addEventListener('change', (e) => {
       cqState.scope = e.target.value;
       cqSyncScopeRadios();
