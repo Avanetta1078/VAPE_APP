@@ -7443,21 +7443,15 @@
         }
       }
       if(condicionInput && newCondicion !== condicionInput.dataset.orig && newCondicion !== ''){
-        // "Tipo Ensayo" (Dinamico/Estatico) = acu_results.well_state. Se
-        // edita sin importar el tipo de la fila (Dina/Nivel/Combinada/etc):
-        // se escribe en el ensayo de Nivel de ESTA fila si lo tiene, y si no
-        // (ej. una fila Dina, o un pozo sin Nivel en esta fecha puntual) se
-        // usa el ensayo de Nivel MAS RECIENTE del pozo en general — well_state
-        // es, en la practica, un estado del pozo, no de un ensayo puntual.
-        const targetAcuId = acuTestId != null ? acuTestId : w.acuTestId;
-        if(targetAcuId == null){
-          alert('Este pozo todavía no tiene ningún ensayo de Nivel cargado en la base — no hay un registro de Nivel al cual asociarle el Well State. Cargá primero un ensayo de Nivel para este pozo.');
-        } else {
-          const { error } = await supabaseClient.from('acu_results').update({ well_state: newCondicion === 'Dinámico' ? 'Producing' : 'Static' }).eq('test_id', targetAcuId);
-          if(error) throw error;
-          w.wellState = newCondicion === 'Dinámico' ? 'Producing' : 'Static';
-          (w.history || []).forEach(h => { if(h.testId === targetAcuId) h.wellState = w.wellState; });
-        }
+        // "Tipo Ensayo" (Dinamico/Estatico) = well_state. Se edita en
+        // cualquier fila sin condicion — Dina, Nivel o Combinada — sin
+        // exigir que haya un ensayo de Nivel: se usa el test_id que la fila
+        // ya tenga a mano (el propio, o si no el del pozo).
+        const targetTestId = acuTestId != null ? acuTestId : (dynTestId != null ? dynTestId : (w.acuTestId != null ? w.acuTestId : w.dynTestId));
+        const { error } = await supabaseClient.from('acu_results').update({ well_state: newCondicion === 'Dinámico' ? 'Producing' : 'Static' }).eq('test_id', targetTestId);
+        if(error) throw error;
+        w.wellState = newCondicion === 'Dinámico' ? 'Producing' : 'Static';
+        (w.history || []).forEach(h => { if(h.testId === targetTestId) h.wellState = w.wellState; });
       }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
