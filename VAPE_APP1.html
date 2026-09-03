@@ -1996,6 +1996,92 @@
   </div>
   </div>
 
+  <!-- ===================== MODAL: ADMINISTRACIÓN DE USUARIOS ===================== -->
+  <div class="modal-overlay" id="userAdminModal">
+    <div class="modal-box" style="width:min(520px,94vw); max-height:90vh; overflow-y:auto;">
+      <h3 id="userAdminModalTitle">Nuevo usuario
+        <button class="modal-close" id="userAdminModalClose" type="button">&#10005;</button>
+      </h3>
+      <div style="display:grid; gap:14px;">
+        <input type="hidden" id="uam-id">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Usuario *</label>
+            <input type="text" id="uam-username" placeholder="ej. jperez" autocomplete="off"
+              style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit;">
+          </div>
+          <div>
+            <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Nombre completo</label>
+            <input type="text" id="uam-nombre" placeholder="ej. Juan Pérez" autocomplete="off"
+              style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Contraseña *</label>
+          <div style="position:relative;">
+            <input type="password" id="uam-pass" placeholder="Contraseña" autocomplete="new-password"
+              style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 36px 8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit;">
+            <button type="button" id="uam-pass-toggle"
+              style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:11px; padding:0;">mostrar</button>
+          </div>
+          <p id="uam-pass-note" style="margin:4px 0 0; font-size:10.5px; color:var(--ink-faint);">Al editar, dejá vacío para no cambiar la contraseña.</p>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Rol *</label>
+            <select id="uam-role"
+              style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit; cursor:pointer;">
+              <option value="admin">Admin — acceso global</option>
+              <option value="cliente">Cliente — solo su operadora</option>
+              <option value="operador">Operador — Bitácora Online</option>
+            </select>
+          </div>
+          <div id="uam-op-wrap">
+            <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Operadora asignada</label>
+            <select id="uam-operadora"
+              style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit; cursor:pointer;">
+              <option value="">— Todas —</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="uam-activo" checked style="width:14px; height:14px; accent-color:#5b76e0; cursor:pointer;">
+          <label for="uam-activo" style="font-size:12px; color:var(--ink); cursor:pointer;">Usuario activo</label>
+        </div>
+        <p id="uam-error" style="display:none; color:#ff8f8f; font-size:11.5px; margin:0;"></p>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:4px;">
+          <button type="button" id="uam-cancel"
+            style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 18px; color:var(--ink); font-size:12px; cursor:pointer;">Cancelar</button>
+          <button type="button" id="uam-save"
+            style="background:#5b76e0; border:none; border-radius:8px; padding:8px 22px; color:#fff; font-size:12px; font-weight:600; cursor:pointer; letter-spacing:.02em;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: NUEVA OPERADORA ===================== -->
+  <div class="modal-overlay" id="operadoraModal">
+    <div class="modal-box" style="width:min(380px,92vw);">
+      <h3>Nueva operadora
+        <button class="modal-close" id="operadoraModalClose" type="button">&#10005;</button>
+      </h3>
+      <div style="display:grid; gap:12px;">
+        <div>
+          <label style="font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; display:block; margin-bottom:5px;">Nombre de operadora *</label>
+          <input type="text" id="om-nombre" placeholder="ej. Crown Point"
+            style="width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; color:var(--ink); font-size:12.5px; font-family:inherit;">
+        </div>
+        <p id="om-error" style="display:none; color:#ff8f8f; font-size:11.5px; margin:0;"></p>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" id="om-cancel"
+            style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:8px 18px; color:var(--ink); font-size:12px; cursor:pointer;">Cancelar</button>
+          <button type="button" id="om-save"
+            style="background:#5b76e0; border:none; border-radius:8px; padding:8px 22px; color:#fff; font-size:12px; font-weight:600; cursor:pointer;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <div class="stage">
     <div class="brand" id="loginBrand">
@@ -2005,7 +2091,7 @@
       </svg>
     </div>
 
-    <!-- ===== STEP 1: role selection ===== -->
+    <!-- ===== STEP 1: role selection (visual, no determina el rol real — ese viene de Supabase) ===== -->
     <div id="roleStep">
       <div class="role-grid">
         <div class="role-card operador" onclick="selectRole('operador')">
@@ -2021,9 +2107,9 @@
           <div class="icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <h2>Cliente</h2>
-          <p>Cartas, historial y reportes de tus pozos — consultá y descargá la información que necesites.</p>
-          <div class="go">Ingresar como cliente →</div>
+          <h2>Cliente / Admin</h2>
+          <p>Cartas, historial y reportes de pozos — consultá, exportá y administrá la plataforma VA&amp;PE.</p>
+          <div class="go">Ingresar →</div>
         </div>
       </div>
     </div>
@@ -2040,22 +2126,21 @@
 
         <div class="field">
           <label>Usuario</label>
-          <input type="text" id="loginUser" placeholder="usuario">
+          <input type="text" id="loginUser" placeholder="usuario" autocomplete="username"
+            onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
         </div>
         <div class="field">
           <label>Contraseña</label>
-          <input type="password" id="loginPass" placeholder="••••••••••">
+          <input type="password" id="loginPass" placeholder="••••••••••" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') attemptLogin()">
         </div>
         <button class="btn-primary" id="submitBtn" onclick="attemptLogin()">Ingresar</button>
-        <p id="loginError" style="color:#e8663f; font-size:12px; margin:10px 0 0; display:none;">Usuario o contraseña incorrectos.</p>
+        <p id="loginError" style="color:#e8663f; font-size:12px; margin:10px 0 0; display:none;">Usuario o contraseña incorrectos, o cuenta inactiva.</p>
 
-        <div class="divider">o continuar con</div>
-        <button class="btn-google">
-          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.7 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.5l-6.5-5.4C29.5 34.9 26.9 36 24 36c-5.3 0-9.8-3.3-11.4-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 3-3.1 5.5-5.8 7.1l6.5 5.4C39.9 37.1 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-          Continuar con Google
-        </button>
-
-        <p class="foot-note">¿Problemas para ingresar? <a href="#">Contactar a soporte VA&amp;PE</a></p>
+        <p class="foot-note" style="margin-top:16px;">
+          El acceso y los permisos se determinan automáticamente según el usuario registrado.<br>
+          <span style="opacity:.6;">Operadores son redirigidos a la Bitácora Online.</span>
+        </p>
       </div>
     </div>
   </div>
@@ -2445,9 +2530,15 @@
     }
     const scopeEl = document.getElementById('userScopeTag');
     if(scopeEl){
-      scopeEl.textContent = currentUser.role === 'admin'
-        ? 'VA&PE · todas las operadoras'
-        : (currentUser.nombre || currentUser.operadora);
+      const roleBadge = currentUser.role === 'admin'
+        ? '<span style="background:rgba(200,50,50,.22);color:#ff8f8f;padding:1px 6px;border-radius:4px;font-size:9px;margin-right:5px;">ADMIN</span>'
+        : currentUser.role === 'cliente'
+          ? '<span style="background:rgba(212,175,55,.22);color:#e6c34d;padding:1px 6px;border-radius:4px;font-size:9px;margin-right:5px;">CLIENTE</span>'
+          : '';
+      const label = currentUser.role === 'admin'
+        ? 'VA&amp;PE · todas las operadoras'
+        : (currentUser.nombre || currentUser.operadora || currentUser.user);
+      scopeEl.innerHTML = roleBadge + label;
     }
     if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
     renderWell();
@@ -3219,8 +3310,10 @@
   async function attemptLogin(){
     const user = document.getElementById('loginUser').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value;
-    const err = document.getElementById('loginError');
+    const err  = document.getElementById('loginError');
+    const btn  = document.getElementById('submitBtn');
     err.style.display = 'none';
+    btn.disabled = true; btn.textContent = 'Verificando…';
 
     // Consultar tabla users en Supabase
     const { data, error } = await supabaseClient
@@ -3230,6 +3323,8 @@
       .eq('activo', true)
       .single();
 
+    btn.disabled = false; btn.textContent = 'Ingresar';
+
     if(error || !data || data.password_hash !== pass){
       err.style.display = 'block';
       return;
@@ -3238,6 +3333,13 @@
     currentUser = { user, role: data.role, nombre: data.nombre, operadora: data.operadora };
     currentRole = data.role;
 
+    // ---- OPERADOR → redirigir a Bitácora Online (app separada) ----
+    if(data.role === 'operador'){
+      window.location.href = 'bitacora_final.html';
+      return;
+    }
+
+    // ---- CLIENTE o ADMIN → entrar al dashboard de VAPE_APP ----
     document.getElementById('roleStep').style.display = 'none';
     document.getElementById('loginStep').style.display = 'none';
     document.getElementById('loginBrand').style.display = 'none';
@@ -3245,6 +3347,10 @@
     document.body.classList.add('dash-active');
     const tw = document.querySelector('.topbar-wrap');
     if(tw){ document.documentElement.style.setProperty('--topbar-h', tw.offsetHeight + 'px'); }
+
+    // ---- Aplicar restricciones de interfaz según rol ----
+    applyRoleRestrictions(data.role);
+
     initWellSearch();
     Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
     wellNames = [];
@@ -3253,9 +3359,31 @@
     const scopeElInit = document.getElementById('userScopeTag');
     if(scopeElInit) scopeElInit.textContent = 'Cargando…';
     testSupabaseConnection();
-    loadLiveDataFromSupabase().then(ok => {
+    loadLiveDataFromSupabase().then(() => {
       initScopeForUser();
     });
+  }
+
+  // ---- Restricciones de UI según rol ----
+  function applyRoleRestrictions(role){
+    if(role === 'cliente'){
+      // 1. Ocultar menú Herramientas
+      document.querySelectorAll('#menu button').forEach(btn => {
+        if(btn.dataset.view === 'herramientas') btn.style.display = 'none';
+      });
+      // 2. Deshabilitar/ocultar botón Editar en Inicio
+      const editBtn = document.getElementById('ifEditBtn');
+      if(editBtn){ editBtn.style.display = 'none'; }
+      // 3. Ocultar checkboxes de selección masiva y barra bulk
+      const bulkBar = document.getElementById('inicioBulkBar');
+      if(bulkBar) bulkBar.style.display = 'none';
+      const selectAllCk = document.getElementById('inicioSelectAll');
+      if(selectAllCk) selectAllCk.style.visibility = 'hidden';
+      // 4. Etiquetar sesión en topbar
+      const scopeEl = document.getElementById('userScopeTag');
+      if(scopeEl) scopeEl.style.background = 'rgba(212,175,55,.15)';
+    }
+    // Admin: sin restricciones; todo habilitado.
   }
 
 
@@ -7213,54 +7341,248 @@
     });
   })();
 
-    // ---- Módulo Administración de Usuarios ----
+  // ============================================================
+  // MÓDULO ADMINISTRACIÓN DE USUARIOS — v2 (modal, sin prompt)
+  // ============================================================
+
+  // Lista interna de operadoras conocidas (se sincroniza con la tabla wells)
+  let _operadorasKnown = [];
+
+  // ---- Helpers de rol ----
+  function roleLbl(r){ return r==='admin'?'Admin':r==='operador'?'Operador':'Cliente'; }
+  function roleColor(r){
+    if(r==='admin') return 'background:rgba(200,50,50,.18);color:#ff8f8f;';
+    if(r==='operador') return 'background:rgba(58,84,184,.18);color:#8ea3f0;';
+    return 'background:rgba(212,175,55,.18);color:#e6c34d;';
+  }
+
+  // ---- Cargar lista de operadoras únicas desde la tabla wells ----
+  async function loadOperadorasKnown(){
+    // Primero intentamos desde WELLS_DB (ya en memoria)
+    const fromMem = [...new Set(Object.values(WELLS_DB).map(w=>w.operadora).filter(Boolean))].sort();
+    if(fromMem.length){ _operadorasKnown = fromMem; return fromMem; }
+    // Si no hay datos en memoria (p.ej. al abrir Herramientas antes de cargar pozos), consultamos Supabase
+    const { data } = await supabaseClient.from('wells').select('operadora');
+    const ops = [...new Set((data||[]).map(w=>w.operadora).filter(Boolean))].sort();
+    _operadorasKnown = ops;
+    return ops;
+  }
+
+  // ---- Renderizar tabla de usuarios ----
   async function loadUsuariosTable(){
     const tbody = document.getElementById('usuariosTableBody');
     if(!tbody) return;
     tbody.innerHTML = `<tr><td colspan="5" style="padding:12px 8px; color:var(--ink-dim); font-size:11px;">Cargando…</td></tr>`;
-    const { data, error } = await supabaseClient.from('users').select('user_id,username,role,nombre,operadora,activo').order('user_id');
+    const [{ data, error }, ops] = await Promise.all([
+      supabaseClient.from('users').select('user_id,username,role,nombre,operadora,activo').order('user_id'),
+      loadOperadorasKnown()
+    ]);
     if(error){ tbody.innerHTML = `<tr><td colspan="5" style="color:#ff8f8f; padding:8px;">Error: ${error.message}</td></tr>`; return; }
-    tbody.innerHTML = data.map(u => {
-      const roleColor = u.role==='admin' ? 'background:rgba(200,50,50,.18); color:#ff8f8f;' : u.role==='operador' ? 'background:rgba(58,84,184,.18); color:#8ea3f0;' : 'background:rgba(212,175,55,.18); color:#e6c34d;';
-      const roleLbl = u.role==='admin' ? 'Admin' : u.role==='operador' ? 'Operador' : 'Cliente';
-      return `<tr style="border-top:1px solid var(--border); color:var(--ink);">
-        <td style="padding:9px 8px;">${u.username}</td>
-        <td style="padding:9px 8px;"><span style="${roleColor} padding:2px 8px; border-radius:6px; font-size:10px;">${roleLbl}</span></td>
-        <td style="padding:9px 8px; color:var(--ink-dim);">${u.operadora||'Todas'}</td>
-        <td style="padding:9px 8px;"><span style="color:${u.activo ? '#5fd68a' : '#ff8f8f'};">● ${u.activo ? 'Activo' : 'Inactivo'}</span></td>
-        <td style="padding:9px 8px; text-align:right; color:#5b76e0; cursor:pointer;" onclick="editUsuario(${u.user_id})">Editar</td>
-      </tr>`;
-    }).join('');
+    if(!data||!data.length){ tbody.innerHTML = `<tr><td colspan="5" style="padding:12px 8px; color:var(--ink-dim); font-size:11px;">Sin usuarios registrados.</td></tr>`; return; }
+    tbody.innerHTML = data.map(u => `
+      <tr style="border-top:1px solid var(--border); color:var(--ink);">
+        <td style="padding:9px 8px;">${u.nombre ? `<span style="font-weight:600;">${u.username}</span><br><span style="font-size:10.5px;color:var(--ink-dim);">${u.nombre}</span>` : u.username}</td>
+        <td style="padding:9px 8px;"><span style="${roleColor(u.role)} padding:2px 8px; border-radius:6px; font-size:10px; white-space:nowrap;">${roleLbl(u.role)}</span></td>
+        <td style="padding:9px 8px; color:var(--ink-dim); font-size:11.5px;">${u.operadora||'<em style="opacity:.5">Todas</em>'}</td>
+        <td style="padding:9px 8px;"><span style="color:${u.activo?'#5fd68a':'#ff8f8f'}; font-size:11px;">● ${u.activo?'Activo':'Inactivo'}</span></td>
+        <td style="padding:9px 8px; text-align:right;">
+          <button type="button" onclick="uamOpenEdit(${u.user_id})"
+            style="background:none; border:1px solid var(--border); border-radius:6px; padding:3px 10px; color:#5b76e0; font-size:10.5px; cursor:pointer; margin-right:4px;">Editar</button>
+          <button type="button" onclick="uamDelete(${u.user_id},'${u.username.replace(/'/g,"\\\'")}')"
+            style="background:none; border:1px solid var(--border); border-radius:6px; padding:3px 10px; color:#ff8f8f; font-size:10.5px; cursor:pointer;">Eliminar</button>
+        </td>
+      </tr>`).join('');
+    // ---- Renderizar chips de operadoras ----
+    renderOperadorasChips(ops);
   }
 
-  async function editUsuario(id){
+  function renderOperadorasChips(ops){
+    const el = document.getElementById('operadorasList');
+    if(!el) return;
+    if(!ops||!ops.length){ el.innerHTML = `<span style="font-size:11px; color:var(--ink-dim);">Sin operadoras cargadas.</span>`; return; }
+    el.innerHTML = ops.map(o => `
+      <span style="background:var(--panel-2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--ink); display:flex; align-items:center; gap:6px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#5b76e0;display:inline-block;"></span>${o}
+      </span>`).join('');
+  }
+
+  // ---- Poblar el <select> de operadoras del modal ----
+  function uamFillOpSelect(selected){
+    const sel = document.getElementById('uam-operadora');
+    if(!sel) return;
+    const ops = _operadorasKnown.length ? _operadorasKnown : ['PECOM','BREST','Crown Point','Vista Oil'];
+    sel.innerHTML = `<option value="">— Todas —</option>` +
+      ops.map(o => `<option value="${o}" ${o===selected?'selected':''}>${o}</option>`).join('');
+  }
+
+  // ---- Visibilidad del campo Operadora según rol ----
+  function uamSyncOpField(){
+    const role = document.getElementById('uam-role').value;
+    const wrap = document.getElementById('uam-op-wrap');
+    if(!wrap) return;
+    // Admin no necesita operadora asignada (ve todo); Operador y Cliente sí.
+    if(role==='admin'){
+      wrap.style.opacity = '.4';
+      wrap.style.pointerEvents = 'none';
+    } else {
+      wrap.style.opacity = '1';
+      wrap.style.pointerEvents = 'auto';
+    }
+  }
+
+  // ---- Abrir modal en modo NUEVO ----
+  function uamOpenNew(){
+    document.getElementById('uam-id').value = '';
+    document.getElementById('uam-username').value = '';
+    document.getElementById('uam-nombre').value = '';
+    document.getElementById('uam-pass').value = '';
+    document.getElementById('uam-role').value = 'cliente';
+    document.getElementById('uam-activo').checked = true;
+    document.getElementById('uam-error').style.display = 'none';
+    document.getElementById('uam-pass-note').style.display = 'none';
+    document.getElementById('uam-username').disabled = false;
+    document.getElementById('userAdminModalTitle').textContent = 'Nuevo usuario';
+    uamFillOpSelect('');
+    uamSyncOpField();
+    document.getElementById('userAdminModal').classList.add('active');
+  }
+
+  // ---- Abrir modal en modo EDITAR ----
+  async function uamOpenEdit(id){
     const { data, error } = await supabaseClient.from('users').select('*').eq('user_id', id).single();
     if(error||!data) return;
-    const nuevo_pass = prompt(`Contraseña para ${data.username} (dejá vacío para no cambiar):`);
-    const nueva_op = prompt(`Operadora (PECOM/BREST/CROWN POINT/VISTA OIL, o vacío para Todas):`, data.operadora||'');
-    const nuevo_activo = confirm(`¿Usuario activo?`);
-    const update = { operadora: nueva_op||null, activo: nuevo_activo };
-    if(nuevo_pass && nuevo_pass.trim()) update.password_hash = nuevo_pass.trim();
-    await supabaseClient.from('users').update(update).eq('user_id', id);
+    await loadOperadorasKnown();
+    document.getElementById('uam-id').value = data.user_id;
+    document.getElementById('uam-username').value = data.username;
+    document.getElementById('uam-username').disabled = true; // el username no se cambia (es PK lógica)
+    document.getElementById('uam-nombre').value = data.nombre||'';
+    document.getElementById('uam-pass').value = '';
+    document.getElementById('uam-role').value = data.role||'cliente';
+    document.getElementById('uam-activo').checked = !!data.activo;
+    document.getElementById('uam-error').style.display = 'none';
+    document.getElementById('uam-pass-note').style.display = 'block';
+    document.getElementById('userAdminModalTitle').textContent = `Editar usuario — ${data.username}`;
+    uamFillOpSelect(data.operadora||'');
+    uamSyncOpField();
+    document.getElementById('userAdminModal').classList.add('active');
+  }
+
+  // ---- Cerrar modal de usuario ----
+  function uamClose(){
+    document.getElementById('userAdminModal').classList.remove('active');
+  }
+
+  // ---- Guardar (create / update) ----
+  async function uamSave(){
+    const id       = document.getElementById('uam-id').value;
+    const username = document.getElementById('uam-username').value.trim().toLowerCase();
+    const nombre   = document.getElementById('uam-nombre').value.trim();
+    const pass     = document.getElementById('uam-pass').value;
+    const role     = document.getElementById('uam-role').value;
+    const operadora= document.getElementById('uam-role').value==='admin' ? null : (document.getElementById('uam-operadora').value||null);
+    const activo   = document.getElementById('uam-activo').checked;
+    const errEl    = document.getElementById('uam-error');
+    errEl.style.display = 'none';
+
+    if(!username){ errEl.textContent='El nombre de usuario es obligatorio.'; errEl.style.display='block'; return; }
+    if(!id && !pass){ errEl.textContent='La contraseña es obligatoria para usuarios nuevos.'; errEl.style.display='block'; return; }
+
+    const saveBtn = document.getElementById('uam-save');
+    saveBtn.disabled = true; saveBtn.textContent = 'Guardando…';
+
+    let error;
+    if(id){
+      // UPDATE
+      const patch = { nombre: nombre||null, role, operadora, activo };
+      if(pass.trim()) patch.password_hash = pass.trim();
+      ({ error } = await supabaseClient.from('users').update(patch).eq('user_id', Number(id)));
+    } else {
+      // INSERT
+      ({ error } = await supabaseClient.from('users').insert({
+        username, password_hash: pass, role, nombre: nombre||null, operadora, activo
+      }));
+    }
+
+    saveBtn.disabled = false; saveBtn.textContent = 'Guardar';
+    if(error){ errEl.textContent = 'Error: ' + (error.message||JSON.stringify(error)); errEl.style.display='block'; return; }
+    uamClose();
     loadUsuariosTable();
   }
 
-  async function crearUsuario(){
-    const username = prompt('Nombre de usuario:');
-    if(!username) return;
-    const pass = prompt('Contraseña:');
-    if(!pass) return;
-    const role = prompt('Rol (admin/operador/cliente):');
-    if(!['admin','operador','cliente'].includes(role)) return alert('Rol inválido');
-    const nombre = prompt('Nombre completo:');
-    const operadora = prompt('Operadora (PECOM/BREST/CROWN POINT/VISTA OIL, o vacío para Todas):');
-    const { error } = await supabaseClient.from('users').insert({ username, password_hash: pass, role, nombre, operadora: operadora||null, activo: true });
-    if(error) return alert('Error: ' + error.message);
+  // ---- Eliminar usuario ----
+  async function uamDelete(id, username){
+    // Protección: no permitir borrar al usuario actualmente logueado
+    if(currentUser && currentUser.user === username){
+      alert('No podés eliminar tu propio usuario mientras estás logueado.');
+      return;
+    }
+    if(!confirm(`¿Eliminar el usuario "${username}"?\nEsta acción no se puede deshacer.`)) return;
+    const { error } = await supabaseClient.from('users').delete().eq('user_id', id);
+    if(error){ alert('Error al eliminar: ' + error.message); return; }
     loadUsuariosTable();
   }
 
-  const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
-  if(btnNuevoUsuario) btnNuevoUsuario.addEventListener('click', crearUsuario);
+  // ---- Modal de nueva operadora ----
+  function omOpen(){
+    document.getElementById('om-nombre').value = '';
+    document.getElementById('om-error').style.display = 'none';
+    document.getElementById('operadoraModal').classList.add('active');
+    setTimeout(()=>document.getElementById('om-nombre').focus(), 80);
+  }
+  function omClose(){
+    document.getElementById('operadoraModal').classList.remove('active');
+  }
+  async function omSave(){
+    const nombre = document.getElementById('om-nombre').value.trim();
+    const errEl  = document.getElementById('om-error');
+    errEl.style.display = 'none';
+    if(!nombre){ errEl.textContent='El nombre es obligatorio.'; errEl.style.display='block'; return; }
+    // Las operadoras no tienen tabla propia — se insertan insertando un pozo
+    // placeholder que el admin borra después, O simplemente se actualizan en
+    // el selector de usuarios. Acá lo que hacemos es agregar el nombre a la
+    // lista interna para que aparezca en el selector de usuarios inmediatamente.
+    if(!_operadorasKnown.includes(nombre)){
+      _operadorasKnown = [..._operadorasKnown, nombre].sort();
+    }
+    omClose();
+    renderOperadorasChips(_operadorasKnown);
+    // Refrescar el select si el modal de usuario está abierto
+    const uamModal = document.getElementById('userAdminModal');
+    if(uamModal && uamModal.classList.contains('active')) uamFillOpSelect('');
+  }
+
+  // ---- Conectar eventos del modal de usuario ----
+  (function initUserAdminModal(){
+    const modal = document.getElementById('userAdminModal');
+    document.getElementById('userAdminModalClose').addEventListener('click', uamClose);
+    document.getElementById('uam-cancel').addEventListener('click', uamClose);
+    document.getElementById('uam-save').addEventListener('click', uamSave);
+    modal.addEventListener('click', e=>{ if(e.target===modal) uamClose(); });
+    document.getElementById('uam-role').addEventListener('change', uamSyncOpField);
+    // Toggle visibilidad contraseña
+    document.getElementById('uam-pass-toggle').addEventListener('click', ()=>{
+      const inp = document.getElementById('uam-pass');
+      const btn = document.getElementById('uam-pass-toggle');
+      inp.type = inp.type==='password' ? 'text' : 'password';
+      btn.textContent = inp.type==='password' ? 'mostrar' : 'ocultar';
+    });
+    // Enter en el modal guarda
+    modal.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); uamSave(); } });
+
+    // Modal nueva operadora
+    const omModal = document.getElementById('operadoraModal');
+    document.getElementById('operadoraModalClose').addEventListener('click', omClose);
+    document.getElementById('om-cancel').addEventListener('click', omClose);
+    document.getElementById('om-save').addEventListener('click', omSave);
+    omModal.addEventListener('click', e=>{ if(e.target===omModal) omClose(); });
+    document.getElementById('om-nombre').addEventListener('keydown', e=>{ if(e.key==='Enter') omSave(); });
+
+    // Botones en Herramientas
+    const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
+    if(btnNuevoUsuario) btnNuevoUsuario.addEventListener('click', ()=>{ loadOperadorasKnown().then(()=>uamOpenNew()); });
+    const btnNuevaOperadora = document.getElementById('btnNuevaOperadora');
+    if(btnNuevaOperadora) btnNuevaOperadora.addEventListener('click', omOpen);
+  })();
 
   // Cargar tabla cuando se activa la vista Herramientas
   document.querySelectorAll('#menu button').forEach(btn => {
@@ -7308,6 +7630,8 @@
   }
 
   function inicioEnterEditMode(){
+    // Clientes no pueden editar datos
+    if(currentUser && currentUser.role === 'cliente') return;
     if(!inicioActiveRowKey || inicioEditingRowKey) return;
     const tr = document.querySelector(`#inicioTableBody tr[data-rowkey="${CSS.escape(inicioActiveRowKey)}"]`);
     if(!tr) return;
@@ -7511,6 +7835,8 @@
   // Inicio para saltar directo a Resumen Pozo), con la misma logica que el
   // click manual en el menu de arriba.
   function goToView(viewName){
+    // Clientes no pueden acceder a Herramientas
+    if(viewName === 'herramientas' && currentUser && currentUser.role === 'cliente') return;
     document.querySelectorAll('#menu button').forEach(b=>b.classList.toggle('active', b.dataset.view === viewName));
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     const viewEl = document.getElementById('view-'+viewName);
