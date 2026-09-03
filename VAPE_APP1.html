@@ -677,6 +677,12 @@
   .cn-btn.primary{background:#5b76e0; border-color:#5b76e0; color:#fff;}
   .cn-btn.primary:hover{background:#4a63c9;}
   .cn-btn.ghost{background:transparent;}
+  .cn-btn:disabled{opacity:.35; cursor:not-allowed; pointer-events:none;}
+  .ie-input{
+    width:100%; box-sizing:border-box; background:var(--panel-2); border:1.5px solid #5b76e0; border-radius:5px;
+    color:var(--ink); font-family:'IBM Plex Mono'; font-size:10px; padding:2px 5px;
+  }
+  .ie-input:focus{ outline:none; box-shadow:0 0 0 2px rgba(91,118,224,.25); }
   @keyframes cnPulseGlow{
     0%,100%{ box-shadow:0 0 0 0 rgba(91,118,224,.55); border-color:#5b76e0; }
     50%{ box-shadow:0 0 0 6px rgba(91,118,224,0); border-color:#7d93ea; }
@@ -846,6 +852,13 @@
     font-size:12.5px; padding:4px 6px; margin-bottom:6px; box-sizing:border-box;
   }
   .th-check-list{ max-height:150px; overflow-y:auto; border-top:1px solid var(--border); padding-top:5px; }
+  .th-check-actions{ display:flex; gap:5px; margin-bottom:6px; }
+  .th-check-actions button{
+    flex:1; background:none; border:none; color:#2ea05a; font-size:10.5px; text-decoration:underline;
+    cursor:pointer; padding:1px 0; text-align:left;
+  }
+  .th-check-actions button:last-child{ text-align:right; color:#c0603a; }
+  .th-check-actions button:hover{ opacity:.75; }
   .th-check-item{ display:flex; align-items:center; gap:6px; padding:3px 2px; cursor:pointer; font-size:12.5px; color:var(--ink); }
   .th-check-item:hover{ color:#2ea05a; }
   .th-check-item input{ width:12px; height:12px; accent-color:#2ea05a; cursor:pointer; flex-shrink:0; }
@@ -1063,6 +1076,7 @@
             </select>
           </div>
           <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
+          <button class="cn-btn primary" id="ifEditBtn" type="button" disabled title="Seleccioná una fila (clic) para habilitar la edición">✎ Editar</button>
         </div>
       </div>
 
@@ -3265,6 +3279,8 @@
 
   // ---- Funciones de búsqueda de pozo y grilla Inicio ----
   let inicioPage = 0;
+  let inicioActiveRowKey = null;
+  let inicioEditingRowKey = null;
   const inicioColumnFilters = {}; // colKey -> Set de valores permitidos (vacío/ausente = sin filtro)
   const inicioSort = { col: null, dir: 'asc' };
   let inicioBaseRowsForColFilters = [];
@@ -3326,8 +3342,12 @@
         <button type="button" class="th-sort-btn${inicioSort.col===col && inicioSort.dir==='desc' ? ' th-sort-active' : ''}" data-dir="desc">Z→A</button>
       </div>
       <input type="text" class="th-search" placeholder="Buscar valor…">
+      <div class="th-check-actions">
+        <button type="button" class="th-check-all">Seleccionar todos</button>
+        <button type="button" class="th-check-none">Desmarcar todos</button>
+      </div>
       <div class="th-check-list">
-        ${uniques.map(v => `<label class="th-check-item"><input type="checkbox" value="${v.replace(/"/g,'&quot;')}" ${(!selected || selected.has(v)) ? 'checked' : ''}> ${v}</label>`).join('')}
+        ${uniques.map(v => `<label class="th-check-item"><input type="checkbox" value="${v.replace(/"/g,'&quot;')}" ${(selected && selected.has(v)) ? 'checked' : ''}> ${v}</label>`).join('')}
       </div>
       <div class="th-filter-actions">
         <button type="button" class="th-clear">Limpiar</button>
@@ -3349,6 +3369,12 @@
         item.style.display = item.textContent.trim().toLowerCase().includes(q) ? '' : 'none';
       });
     });
+    panel.querySelector('.th-check-all').addEventListener('click', () => {
+      panel.querySelectorAll('.th-check-item:not([style*="display: none"]) input').forEach(cb => cb.checked = true);
+    });
+    panel.querySelector('.th-check-none').addEventListener('click', () => {
+      panel.querySelectorAll('.th-check-item input').forEach(cb => cb.checked = false);
+    });
     panel.querySelector('.th-clear').addEventListener('click', () => {
       delete inicioColumnFilters[col];
       if(inicioSort.col === col) inicioSort.col = null;
@@ -3358,8 +3384,8 @@
     });
     panel.querySelector('.th-apply').addEventListener('click', () => {
       const checked = [...panel.querySelectorAll('.th-check-item input:checked')].map(c => c.value);
-      if(checked.length === uniques.length){
-        delete inicioColumnFilters[col]; // todo tildado equivale a "sin filtro"
+      if(checked.length === 0){
+        delete inicioColumnFilters[col]; // nada tildado equivale a "sin filtro" (mismo criterio que Consultas)
       } else {
         inicioColumnFilters[col] = new Set(checked);
       }
@@ -3594,6 +3620,19 @@
     const pager = document.getElementById('inicioPager');
     if(!tbody) return;
 
+    // Cualquier re-render de la grilla (cambio de filtro, pagina, etc.)
+    // invalida la seleccion de fila visual anterior (se reconstruye el
+    // tbody entero) — se limpia el estado de edicion/seleccion en
+    // consecuencia para que el boton Editar no quede habilitado apuntando
+    // a una fila que ya no esta en pantalla.
+    if(inicioActiveRowKey || inicioEditingRowKey){
+      inicioActiveRowKey = null; inicioEditingRowKey = null;
+      const editBtn0 = document.getElementById('ifEditBtn');
+      if(editBtn0){ editBtn0.disabled = true; editBtn0.textContent = '✎ Editar'; editBtn0.title = 'Seleccioná una fila (clic) para habilitar la edición'; }
+      const cancelBtn0 = document.getElementById('ifEditCancel');
+      if(cancelBtn0) cancelBtn0.style.display = 'none';
+    }
+
     const qRaw = document.getElementById('ifSearch') ? document.getElementById('ifSearch').value.trim().toLowerCase() : '';
     const opFilter = document.getElementById('ifOperadora') ? document.getElementById('ifOperadora').value : '';
     const batFilter = document.getElementById('ifBateria') ? document.getElementById('ifBateria').value : '';
@@ -3643,7 +3682,8 @@
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
             condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
-            comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : []
+            comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
+            commentTestId: h.testId != null ? h.testId : null
           });
         });
         // Pozo sin ningún ensayo: se muestra igual una fila "pendiente" (como en modo Último).
@@ -3707,7 +3747,8 @@
           condicion: cnCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
-          testIds: [w.dynTestId, w.acuTestId].filter(x => x != null)
+          testIds: [w.dynTestId, w.acuTestId].filter(x => x != null),
+          commentTestId: tipoUltimo === 'Dina' ? w.dynTestId : (tipoUltimo === 'Nivel' ? w.acuTestId : null)
         };
       });
     }
@@ -3768,7 +3809,7 @@
           : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>`;
         const pendingDot = r.pendiente ? '<span class="row-pending-dot" title="Pendiente: sin ensayos cargados"></span>' : '';
         const tipoTag = r.tipo ? `<span class="pending-badge" style="color:var(--steel-glow); background:rgba(143,180,214,.14); border-color:rgba(143,180,214,.35);">${r.tipo}</span>` : '';
-        return `<tr class="${rowClass}" data-rowkey="${rowKey}">
+        return `<tr class="${rowClass}" data-rowkey="${rowKey}" data-well="${n.replace(/"/g,'&quot;')}" data-comment-testid="${r.commentTestId != null ? r.commentTestId : ''}" data-tipo="${r.tipo || ''}">
           <td><div class="row-actions">
             ${canDelete ? `<input type="checkbox" class="row-check" data-rowkey="${rowKey.replace(/"/g,'&quot;')}" onchange="toggleInicioRowSelect(this)" ${checked}>` : '<span style="width:13px;display:inline-block;flex-shrink:0;"></span>'}
             ${pendingDot}
@@ -3784,7 +3825,7 @@
           </div></td>
           <td class="well-name" onclick="currentWell='${n.replace(/'/g,"\\'")}'; renderWell(); goToView('resumen');">${n}</td>
           <td>${fmtDate(r.dt)}${tipoTag}</td>
-          <td>${r.bateria || '—'}</td>
+          <td class="ie-cell" data-field="bateria">${r.bateria || '—'}</td>
           <td>${r.operacion || '—'}</td>
           <td>${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
@@ -3792,7 +3833,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td class="cmt-cell" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
+          <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
     }
@@ -4323,7 +4364,8 @@
     Object.keys(cnState.colFilters).forEach(key => {
       const sel = cnState.colFilters[key]; if(!sel || !sel.size) return;
       const def = CN_DEFS_BY_KEY[key]; if(!def) return;
-      chips.push({ label:`${def.label}: ${Array.from(sel).join(', ')}`, remove:()=> delete cnState.colFilters[key] });
+      const shown = Array.from(sel).map(v => (key === 'fecha' && v !== '(vacío)') ? fmtDate(v) : v);
+      chips.push({ label:`${def.label}: ${shown.join(', ')}`, remove:()=> delete cnState.colFilters[key] });
     });
     const el = document.getElementById('cn-chips');
     if(!el) return;
@@ -4365,27 +4407,46 @@
   function cnOpenColFilter(col, anchorBtn){
     document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove());
     const def = CN_DEFS_BY_KEY[col]; if(!def) return;
-    let values;
+    let rawValues;
     if(col === 'sistema'){
       // Lista fija (no depende de los datos cargados): asegura que las 5
       // opciones esten siempre disponibles, aunque el yacimiento actual no
       // tenga ningun pozo de alguno de esos sistemas todavia.
-      values = ['AIB','BES','PCP','Rotaflex','SSE','Sin clasificar'];
+      rawValues = ['AIB','BES','PCP','Rotaflex','SSE','Sin clasificar'];
     } else {
       const allRows = cnBuildRows();
-      values = Array.from(new Set(allRows.map(r => { const v = def.get(r); return (v==null||v==='') ? '(vacío)' : String(v); }))).sort(naturalCompare);
+      rawValues = Array.from(new Set(allRows.map(r => { const v = def.get(r); return (v==null||v==='') ? '(vacío)' : String(v); }))).sort(naturalCompare);
     }
+    // El VALOR crudo (raw) es el que se guarda en cnState.colFilters y se usa
+    // para matchear filas (debe coincidir exactamente con lo que devuelve
+    // def.get(r)). El LABEL es solo lo que se muestra en pantalla — para
+    // "fecha" se formatea dd/mm/yyyy igual que en la grilla, para que no
+    // haya inconsistencia entre lo que se ve en la columna y en el filtro.
+    const values = rawValues.map(raw => ({
+      raw,
+      label: (col === 'fecha' && raw !== '(vacío)') ? fmtDate(raw) : raw,
+    }));
     const panel = document.createElement('div');
     panel.className = 'th-filter-panel open';
     const selected = cnState.colFilters[col] || new Set();
     panel.innerHTML = `
       <input type="text" class="th-search" placeholder="Buscar…">
-      <div class="th-check-list">${values.map(v=>`<label class="th-check-item"><input type="checkbox" value="${v}" ${selected.has(v)?'checked':''}> ${v}</label>`).join('')}</div>
+      <div class="th-check-actions">
+        <button type="button" class="th-check-all">Seleccionar todos</button>
+        <button type="button" class="th-check-none">Desmarcar todos</button>
+      </div>
+      <div class="th-check-list">${values.map(v=>`<label class="th-check-item"><input type="checkbox" value="${v.raw.replace(/"/g,'&quot;')}" ${selected.has(v.raw)?'checked':''}> ${v.label}</label>`).join('')}</div>
       <div class="th-filter-actions"><button class="th-clear" type="button">Limpiar</button><button class="th-apply" type="button">Aplicar</button></div>`;
     anchorBtn.parentElement.appendChild(panel);
     panel.querySelector('.th-search').addEventListener('input', (e)=>{
       const q = e.target.value.toLowerCase();
       panel.querySelectorAll('.th-check-item').forEach(item=>{ item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    panel.querySelector('.th-check-all').addEventListener('click', ()=>{
+      panel.querySelectorAll('.th-check-item:not([style*="display: none"]) input').forEach(cb => cb.checked = true);
+    });
+    panel.querySelector('.th-check-none').addEventListener('click', ()=>{
+      panel.querySelectorAll('.th-check-item input').forEach(cb => cb.checked = false);
     });
     panel.querySelector('.th-clear').addEventListener('click', ()=>{ delete cnState.colFilters[col]; panel.remove(); cnRenderAll(); });
     panel.querySelector('.th-apply').addEventListener('click', ()=>{
@@ -4459,7 +4520,7 @@
     const rows = cnBuildRows().filter(cnRowMatches);
     const data = rows.map(r=>{
       const obj = {};
-      cols.forEach(k=>{ const def = CN_DEFS_BY_KEY[k]; if(def) obj[def.label] = def.get(r); });
+      cols.forEach(k=>{ const def = CN_DEFS_BY_KEY[k]; if(def) obj[def.label] = (def.key === 'fecha') ? cnFmtVal(def, def.get(r)) : def.get(r); });
       return obj;
     });
     const ws = XLSX.utils.json_to_sheet(data);
@@ -4472,7 +4533,7 @@
     const rows = cnBuildRowsTodos();
     const data = rows.map(r=>{
       const obj = {};
-      CN_ALL_DEFS.forEach(def => { obj[def.label] = def.get(r); });
+      CN_ALL_DEFS.forEach(def => { obj[def.label] = (def.key === 'fecha') ? cnFmtVal(def, def.get(r)) : def.get(r); });
       return obj;
     });
     const ws = XLSX.utils.json_to_sheet(data);
@@ -7221,14 +7282,124 @@
     // aunque la grilla se re-renderice dinamicamente (caso Consulta, que
     // reconstruye el <tbody> entero en cada cnRenderTable()).
     document.addEventListener('click', (e)=>{
+      if(e.target.closest('.ie-input')) return; // no perder la seleccion por clickear dentro de un campo en edicion
       const tr = e.target.closest('#inicioTableBody tr, #cn-table tbody tr');
       if(!tr) return;
       const tbody = tr.parentElement;
       tbody.querySelectorAll('tr.gridrow-active').forEach(r => { if(r !== tr) r.classList.remove('gridrow-active'); });
       tr.classList.toggle('gridrow-active');
+
+      if(tbody.id === 'inicioTableBody' && !inicioEditingRowKey){
+        inicioActiveRowKey = tr.classList.contains('gridrow-active') ? tr.dataset.rowkey : null;
+        const editBtn = document.getElementById('ifEditBtn');
+        if(editBtn) editBtn.disabled = !inicioActiveRowKey;
+      }
     });
   }
   initRowHighlight();
+
+  function inicioEnterEditMode(){
+    if(!inicioActiveRowKey || inicioEditingRowKey) return;
+    const tr = document.querySelector(`#inicioTableBody tr[data-rowkey="${CSS.escape(inicioActiveRowKey)}"]`);
+    if(!tr) return;
+    inicioEditingRowKey = inicioActiveRowKey;
+
+    const bateriaTd = tr.querySelector('td.ie-cell[data-field="bateria"]');
+    const commentTd = tr.querySelector('td.ie-cell[data-field="comment"]');
+    if(bateriaTd){
+      const cur = bateriaTd.textContent.trim();
+      bateriaTd.innerHTML = `<input type="text" class="ie-input" data-orig="${cur==='—'?'':cur.replace(/"/g,'&quot;')}" value="${cur==='—'?'':cur.replace(/"/g,'&quot;')}">`;
+    }
+    if(commentTd){
+      // El comentario solo es editable si esta fila tiene un ensayo real
+      // asociado (data-comment-testid) — una fila "pendiente" (pozo sin
+      // ensayos cargados) no tiene a que test_id de Supabase escribirle.
+      if(tr.dataset.commentTestid){
+        const cur = commentTd.getAttribute('title') || (commentTd.textContent.trim()==='—' ? '' : commentTd.textContent.trim());
+        commentTd.innerHTML = `<input type="text" class="ie-input" data-orig="${cur.replace(/"/g,'&quot;')}" value="${cur.replace(/"/g,'&quot;')}">`;
+      }
+    }
+
+    const editBtn = document.getElementById('ifEditBtn');
+    if(editBtn){
+      editBtn.textContent = '💾 Guardar';
+      editBtn.title = 'Guardar cambios en Supabase';
+    }
+    let cancelBtn = document.getElementById('ifEditCancel');
+    if(!cancelBtn){
+      cancelBtn = document.createElement('button');
+      cancelBtn.id = 'ifEditCancel';
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'cn-btn ghost';
+      cancelBtn.textContent = 'Cancelar';
+      editBtn.insertAdjacentElement('afterend', cancelBtn);
+      cancelBtn.addEventListener('click', inicioCancelEdit);
+    }
+    cancelBtn.style.display = '';
+  }
+
+  function inicioCancelEdit(){
+    inicioEditingRowKey = null;
+    inicioActiveRowKey = null;
+    const editBtn = document.getElementById('ifEditBtn');
+    if(editBtn){ editBtn.textContent = '✎ Editar'; editBtn.title = 'Seleccioná una fila (clic) para habilitar la edición'; editBtn.disabled = true; }
+    const cancelBtn = document.getElementById('ifEditCancel');
+    if(cancelBtn) cancelBtn.style.display = 'none';
+    renderInicioGrid();
+  }
+
+  async function inicioSaveEdit(){
+    const rowKey = inicioEditingRowKey;
+    if(!rowKey) return;
+    const tr = document.querySelector(`#inicioTableBody tr[data-rowkey="${CSS.escape(rowKey)}"]`);
+    if(!tr) return;
+    const wellName = tr.dataset.well;
+    const w = WELLS_DB[wellName];
+    if(!w || !w.well_id){ alert('No se pudo identificar el pozo en la base de datos.'); return; }
+
+    const editBtn = document.getElementById('ifEditBtn');
+    if(editBtn){ editBtn.disabled = true; editBtn.textContent = 'Guardando…'; }
+
+    const bateriaInput = tr.querySelector('td.ie-cell[data-field="bateria"] .ie-input');
+    const commentInput = tr.querySelector('td.ie-cell[data-field="comment"] .ie-input');
+    const newBateria = bateriaInput ? bateriaInput.value.trim() : null;
+    const newComment = commentInput ? commentInput.value.trim() : null;
+    const commentTestId = tr.dataset.commentTestid ? Number(tr.dataset.commentTestid) : null;
+    const rowTipo = tr.dataset.tipo; // 'Dina' o 'Nivel' — para saber que cache local actualizar
+
+    try{
+      if(bateriaInput && newBateria !== bateriaInput.dataset.orig){
+        const { error } = await supabaseClient.from('wells').update({ bateria: newBateria || null }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.bateria = newBateria || null;
+      }
+      if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
+        const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
+        if(error) throw error;
+        if(rowTipo === 'Dina') w.commentDyn = newComment || null;
+        else if(rowTipo === 'Nivel') w.commentAcu = newComment || null;
+        // Tambien se actualiza el historial en memoria, para que el modo
+        // "Todos los ensayos" y el resto de la app (Historial ECO, etc.)
+        // reflejen el cambio sin tener que recargar toda la base.
+        (w.history || []).forEach(h => { if(h.testId === commentTestId) h.comment = newComment || null; });
+      }
+      inicioEditingRowKey = null;
+      inicioActiveRowKey = null;
+      if(editBtn){ editBtn.textContent = '✎ Editar'; editBtn.title = 'Seleccioná una fila (clic) para habilitar la edición'; editBtn.disabled = true; }
+      const cancelBtn = document.getElementById('ifEditCancel');
+      if(cancelBtn) cancelBtn.style.display = 'none';
+      renderInicioGrid();
+    } catch(err){
+      alert('No se pudo guardar en Supabase: ' + (err.message || err));
+      if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
+    }
+  }
+
+  document.getElementById('ifEditBtn').addEventListener('click', ()=>{
+    if(inicioEditingRowKey) inicioSaveEdit();
+    else inicioEnterEditMode();
+  });
+
   initConsultas();
 
   document.getElementById('prevBtn').addEventListener('click', ()=>{
