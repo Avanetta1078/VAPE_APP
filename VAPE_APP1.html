@@ -7342,17 +7342,19 @@
       }
     }
     if(condicionTd){
-      // "Tipo Ensayo" (Dinamico/Estatico) sale del well_state del ensayo de
-      // Nivel — solo editable si esta fila tiene un ensayo de Nivel asociado.
+      // "Tipo Ensayo" (Dinamico/Estatico) sale del well_state, que en la base
+      // vive en acu_results (ligado a un ensayo de Nivel). Por pedido de Ale,
+      // esto se puede editar en CUALQUIER fila sin importar el tipo (Dina,
+      // Nivel, Combinada, Cancelada, con o sin Nivel) — ej. un Dina se puede
+      // corregir a mano a "Dinámico" (todo Dina es dinámico). Al guardar se
+      // busca a donde escribirlo (ver inicioSaveEdit).
       const cur = tr.dataset.condicion;
-      if(tr.dataset.acuTestid && (cur === 'Dinámico' || cur === 'Estático')){
-        condicionTd.innerHTML = `<select class="ie-input" data-orig="${cur}">
-          <option value="Dinámico" ${cur==='Dinámico'?'selected':''}>Dinámico</option>
-          <option value="Estático" ${cur==='Estático'?'selected':''}>Estático</option>
-        </select>`;
-      } else {
-        condicionTd.title = 'No editable: esta fila no tiene un ensayo de Nivel asociado.';
-      }
+      const curVal = (cur === 'Dinámico' || cur === 'Estático') ? cur : '';
+      condicionTd.innerHTML = `<select class="ie-input" data-orig="${curVal}">
+        <option value="" ${curVal===''?'selected':''}>—</option>
+        <option value="Dinámico" ${curVal==='Dinámico'?'selected':''}>Dinámico</option>
+        <option value="Estático" ${curVal==='Estático'?'selected':''}>Estático</option>
+      </select>`;
     }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
@@ -7440,13 +7442,22 @@
           if(error) throw error;
         }
       }
-      if(condicionInput && newCondicion !== condicionInput.dataset.orig && acuTestId != null){
-        // "Tipo Ensayo" (Dinamico/Estatico) = acu_results.well_state del
-        // ensayo de Nivel asociado a esta fila.
-        const { error } = await supabaseClient.from('acu_results').update({ well_state: newCondicion === 'Dinámico' ? 'Producing' : 'Static' }).eq('test_id', acuTestId);
-        if(error) throw error;
-        w.wellState = newCondicion === 'Dinámico' ? 'Producing' : 'Static';
-        (w.history || []).forEach(h => { if(h.testId === acuTestId) h.wellState = w.wellState; });
+      if(condicionInput && newCondicion !== condicionInput.dataset.orig && newCondicion !== ''){
+        // "Tipo Ensayo" (Dinamico/Estatico) = acu_results.well_state. Se
+        // edita sin importar el tipo de la fila (Dina/Nivel/Combinada/etc):
+        // se escribe en el ensayo de Nivel de ESTA fila si lo tiene, y si no
+        // (ej. una fila Dina, o un pozo sin Nivel en esta fecha puntual) se
+        // usa el ensayo de Nivel MAS RECIENTE del pozo en general — well_state
+        // es, en la practica, un estado del pozo, no de un ensayo puntual.
+        const targetAcuId = acuTestId != null ? acuTestId : w.acuTestId;
+        if(targetAcuId == null){
+          alert('Este pozo todavía no tiene ningún ensayo de Nivel cargado en la base — no hay un registro de Nivel al cual asociarle el Well State. Cargá primero un ensayo de Nivel para este pozo.');
+        } else {
+          const { error } = await supabaseClient.from('acu_results').update({ well_state: newCondicion === 'Dinámico' ? 'Producing' : 'Static' }).eq('test_id', targetAcuId);
+          if(error) throw error;
+          w.wellState = newCondicion === 'Dinámico' ? 'Producing' : 'Static';
+          (w.history || []).forEach(h => { if(h.testId === targetAcuId) h.wellState = w.wellState; });
+        }
       }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
