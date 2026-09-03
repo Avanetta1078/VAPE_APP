@@ -2363,6 +2363,14 @@
           if(!entry.dt) entry.dt = t.test_date;
           entry.commentAcu = t.test_comments || null; // comentario del ensayo Eco, unicamente
         }
+        // Para pozos Solo-Dina (sin ensayo ACU), el well_state puede haber sido
+        // guardado en acu_results usando el DYN test_id como clave (via UPSERT desde
+        // inicioSaveEdit). Como el bloque hasAcu no lo cubre (no hay ACU tests),
+        // lo buscamos explícitamente en acuByTest usando el dynTestId.
+        if(!entry.wellState && entry.hasDyn && entry.dynTestId != null){
+          const orphan = acuByTest[entry.dynTestId];
+          if(orphan && orphan.well_state) entry.wellState = orphan.well_state;
+        }
         // Comentario "general" (usado como respaldo en lugares que no distinguen Dina/Eco):
         // se prioriza el de Dina, y si no hay, el de Eco.
         entry.comment = entry.commentDyn || entry.commentAcu || null;
@@ -3858,7 +3866,7 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : '—',
+            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState),
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
             commentTestId: h.testId != null ? h.testId : null,
