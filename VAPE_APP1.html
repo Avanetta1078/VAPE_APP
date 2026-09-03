@@ -712,9 +712,9 @@
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3;
   }
   .cn-table tbody tr:hover{background:var(--panel-2);}
-  .cn-table tbody tr:hover td.cn-sticky{background:var(--panel-2);}
+  .cn-table tbody tr:hover td.cn-sticky{background:var(--panel-2) !important;}
   .cn-table tbody tr.gridrow-active{background:rgba(91,118,224,.16);}
-  .cn-table tbody tr.gridrow-active td.cn-sticky{background:rgba(91,118,224,.16);}
+  .cn-table tbody tr.gridrow-active td.cn-sticky{background:#1a2140 !important;}
   .cn-table td.well-name{font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:11.5px;}
   .cn-table th{position:relative;}
   /* Columnas fijas: Pozo, Fecha, Bateria, Dias s/dinas (primeras 4 columnas base) */
@@ -805,7 +805,7 @@
   .inicio-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35;}
   .inicio-table tbody tr:hover{background:var(--panel-2);}
   .inicio-table tbody tr.gridrow-active{background:rgba(91,118,224,.16);}
-  .inicio-table tbody tr.gridrow-active td:nth-child(2), .inicio-table tbody tr.gridrow-active td:nth-child(3){ background:rgba(91,118,224,.16); }
+  .inicio-table tbody tr.gridrow-active td:nth-child(2), .inicio-table tbody tr.gridrow-active td:nth-child(3){ background:#1a2140 !important; }
   .row-pendiente{background:rgba(179,73,43,.07);}
   .row-pendiente:hover{background:rgba(179,73,43,.13);}
   .pending-badge{
@@ -836,8 +836,8 @@
   .th-filter-btn:hover{ color:var(--ink); background:var(--panel); }
   .th-filter-btn.th-active{ color:#2ea05a; }
   .th-filter-panel{
-    position:absolute; top:100%; left:0; margin-top:2px; background:var(--panel); border:1px solid var(--border);
-    border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.5); z-index:50; width:190px;
+    position:fixed; background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.65); z-index:9999; width:200px;
     font-family:'IBM Plex Sans'; text-transform:none; letter-spacing:normal; font-size:13px; padding:8px; display:none;
   }
   .th-filter-panel.open{ display:block; }
@@ -885,17 +885,19 @@
   /* Anchos MINIMOS por columna (table-layout:auto permite que crezcan segun contenido,
      asi el comentario queda en un solo renglon y aparece la barra de scroll horizontal
      al pie de la grilla en vez de amontonar texto): 1=acciones 2=Pozo 3=Fecha 4=Bateria
-     5=Operacion 6=Ensayo 7=Sistema 8=Nivel 9=Sumerg 10=Fillage 11=SPM 12=Comentario */
+     5=Operacion 6=Ensayo 7=Sistema 8=Nivel 9=Sumerg 10=Fillage 11=GPM 12=PKR 13=Comentario */
   .inicio-table th:nth-child(1), .inicio-table td:nth-child(1){ min-width:86px; width:86px; overflow:visible; padding-right:10px; }
   .inicio-table th:nth-child(2), .inicio-table td:nth-child(2){ min-width:72px; width:72px; padding-left:10px;
-    position:sticky; left:0; z-index:2; background:var(--panel); box-shadow:2px 0 4px rgba(0,0,0,.25); }
+    position:sticky; left:0; z-index:2; background:var(--panel); box-shadow:3px 0 6px rgba(0,0,0,.35); }
   .inicio-table th:nth-child(2){ z-index:4; background:var(--panel-2); }
   .inicio-table th:nth-child(3), .inicio-table td:nth-child(3){ min-width:88px;
-    position:sticky; left:72px; z-index:2; background:var(--panel); box-shadow:2px 0 4px rgba(0,0,0,.25); }
+    position:sticky; left:72px; z-index:2; background:var(--panel); box-shadow:3px 0 6px rgba(0,0,0,.35); }
   .inicio-table th:nth-child(3){ z-index:4; background:var(--panel-2); }
-  .inicio-table tbody tr:hover td:nth-child(2), .inicio-table tbody tr:hover td:nth-child(3){ background:var(--panel-2); }
-  .row-pendiente td:nth-child(2), .row-pendiente td:nth-child(3){ background:#241a15; }
-  .row-pendiente:hover td:nth-child(2), .row-pendiente:hover td:nth-child(3){ background:#2c1f18; }
+  /* sticky: hover y active deben mantener fondo opaco para no transparentarse */
+  .inicio-table tbody tr:hover td:nth-child(2), .inicio-table tbody tr:hover td:nth-child(3){ background:var(--panel-2) !important; }
+  .inicio-table tbody tr.gridrow-active td:nth-child(2), .inicio-table tbody tr.gridrow-active td:nth-child(3){ background:#1a2140 !important; }
+  .row-pendiente td:nth-child(2), .row-pendiente td:nth-child(3){ background:#241a15 !important; }
+  .row-pendiente:hover td:nth-child(2), .row-pendiente:hover td:nth-child(3){ background:#2c1f18 !important; }
   .inicio-table th:nth-child(4), .inicio-table td:nth-child(4){ min-width:64px; }
   .inicio-table th:nth-child(5), .inicio-table td:nth-child(5){ min-width:76px; }
   .inicio-table th:nth-child(6), .inicio-table td:nth-child(6){ min-width:60px; }
@@ -904,7 +906,8 @@
   .inicio-table th:nth-child(9), .inicio-table td:nth-child(9){ min-width:76px; }
   .inicio-table th:nth-child(10), .inicio-table td:nth-child(10){ min-width:68px; }
   .inicio-table th:nth-child(11), .inicio-table td:nth-child(11){ min-width:60px; }
-  .inicio-table th:nth-child(12), .inicio-table td:nth-child(12){ min-width:180px; text-align:left; }
+  .inicio-table th:nth-child(12), .inicio-table td:nth-child(12){ min-width:70px; }
+  .inicio-table th:nth-child(13), .inicio-table td:nth-child(13){ min-width:180px; text-align:left; }
   .row-preview-btn{
     width:22px;height:22px;border-radius:6px;border:1px solid var(--border); flex-shrink:0;
     background:var(--panel-2); color:var(--ink-dim); cursor:pointer;
@@ -1094,7 +1097,8 @@
               <th>Nivel (m)<button class="th-filter-btn" data-col="nivel" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sumerg. (m)<button class="th-filter-btn" data-col="sumerg" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Llenado de Bba (%)<button class="th-filter-btn" data-col="fillage" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
-              <th>SPM<button class="th-filter-btn" data-col="spm" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>GPM<button class="th-filter-btn" data-col="spm" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th style="color:#e74c3c;">PKR<button class="th-filter-btn" data-col="pkr" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th class="th-comment-head">
                 <div class="th-comment-search">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -3487,6 +3491,7 @@
       case 'sumerg': return r.sumerg != null ? fmtN(r.sumerg,0) : '—';
       case 'fillage': return r.fillage != null ? fmtN(r.fillage,1) : '—';
       case 'spm': return r.spm != null ? fmtN(r.spm,2) : '—';
+      case 'pkr': return r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—';
       default: return '—';
     }
   }
@@ -3498,17 +3503,17 @@
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         const col = btn.dataset.col;
-        const existingPanel = btn.parentElement.querySelector('.th-filter-panel');
-        // Si ya esta abierto este mismo panel, se cierra (toggle); si no, se cierran los demas y se abre este.
+        // Los paneles están en document.body (position:fixed), buscar allí
+        const existingPanel = document.querySelector(`.th-filter-panel[data-col-owner="${col}"]`);
         const wasOpen = existingPanel && existingPanel.classList.contains('open');
-        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+        document.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
         if(wasOpen) return;
         openThFilterPanel(btn, col);
       });
     });
     document.addEventListener('click', (ev) => {
       if(!ev.target.closest('.th-filter-panel') && !ev.target.closest('.th-filter-btn')){
-        table.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
+        document.querySelectorAll('.th-filter-panel').forEach(p => p.remove());
       }
     });
   }
@@ -3522,6 +3527,7 @@
 
     const panel = document.createElement('div');
     panel.className = 'th-filter-panel open';
+    panel.dataset.colOwner = col;
     panel.innerHTML = `
       <div class="th-sort-row">
         <button type="button" class="th-sort-btn${inicioSort.col===col && inicioSort.dir==='asc' ? ' th-sort-active' : ''}" data-dir="asc">A→Z</button>
@@ -3539,7 +3545,16 @@
         <button type="button" class="th-clear">Limpiar</button>
         <button type="button" class="th-apply">Aplicar</button>
       </div>`;
-    btn.parentElement.appendChild(panel);
+    document.body.appendChild(panel);
+    // Posicionamiento fixed calculado desde el botón
+    const btnRect = btn.getBoundingClientRect();
+    const panelW = 200;
+    let left = btnRect.left;
+    if(left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
+    if(left < 4) left = 4;
+    let top = btnRect.bottom + 4;
+    panel.style.left = left + 'px';
+    panel.style.top = top + 'px';
 
     panel.querySelectorAll('.th-sort-btn').forEach(sb => {
       sb.addEventListener('click', () => {
@@ -3868,6 +3883,7 @@
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
             condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState),
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
+            pkr: w.packerM != null ? w.packerM : null,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
             commentTestId: h.testId != null ? h.testId : null,
             acuTestId: h.tipo === 'Nivel' ? h.testId : null,
@@ -3934,6 +3950,7 @@
           operacion, sistema: sistemaMostrar,
           condicion: cnCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
+          pkr: w.packerM != null ? w.packerM : null,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null),
           commentTestId: tipoUltimo === 'Dina' ? w.dynTestId : (tipoUltimo === 'Nivel' ? w.acuTestId : null),
@@ -4023,6 +4040,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
+          <td style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
           <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
@@ -4388,7 +4406,8 @@
     { key:'cargamax',     label:'Carga Máx',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.tv },
     { key:'cargamin',     label:'Carga Mín',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
     { key:'llenado',      label:'Llenado',      unit:' %',  dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
-    { key:'spm',          label:'GPM / SPM',    unit:'',    dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
+    { key:'spm',          label:'GPM',          unit:'',    dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
+    { key:'pkr',          label:'PKR',          unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.well]; return w && w.packerM != null && w.packerM > 0 ? w.packerM : null; } },
     { key:'prestbg',      label:'Pres. Tbg',    unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
     { key:'pipdyn',       label:'PIP Dyn',      unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
     { key:'fabricante',   label:'Fabricante',   group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
@@ -4627,7 +4646,15 @@
       </div>
       <div class="th-check-list">${values.map(v=>`<label class="th-check-item"><input type="checkbox" value="${v.raw.replace(/"/g,'&quot;')}" ${selected.has(v.raw)?'checked':''}> ${v.label}</label>`).join('')}</div>
       <div class="th-filter-actions"><button class="th-clear" type="button">Limpiar</button><button class="th-apply" type="button">Aplicar</button></div>`;
-    anchorBtn.parentElement.appendChild(panel);
+    document.body.appendChild(panel);
+    // Posicionamiento fixed calculado desde el botón
+    const btnRect2 = anchorBtn.getBoundingClientRect();
+    const panelW2 = 200;
+    let left2 = btnRect2.left;
+    if(left2 + panelW2 > window.innerWidth - 8) left2 = window.innerWidth - panelW2 - 8;
+    if(left2 < 4) left2 = 4;
+    panel.style.left = left2 + 'px';
+    panel.style.top = (btnRect2.bottom + 4) + 'px';
     panel.querySelector('.th-search').addEventListener('input', (e)=>{
       const q = e.target.value.toLowerCase();
       panel.querySelectorAll('.th-check-item').forEach(item=>{ item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none'; });
