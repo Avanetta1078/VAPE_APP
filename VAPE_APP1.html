@@ -331,6 +331,13 @@
   .rp-chip{background:var(--panel-2); border-radius:6px; padding:3px 7px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; flex:0 0 auto;}
   .rp-chip-highlight{border:1px solid #185FA5;}
   .rp-chip-highlight .rp-val{color:#185FA5; font-size:13.5px;}
+  .rp-chip-acu{border:1px solid #185FA5;}
+  .rp-chip-acu .rp-lbl{color:#185FA5;}
+  .rp-chip-hzrpm{border:1px solid #185FA5; margin-bottom:6px; padding:3px 9px;}
+  .rp-chip-hzrpm .rp-lbl{color:#185FA5;}
+  .rp-chip-estado{border-radius:7px; padding:2px 9px; font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:700; letter-spacing:.02em;}
+  .rp-chip-estado.dinamico{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.4);}
+  .rp-chip-estado.estatico{background:rgba(230,70,70,.16); color:#ff6b6b; border:1px solid rgba(230,70,70,.4);}
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
@@ -732,6 +739,7 @@
 
   /* ---- Inicio: grilla general (Tarea 3) ---- */
   .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:12px 0 14px;}
+  .inicio-filters-secondary{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:8px 0 0; padding-bottom:8px; border-bottom:1px dashed var(--border);}
   .ifilter{display:flex; flex-direction:column; gap:2px;}
   .ifilter label{font-size:8.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);}
   .ifilter input:not([type="checkbox"]), .ifilter select{
@@ -999,10 +1007,10 @@
         <button type="button" class="clear-sel" id="inicioBulkClear">Cancelar</button>
       </div>
 
-      <div class="inicio-filters" id="inicioFilters">
+      <div class="inicio-filters-secondary" id="inicioFiltersSecondary">
         <div class="ifilter">
-          <label>Buscar pozo</label>
-          <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
+          <label>Operadora</label>
+          <select id="ifOperadora"><option value="">Todas</option></select>
         </div>
         <div class="ifilter">
           <label>&nbsp;</label>
@@ -1011,16 +1019,16 @@
             Mostrar ocultos
           </label>
         </div>
+      </div>
+
+      <div class="inicio-filters" id="inicioFilters">
         <div class="ifilter">
-          <label>Mostrar</label>
-          <select id="ifModo">
-            <option value="ultimo">Último ensayo por pozo</option>
-            <option value="todos">Todos los ensayos</option>
-          </select>
+          <label>Buscar pozo</label>
+          <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
         </div>
         <div class="ifilter">
-          <label>Operadora</label>
-          <select id="ifOperadora"><option value="">Todas</option></select>
+          <label>Fecha Campaña</label>
+          <select id="ifFecha"><option value="">Todas</option></select>
         </div>
         <div class="ifilter">
           <label>Batería</label>
@@ -1035,8 +1043,11 @@
           <select id="ifSistema"><option value="">Todos</option></select>
         </div>
         <div class="ifilter">
-          <label>Fecha de campaña</label>
-          <select id="ifFecha"><option value="">Todas</option></select>
+          <label>Mostrar</label>
+          <select id="ifModo">
+            <option value="ultimo">Último ensayo por pozo</option>
+            <option value="todos">Todos los ensayos</option>
+          </select>
         </div>
         <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
       </div>
@@ -1054,7 +1065,7 @@
               <th>Sistema<button class="th-filter-btn" data-col="sistema" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Nivel (m)<button class="th-filter-btn" data-col="nivel" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>Sumerg. (m)<button class="th-filter-btn" data-col="sumerg" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
-              <th>Fillage (%)<button class="th-filter-btn" data-col="fillage" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th>Llenado de Bba (%)<button class="th-filter-btn" data-col="fillage" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th>SPM<button class="th-filter-btn" data-col="spm" type="button"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
               <th class="th-comment-head">
                 <div class="th-comment-search">
@@ -1111,18 +1122,22 @@
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
           <span id="rp-sistema" class="rp-badge rp-badge-pending" style="margin-left:8px; font-size:9px; padding:2px 8px;">Sistema: pendiente</span>
+          <span id="rp-estado-pozo" class="rp-chip-estado" style="display:none;"></span>
           <span class="stamp" id="rp-acu-stamp">—</span>
         </div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-acu-comment">Sin comentarios registrados.</div>
         </div>
+        <div style="margin-bottom:6px;">
+          <div class="rp-chip rp-chip-hzrpm" style="display:inline-flex;"><span class="rp-lbl" id="rp-hzrpm-lbl">Hz</span><span class="rp-val" id="rp-hzrpm">—</span></div>
+        </div>
         <div class="rp-nivel-row">
           <div class="rp-side-stack">
-            <div class="rp-chip rp-chip-highlight"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
-            <div class="rp-chip"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
-            <div class="rp-chip"><span class="rp-lbl">Sum. corr.</span><span class="rp-val" id="rp-sumergc">—</span></div>
-            <div class="rp-chip" style="border:1px solid #185FA5;"><span class="rp-lbl" style="color:#185FA5;">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
-            <div class="rp-chip"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
+            <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
+            <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
+            <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sum. corr.</span><span class="rp-val" id="rp-sumergc">—</span></div>
+            <div class="rp-chip rp-chip-acu"><span class="rp-lbl">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
+            <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
           </div>
           <div class="rp-nivel-graph-col">
             <svg id="rp-wellsvg" viewBox="0 0 220 538" width="188" height="460" role="img">
@@ -1936,7 +1951,11 @@
       </div>
       <div class="cn-modal-body" id="cn-modal-body"></div>
       <div class="cn-modal-foot">
-        <span style="font-size:10.5px; color:var(--ink-faint);" id="cn-modal-cnt">0 columnas activas</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:10.5px; color:var(--ink-faint);" id="cn-modal-cnt">0 columnas activas</span>
+          <button class="cn-btn ghost" id="cn-modal-selall" type="button" style="padding:3px 8px; font-size:10px;">Seleccionar todos</button>
+          <button class="cn-btn ghost" id="cn-modal-clearall" type="button" style="padding:3px 8px; font-size:10px;">Quitar todos</button>
+        </div>
         <button class="cn-btn primary" id="cn-modal-apply" type="button">Aplicar</button>
       </div>
     </div>
@@ -2585,19 +2604,49 @@
     if(sistemaEl){
       const sis = w.sistema; // AIB / BES / Rotaflex / PCP / SSE / null
       if(sis){
-        let txt = `Sistema de Extracción: ${sis}`;
-        // Para AIB que solo tiene Nivel (sin Dina) se suma el estado del pozo
-        // (Producing/Static del CSV) para saber si el nivel es dinamico o estatico.
-        if(sis === 'AIB' && w.hasAcu && !w.hasDyn){
-          const estado = (w.wellState || '').toUpperCase();
-          if(estado.includes('STATIC')) txt += ' — Nivel Estático';
-          else if(estado.includes('PRODUC')) txt += ' — Nivel Dinámico';
-        }
-        sistemaEl.textContent = txt;
+        sistemaEl.textContent = sis; // solo el nombre del sistema, por pedido de Ale
         sistemaEl.className = 'rp-badge rp-badge-confirm' + (sis === 'BES' ? ' rp-badge-bes' : '');
       } else {
         sistemaEl.textContent = 'Sistema: pendiente';
         sistemaEl.className = 'rp-badge rp-badge-pending';
+      }
+    }
+
+    // Estado del pozo (a la par del sistema): Dinamico (verde) / Estatico (rojo),
+    // segun Well State del CSV (Producing/Static).
+    const estadoEl = document.getElementById('rp-estado-pozo');
+    if(estadoEl){
+      const estado = (w.wellState || '').toUpperCase();
+      if(estado.includes('STATIC')){
+        estadoEl.textContent = 'Estático'; estadoEl.className = 'rp-chip-estado estatico'; estadoEl.style.display = '';
+      } else if(estado.includes('PRODUC')){
+        estadoEl.textContent = 'Dinámico'; estadoEl.className = 'rp-chip-estado dinamico'; estadoEl.style.display = '';
+      } else {
+        estadoEl.style.display = 'none';
+      }
+    }
+
+    // Hz (BES) / RPM (PCP): se escriben a mano en el comentario del ensayo
+    // de Nivel (ej. "48 Hz" / "RPM 200"), no vienen en un campo propio del CSV.
+    const hzrpmChip = document.querySelector('.rp-chip-hzrpm');
+    const hzrpmLbl = document.getElementById('rp-hzrpm-lbl');
+    const hzrpmVal = document.getElementById('rp-hzrpm');
+    if(hzrpmChip){
+      const comment = w.commentAcu || '';
+      let found = null, lbl = 'Hz';
+      if(w.sistema === 'BES'){
+        lbl = 'Hz';
+        const m = comment.match(/(\d+(?:[.,]\d+)?)\s*hz/i);
+        if(m) found = m[1].replace(',', '.') + ' Hz';
+      } else if(w.sistema === 'PCP'){
+        lbl = 'RPM';
+        const m = comment.match(/rpm\s*[:\-]?\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*rpm/i);
+        if(m) found = (m[1] || m[2]).replace(',', '.') + ' RPM';
+      }
+      if(found){
+        hzrpmLbl.textContent = lbl; hzrpmVal.textContent = found; hzrpmChip.style.display = 'inline-flex';
+      } else {
+        hzrpmChip.style.display = 'none';
       }
     }
 
@@ -2669,11 +2718,18 @@
   function renderBuildupChart(w){
     const svg = document.getElementById('rp-buildup-svg');
     if(!svg) return;
-    if(w.buildupPsi == null || w.buildupTimeSec == null || w.pcsg == null){
+    // Chequeo estricto por tipo/NaN (no por truthy) para que 0 kg o -0 kg
+    // SI dibujen la linea — antes un "== null" laxo en la practica terminaba
+    // ocultando el trazado en esos casos, por pedido de Ale se corrige.
+    const hasPcsg = typeof w.pcsg === 'number' && !isNaN(w.pcsg);
+    const hasPsi = typeof w.buildupPsi === 'number' && !isNaN(w.buildupPsi);
+    const hasTime = typeof w.buildupTimeSec === 'number' && !isNaN(w.buildupTimeSec);
+    if(!hasPcsg || !hasPsi || !hasTime){
       svg.innerHTML = `<text x="140" y="85" font-size="11" fill="var(--ink-faint)" text-anchor="middle">Sin datos de buildup</text>`;
       return;
     }
-    const startKg = w.pcsg < 0 ? 0 : w.pcsg;
+    let startKg = w.pcsg < 0 ? 0 : w.pcsg;
+    if(Object.is(startKg, -0)) startKg = 0; // normaliza -0 a 0 (mismo trazado que 0)
     const deltaKg = w.buildupPsi * 0.070307; // psi -> kg/cm2
     const endKg = startKg + deltaKg;
     const mins = Math.floor(w.buildupTimeSec / 60);
@@ -2730,26 +2786,31 @@
 
     const csgLbl = w.casingOd != null ? fmt(w.casingOd,2)+'"' : '—';
     const tbgLbl = w.tubingOd != null ? fmt(w.tubingOd,2)+'"' : '—';
-    // (Se saco el semaforo de presion que tenia el badge Tbg — ahora usa el
-    // mismo formato fijo/verde que el badge Csg, por pedido de Ale.)
+    // Csg/Tbg: estilo mas resaltado (borde + relleno mas intensos). Csg pasa
+    // a ROJO automaticamente si supera los 10 kg (presion alta), por pedido
+    // de Ale — antes era siempre verde fijo.
     // Si no hay dato de presion, se muestra 0 kg (es representativo: el pozo
     // esta sin presion registrada, no es que falte el dato del todo) en vez
     // de un guion vacio.
     const pcsgVal = w.pcsg != null ? w.pcsg : 0;
-    const pcsgColor = '#5fd68a'; const pcsgBg = 'rgba(46,160,90,.22)';
+    const pcsgAlta = pcsgVal > 10;
+    const pcsgColor = pcsgAlta ? '#ff6b6b' : '#5fd68a';
+    const pcsgBg = pcsgAlta ? 'rgba(230,70,70,.28)' : 'rgba(46,160,90,.22)';
     const pcsgLbl = fmt(pcsgVal,1)+' kg';
 
     // Presion de linea (Tbg) para pozos que NO son AIB (BES/PCP/SSE): no
     // viene en un campo propio del CSV, se escribe a mano en el comentario
     // del ensayo de Nivel (ej. "presion de linea 4 kg.- 52 Hz.-"). Se
     // parsea de ahi y se habilita solo quando el pozo no tiene Dina.
+    // Estilo resaltado propio (acento azul), separado del semaforo de Csg.
+    const ptbgColor = '#3B8BD4'; const ptbgBg = 'rgba(59,139,212,.24)';
     let ptbgLineaSvg = '';
     if(!w.hasDyn && w.hasAcu){
       const m = (w.commentAcu || '').match(/presi[oó]n\s*(?:de)?\s*l[ií]nea\s*[:\-]?\s*([\d.,]+)\s*kg/i);
       const ptbgVal = m ? parseFloat(m[1].replace(',', '.')) : 0;
       ptbgLineaSvg = `
-        <rect x="4" y="4" width="90" height="24" rx="5" fill="${pcsgBg}"/>
-        <text x="49" y="20" font-size="12" fill="${pcsgColor}" text-anchor="middle" font-weight="700">Tbg ${fmt(ptbgVal,1)} kg</text>`;
+        <rect x="4" y="4" width="90" height="24" rx="5" fill="${ptbgBg}" stroke="${ptbgColor}" stroke-width="1.4"/>
+        <text x="49" y="20" font-size="12" fill="${ptbgColor}" text-anchor="middle" font-weight="700">Tbg ${fmt(ptbgVal,1)} kg</text>`;
     }
 
     // Segmentos de sarta por tramo, proporcionales a su longitud real (modo
@@ -2815,11 +2876,11 @@
     let pcsgBadgeSvg;
     if(!w.hasDyn && w.hasAcu){
       pcsgBadgeSvg = `
-        <rect x="126" y="4" width="90" height="24" rx="5" fill="${pcsgBg}"/>
+        <rect x="126" y="4" width="90" height="24" rx="5" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.4"/>
         <text x="171" y="20" font-size="12" fill="${pcsgColor}" text-anchor="middle" font-weight="700">Csg ${pcsgLbl}</text>`;
     } else {
       pcsgBadgeSvg = `
-        <rect x="62" y="4" width="96" height="18" rx="4" fill="${pcsgBg}"/>
+        <rect x="62" y="4" width="96" height="18" rx="4" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.2"/>
         <text x="110" y="17" font-size="10" fill="${pcsgColor}" text-anchor="middle" font-weight="600">Csg ${pcsgLbl}</text>`;
     }
 
@@ -3170,7 +3231,7 @@
         <div class="mini"><span class="lbl">Fecha</span><span class="val">${fmtDate(w.dt)}</span></div>
         <div class="mini"><span class="lbl">Batería</span><span class="val">${w.bateria || '—'}</span></div>
         <div class="mini"><span class="lbl">Nivel</span><span class="val">${fmtN(w.nivel,0)} m</span></div>
-        <div class="mini"><span class="lbl">Fillage</span><span class="val">${fmtN(w.fillage,1)} %</span></div>
+        <div class="mini"><span class="lbl">Llenado de Bba</span><span class="val">${fmtN(w.fillage,1)} %</span></div>
       </div>`;
     document.getElementById('quickPreviewModal').classList.add('active');
   }
@@ -4043,6 +4104,14 @@
     return '—';
   }
   function cnOpLabel(op){ return op === '>' ? 'Mayor a' : (op === '<' ? 'Menor a' : (op === '=' ? 'Igual a' : op)); }
+  function cnOperacionLabel(r){
+    const nombre = r.tipoEnsayo === 'Dina' ? 'Dinamometría'
+      : r.tipoEnsayo === 'Nivel' ? 'Nivel (Acústico)'
+      : r.tipoEnsayo === 'Combinada' ? 'Combinada (Dina + Nivel)'
+      : 'Sin ensayo';
+    const cond = (r.condicion && r.condicion !== '—') ? ` - ${r.condicion}` : '';
+    return nombre + cond;
+  }
   function cnTramoLabel(r, idx){
     const t = r.tapers && r.tapers[idx];
     if(!t) return null;
@@ -4058,13 +4127,14 @@
     { key:'fecha',       label:'Fecha',         filterType:'date',     get:r=>r.fecha },
     { key:'bateria',     label:'Batería',       filterType:'checkbox', get:r=>r.bateria },
     { key:'diasSinDina', label:'Días s/dinas',  filterType:'numeric',  get:r=>r.diasSinDina },
-    { key:'operadora',   label:'Operación',     filterType:'checkbox', get:r=>r.operadora },
+    { key:'operacion',   label:'Operación',     filterType:'checkbox', get:r=>cnOperacionLabel(r) },
     { key:'tipoEnsayo',  label:'Tipo ensayo',   filterType:'checkbox', get:r=>r.tipoEnsayo },
     { key:'sistema',     label:'Sistema',       filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
   ];
   // ---- Columnas opcionales (modal "Armado Consulta"): Dina + Nivel + Resumen Pozo ----
   const CN_EXTRA_DEFS = [
     { key:'condicion',    label:'Condición',          group:'Resumen Pozo', filterType:'checkbox', get:r=>r.condicion },
+    { key:'operadoraCliente', label:'Operadora (Cliente)', group:'Resumen Pozo', filterType:'checkbox', get:r=>r.operadora },
     { key:'cargamax',     label:'Carga Máx',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.tv },
     { key:'cargamin',     label:'Carga Mín',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
     { key:'llenado',      label:'Llenado',      unit:' %',  dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
@@ -4407,8 +4477,10 @@
     if(clearBtn) clearBtn.addEventListener('click', ()=>{
       cnState.sistema = ''; cnState.dias = null; cnState.commentSearch = ''; cnState.colFilters = {};
       if(selSistema) selSistema.value = '';
+      if(diasOp) diasOp.value = '>';
       if(diasVal) diasVal.value = '';
       if(commentInp) commentInp.value = '';
+      document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove()); // cierra cualquier panel de filtro de columna abierto
       cnRenderAll();
     });
 
@@ -4416,10 +4488,14 @@
     const modalBackdrop = document.getElementById('cn-modal-backdrop');
     const modalClose = document.getElementById('cn-modal-close');
     const modalApply = document.getElementById('cn-modal-apply');
+    const modalSelAll = document.getElementById('cn-modal-selall');
+    const modalClearAll = document.getElementById('cn-modal-clearall');
     if(armadoBtn) armadoBtn.addEventListener('click', ()=>{ cnRenderModal(); modalBackdrop.classList.add('active'); });
     if(modalClose) modalClose.addEventListener('click', ()=> modalBackdrop.classList.remove('active'));
     if(modalBackdrop) modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) modalBackdrop.classList.remove('active'); });
     if(modalApply) modalApply.addEventListener('click', ()=>{ modalBackdrop.classList.remove('active'); cnRenderAll(); });
+    if(modalSelAll) modalSelAll.addEventListener('click', ()=>{ cnState.extraCols = CN_EXTRA_DEFS.map(d=>d.key); cnRenderModal(); });
+    if(modalClearAll) modalClearAll.addEventListener('click', ()=>{ cnState.extraCols = []; cnRenderModal(); });
 
     const guardarBtn = document.getElementById('cn-btn-guardar');
     if(guardarBtn) guardarBtn.addEventListener('click', cnSaveConfig);
