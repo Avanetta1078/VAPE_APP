@@ -305,9 +305,9 @@
   .rp-badge-pending{background:none; color:var(--ink-faint); border:1px dashed var(--border);}
   .rp-badge-warn{background:rgba(212,120,45,.14); color:#f0975a; border:1px solid rgba(212,120,45,.35);}
   .rp-badge-confirm{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.35);}
-  .rp-badge-bes{font-size:16px; font-weight:800; padding:8px 18px; border-radius:9px; letter-spacing:.03em;
-    background:rgba(212,120,45,.18); color:#f0975a; border:1.5px solid rgba(212,120,45,.55);
-    box-shadow:0 0 0 3px rgba(212,120,45,.12);}
+  .rp-sistema-badge{font-size:11px !important; font-weight:700; padding:3px 9px !important;}
+  .rp-badge-bes{font-size:11px !important; font-weight:800; padding:3px 9px !important; border-radius:7px; letter-spacing:.03em;
+    background:rgba(212,120,45,.18); color:#f0975a; border:1.5px solid rgba(212,120,45,.55);}
   .rp-grid{display:grid; grid-template-columns:50% 50%; gap:14px; align-items:stretch;}
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
   .rp-panel-nivel{height:auto;}
@@ -335,7 +335,7 @@
   .rp-chip-acu .rp-lbl{color:#185FA5;}
   .rp-chip-hzrpm{border:1px solid #185FA5; margin-bottom:6px; padding:3px 9px;}
   .rp-chip-hzrpm .rp-lbl{color:#185FA5;}
-  .rp-chip-estado{border-radius:7px; padding:2px 9px; font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:700; letter-spacing:.02em;}
+  .rp-chip-estado{border-radius:7px; padding:3px 9px; font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.02em;}
   .rp-chip-estado.dinamico{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.4);}
   .rp-chip-estado.estatico{background:rgba(230,70,70,.16); color:#ff6b6b; border:1px solid rgba(230,70,70,.4);}
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -702,10 +702,13 @@
   .cn-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35; max-width:220px;}
   .cn-table td[data-col="commentDyn"], .cn-table td[data-col="commentAcu"]{
-    max-width:none; width:auto; white-space:normal; overflow:visible; text-overflow:clip; min-width:220px;
+    max-width:380px; width:380px; min-width:260px; white-space:normal; overflow:hidden; text-overflow:ellipsis;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3;
   }
   .cn-table tbody tr:hover{background:var(--panel-2);}
   .cn-table tbody tr:hover td.cn-sticky{background:var(--panel-2);}
+  .cn-table tbody tr.gridrow-active{background:rgba(91,118,224,.16);}
+  .cn-table tbody tr.gridrow-active td.cn-sticky{background:rgba(91,118,224,.16);}
   .cn-table td.well-name{font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:11.5px;}
   .cn-table th{position:relative;}
   /* Columnas fijas: Pozo, Fecha, Bateria, Dias s/dinas (primeras 4 columnas base) */
@@ -738,8 +741,15 @@
     border-top:1px solid var(--border);}
 
   /* ---- Inicio: grilla general (Tarea 3) ---- */
-  .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:12px 0 14px;}
-  .inicio-filters-secondary{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:8px 0 0; padding-bottom:8px; border-bottom:1px dashed var(--border);}
+  .inicio-filters-wrap{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; margin:12px 0 14px; transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .inicio-filters-wrap:hover, .inicio-filters-wrap:focus-within{
+    border-color:#5b76e0; box-shadow:0 0 0 3px rgba(91,118,224,.14);
+  }
+  .inicio-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:0;}
+  .inicio-filters-secondary{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:0 0 8px; padding-bottom:8px; border-bottom:1px dashed var(--border);}
   .ifilter{display:flex; flex-direction:column; gap:2px;}
   .ifilter label{font-size:8.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);}
   .ifilter input:not([type="checkbox"]), .ifilter select{
@@ -788,6 +798,8 @@
   }
   .inicio-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35;}
   .inicio-table tbody tr:hover{background:var(--panel-2);}
+  .inicio-table tbody tr.gridrow-active{background:rgba(91,118,224,.16);}
+  .inicio-table tbody tr.gridrow-active td:nth-child(2), .inicio-table tbody tr.gridrow-active td:nth-child(3){ background:rgba(91,118,224,.16); }
   .row-pendiente{background:rgba(179,73,43,.07);}
   .row-pendiente:hover{background:rgba(179,73,43,.13);}
   .pending-badge{
@@ -947,8 +959,8 @@
     <div class="pozo-group">
       <div class="well-select">
         <span class="lbl">Pozo</span>
-        <span class="name">ED-316</span>
-        <span class="field-tag" id="fieldTag">BREST · ED2</span>
+        <span class="name">—</span>
+        <span class="field-tag" id="fieldTag"></span>
       </div>
       <div class="well-search">
         <button type="button" id="wellSearchBtn" title="Buscar pozo" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center;">
@@ -1007,49 +1019,51 @@
         <button type="button" class="clear-sel" id="inicioBulkClear">Cancelar</button>
       </div>
 
-      <div class="inicio-filters-secondary" id="inicioFiltersSecondary">
-        <div class="ifilter">
-          <label>Operadora</label>
-          <select id="ifOperadora"><option value="">Todas</option></select>
+      <div class="inicio-filters-wrap">
+        <div class="inicio-filters-secondary" id="inicioFiltersSecondary">
+          <div class="ifilter">
+            <label>Operadora</label>
+            <select id="ifOperadora"><option value="">Todas</option></select>
+          </div>
+          <div class="ifilter">
+            <label>&nbsp;</label>
+            <label style="display:flex; align-items:center; gap:5px; height:24px; font-size:11px; color:var(--ink-dim); cursor:pointer; text-transform:none; letter-spacing:normal;">
+              <input type="checkbox" id="ifMostrarOcultos" style="width:13px; height:13px; accent-color:#2ea05a; cursor:pointer;">
+              Mostrar ocultos
+            </label>
+          </div>
         </div>
-        <div class="ifilter">
-          <label>&nbsp;</label>
-          <label style="display:flex; align-items:center; gap:5px; height:24px; font-size:11px; color:var(--ink-dim); cursor:pointer; text-transform:none; letter-spacing:normal;">
-            <input type="checkbox" id="ifMostrarOcultos" style="width:13px; height:13px; accent-color:#2ea05a; cursor:pointer;">
-            Mostrar ocultos
-          </label>
-        </div>
-      </div>
 
-      <div class="inicio-filters" id="inicioFilters">
-        <div class="ifilter">
-          <label>Buscar pozo</label>
-          <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
+        <div class="inicio-filters" id="inicioFilters">
+          <div class="ifilter">
+            <label>Buscar pozo</label>
+            <input type="text" id="ifSearch" placeholder="Ej. 966 o E-966(d)">
+          </div>
+          <div class="ifilter">
+            <label>Fecha Campaña</label>
+            <select id="ifFecha"><option value="">Todas</option></select>
+          </div>
+          <div class="ifilter">
+            <label>Batería</label>
+            <select id="ifBateria"><option value="">Todas</option></select>
+          </div>
+          <div class="ifilter">
+            <label>Operación</label>
+            <select id="ifOperacion"><option value="">Todas</option></select>
+          </div>
+          <div class="ifilter">
+            <label>Sistema</label>
+            <select id="ifSistema"><option value="">Todos</option></select>
+          </div>
+          <div class="ifilter">
+            <label>Mostrar</label>
+            <select id="ifModo">
+              <option value="ultimo">Último ensayo por pozo</option>
+              <option value="todos">Todos los ensayos</option>
+            </select>
+          </div>
+          <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
         </div>
-        <div class="ifilter">
-          <label>Fecha Campaña</label>
-          <select id="ifFecha"><option value="">Todas</option></select>
-        </div>
-        <div class="ifilter">
-          <label>Batería</label>
-          <select id="ifBateria"><option value="">Todas</option></select>
-        </div>
-        <div class="ifilter">
-          <label>Operación</label>
-          <select id="ifOperacion"><option value="">Todas</option></select>
-        </div>
-        <div class="ifilter">
-          <label>Sistema</label>
-          <select id="ifSistema"><option value="">Todos</option></select>
-        </div>
-        <div class="ifilter">
-          <label>Mostrar</label>
-          <select id="ifModo">
-            <option value="ultimo">Último ensayo por pozo</option>
-            <option value="todos">Todos los ensayos</option>
-          </select>
-        </div>
-        <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
       </div>
 
       <div class="inicio-table-wrap">
@@ -1092,6 +1106,12 @@
 
   <div class="view" id="view-resumen">
 
+    <button id="fullReportBtn" class="cn-btn primary" type="button"
+      style="position:fixed; top:96px; right:24px; z-index:40; padding:8px 16px; font-size:12px; box-shadow:0 4px 14px rgba(0,0,0,.35);"
+      title="Informe Rápido (Dina + Nivel completo) para descargar en PDF">
+      📄 Informe Rápido
+    </button>
+
     <div class="rp-grid">
 
       <div class="panel rp-panel">
@@ -1121,7 +1141,7 @@
         <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
-          <span id="rp-sistema" class="rp-badge rp-badge-pending" style="margin-left:8px; font-size:9px; padding:2px 8px;">Sistema: pendiente</span>
+          <span id="rp-sistema" class="rp-badge rp-badge-pending rp-sistema-badge" style="margin-left:8px;">Sistema: pendiente</span>
           <span id="rp-estado-pozo" class="rp-chip-estado" style="display:none;"></span>
           <span class="stamp" id="rp-acu-stamp">—</span>
         </div>
@@ -2395,8 +2415,12 @@
     } else {
       wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
     }
-    if(!wellNames.includes(currentWell)){
-      currentWell = wellNames[0];
+    if(currentWell && !wellNames.includes(currentWell)){
+      // Solo se resetea si HABIA algo seleccionado y dejo de ser valido
+      // (cambio de alcance/operadora). Si no hay nada seleccionado todavia
+      // (arranque de la app), se deja vacio — no se auto-elige el primer
+      // pozo de la lista, por pedido de Ale.
+      currentWell = '';
     }
     if(!wellNames.length){
       document.querySelectorAll('.well-select .name').forEach(el => el.textContent = '— sin pozos —');
@@ -2442,7 +2466,7 @@
     });
   }
 
-  let currentWell = "ED-316";
+  let currentWell = ""; // arranca vacio: nada seleccionado hasta que el usuario busque/elija un pozo
   // El buscador de pozo no debe arrancar con un numero precargado: se deja
   // vacio en el primer render real (con datos ya cargados) y a partir de ahi
   // el sincronizado normal (buscador <-> pozo actual) sigue funcionando igual
@@ -2605,10 +2629,10 @@
       const sis = w.sistema; // AIB / BES / Rotaflex / PCP / SSE / null
       if(sis){
         sistemaEl.textContent = sis; // solo el nombre del sistema, por pedido de Ale
-        sistemaEl.className = 'rp-badge rp-badge-confirm' + (sis === 'BES' ? ' rp-badge-bes' : '');
+        sistemaEl.className = 'rp-badge rp-badge-confirm rp-sistema-badge' + (sis === 'BES' ? ' rp-badge-bes' : '');
       } else {
         sistemaEl.textContent = 'Sistema: pendiente';
-        sistemaEl.className = 'rp-badge rp-badge-pending';
+        sistemaEl.className = 'rp-badge rp-badge-pending rp-sistema-badge';
       }
     }
 
@@ -2809,7 +2833,7 @@
       const m = (w.commentAcu || '').match(/presi[oó]n\s*(?:de)?\s*l[ií]nea\s*[:\-]?\s*([\d.,]+)\s*kg/i);
       const ptbgVal = m ? parseFloat(m[1].replace(',', '.')) : 0;
       ptbgLineaSvg = `
-        <rect x="4" y="4" width="90" height="24" rx="5" fill="${ptbgBg}" stroke="${ptbgColor}" stroke-width="1.4"/>
+        <rect x="4" y="5" width="90" height="22" rx="5" fill="${ptbgBg}" stroke="${ptbgColor}" stroke-width="1.4"/>
         <text x="49" y="20" font-size="12" fill="${ptbgColor}" text-anchor="middle" font-weight="700">Tbg ${fmt(ptbgVal,1)} kg</text>`;
     }
 
@@ -2876,12 +2900,12 @@
     let pcsgBadgeSvg;
     if(!w.hasDyn && w.hasAcu){
       pcsgBadgeSvg = `
-        <rect x="126" y="4" width="90" height="24" rx="5" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.4"/>
+        <rect x="126" y="5" width="90" height="22" rx="5" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.4"/>
         <text x="171" y="20" font-size="12" fill="${pcsgColor}" text-anchor="middle" font-weight="700">Csg ${pcsgLbl}</text>`;
     } else {
       pcsgBadgeSvg = `
-        <rect x="62" y="4" width="96" height="18" rx="4" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.2"/>
-        <text x="110" y="17" font-size="10" fill="${pcsgColor}" text-anchor="middle" font-weight="600">Csg ${pcsgLbl}</text>`;
+        <rect x="60" y="4" width="100" height="19" rx="4" fill="${pcsgBg}" stroke="${pcsgColor}" stroke-width="1.2"/>
+        <text x="110" y="17" font-size="11" fill="${pcsgColor}" text-anchor="middle" font-weight="700">Csg ${pcsgLbl}</text>`;
     }
 
     svg.innerHTML = `
@@ -2915,10 +2939,13 @@
   function renderWell(){
     const w = WELLS_DB[currentWell];
     if(!w){
+      document.querySelectorAll('.well-select .name').forEach(el => el.textContent = '—'); // limpia el header (antes quedaba "pegado" al ultimo pozo o al placeholder original del HTML)
       const wellSearchEl = document.getElementById('wellSearch');
       if(wellSearchEl) wellSearchEl.value = '';
       const ifSearchEl = document.getElementById('ifSearch');
       if(ifSearchEl) ifSearchEl.value = '';
+      const histWellSearchEl = document.getElementById('histWellSearch');
+      if(histWellSearchEl) histWellSearchEl.value = '';
       const dtLabelEl = document.getElementById('dtLabel');
       if(dtLabelEl) dtLabelEl.textContent = '—';
       const fieldTagEl0 = document.getElementById('fieldTag');
@@ -4104,14 +4131,6 @@
     return '—';
   }
   function cnOpLabel(op){ return op === '>' ? 'Mayor a' : (op === '<' ? 'Menor a' : (op === '=' ? 'Igual a' : op)); }
-  function cnOperacionLabel(r){
-    const nombre = r.tipoEnsayo === 'Dina' ? 'Dinamometría'
-      : r.tipoEnsayo === 'Nivel' ? 'Nivel (Acústico)'
-      : r.tipoEnsayo === 'Combinada' ? 'Combinada (Dina + Nivel)'
-      : 'Sin ensayo';
-    const cond = (r.condicion && r.condicion !== '—') ? ` - ${r.condicion}` : '';
-    return nombre + cond;
-  }
   function cnTramoLabel(r, idx){
     const t = r.tapers && r.tapers[idx];
     if(!t) return null;
@@ -4127,7 +4146,7 @@
     { key:'fecha',       label:'Fecha',         filterType:'date',     get:r=>r.fecha },
     { key:'bateria',     label:'Batería',       filterType:'checkbox', get:r=>r.bateria },
     { key:'diasSinDina', label:'Días s/dinas',  filterType:'numeric',  get:r=>r.diasSinDina },
-    { key:'operacion',   label:'Operación',     filterType:'checkbox', get:r=>cnOperacionLabel(r) },
+    { key:'operacion',   label:'Tipo Ensayo',     filterType:'checkbox', get:r=>r.condicion },
     { key:'tipoEnsayo',  label:'Tipo ensayo',   filterType:'checkbox', get:r=>r.tipoEnsayo },
     { key:'sistema',     label:'Sistema',       filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
   ];
@@ -4346,8 +4365,16 @@
   function cnOpenColFilter(col, anchorBtn){
     document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove());
     const def = CN_DEFS_BY_KEY[col]; if(!def) return;
-    const allRows = cnBuildRows();
-    const values = Array.from(new Set(allRows.map(r => { const v = def.get(r); return (v==null||v==='') ? '(vacío)' : String(v); }))).sort(naturalCompare);
+    let values;
+    if(col === 'sistema'){
+      // Lista fija (no depende de los datos cargados): asegura que las 5
+      // opciones esten siempre disponibles, aunque el yacimiento actual no
+      // tenga ningun pozo de alguno de esos sistemas todavia.
+      values = ['AIB','BES','PCP','Rotaflex','SSE','Sin clasificar'];
+    } else {
+      const allRows = cnBuildRows();
+      values = Array.from(new Set(allRows.map(r => { const v = def.get(r); return (v==null||v==='') ? '(vacío)' : String(v); }))).sort(naturalCompare);
+    }
     const panel = document.createElement('div');
     panel.className = 'th-filter-panel open';
     const selected = cnState.colFilters[col] || new Set();
@@ -4476,11 +4503,13 @@
     const clearBtn = document.getElementById('cn-btn-clear');
     if(clearBtn) clearBtn.addEventListener('click', ()=>{
       cnState.sistema = ''; cnState.dias = null; cnState.commentSearch = ''; cnState.colFilters = {};
+      cnState.extraCols = []; // reset integral: tambien desmarca las columnas de Armado Consulta
       if(selSistema) selSistema.value = '';
       if(diasOp) diasOp.value = '>';
       if(diasVal) diasVal.value = '';
       if(commentInp) commentInp.value = '';
       document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove()); // cierra cualquier panel de filtro de columna abierto
+      if(document.getElementById('cn-modal-backdrop').classList.contains('active')) cnRenderModal(); // si el modal esta abierto, refresca sus checkboxes tambien
       cnRenderAll();
     });
 
@@ -7187,6 +7216,19 @@
   initDinaDetailsModal();
   initQuickReportModal();
   initFullReportModal();
+  function initRowHighlight(){
+    // Delegado a nivel documento (no a la tabla) para que siga funcionando
+    // aunque la grilla se re-renderice dinamicamente (caso Consulta, que
+    // reconstruye el <tbody> entero en cada cnRenderTable()).
+    document.addEventListener('click', (e)=>{
+      const tr = e.target.closest('#inicioTableBody tr, #cn-table tbody tr');
+      if(!tr) return;
+      const tbody = tr.parentElement;
+      tbody.querySelectorAll('tr.gridrow-active').forEach(r => { if(r !== tr) r.classList.remove('gridrow-active'); });
+      tr.classList.toggle('gridrow-active');
+    });
+  }
+  initRowHighlight();
   initConsultas();
 
   document.getElementById('prevBtn').addEventListener('click', ()=>{
