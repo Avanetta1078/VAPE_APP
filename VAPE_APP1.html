@@ -3683,7 +3683,9 @@
             condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : '—',
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
-            commentTestId: h.testId != null ? h.testId : null
+            commentTestId: h.testId != null ? h.testId : null,
+            acuTestId: h.tipo === 'Nivel' ? h.testId : null,
+            dynTestId: h.tipo === 'Dina' ? h.testId : null
           });
         });
         // Pozo sin ningún ensayo: se muestra igual una fila "pendiente" (como en modo Último).
@@ -3748,7 +3750,9 @@
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null),
-          commentTestId: tipoUltimo === 'Dina' ? w.dynTestId : (tipoUltimo === 'Nivel' ? w.acuTestId : null)
+          commentTestId: tipoUltimo === 'Dina' ? w.dynTestId : (tipoUltimo === 'Nivel' ? w.acuTestId : null),
+          acuTestId: w.hasAcu ? w.acuTestId : null,
+          dynTestId: w.hasDyn ? w.dynTestId : null
         };
       });
     }
@@ -3809,7 +3813,7 @@
           : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>`;
         const pendingDot = r.pendiente ? '<span class="row-pending-dot" title="Pendiente: sin ensayos cargados"></span>' : '';
         const tipoTag = r.tipo ? `<span class="pending-badge" style="color:var(--steel-glow); background:rgba(143,180,214,.14); border-color:rgba(143,180,214,.35);">${r.tipo}</span>` : '';
-        return `<tr class="${rowClass}" data-rowkey="${rowKey}" data-well="${n.replace(/"/g,'&quot;')}" data-comment-testid="${r.commentTestId != null ? r.commentTestId : ''}" data-tipo="${r.tipo || ''}">
+        return `<tr class="${rowClass}" data-rowkey="${rowKey}" data-well="${n.replace(/"/g,'&quot;')}" data-comment-testid="${r.commentTestId != null ? r.commentTestId : ''}" data-tipo="${r.tipo || ''}" data-acu-testid="${r.acuTestId != null ? r.acuTestId : ''}" data-dyn-testid="${r.dynTestId != null ? r.dynTestId : ''}" data-operacion="${r.operacion || ''}" data-condicion="${r.condicion || ''}">
           <td><div class="row-actions">
             ${canDelete ? `<input type="checkbox" class="row-check" data-rowkey="${rowKey.replace(/"/g,'&quot;')}" onchange="toggleInicioRowSelect(this)" ${checked}>` : '<span style="width:13px;display:inline-block;flex-shrink:0;"></span>'}
             ${pendingDot}
@@ -3823,11 +3827,11 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0-1 13a1 1 0 01-1 1H8a1 1 0 01-1-1L6 7h12z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>` : ''}
           </div></td>
-          <td class="well-name" onclick="currentWell='${n.replace(/'/g,"\\'")}'; renderWell(); goToView('resumen');">${n}</td>
+          <td class="ie-cell well-name" data-field="well" onclick="inicioWellCellClick('${n.replace(/'/g,"\\'")}')">${n}</td>
           <td>${fmtDate(r.dt)}${tipoTag}</td>
           <td class="ie-cell" data-field="bateria">${r.bateria || '—'}</td>
-          <td>${r.operacion || '—'}</td>
-          <td>${r.condicion || '—'}</td>
+          <td class="ie-cell" data-field="operacion">${r.operacion || '—'}</td>
+          <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
           <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
@@ -7298,17 +7302,57 @@
   }
   initRowHighlight();
 
+  function inicioWellCellClick(name){
+    if(inicioEditingRowKey) return; // en modo edicion el click no debe disparar la navegacion
+    currentWell = name; renderWell(); goToView('resumen');
+  }
+
   function inicioEnterEditMode(){
     if(!inicioActiveRowKey || inicioEditingRowKey) return;
     const tr = document.querySelector(`#inicioTableBody tr[data-rowkey="${CSS.escape(inicioActiveRowKey)}"]`);
     if(!tr) return;
     inicioEditingRowKey = inicioActiveRowKey;
 
+    const wellTd = tr.querySelector('td.ie-cell[data-field="well"]');
     const bateriaTd = tr.querySelector('td.ie-cell[data-field="bateria"]');
+    const operacionTd = tr.querySelector('td.ie-cell[data-field="operacion"]');
+    const condicionTd = tr.querySelector('td.ie-cell[data-field="condicion"]');
     const commentTd = tr.querySelector('td.ie-cell[data-field="comment"]');
+
+    if(wellTd){
+      const cur = tr.dataset.well;
+      wellTd.innerHTML = `<input type="text" class="ie-input" data-orig="${cur.replace(/"/g,'&quot;')}" value="${cur.replace(/"/g,'&quot;')}">`;
+    }
     if(bateriaTd){
       const cur = bateriaTd.textContent.trim();
       bateriaTd.innerHTML = `<input type="text" class="ie-input" data-orig="${cur==='—'?'':cur.replace(/"/g,'&quot;')}" value="${cur==='—'?'':cur.replace(/"/g,'&quot;')}">`;
+    }
+    if(operacionTd){
+      // "Operacion" (Dina/Nivel) solo es editable si la fila representa UN
+      // solo ensayo puntual (no tiene sentido para "Combinada", que en
+      // realidad son dos registros distintos, ni para "Sin ensayo").
+      const cur = tr.dataset.operacion;
+      if(cur === 'Dina' || cur === 'Nivel'){
+        operacionTd.innerHTML = `<select class="ie-input" data-orig="${cur}">
+          <option value="Dina" ${cur==='Dina'?'selected':''}>Dina</option>
+          <option value="Nivel" ${cur==='Nivel'?'selected':''}>Nivel</option>
+        </select>`;
+      } else {
+        operacionTd.title = 'No editable: esta fila combina más de un ensayo o no tiene ninguno.';
+      }
+    }
+    if(condicionTd){
+      // "Tipo Ensayo" (Dinamico/Estatico) sale del well_state del ensayo de
+      // Nivel — solo editable si esta fila tiene un ensayo de Nivel asociado.
+      const cur = tr.dataset.condicion;
+      if(tr.dataset.acuTestid && (cur === 'Dinámico' || cur === 'Estático')){
+        condicionTd.innerHTML = `<select class="ie-input" data-orig="${cur}">
+          <option value="Dinámico" ${cur==='Dinámico'?'selected':''}>Dinámico</option>
+          <option value="Estático" ${cur==='Estático'?'selected':''}>Estático</option>
+        </select>`;
+      } else {
+        condicionTd.title = 'No editable: esta fila no tiene un ensayo de Nivel asociado.';
+      }
     }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
@@ -7360,18 +7404,49 @@
     const editBtn = document.getElementById('ifEditBtn');
     if(editBtn){ editBtn.disabled = true; editBtn.textContent = 'Guardando…'; }
 
+    const wellInput = tr.querySelector('td.ie-cell[data-field="well"] .ie-input');
     const bateriaInput = tr.querySelector('td.ie-cell[data-field="bateria"] .ie-input');
+    const operacionInput = tr.querySelector('td.ie-cell[data-field="operacion"] .ie-input');
+    const condicionInput = tr.querySelector('td.ie-cell[data-field="condicion"] .ie-input');
     const commentInput = tr.querySelector('td.ie-cell[data-field="comment"] .ie-input');
+    const newWellName = wellInput ? wellInput.value.trim() : null;
     const newBateria = bateriaInput ? bateriaInput.value.trim() : null;
+    const newOperacion = operacionInput ? operacionInput.value : null;
+    const newCondicion = condicionInput ? condicionInput.value : null;
     const newComment = commentInput ? commentInput.value.trim() : null;
     const commentTestId = tr.dataset.commentTestid ? Number(tr.dataset.commentTestid) : null;
+    const acuTestId = tr.dataset.acuTestid ? Number(tr.dataset.acuTestid) : null;
+    const dynTestId = tr.dataset.dynTestid ? Number(tr.dataset.dynTestid) : null;
     const rowTipo = tr.dataset.tipo; // 'Dina' o 'Nivel' — para saber que cache local actualizar
 
     try{
+      let renamed = false;
+      if(wellInput && newWellName && newWellName !== wellInput.dataset.orig){
+        const { error } = await supabaseClient.from('wells').update({ well_name: newWellName }).eq('well_id', w.well_id);
+        if(error) throw error;
+        renamed = true; // el nombre es la clave de WELLS_DB en toda la app: mas seguro recargar todo que parchear cada referencia a mano
+      }
       if(bateriaInput && newBateria !== bateriaInput.dataset.orig){
         const { error } = await supabaseClient.from('wells').update({ bateria: newBateria || null }).eq('well_id', w.well_id);
         if(error) throw error;
         w.bateria = newBateria || null;
+      }
+      if(operacionInput && newOperacion !== operacionInput.dataset.orig){
+        // "Operacion" (Dina/Nivel) = tests.test_type del ensayo puntual que
+        // representa esta fila (dynTestId si era Dina, acuTestId si era Nivel).
+        const targetTestId = operacionInput.dataset.orig === 'Dina' ? dynTestId : acuTestId;
+        if(targetTestId != null){
+          const { error } = await supabaseClient.from('tests').update({ test_type: newOperacion === 'Dina' ? 'DYN' : 'ACU' }).eq('test_id', targetTestId);
+          if(error) throw error;
+        }
+      }
+      if(condicionInput && newCondicion !== condicionInput.dataset.orig && acuTestId != null){
+        // "Tipo Ensayo" (Dinamico/Estatico) = acu_results.well_state del
+        // ensayo de Nivel asociado a esta fila.
+        const { error } = await supabaseClient.from('acu_results').update({ well_state: newCondicion === 'Dinámico' ? 'Producing' : 'Static' }).eq('test_id', acuTestId);
+        if(error) throw error;
+        w.wellState = newCondicion === 'Dinámico' ? 'Producing' : 'Static';
+        (w.history || []).forEach(h => { if(h.testId === acuTestId) h.wellState = w.wellState; });
       }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
@@ -7388,7 +7463,16 @@
       if(editBtn){ editBtn.textContent = '✎ Editar'; editBtn.title = 'Seleccioná una fila (clic) para habilitar la edición'; editBtn.disabled = true; }
       const cancelBtn = document.getElementById('ifEditCancel');
       if(cancelBtn) cancelBtn.style.display = 'none';
-      renderInicioGrid();
+      if(renamed && typeof loadLiveDataFromSupabase === 'function'){
+        // Cambio el nombre del pozo (clave de WELLS_DB en toda la app): en
+        // vez de parchear a mano cada referencia (Consulta, Historial,
+        // Resumen Pozo, etc.), se recarga todo desde Supabase para asegurar
+        // consistencia total.
+        await loadLiveDataFromSupabase();
+        if(typeof initScopeForUser === 'function') initScopeForUser();
+      } else {
+        renderInicioGrid();
+      }
     } catch(err){
       alert('No se pudo guardar en Supabase: ' + (err.message || err));
       if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
