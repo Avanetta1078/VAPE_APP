@@ -2657,7 +2657,7 @@
       // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
       // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
       const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
-        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m'),
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m, motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos'),
         fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb, pump_designation_api, total_rod_weight_lb'),
         fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
         fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id'),
@@ -2693,7 +2693,14 @@
       const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
 
       wells.forEach(w => {
-        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null };
+        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null,
+          motorMarca: w.motor_marca || null, motorRpm: w.motor_rpm ?? null, motorHp: w.motor_hp ?? null, motorPolea: w.motor_polea || null,
+          contrapesosRaw: w.contrapesos || null,
+        };
+        // Pre-cargar contrapesos desde wells si existen
+        if(w.contrapesos && !(w.well_name in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[w.well_name] = { contrapesos: w.contrapesos, motor_marca: w.motor_marca, motor_rpm: w.motor_rpm, motor_potencia_hp: w.motor_hp, motor_polea: w.motor_polea };
+        }
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
@@ -2875,38 +2882,9 @@
       // que todavia no estaban embebidos en el HTML.
       wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
 
-      // ---- Motor y Contrapesos: bulk load desde field_log (último registro por pozo) ----
-      try{
-        const wellNumbers = wellNames.map(n => String(n).replace(/\D/g, '')).filter(Boolean);
-        if(wellNumbers.length){
-          // Traer el registro más reciente de cada well_number con datos de motor/contrapesos.
-          // Supabase no soporta DISTINCT ON; traemos los últimos registros y deduplicamos en JS.
-          const { data: flRows, error: flErr } = await supabaseClient
-            .from('field_log').select('well_number, fecha, motor_marca, motor_rpm, motor_potencia_hp, motor_hp, motor_polea, contrapesos')
-            .in('well_number', wellNumbers)
-            .order('fecha', { ascending: false });
-          if(!flErr && flRows){
-            const seen = {};
-            flRows.forEach(fl => {
-              if(seen[fl.well_number]) return;
-              seen[fl.well_number] = true;
-              // Buscar el pozo que corresponde a este well_number
-              const wName = wellNames.find(n => String(n).replace(/\D/g, '') === fl.well_number);
-              if(!wName) return;
-              const w = WELLS_DB[wName];
-              if(!w) return;
-              w.motorMarca = fl.motor_marca || null;
-              w.motorRpm = fl.motor_rpm ?? null;
-              w.motorHp = (fl.motor_potencia_hp ?? fl.motor_hp) ?? null;
-              w.motorPolea = fl.motor_polea || null;
-              // También pre-cargar contrapesos en cache para evitar consulta duplicada
-              if(fl.contrapesos && !(wName in CONTRAPESOS_CACHE)){
-                CONTRAPESOS_CACHE[wName] = fl;
-              }
-            });
-          }
-        }
-      } catch(e){ console.warn('Bulk motor/contrapesos load:', e.message||e); }
+      // Motor y Contrapesos ahora se leen directamente de la tabla wells (columnas
+      // motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos) y ya se cargaron
+      // arriba en el forEach de wells — no se necesita la consulta separada a field_log.
 
       // Trae las cartas ya guardadas en Storage (persisten aunque se cierre la sesion).
       try {
@@ -6468,24 +6446,18 @@
   async function loadContrapesosForWell(wellName){
     const table = document.getElementById('d-contrapesos-table');
     if(!table) return;
+    // Motor y contrapesos ahora se leen de WELLS_DB (cargado desde tabla wells).
+    // Si no está en CONTRAPESOS_CACHE, lo construimos desde WELLS_DB.
     if(!(wellName in CONTRAPESOS_CACHE)){
-      if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = null; }
-      else {
-        try{
-          const wellNumber = String(wellName).replace(/\D/g, '');
-          if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
-          else {
-            const { data, error } = await supabaseClient
-              .from('field_log').select('fecha, contrapesos, motor_marca, motor_rpm, motor_potencia_hp, motor_hp, motor_polea')
-              .eq('well_number', wellNumber)
-              .order('fecha', { ascending: false }).limit(1).maybeSingle();
-            if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
-            else { CONTRAPESOS_CACHE[wellName] = data || null; }
-          }
-        } catch(e){
-          console.error('Excepción buscando contrapesos:', e);
-          CONTRAPESOS_CACHE[wellName] = null;
-        }
+      const wdb = WELLS_DB[wellName];
+      if(wdb && (wdb.motorMarca || wdb.motorRpm != null || wdb.motorHp != null || wdb.motorPolea || wdb.contrapesosRaw)){
+        CONTRAPESOS_CACHE[wellName] = {
+          contrapesos: wdb.contrapesosRaw || null,
+          motor_marca: wdb.motorMarca, motor_rpm: wdb.motorRpm,
+          motor_potencia_hp: wdb.motorHp, motor_polea: wdb.motorPolea
+        };
+      } else {
+        CONTRAPESOS_CACHE[wellName] = null;
       }
     }
     const row = CONTRAPESOS_CACHE[wellName];
@@ -7717,9 +7689,52 @@
           if(error) throw error;
         }
 
+        // ---- Matching y persistencia de motor/contrapesos en tabla wells ----
+        // Por cada pozo con well_id, tomar el registro más reciente (última fecha)
+        // y actualizar las columnas motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos.
+        let wellsUpdated = 0;
+        const latestByWell = {};
+        finalRows.forEach(r => {
+          if(!r.well_id) return;
+          if(!latestByWell[r.well_id] || r.fecha > latestByWell[r.well_id].fecha){
+            latestByWell[r.well_id] = r;
+          }
+        });
+        for(const [wellId, r] of Object.entries(latestByWell)){
+          const hasMotor = r.motor_marca || r.motor_rpm != null || r.motor_potencia_hp != null || r.motor_polea;
+          const hasCp = r.contrapesos && (r.contrapesos.tipo != null || r.contrapesos.cant != null || r.contrapesos.secu != null);
+          if(!hasMotor && !hasCp) continue;
+          const upd = {};
+          if(hasMotor){
+            upd.motor_marca = r.motor_marca || null;
+            upd.motor_rpm = r.motor_rpm ?? null;
+            upd.motor_hp = r.motor_potencia_hp ?? null;
+            upd.motor_polea = r.motor_polea || null;
+          }
+          if(hasCp) upd.contrapesos = r.contrapesos;
+          const { error: updErr } = await supabaseClient
+            .from('wells').update(upd).eq('well_id', wellId);
+          if(!updErr) wellsUpdated++;
+          else console.warn('Error actualizando wells con motor/cp:', updErr);
+          // Actualizar WELLS_DB en memoria
+          const wName = Object.keys(WELLS_DB).find(n => WELLS_DB[n].well_id === wellId);
+          if(wName && WELLS_DB[wName]){
+            if(hasMotor){
+              WELLS_DB[wName].motorMarca = r.motor_marca || null;
+              WELLS_DB[wName].motorRpm = r.motor_rpm ?? null;
+              WELLS_DB[wName].motorHp = r.motor_potencia_hp ?? null;
+              WELLS_DB[wName].motorPolea = r.motor_polea || null;
+            }
+            if(hasCp){
+              WELLS_DB[wName].contrapesosRaw = r.contrapesos;
+              delete CONTRAPESOS_CACHE[wName]; // invalidar para que se recargue
+            }
+          }
+        }
+
         previewArea.innerHTML = `<div class="up-block"><h4>Listo</h4>
           <p class="up-note">${finalRows.length} filas guardadas en Bitácora (field_log), de ${sheets.length} hoja(s): ${fechasUnicas.map(f=>fmtDDMMYYYY(new Date(f+'T00:00:00Z'))).join(', ')}.</p>
-          <p class="up-note">${Object.keys(wellMap).length} pozos linkeados a wells por well_number; el resto queda con well_id nulo (solo well_name_raw) hasta que el pozo exista en wells.</p>
+          <p class="up-note">${Object.keys(wellMap).length} pozos linkeados a wells por well_number; ${wellsUpdated} pozos actualizados con datos de Motor/Contrapesos.</p>
         </div>`;
       } catch(e){
         console.error('Error guardando planillero:', e);
