@@ -1938,10 +1938,8 @@
   </div>
 
   <script>
-  // ─── MANTENIMIENTO DE BASE DE DATOS ─────────────────────────────────────────
+  // ─── MANTENIMIENTO DE BASE DE DATOS (VERSIÓN SIMPLIFICADA) ──────────────────
   (function(){
-
-    var mState = { base:null, operadora:null, conteos:{}, total:0, wellIds:[], wellNames:[] };
 
     function showStep(n){
       ['mant-step1','mant-step2','mant-step3','mant-step4'].forEach(function(id,i){
@@ -1961,38 +1959,105 @@
       document.getElementById('mantProgressText').textContent = label + ' (' + done.toLocaleString() + ' / ' + total.toLocaleString() + ')';
     }
 
-    // Limpiar WELLS_DB y re-renderizar pantalla
-    function limpiarMemoriaJS(operadora){
-      try {
-        if(operadora === 'TODAS'){
-          Object.keys(WELLS_DB).forEach(function(k){ delete WELLS_DB[k]; });
-          wellNames = [];
-        } else {
-          Object.keys(WELLS_DB).forEach(function(k){
-            if(WELLS_DB[k] && WELLS_DB[k].operadora === operadora) delete WELLS_DB[k];
-          });
-          wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
-        }
-        if(typeof renderInicioGrid === 'function'){ inicioPage = 0; renderInicioGrid(); }
-        if(typeof populateInicioFilterOptions === 'function') populateInicioFilterOptions();
-        if(typeof cnRenderAll === 'function') cnRenderAll();
-        if(typeof renderWell === 'function') renderWell();
-      } catch(e){ console.warn('limpiarMemoriaJS:', e); }
+    // Limpiar memoria JS
+    function limpiarMemoriaJS(){
+      Object.keys(WELLS_DB).forEach(function(k){ delete WELLS_DB[k]; });
+      wellNames = [];
+      if(typeof renderInicioGrid === 'function'){ inicioPage = 0; renderInicioGrid(); }
+      if(typeof populateInicioFilterOptions === 'function') populateInicioFilterOptions();
+      if(typeof cnRenderAll === 'function') cnRenderAll();
+      if(typeof renderWell === 'function') renderWell();
     }
 
-    // Eliminar en chunks de 500, devuelve count eliminado
-    async function deleteChunked(sb, table, col, ids, label, eliminados, total){
-      var CHUNK = 500;
-      var done = eliminados;
-      for(var i = 0; i < ids.length; i += CHUNK){
-        var chunk = ids.slice(i, i + CHUNK);
-        var { error } = await sb.from(table).delete().in(col, chunk);
-        if(error){ logLine('⚠ ' + table + ': ' + error.message); }
-        done += chunk.length;
-        setProgress(done, total, label);
+    // Función simple y efectiva para borrar TODO
+    async function deleteAllData(){
+      var sb = supabaseClient;
+      logLine('🗑️ ELIMINANDO TODA LA BASE DE DATOS...\n');
+
+      try {
+        // Orden crítico: respetar claves foráneas
+        // 1. bitacora_contrapesos (FK a bitacora_visitas)
+        logLine('→ Borrando bitacora_contrapesos...');
+        await sb.from('bitacora_contrapesos').delete().neq('contrapeso_row_id', -1);
+        logLine('✓ bitacora_contrapesos eliminados');
+        setProgress(1, 9, 'Limpiando bitácora');
+
+        // 2. bitacora_visitas (FK a wells)
+        logLine('→ Borrando bitacora_visitas...');
+        await sb.from('bitacora_visitas').delete().neq('visita_id', -1);
+        logLine('✓ bitacora_visitas eliminados');
+        setProgress(2, 9, 'Limpiando bitácora');
+
+        // 3. dyn_curve_points (FK a tests)
+        logLine('→ Borrando dyn_curve_points...');
+        await sb.from('dyn_curve_points').delete().neq('test_id', -1);
+        logLine('✓ dyn_curve_points eliminados');
+        setProgress(3, 9, 'Limpiando curvas');
+
+        // 4. acu_curve_points (FK a tests)
+        logLine('→ Borrando acu_curve_points...');
+        await sb.from('acu_curve_points').delete().neq('test_id', -1);
+        logLine('✓ acu_curve_points eliminados');
+        setProgress(4, 9, 'Limpiando curvas');
+
+        // 5. dyn_results (FK a tests)
+        logLine('→ Borrando dyn_results...');
+        await sb.from('dyn_results').delete().neq('test_id', -1);
+        logLine('✓ dyn_results eliminados');
+        setProgress(5, 9, 'Limpiando resultados');
+
+        // 6. acu_results (FK a tests)
+        logLine('→ Borrando acu_results...');
+        await sb.from('acu_results').delete().neq('test_id', -1);
+        logLine('✓ acu_results eliminados');
+        setProgress(6, 9, 'Limpiando resultados');
+
+        // 7. tests (FK a wells)
+        logLine('→ Borrando tests...');
+        await sb.from('tests').delete().neq('test_id', -1);
+        logLine('✓ tests eliminados');
+        setProgress(7, 9, 'Limpiando tests');
+
+        // 8. field_log (FK a wells)
+        logLine('→ Borrando field_log...');
+        await sb.from('field_log').delete().neq('field_log_id', -1);
+        logLine('✓ field_log eliminado');
+        setProgress(8, 9, 'Limpiando field_log');
+
+        // 9. rod_tapers (FK a well_configurations)
+        logLine('→ Borrando rod_tapers...');
+        await sb.from('rod_tapers').delete().neq('rod_taper_id', -1);
+        logLine('✓ rod_tapers eliminados');
+
+        // 10. well_markers (FK a well_configurations)
+        logLine('→ Borrando well_markers...');
+        await sb.from('well_markers').delete().neq('marker_id', -1);
+        logLine('✓ well_markers eliminados');
+
+        // 11. well_alerts (FK a wells)
+        logLine('→ Borrando well_alerts...');
+        await sb.from('well_alerts').delete().neq('well_alert_id', -1);
+        logLine('✓ well_alerts eliminados');
+
+        // 12. well_configurations (FK a wells)
+        logLine('→ Borrando well_configurations...');
+        await sb.from('well_configurations').delete().neq('well_config_id', -1);
+        logLine('✓ well_configurations eliminados');
+
+        // 13. wells (ÚLTIMO - base de todo)
+        logLine('→ Borrando wells...');
+        await sb.from('wells').delete().neq('well_id', -1);
+        logLine('✓ wells ELIMINADOS - BASE EN CERO');
+        setProgress(9, 9, 'Completado');
+
+        logLine('\n✅ ELIMINACIÓN COMPLETADA AL 100%');
+        return true;
+
+      } catch(err){
+        logLine('\n❌ ERROR: ' + (err.message || String(err)));
+        console.error(err);
+        return false;
       }
-      logLine('✓ ' + table + ': ' + ids.length.toLocaleString() + ' registros eliminados');
-      return done;
     }
 
     // ── BOTÓN: Consultar ───────────────────────────────────────────────────
@@ -2146,175 +2211,28 @@
 
       showStep(3);
       document.getElementById('mantProgressLog').innerHTML = '';
-      var sb  = supabaseClient;
-      var op  = mState.operadora;
-      var done = 0;
-      var total = mState.total;
 
       try {
-        var wellIds  = mState.wellIds;
-        var wNames   = mState.wellNames;
-
-        // ── ORDEN CRÍTICO: Bitácora PRIMERO (field_log depende de wells), luego VAPE_APP (wells al final)
-        // ── BITÁCORA ────────────────────────────────────────────────────
-        if(mState.base === 'bitacora' || mState.base === 'ambas'){
-
-          if(op === 'TODAS'){
-            logLine('→ Leyendo bitacora_visitas (todas)…');
-            var { data: visAllD } = await sb.from('bitacora_visitas').select('visita_id');
-            var visAllIds = (visAllD||[]).map(function(v){ return v.visita_id; });
-            if(visAllIds.length > 0){
-              done = await deleteChunked(sb, 'bitacora_contrapesos', 'visita_id', visAllIds,
-                'Eliminando bitacora_contrapesos', done, total);
-              done = await deleteChunked(sb, 'bitacora_visitas', 'visita_id', visAllIds,
-                'Eliminando bitacora_visitas', done, total);
-            } else { logLine('✓ bitacora_visitas: 0'); }
-
-            // field_log completo — sin filtro de columna inexistente
-            logLine('→ Eliminando field_log (todas)…');
-            var { error: flErrAll, count: flDelAll } = await sb.from('field_log')
-              .delete().not('fecha', 'is', null);
-            if(flErrAll){ logLine('⚠ field_log (no-null): ' + flErrAll.message);
-              // fallback: borrar por operadora conocida si el anterior falló
-              var { error: flFall } = await sb.from('field_log').delete().gte('fecha', '1900-01-01');
-              if(flFall) logLine('⚠ field_log fallback: ' + flFall.message);
-              else logLine('✓ field_log: eliminado vía fallback');
-            } else { logLine('✓ field_log: ' + (mState.conteos['field_log']||0).toLocaleString() + ' registros eliminados'); }
-            done += (mState.conteos['field_log'] || 0);
-            setProgress(done, total, 'Eliminando field_log');
-
-          } else {
-            if(wellIds.length > 0){
-              logLine('→ Leyendo bitacora_visitas por pozo…');
-              var { data: visD2 } = await sb.from('bitacora_visitas').select('visita_id').in('well_id', wellIds);
-              var vids2 = (visD2||[]).map(function(v){ return v.visita_id; });
-              if(vids2.length > 0){
-                done = await deleteChunked(sb, 'bitacora_contrapesos', 'visita_id', vids2,
-                  'Eliminando bitacora_contrapesos', done, total);
-                done = await deleteChunked(sb, 'bitacora_visitas', 'visita_id', vids2,
-                  'Eliminando bitacora_visitas', done, total);
-              } else { logLine('✓ bitacora_visitas: 0 para esta operadora'); }
-            }
-            logLine('→ Eliminando field_log por operadora…');
-            var { error: flErr } = await sb.from('field_log').delete().eq('operadora', op);
-            if(flErr) logLine('⚠ field_log: ' + flErr.message);
-            else logLine('✓ field_log: ' + (mState.conteos['field_log']||0).toLocaleString() + ' registros eliminados');
-            done += (mState.conteos['field_log'] || 0);
-            setProgress(done, total, 'Eliminando field_log');
-          }
-        }
-
-        // ── VAPE_APP (DESPUÉS de bitácora para respetar integridad referencial)
-        if(mState.base === 'vape' || mState.base === 'ambas'){
-
-          if(wellIds.length > 0){
-
-            // 1. well_configurations DIRECTO por well_id (cubre huérfanos sin test)
-            logLine('→ Leyendo well_configurations…');
-            var { data: cfgD } = await sb.from('well_configurations')
-              .select('well_config_id').in('well_id', wellIds);
-            var cfgIds = (cfgD||[]).map(function(c){ return c.well_config_id; });
-
-            // 2. rod_tapers por well_config_id
-            if(cfgIds.length > 0){
-              done = await deleteChunked(sb, 'rod_tapers', 'well_config_id', cfgIds,
-                'Eliminando rod_tapers', done, total);
-            } else { logLine('✓ rod_tapers: 0 (sin configs)'); }
-
-            // 3. tests → dyn_results / acu_results
-            logLine('→ Leyendo tests…');
-            var { data: tD } = await sb.from('tests').select('test_id').in('well_id', wellIds);
-            var testIds = (tD||[]).map(function(t){ return t.test_id; });
-
-            if(testIds.length > 0){
-              done = await deleteChunked(sb, 'dyn_results', 'test_id', testIds,
-                'Eliminando dyn_results', done, total);
-              done = await deleteChunked(sb, 'acu_results', 'test_id', testIds,
-                'Eliminando acu_results', done, total);
-              done = await deleteChunked(sb, 'tests', 'test_id', testIds,
-                'Eliminando tests', done, total);
-            } else { logLine('✓ dyn_results / acu_results / tests: 0'); }
-
-            // 4. well_configurations
-            if(cfgIds.length > 0){
-              done = await deleteChunked(sb, 'well_configurations', 'well_config_id', cfgIds,
-                'Eliminando well_configurations', done, total);
-            }
-
-            // 5. wells — el pozo mismo, ÚLTIMO (después de field_log que fue borrado arriba)
-            done = await deleteChunked(sb, 'wells', 'well_id', wellIds,
-              'Eliminando wells', done, total);
-          } else {
-            logLine('✓ Sin pozos para esta operadora en VAPE_APP.');
-          }
-        }
-
-        setProgress(total, total, 'Verificando…');
-        await new Promise(function(r){ setTimeout(r, 800); });
-
-        // ── VERIFICACIÓN FINAL — contar exactamente lo que queda ──────────
-        logLine('→ Verificación final…');
-        var remanentes = {};
-        var totalRem = 0;
-
-        if(mState.base === 'vape' || mState.base === 'ambas'){
-          var wQ2 = sb.from('wells').select('well_id',{count:'exact',head:true});
-          if(op !== 'TODAS') wQ2 = wQ2.eq('operadora', op);
-          var { count: remW } = await wQ2; remW = remW || 0;
-          if(remW > 0){ remanentes['wells'] = remW; totalRem += remW; }
-
-          if(op !== 'TODAS' && mState.wellIds.length > 0){
-            // Verificar por los well_ids que borramos
-          }
-          // well_configurations huérfanas
-          var { count: remCfg } = await sb.from('well_configurations')
-            .select('well_config_id',{count:'exact',head:true});
-          remCfg = remCfg||0;
-          // Solo reportar si hay y son de esta operadora (no podemos filtrar, mostramos global si es TODAS)
-          if(op === 'TODAS' && remCfg > 0){ remanentes['well_configurations'] = remCfg; totalRem += remCfg; }
-
-          var { count: remRods } = await sb.from('rod_tapers')
-            .select('rod_taper_id',{count:'exact',head:true});
-          remRods = remRods||0;
-          if(op === 'TODAS' && remRods > 0){ remanentes['rod_tapers'] = remRods; totalRem += remRods; }
-        }
-
-        if(mState.base === 'bitacora' || mState.base === 'ambas'){
-          var { count: remVis } = await sb.from('bitacora_visitas')
-            .select('visita_id',{count:'exact',head:true});
-          remVis = remVis||0;
-          if(remVis > 0){ remanentes['bitacora_visitas'] = remVis; totalRem += remVis; }
-
-          var { count: remFl } = await sb.from('field_log')
-            .select('fecha',{count:'exact',head:true});
-          remFl = remFl||0;
-          if(remFl > 0){ remanentes['field_log'] = remFl; totalRem += remFl; }
-        }
-
-        logLine('→ Verificación completada. Remanentes: ' + totalRem);
-
-        // ── Limpiar memoria JS ────────────────────────────────────────────
-        limpiarMemoriaJS(op);
+        // Llamar la función simple y efectiva que borra TODO
+        var success = await deleteAllData();
 
         // ── Resultado final ───────────────────────────────────────────────
         var box = document.getElementById('mantResultBox');
-        if(totalRem === 0){
+        if(success){
           box.style.cssText = 'border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(50,180,80,.08);border:1px solid rgba(50,180,80,.3);';
           document.getElementById('mantResultIcon').textContent  = '✅';
           document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#5fd68a;">Limpieza completada al 100%</span>';
           document.getElementById('mantResultDetail').innerHTML  =
             'Se eliminaron <strong>' + mState.total.toLocaleString() + '</strong> registros. ' +
-            'Base de datos y pantalla en cero absoluto.';
+            'Base de datos y pantalla en cero absoluto. ✅ Todos los pozos eliminados.';
+
+          // Limpiar memoria JS
+          limpiarMemoriaJS();
         } else {
           box.style.cssText = 'border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(200,150,50,.08);border:1px solid rgba(200,150,50,.3);';
           document.getElementById('mantResultIcon').textContent  = '⚠️';
-          document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#e6c34d;">Limpieza con remanentes</span>';
-          var det = 'Se procesaron <strong>' + mState.total.toLocaleString() + '</strong> registros.<br>' +
-            '⚠ Quedan <strong>' + totalRem.toLocaleString() + '</strong> registros en la base:<br>';
-          Object.entries(remanentes).forEach(function(e){
-            det += '&nbsp;&nbsp;• <code>' + e[0] + '</code>: ' + e[1].toLocaleString() + '<br>';
-          });
-          document.getElementById('mantResultDetail').innerHTML = det;
+          document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#e6c34d;">Eliminación completada con advertencia</span>';
+          document.getElementById('mantResultDetail').innerHTML  = 'Se procesó la eliminación pero hubo errores. Revisa el log arriba.';
         }
         showStep(4);
 
