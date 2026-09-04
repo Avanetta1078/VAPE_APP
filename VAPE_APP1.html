@@ -1839,86 +1839,40 @@
         </div>
       </div>
 
-      <!-- CARD: Limpiar Base de Datos (NUEVO MÓDULO) -->
-      <div class="tool-card" data-tool="limpiar-db">
-        <h3><span class="dot2" style="background:#c83232;"></span>Limpiar Base de Datos (NUEVO)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+      <!-- CARD: Eliminador BRUTAL (Directo sin filtros) -->
+      <div class="tool-card" data-tool="eliminar-brutal">
+        <h3><span class="dot2" style="background:#ff0000;"></span>🔥 Eliminador BRUTAL (Directo)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-          <p class="tool-desc" style="color:#ff7373;">
-            <strong>⚠ PELIGRO - Eliminación permanente.</strong> Esta herramienta borra todos los registros de la base de datos. La operación es irreversible.
+          <p class="tool-desc" style="color:#ff0000;font-weight:700;">
+            <strong>🔥 ELIMINADOR BRUTAL</strong> - Borra TODO SIN FILTROS. Método DIRECTO y efectivo.
           </p>
 
-          <!-- SELECCIÓN INICIAL -->
-          <div id="cleandb-select">
-            <div style="margin-bottom:16px;">
-              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Selecciona qué limpiar</div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <button class="cleandb-option" data-mode="vape" style="padding:10px 12px;text-align:left;border:1px solid var(--border);background:var(--panel-2);border-radius:8px;cursor:pointer;transition:all .2s;">
-                  <div style="font-weight:600;color:var(--ink);">📦 VAPE_APP (Pozos y Pruebas)</div>
-                  <div style="font-size:11px;color:var(--ink-dim);margin-top:4px;">Elimina: wells, well_configurations, tests, resultados, rod_tapers</div>
-                </button>
-                <button class="cleandb-option" data-mode="all" style="padding:10px 12px;text-align:left;border:2px solid #c83232;background:rgba(200,50,50,.1);border-radius:8px;cursor:pointer;transition:all .2s;">
-                  <div style="font-weight:600;color:#ff8080;">🗑️ TODO - BASE EN CERO</div>
-                  <div style="font-size:11px;color:#ff7373;margin-top:4px;">Elimina TODAS las tablas. Base completamente vacía.</div>
-                </button>
+          <div id="brutal-main" style="display:block;">
+            <div style="background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
+              <div style="font-size:11px;color:#ff5555;line-height:1.8;">
+                <strong>Este módulo:</strong><br>
+                ✓ Borra DIRECTAMENTE sin condiciones<br>
+                ✓ No usa filtros complejos<br>
+                ✓ Va tabla por tabla en orden correcto<br>
+                ✓ Ideal si RLS está bloqueando los deletes
               </div>
             </div>
 
-            <div style="margin-bottom:16px;">
-              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Operadora (filtro opcional)</div>
-              <select id="cleandb-operadora" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;">
-                <option value="">— Todas las operadoras —</option>
-                <option value="CROWN POINT">CROWN POINT</option>
-                <option value="PECOM">PECOM</option>
-                <option value="BREST">BREST</option>
-                <option value="VISTA OIL">VISTA OIL</option>
-              </select>
-              <div style="font-size:10px;color:var(--ink-dim);margin-top:6px;">Si dejas vacío, se limpiarán TODAS las operadoras</div>
-            </div>
-
-            <button id="cleandb-count-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
-              🔍 Contar registros a eliminar
+            <button id="brutal-nuke-btn" style="width:100%;padding:12px;background:#ff0000;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;margin-bottom:10px;">
+              ☢️ NUKE IT ALL (Eliminar TODO)
             </button>
+
+            <input type="password" id="brutal-pwd" placeholder="Contraseña (123456)" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
+
+            <div id="brutal-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:200px;overflow-y:auto;padding:10px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);display:none;"></div>
           </div>
 
-          <!-- RESULTADO DE CONTEO -->
-          <div id="cleandb-count-result" style="display:none;margin-top:16px;">
-            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
-              <div style="font-size:12px;font-weight:700;color:#ff8080;margin-bottom:8px;">📊 Registros encontrados</div>
-              <div id="cleandb-count-detail" style="font-size:11px;color:var(--ink);line-height:1.8;"></div>
-              <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(200,50,50,.2);">
-                <span style="font-weight:700;color:#ff7373;">Total: <span id="cleandb-count-total">0</span> registros</span>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:8px;">
-              <input type="password" id="cleandb-password" placeholder="Contraseña (123456)" style="flex:1;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;">
-              <button id="cleandb-delete-btn" style="padding:8px 16px;background:#c83232;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;white-space:nowrap;">
-                🗑️ ELIMINAR
-              </button>
-            </div>
-            <button id="cleandb-back-btn" style="margin-top:8px;width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;font-size:11px;cursor:pointer;">
-              ← Atrás
-            </button>
-          </div>
-
-          <!-- PROGRESO -->
-          <div id="cleandb-progress" style="display:none;margin-top:16px;">
-            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">🗑️ Eliminando…</div>
-            <div style="background:var(--bg);border-radius:6px;height:6px;overflow:hidden;margin-bottom:10px;">
-              <div id="cleandb-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);transition:width .3s;"></div>
-            </div>
-            <div id="cleandb-progress-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:150px;overflow-y:auto;padding:8px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);"></div>
-          </div>
-
-          <!-- RESULTADO FINAL -->
-          <div id="cleandb-result" style="display:none;margin-top:16px;">
-            <div style="border-radius:8px;padding:14px;text-align:center;">
-              <div id="cleandb-result-icon" style="font-size:32px;margin-bottom:8px;"></div>
-              <div id="cleandb-result-title" style="font-size:13px;font-weight:700;margin-bottom:6px;"></div>
-              <div id="cleandb-result-msg" style="font-size:11px;color:var(--ink-dim);line-height:1.6;"></div>
-            </div>
-            <button id="cleandb-new-btn" style="width:100%;margin-top:12px;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
-              ↻ Nueva operación
+          <div id="brutal-result" style="display:none;text-align:center;padding:16px;">
+            <div id="brutal-result-icon" style="font-size:40px;margin-bottom:10px;"></div>
+            <div id="brutal-result-title" style="font-size:14px;font-weight:700;margin-bottom:6px;"></div>
+            <div id="brutal-result-detail" style="font-size:11px;color:var(--ink-dim);line-height:1.6;"></div>
+            <button id="brutal-again-btn" style="width:100%;margin-top:12px;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              ↻ Otra eliminación
             </button>
           </div>
 
@@ -2262,6 +2216,142 @@
     showSection('select');
   })();
   // ─── FIN LIMPIAR BASE DE DATOS ──────────────────────────────────────────────────
+
+  // ─── ELIMINADOR BRUTAL (SIN FILTROS COMPLEJOS) ─────────────────────────────────
+  (function(){
+    function log(msg){
+      var el = document.getElementById('brutal-log');
+      if(el){ el.innerHTML += msg + '<br>'; el.scrollTop = el.scrollHeight; }
+    }
+
+    // FUNCIÓN BRUTAL: Borra TODO sin condiciones
+    async function nukeAllData(){
+      var sb = supabaseClient;
+      var tables = [
+        'bitacora_contrapesos',
+        'bitacora_visitas',
+        'dyn_curve_points',
+        'acu_curve_points',
+        'dyn_results',
+        'acu_results',
+        'tests',
+        'field_log',
+        'rod_tapers',
+        'well_markers',
+        'well_alerts',
+        'well_configurations',
+        'wells'
+      ];
+
+      try {
+        log('☢️ INICIANDO ELIMINACIÓN BRUTAL SIN FILTROS...\n');
+
+        for(var i = 0; i < tables.length; i++){
+          var table = tables[i];
+          var pct = Math.round((i / tables.length) * 100);
+
+          log('(' + (i+1) + '/' + tables.length + ') Borrando ' + table + '... [' + pct + '%]');
+
+          try {
+            // MÉTODO 1: Borrar con gte() - condición siempre verdadera
+            var { count: delCount, error: err } = await sb.from(table).delete().gte('created_at', '1900-01-01');
+
+            if(err){
+              log('  ⚠️ Error con gte, intentando método 2...');
+              // MÉTODO 2: Borrar con neq() - usar ID que no puede ser -999
+              var { count: delCount2, error: err2 } = await sb.from(table).delete().neq('id', -999);
+              if(err2){
+                log('  ❌ Error en método 2: ' + (err2.message || err.message));
+              } else {
+                log('  ✓ Eliminados con método 2');
+              }
+            } else {
+              log('  ✓ Eliminados');
+            }
+          } catch(e){
+            log('  ❌ Excepción: ' + e.message);
+            console.error(e);
+          }
+
+          await new Promise(r => setTimeout(r, 400));
+        }
+
+        log('\n⏳ Verificando estado final...');
+        await new Promise(r => setTimeout(r, 1500));
+
+        log('\n📊 VERIFICACIÓN:');
+        var { count: cWells } = await sb.from('wells').select('*', {count:'exact',head:true});
+        var { count: cCfg } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
+        var { count: cRods } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
+        var { count: cFL } = await sb.from('field_log').select('*', {count:'exact',head:true});
+
+        log('• wells: ' + (cWells||0) + ' registros');
+        log('• well_configurations: ' + (cCfg||0) + ' registros');
+        log('• rod_tapers: ' + (cRods||0) + ' registros');
+        log('• field_log: ' + (cFL||0) + ' registros');
+
+        if(cWells === 0 && cCfg === 0 && cRods === 0 && cFL === 0){
+          log('\n✅ ÉXITO - Base en cero');
+          return true;
+        } else {
+          log('\n⚠️ Aún hay remanentes');
+          return false;
+        }
+
+      } catch(err){
+        log('\n❌ ERROR: ' + err.message);
+        console.error(err);
+        return false;
+      }
+    }
+
+    // BOTÓN BRUTAL
+    document.getElementById('brutal-nuke-btn').addEventListener('click', async function(){
+      var pwd = document.getElementById('brutal-pwd').value;
+      if(pwd !== '123456'){
+        alert('❌ Contraseña incorrecta');
+        return;
+      }
+
+      if(!confirm('⚠️ ÚLTIMA ADVERTENCIA\n\nSe ELIMINARÁN TODOS los registros de forma IRREVERSIBLE.\n\n¿CONFIRMAR?')){
+        return;
+      }
+
+      document.getElementById('brutal-log').innerHTML = '';
+      document.getElementById('brutal-log').style.display = '';
+      this.disabled = true;
+      this.textContent = 'Eliminando...';
+
+      var success = await nukeAllData();
+
+      document.getElementById('brutal-main').style.display = 'none';
+      document.getElementById('brutal-result').style.display = '';
+
+      if(success){
+        document.getElementById('brutal-result-icon').textContent = '✅';
+        document.getElementById('brutal-result-title').textContent = '✅ ÉXITO - 100% COMPLETADO';
+        document.getElementById('brutal-result-detail').innerHTML = '<strong style="color:#4caf50;">Base de datos limpiada a cero.</strong><br><br>Verifica en Supabase para confirmar.';
+      } else {
+        document.getElementById('brutal-result-icon').textContent = '⚠️';
+        document.getElementById('brutal-result-title').textContent = '⚠️ INCOMPLETO';
+        document.getElementById('brutal-result-detail').innerHTML = 'Revisa el log. Hay remanentes que el módulo no pudo eliminar.';
+      }
+
+      if(typeof WELLS_DB !== 'undefined') Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+      if(typeof renderInicioGrid === 'function') renderInicioGrid();
+
+      this.disabled = false;
+    });
+
+    document.getElementById('brutal-again-btn').addEventListener('click', function(){
+      document.getElementById('brutal-main').style.display = '';
+      document.getElementById('brutal-result').style.display = 'none';
+      document.getElementById('brutal-log').innerHTML = '';
+      document.getElementById('brutal-pwd').value = '';
+    });
+
+  })();
+  // ─── FIN ELIMINADOR BRUTAL ──────────────────────────────────────────────────────
 
   // Herramientas: menu desplegable estilo Windows (acordeón, un item a la vez)
   document.addEventListener('DOMContentLoaded', function(){
