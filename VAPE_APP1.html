@@ -2072,7 +2072,7 @@
         if(mState.base === 'bitacora' || mState.base === 'ambas'){
           if(op === 'TODAS'){
             var { count: cVisAll }  = await sb.from('bitacora_visitas').select('visita_id',{count:'exact',head:true});
-            var { count: cCpAll }   = await sb.from('bitacora_contrapesos').select('id',{count:'exact',head:true});
+            var { count: cCpAll }   = await sb.from('bitacora_contrapesos').select('contrapeso_row_id',{count:'exact',head:true});
             var { count: cFlAll }   = await sb.from('field_log').select('fecha',{count:'exact',head:true});
             conteos['bitacora_visitas']     = cVisAll || 0;
             conteos['bitacora_contrapesos'] = cCpAll  || 0;
@@ -2228,9 +2228,9 @@
             setProgress(done, total, 'Eliminando field_log');
 
           } else {
-            if(wNames.length > 0){
+            if(wellIds.length > 0){
               logLine('→ Leyendo bitacora_visitas por pozo…');
-              var { data: visD2 } = await sb.from('bitacora_visitas').select('visita_id').in('pozo', wNames);
+              var { data: visD2 } = await sb.from('bitacora_visitas').select('visita_id').in('well_id', wellIds);
               var vids2 = (visD2||[]).map(function(v){ return v.visita_id; });
               if(vids2.length > 0){
                 done = await deleteChunked(sb, 'bitacora_contrapesos', 'visita_id', vids2,
