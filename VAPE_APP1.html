@@ -1316,6 +1316,13 @@
         </div>
         <div class="dina-side-col">
           <div class="mini-grid">
+            <h4><i></i>Motor</h4>
+            <table class="gtab" style="margin-bottom:10px;">
+              <tr><th>Marca</th><td id="d-motor-marca">—</td></tr>
+              <tr><th>RPM</th><td id="d-motor-rpm">—</td></tr>
+              <tr><th>Potencia</th><td id="d-motor-hp">—</td></tr>
+              <tr><th>Polea</th><td id="d-motor-polea">—</td></tr>
+            </table>
             <h4><i></i>Contrapesos</h4>
             <div id="d-contrapesos-table" class="cp-cards">
               <p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>
@@ -2867,6 +2874,39 @@
       // Vuelve a calcular la lista de pozos por si Supabase trae pozos nuevos
       // que todavia no estaban embebidos en el HTML.
       wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
+
+      // ---- Motor y Contrapesos: bulk load desde field_log (último registro por pozo) ----
+      try{
+        const wellNumbers = wellNames.map(n => String(n).replace(/\D/g, '')).filter(Boolean);
+        if(wellNumbers.length){
+          // Traer el registro más reciente de cada well_number con datos de motor/contrapesos.
+          // Supabase no soporta DISTINCT ON; traemos los últimos registros y deduplicamos en JS.
+          const { data: flRows, error: flErr } = await supabaseClient
+            .from('field_log').select('well_number, fecha, motor_marca, motor_rpm, motor_potencia_hp, motor_hp, motor_polea, contrapesos')
+            .in('well_number', wellNumbers)
+            .order('fecha', { ascending: false });
+          if(!flErr && flRows){
+            const seen = {};
+            flRows.forEach(fl => {
+              if(seen[fl.well_number]) return;
+              seen[fl.well_number] = true;
+              // Buscar el pozo que corresponde a este well_number
+              const wName = wellNames.find(n => String(n).replace(/\D/g, '') === fl.well_number);
+              if(!wName) return;
+              const w = WELLS_DB[wName];
+              if(!w) return;
+              w.motorMarca = fl.motor_marca || null;
+              w.motorRpm = fl.motor_rpm ?? null;
+              w.motorHp = (fl.motor_potencia_hp ?? fl.motor_hp) ?? null;
+              w.motorPolea = fl.motor_polea || null;
+              // También pre-cargar contrapesos en cache para evitar consulta duplicada
+              if(fl.contrapesos && !(wName in CONTRAPESOS_CACHE)){
+                CONTRAPESOS_CACHE[wName] = fl;
+              }
+            });
+          }
+        }
+      } catch(e){ console.warn('Bulk motor/contrapesos load:', e.message||e); }
 
       // Trae las cartas ya guardadas en Storage (persisten aunque se cierre la sesion).
       try {
@@ -4910,6 +4950,12 @@
         return (a != null && b != null) ? a - b : null;
       } },
 
+    // Motor
+    { key:'motorMarca',    label:'Motor Marca',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorMarca : null; } },
+    { key:'motorRpm',      label:'Motor RPM',     unit:'',    dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorRpm : null; } },
+    { key:'motorHp',       label:'Motor Potencia', unit:' HP', dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorHp : null; } },
+    { key:'motorPolea',    label:'Motor Polea',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorPolea : null; } },
+
     // Diámetros de tubería
     { key:'casingOd',      label:'Casing OD',    unit:' in', dec:3, group:'Diámetros', filterType:'numeric', get:r=>r.casingOd },
     { key:'tubingOd',      label:'Tubing OD',    unit:' in', dec:3, group:'Diámetros', filterType:'numeric', get:r=>r.tubingOd },
@@ -6430,9 +6476,8 @@
           if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
           else {
             const { data, error } = await supabaseClient
-              .from('field_log').select('fecha, contrapesos')
+              .from('field_log').select('fecha, contrapesos, motor_marca, motor_rpm, motor_potencia_hp, motor_hp, motor_polea')
               .eq('well_number', wellNumber)
-              .not('contrapesos', 'is', null)
               .order('fecha', { ascending: false }).limit(1).maybeSingle();
             if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
             else { CONTRAPESOS_CACHE[wellName] = data || null; }
@@ -6445,10 +6490,36 @@
     }
     const row = CONTRAPESOS_CACHE[wellName];
     if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
+
+    // ---- Motor ----
+    const motorMarcaEl = document.getElementById('d-motor-marca');
+    const motorRpmEl = document.getElementById('d-motor-rpm');
+    const motorHpEl = document.getElementById('d-motor-hp');
+    const motorPoleaEl = document.getElementById('d-motor-polea');
+    if(row){
+      if(motorMarcaEl) motorMarcaEl.textContent = row.motor_marca || '—';
+      if(motorRpmEl) motorRpmEl.textContent = row.motor_rpm != null ? row.motor_rpm : '—';
+      if(motorHpEl) motorHpEl.textContent = (row.motor_potencia_hp ?? row.motor_hp) != null ? (row.motor_potencia_hp ?? row.motor_hp) + ' HP' : '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = row.motor_polea || '—';
+      // Guardar en WELLS_DB para que Armado Consulta pueda leerlos
+      const w = WELLS_DB[wellName];
+      if(w){
+        w.motorMarca = row.motor_marca || null;
+        w.motorRpm = row.motor_rpm ?? null;
+        w.motorHp = (row.motor_potencia_hp ?? row.motor_hp) ?? null;
+        w.motorPolea = row.motor_polea || null;
+      }
+    } else {
+      if(motorMarcaEl) motorMarcaEl.textContent = '—';
+      if(motorRpmEl) motorRpmEl.textContent = '—';
+      if(motorHpEl) motorHpEl.textContent = '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = '—';
+    }
+
     const cp = row && row.contrapesos;
-    // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
+    // El planillero guarda un objeto plano { tipo, cant, cm, secu, cant2, cm2 } —
     // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
-    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.placas == null && cp.cm == null && cp.cm2 == null)){
+    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.cm == null && cp.cm2 == null)){
       table.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo (no hay bitácora cargada, o no trae este dato).</p>';
       return;
     }
@@ -7547,14 +7618,14 @@
           sistema_extraccion_tipo: sistemaExtraccionTipo,
           unidad_descripcion: unidadDescripcion,
           contrapesos: {
-            tipo: get(13), placas: get(14), cant: get(15), cm: get(16),
-            secu: get(17), cant2: get(18), cm2: get(19)
-          }, // N-S
-          motor_marca: get(19+1) ? String(get(20)).trim() : null, // T
-          motor_rpm: numOrNull(get(21)), // U
-          motor_potencia_hp: numOrNull(get(22)), // V
-          motor_polea: get(23) ? String(get(23)).trim() : null, // W
-          observaciones: get(23+1) ? String(get(24)).trim() : null, // X
+            tipo: get(13), cant: get(14), cm: get(15),
+            secu: get(16), cant2: get(17), cm2: get(18)
+          }, // N(Placas Ppal) O(Cant) P(Dist cm) Q(Placas Secu) R(Cant) S(Dist cm)
+          motor_marca: get(19) ? String(get(19)).trim() : null, // T (col index 19)
+          motor_rpm: numOrNull(get(20)), // U (col index 20)
+          motor_potencia_hp: numOrNull(get(21)), // V (col index 21)
+          motor_polea: get(22) ? String(get(22)).trim() : null, // W (col index 22)
+          observaciones: get(23) ? String(get(23)).trim() : null, // X (col index 23)
           extra_fields: { pulg_pip_torque: get(5) } // F, campo multiuso, sin tipar todavía
         });
       }
