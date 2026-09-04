@@ -338,6 +338,12 @@
   .rp-chip-estado{border-radius:7px; padding:3px 9px; font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.02em;}
   .rp-chip-estado.dinamico{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.4);}
   .rp-chip-estado.estatico{background:rgba(230,70,70,.16); color:#ff6b6b; border:1px solid rgba(230,70,70,.4);}
+  .rp-chip-estado.packer{background:rgba(200,52,44,.18); color:#ff6b6b; border:1px solid rgba(200,52,44,.5);}
+  .rp-chip-nivcorr-alert{animation:nivcorrPulse 1.2s ease-in-out infinite;}
+  @keyframes nivcorrPulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(255,170,0,.6); }
+    50%{ box-shadow:0 0 8px 4px rgba(255,170,0,.35); }
+  }
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
@@ -1173,6 +1179,7 @@
           <div class="rp-side-stack">
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
+            <div class="rp-chip rp-chip-acu" id="rp-nivcorr-chip"><span class="rp-lbl">Niv. corr.</span><span class="rp-val" id="rp-nivcorr">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sum. corr.</span><span class="rp-val" id="rp-sumergc">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
@@ -3148,8 +3155,9 @@
 
     if(!w){
       ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-fabricante','rp-modeloapi','rp-carrera','rp-pipdyn',
-       'rp-nivel','rp-sumerg','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
+       'rp-nivel','rp-sumerg','rp-nivcorr','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
         .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
+      const ncChip = document.getElementById('rp-nivcorr-chip'); if(ncChip) ncChip.classList.remove('rp-chip-nivcorr-alert');
       const dynImg = document.getElementById('rp-dyn-img'); if(dynImg) dynImg.style.display = 'none';
       const svgEl = document.getElementById('rp-wellsvg'); if(svgEl) svgEl.innerHTML = '';
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
@@ -3207,10 +3215,15 @@
     const estadoEl = document.getElementById('rp-estado-pozo');
     if(estadoEl){
       const estado = (w.wellState || '').toUpperCase();
-      if(estado.includes('STATIC')){
+      const tienePacker = w.packerM != null && w.packerM > 0;
+      if(estado.includes('STATIC') && tienePacker){
+        estadoEl.textContent = 'PACKER'; estadoEl.className = 'rp-chip-estado packer'; estadoEl.style.display = '';
+      } else if(estado.includes('STATIC')){
         estadoEl.textContent = 'Estático'; estadoEl.className = 'rp-chip-estado estatico'; estadoEl.style.display = '';
       } else if(estado.includes('PRODUC')){
         estadoEl.textContent = 'Dinámico'; estadoEl.className = 'rp-chip-estado dinamico'; estadoEl.style.display = '';
+      } else if(tienePacker){
+        estadoEl.textContent = 'PACKER'; estadoEl.className = 'rp-chip-estado packer'; estadoEl.style.display = '';
       } else {
         estadoEl.style.display = 'none';
       }
@@ -3275,6 +3288,15 @@
     // ---- Chips Nivel ----
     setTxt('rp-nivel', w.nivel, ' m', 0);
     setTxt('rp-sumerg', w.sumerg, ' m', 0);
+    // Nivel Corregido = Prof. de bba - Sumergencia Corregida
+    const nivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+    setTxt('rp-nivcorr', nivelCorr, ' m', 0);
+    const nivcorrChip = document.getElementById('rp-nivcorr-chip');
+    if(nivcorrChip){
+      // Alerta de pulso: si Nivel Corregido difiere del Nivel Medido
+      const diffAlert = nivelCorr != null && w.nivel != null && Math.abs(nivelCorr - w.nivel) > 1;
+      nivcorrChip.classList.toggle('rp-chip-nivcorr-alert', diffAlert);
+    }
     setTxt('rp-sumergc', w.sumergc, ' m', 0);
     setTxt('rp-pipacu', w.pipEco, ' kg', 1);
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
