@@ -7661,16 +7661,52 @@
 
       previewArea.innerHTML = `<div class="up-block"><p class="up-note">Guardando ${rows.length} filas de ${sheets.length} hoja(s)…</p></div>`;
       try{
-        // Carga cruzada well_id contra wells.well_number, para linkear cuando existe.
-        const numbers = [...new Set(rows.map(r => r.well_number).filter(Boolean))];
-        let wellMap = {};
-        if(numbers.length){
-          const { data: wellsData, error: wellsErr } = await supabaseClient
-            .from('wells').select('well_id, well_number').in('well_number', numbers);
-          if(wellsErr) throw wellsErr;
-          (wellsData||[]).forEach(w => { wellMap[w.well_number] = w.well_id; });
+        // ---- Matching tolerante: well_name_raw del planillero vs well_name en Supabase ----
+        // Normalización escalonada para tolerar variaciones de tipeo del operador:
+        //   1) Exacto               S-2194 = S-2194
+        //   2) Ignorando mayúsculas  s-2194 = S-2194
+        //   3) Sin guiones/espacios  s2194  = S2194
+        //   4) Solo dígitos          2194   = 2194  (si hay un solo pozo con ese número)
+        function normLower(s){ return String(s).trim().toLowerCase(); }
+        function normStrip(s){ return normLower(s).replace(/[-\s().]/g, ''); }
+        function normDigits(s){ return String(s).replace(/\D/g, ''); }
+
+        const { data: wellsData, error: wellsErr } = await supabaseClient
+          .from('wells').select('well_id, well_name');
+        if(wellsErr) throw wellsErr;
+
+        // Construir índices de búsqueda desde wells
+        const byExact = {};    // well_name exacto → well_id
+        const byLower = {};    // lowercase → well_id
+        const byStrip = {};    // sin guiones/espacios, lowercase → well_id
+        const byDigits = {};   // solo dígitos → well_id (null si hay colisión)
+        (wellsData||[]).forEach(w => {
+          byExact[w.well_name] = w.well_id;
+          byLower[normLower(w.well_name)] = w.well_id;
+          byStrip[normStrip(w.well_name)] = w.well_id;
+          const d = normDigits(w.well_name);
+          if(d) byDigits[d] = (d in byDigits) ? null : w.well_id; // null = ambiguo (2+ pozos con mismo número)
+        });
+
+        function matchWell(rawName){
+          if(!rawName) return null;
+          const name = String(rawName).trim();
+          if(byExact[name]) return byExact[name];
+          const lo = normLower(name);
+          if(byLower[lo]) return byLower[lo];
+          const st = normStrip(name);
+          if(byStrip[st]) return byStrip[st];
+          const dg = normDigits(name);
+          if(dg && byDigits[dg]) return byDigits[dg]; // solo si no es ambiguo
+          return null;
         }
-        const finalRows = rows.map(r => ({ ...r, operadora: operadoraSel.value, well_id: wellMap[r.well_number] || null }));
+
+        let wellMap = {}; // well_name_raw → well_id (para el mensaje final)
+        const finalRows = rows.map(r => {
+          const wid = matchWell(r.well_name_raw);
+          if(wid) wellMap[r.well_name_raw] = wid;
+          return { ...r, operadora: operadoraSel.value, well_id: wid };
+        });
 
         // Carga incremental: por cada fecha a procesar, borra lo existente de esa fecha+operadora (fuente=hoja) y vuelve a insertar,
         // asi se puede recargar "solo un dia" sin duplicar filas viejas de la misma hoja.
@@ -7701,17 +7737,21 @@
           }
         });
         for(const [wellId, r] of Object.entries(latestByWell)){
-          const hasMotor = r.motor_marca || r.motor_rpm != null || r.motor_potencia_hp != null || r.motor_polea;
-          const hasCp = r.contrapesos && (r.contrapesos.tipo != null || r.contrapesos.cant != null || r.contrapesos.secu != null);
-          if(!hasMotor && !hasCp) continue;
           const upd = {};
+          // Siempre poblar well_number si el pozo lo tiene
+          if(r.well_number) upd.well_number = r.well_number;
+          // Motor
+          const hasMotor = r.motor_marca || r.motor_rpm != null || r.motor_potencia_hp != null || r.motor_polea;
           if(hasMotor){
             upd.motor_marca = r.motor_marca || null;
             upd.motor_rpm = r.motor_rpm ?? null;
             upd.motor_hp = r.motor_potencia_hp ?? null;
             upd.motor_polea = r.motor_polea || null;
           }
+          // Contrapesos
+          const hasCp = r.contrapesos && (r.contrapesos.tipo != null || r.contrapesos.cant != null || r.contrapesos.secu != null);
           if(hasCp) upd.contrapesos = r.contrapesos;
+          if(!Object.keys(upd).length) continue;
           const { error: updErr } = await supabaseClient
             .from('wells').update(upd).eq('well_id', wellId);
           if(!updErr) wellsUpdated++;
@@ -7734,7 +7774,7 @@
 
         previewArea.innerHTML = `<div class="up-block"><h4>Listo</h4>
           <p class="up-note">${finalRows.length} filas guardadas en Bitácora (field_log), de ${sheets.length} hoja(s): ${fechasUnicas.map(f=>fmtDDMMYYYY(new Date(f+'T00:00:00Z'))).join(', ')}.</p>
-          <p class="up-note">${Object.keys(wellMap).length} pozos linkeados a wells por well_number; ${wellsUpdated} pozos actualizados con datos de Motor/Contrapesos.</p>
+          <p class="up-note">${Object.keys(wellMap).length} de ${rows.length} pozos matcheados con wells; ${wellsUpdated} actualizados con Motor/Contrapesos.</p>
         </div>`;
       } catch(e){
         console.error('Error guardando planillero:', e);
