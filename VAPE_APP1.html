@@ -4879,6 +4879,12 @@
     { key:'nivel',        label:'Nivel',        unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
     { key:'sumerg',       label:'Sumergencia',  unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumerg },
     { key:'sumergc',      label:'Sum. Corr.',   unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumergc },
+    { key:'nivelCorr',    label:'Nivel Corregido', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>{
+        const w = WELLS_DB[r.name||r.well];
+        const sc = r.sumergc != null ? r.sumergc : (w ? w.sumergc : null);
+        const pid = r.pumpIntakeDepth != null ? r.pumpIntakeDepth : (w ? w.pumpIntakeDepth : null);
+        return (sc != null && pid != null) ? (pid - sc) : null;
+      } },
     { key:'pipeco',       label:'PIP Eco',      unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pipEco },
     { key:'pcsg',         label:'P. Casing',    unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pcsg },
     { key:'commentAcu',   label:'Comentario Nivel', group:'Nivel', filterType:'text', get:r=>r.commentAcu },
