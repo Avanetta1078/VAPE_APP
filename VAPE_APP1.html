@@ -1850,13 +1850,22 @@
 
           <!-- PASO 1: Selección de Operadora -->
           <div id="eop-select" style="margin-bottom:16px;">
-            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;">1. Selecciona Operadora</label>
-            <select id="eop-operadora-sel" style="width:100%;padding:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
-              <option value="">— Cargando operadoras —</option>
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;">1. Operadora</label>
+
+            <!-- Dropdown si hay operadoras -->
+            <select id="eop-operadora-sel" style="width:100%;padding:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;display:none;">
+              <option value="">— Selecciona operadora —</option>
             </select>
 
+            <!-- Campo texto si no hay operadoras -->
+            <input type="text" id="eop-operadora-txt" placeholder="Ingresa nombre de operadora" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;display:none;">
+
+            <div id="eop-no-ops-msg" style="font-size:11px;color:var(--ink-dim);background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;display:none;text-align:center;">
+              <strong>ℹ️ No hay operadoras cargadas.</strong><br>Ingresa el nombre manualmente arriba.
+            </div>
+
             <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;margin-top:12px;">2. Contraseña Admin</label>
-            <input type="password" id="eop-pwd" placeholder="Ingresa contraseña" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
+            <input type="password" id="eop-pwd" placeholder="Contraseña" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
 
             <button id="eop-next-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
               🔍 Verificar y Contar
@@ -1953,14 +1962,29 @@
         if(!supabaseClient) return;
         var { data } = await supabaseClient.from('wells').select('operadora');
         var ops = [...new Set((data||[]).map(w => w.operadora).filter(Boolean))].sort();
+
         var sel = document.getElementById('eop-operadora-sel');
-        sel.innerHTML = '<option value="">— Selecciona operadora —</option>';
-        ops.forEach(op => {
-          var opt = document.createElement('option');
-          opt.value = op;
-          opt.textContent = op;
-          sel.appendChild(opt);
-        });
+        var txt = document.getElementById('eop-operadora-txt');
+        var msg = document.getElementById('eop-no-ops-msg');
+
+        if(ops.length > 0){
+          // Si hay operadoras, mostrar dropdown
+          sel.innerHTML = '<option value="">— Selecciona operadora —</option>';
+          ops.forEach(op => {
+            var opt = document.createElement('option');
+            opt.value = op;
+            opt.textContent = op;
+            sel.appendChild(opt);
+          });
+          sel.style.display = '';
+          txt.style.display = 'none';
+          msg.style.display = 'none';
+        } else {
+          // Si no hay, mostrar campo de texto
+          sel.style.display = 'none';
+          txt.style.display = '';
+          msg.style.display = '';
+        }
       } catch(err){
         console.error('Error cargando operadoras:', err);
       }
@@ -1968,11 +1992,14 @@
 
     // Verificar contraseña y contar registros por operadora
     document.getElementById('eop-next-btn').addEventListener('click', async function(){
-      var operadora = document.getElementById('eop-operadora-sel').value;
+      var sel = document.getElementById('eop-operadora-sel');
+      var txt = document.getElementById('eop-operadora-txt');
+
+      var operadora = sel.style.display !== 'none' ? sel.value : txt.value.trim();
       var pwd = document.getElementById('eop-pwd').value;
 
       if(!operadora){
-        alert('Selecciona una operadora');
+        alert('Selecciona o ingresa una operadora');
         return;
       }
       if(pwd !== '123456'){
@@ -2059,6 +2086,7 @@
 
     document.getElementById('eop-back-btn').addEventListener('click', function(){
       document.getElementById('eop-pwd').value = '';
+      document.getElementById('eop-operadora-txt').value = '';
       show('select');
     });
 
@@ -2170,6 +2198,7 @@
     document.getElementById('eop-reset-btn').addEventListener('click', function(){
       document.getElementById('eop-pwd').value = '';
       document.getElementById('eop-operadora-sel').value = '';
+      document.getElementById('eop-operadora-txt').value = '';
       state.operadora = null;
       show('select');
     });
