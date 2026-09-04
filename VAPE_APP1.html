@@ -1840,146 +1840,108 @@
       </div>
 
       <!-- CARD: Eliminador BRUTAL (Directo sin filtros) -->
-      <!-- CARD: Eliminar Datos de la Base (MEJORADO) -->
+      <!-- CARD: Eliminar Datos de la Base -->
       <div class="tool-card" data-tool="eliminar-db">
         <h3><span class="dot2 rust"></span>Eliminar Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
         <p class="tool-desc" style="color:var(--rust);">
-          <strong>⚠ Operación crítica.</strong> Elimina permanentemente todos los datos de una operadora (o todas) de AMBAS apps. No se puede deshacer.
+          <strong>Operación crítica.</strong> Elimina permanentemente todos los datos de una operadora (o todas). No se puede deshacer.
         </p>
 
-        <!-- PASO 1: Escaneo y mostrar registros -->
+        <!-- PASO 1: Mostrar registros -->
         <div id="edb-step1">
-          <button class="details-btn" id="edb-scan-btn" type="button" style="margin-bottom:14px; border-color:var(--navy-glow); color:var(--navy); width:100%;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:middle; margin-right:6px;"><path d="M21 21H3V3h8V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-8h-2v8z M19 1v6h6M9.5 5.5L19 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            🔄 Actualizar / Mostrar registros a eliminar
+          <button class="details-btn" id="edb-scan-btn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 21H3V3h8V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-8h-2v8z M19 1v6h6M9.5 5.5L19 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Mostrar registros a eliminar
           </button>
 
-          <div id="edb-scan-result" style="display:none; margin-bottom:14px;">
-            <div style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
-              <div style="font-size:11px; font-weight:700; color:var(--ink); margin-bottom:10px;">📊 Registros detectados</div>
-              <div id="edb-counters" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:10px; color:var(--ink); line-height:1.6;">
-                <div style="background:rgba(88,132,215,.1); padding:8px; border-radius:6px; border-left:3px solid var(--navy);">
-                  <div style="font-weight:700; color:var(--navy);">🏭 Pozos</div>
-                  <div id="edb-cnt-wells" style="font-size:16px; font-weight:700; color:var(--navy);">0</div>
-                </div>
-                <div style="background:rgba(30,90,70,.1); padding:8px; border-radius:6px; border-left:3px solid var(--green);">
-                  <div style="font-weight:700; color:var(--green);">🧪 Ensayos</div>
-                  <div id="edb-cnt-tests" style="font-size:16px; font-weight:700; color:var(--green);">0</div>
-                </div>
-                <div style="background:rgba(150,80,40,.1); padding:8px; border-radius:6px; border-left:3px solid var(--rust);">
-                  <div style="font-weight:700; color:var(--rust);">📋 Field Log</div>
-                  <div id="edb-cnt-fl" style="font-size:16px; font-weight:700; color:var(--rust);">0</div>
-                </div>
-                <div style="background:rgba(100,50,150,.1); padding:8px; border-radius:6px; border-left:3px solid #9966ff;">
-                  <div style="font-weight:700; color:#9966ff;">📈 Resultados</div>
-                  <div id="edb-cnt-results" style="font-size:16px; font-weight:700; color:#9966ff;">0</div>
-                </div>
-                <div style="background:rgba(200,150,0,.1); padding:8px; border-radius:6px; border-left:3px solid var(--gold);">
-                  <div style="font-weight:700; color:var(--gold);">⚙️ Config/Sartas</div>
-                  <div id="edb-cnt-config" style="font-size:16px; font-weight:700; color:var(--gold);">0</div>
-                </div>
-                <div style="background:rgba(180,20,20,.1); padding:8px; border-radius:6px; border-left:3px solid var(--rust); grid-column:1/-1;">
-                  <div style="font-weight:700; color:var(--rust);">📌 TOTAL</div>
-                  <div id="edb-cnt-total" style="font-size:18px; font-weight:700; color:var(--rust);">0</div>
-                </div>
+          <div id="edb-scan-result" style="display:none; margin-top:14px;">
+            <p class="tool-desc">Registros encontrados:</p>
+            <div style="margin-bottom:14px; padding:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:11px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; line-height:1.8;">
+                <div>Pozos: <strong id="edb-cnt-wells">0</strong></div>
+                <div>Ensayos: <strong id="edb-cnt-tests">0</strong></div>
+                <div>Field Log: <strong id="edb-cnt-fl">0</strong></div>
+                <div>Resultados: <strong id="edb-cnt-results">0</strong></div>
+                <div>Configuraciones: <strong id="edb-cnt-config">0</strong></div>
+                <div>Total: <strong id="edb-cnt-total">0</strong></div>
               </div>
-
-              <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-                <div style="font-size:10px; font-weight:700; color:var(--ink); margin-bottom:8px;">📍 Primeros pozos detectados:</div>
-                <div id="edb-wells-preview" style="font-size:9px; color:var(--ink-dim); line-height:1.6; max-height:80px; overflow-y:auto; padding:8px; background:rgba(0,0,0,.1); border-radius:4px;"></div>
+              <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:10px; color:var(--ink-dim);">
+                <div id="edb-wells-preview"></div>
               </div>
             </div>
 
-            <div class="tool-upload-row" style="margin-bottom:14px;">
-              <label style="font-size:12px; color:var(--ink-dim); min-width:110px;">Operadora a eliminar</label>
-              <select id="edb-operadora" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--ink); font-size:12px; flex:1;">
-                <option value="__ALL__">✓ TODAS las operadoras</option>
-              </select>
+            <div class="bit-grid" style="grid-template-columns:1fr 1fr; margin-bottom:14px;">
+              <div>
+                <label>Operadora a eliminar</label>
+                <select id="edb-operadora" class="bit-input">
+                  <option value="__ALL__">TODAS</option>
+                </select>
+              </div>
             </div>
 
-            <button class="details-btn" id="edb-next-btn" type="button" style="margin-bottom:8px; border-color:var(--navy-glow); color:var(--navy); width:100%;">
-              ↓ Siguiente paso
+            <button class="details-btn" id="edb-next-btn" type="button" style="border-color:var(--rust); color:var(--rust);">
+              Continuar
             </button>
           </div>
 
-          <div id="edb-scan-empty" style="display:none; background:rgba(88,132,215,.1); border:1px solid rgba(88,132,215,.3); border-radius:8px; padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--navy); margin-bottom:6px;">ℹ️ Sin registros</div>
-            <div style="font-size:10px; color:var(--ink-dim);">No hay registros para mostrar. Cargá datos primero.</div>
+          <div id="edb-scan-empty" style="display:none; padding:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--ink-dim);">
+            No hay registros para mostrar.
           </div>
         </div>
 
         <!-- PASO 2: Contraseña -->
         <div id="edb-step2" style="display:none;">
-          <div style="background:rgba(200,50,50,.1); border:1px solid rgba(200,50,50,.25); border-radius:8px; padding:12px; margin-bottom:14px;">
-            <div style="font-size:11px; font-weight:700; color:var(--rust); margin-bottom:6px;">🔒 Verificación de Administrador</div>
-            <div style="font-size:10px; color:var(--ink-dim);">Ingresá la contraseña de administrador para confirmar la eliminación.</div>
-          </div>
+          <p class="tool-desc">Ingresá la contraseña de administrador.</p>
 
-          <div class="tool-upload-row" style="margin-bottom:14px; position:relative;">
-            <label style="font-size:12px; color:var(--ink-dim); min-width:110px;">Contraseña</label>
-            <div style="flex:1; position:relative;">
-              <input type="password" id="edb-pwd" placeholder="••••••" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--ink); font-size:12px; width:100%; box-sizing:border-box;">
-              <button type="button" id="edb-pwd-toggle" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:14px;">
-                👁️
-              </button>
+          <div class="bit-grid" style="grid-template-columns:1fr; margin-bottom:14px;">
+            <div>
+              <label>Contraseña</label>
+              <input type="password" id="edb-pwd" placeholder="••••••" class="bit-input">
             </div>
           </div>
 
-          <div id="edb-error-msg" style="display:none; background:rgba(200,50,50,.15); border:1px solid rgba(200,50,50,.3); border-radius:6px; padding:8px; margin-bottom:12px; font-size:10px; color:var(--rust);"></div>
+          <div id="edb-error-msg" style="display:none; padding:8px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:10px; color:var(--rust); margin-bottom:12px;"></div>
 
-          <label style="display:flex; align-items:center; font-size:10px; color:var(--ink-dim); margin-bottom:12px; cursor:pointer;">
-            <input type="checkbox" id="edb-remember" style="margin-right:6px; cursor:pointer;">
-            Recordar sesión por 24 hs
+          <label style="display:flex; align-items:center; font-size:10px; color:var(--ink-dim); margin-bottom:12px;">
+            <input type="checkbox" id="edb-remember" style="margin-right:6px;">
+            Recordar por 24 hs
           </label>
 
-          <button class="details-btn" id="edb-check-btn" type="button" style="margin-bottom:8px; border-color:var(--rust); color:var(--rust); width:100%;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="vertical-align:middle; margin-right:6px;"><path d="M9 12l2 2 4-4M7 20h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v11a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Verificar y Continuar
-          </button>
-          <button class="details-btn" id="edb-back-btn" type="button">
-            ← Volver
-          </button>
+          <div>
+            <button class="details-btn" id="edb-check-btn" type="button" style="margin-right:8px; border-color:var(--rust); color:var(--rust);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M7 20h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v11a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Verificar
+            </button>
+            <button class="details-btn" id="edb-back-btn" type="button">Volver</button>
+          </div>
         </div>
 
-        <!-- PASO 3: Confirmación final -->
+        <!-- PASO 3: Confirmación -->
         <div id="edb-step3" style="display:none;">
-          <div style="background:rgba(200,50,50,.15); border:1px solid rgba(200,50,50,.3); border-radius:8px; padding:12px; margin-bottom:14px; text-align:center;">
-            <div style="font-size:14px; margin-bottom:6px;">⚠️</div>
-            <div style="font-size:12px; font-weight:700; color:var(--rust); margin-bottom:8px;">CONFIRMACIÓN FINAL</div>
-            <div style="font-size:10px; color:var(--ink-dim); line-height:1.6;">
-              Se eliminarán <strong id="edb-confirm-count" style="color:var(--rust);">0</strong> registros de <strong id="edb-confirm-op" style="color:var(--rust);">la operadora</strong>
-              <div style="margin-top:8px; padding:8px; background:rgba(0,0,0,.1); border-radius:4px; font-size:9px; color:var(--ink-dim);">
-                Esta acción es <strong>irreversible</strong> y afectará ambas aplicaciones.
-              </div>
-            </div>
-          </div>
+          <p class="tool-desc" style="color:var(--rust);">Se eliminarán <strong id="edb-confirm-count">0</strong> registros de <strong id="edb-confirm-op">la operadora</strong>. Esta acción es irreversible.</p>
 
-          <button class="details-btn" id="edb-confirm-btn" type="button" style="margin-bottom:8px; border-color:var(--rust); color:#fff; background:var(--rust); width:100%;">
-            🗑️ ELIMINAR AHORA
-          </button>
-          <button class="details-btn" id="edb-cancel-btn" type="button">
-            ← Cancelar
-          </button>
+          <div>
+            <button class="details-btn" id="edb-confirm-btn" type="button" style="margin-right:8px; border-color:var(--rust); color:var(--rust);">
+              Eliminar
+            </button>
+            <button class="details-btn" id="edb-cancel-btn" type="button">Cancelar</button>
+          </div>
         </div>
 
         <!-- PASO 4: Progreso -->
         <div id="edb-step4" style="display:none;">
-          <div style="font-size:11px; font-weight:700; color:var(--ink); margin-bottom:8px;">Procesando eliminación…</div>
-          <div style="background:var(--bg); border-radius:6px; height:6px; overflow:hidden; margin-bottom:10px;">
-            <div id="edb-progress" style="height:100%; width:0%; background:linear-gradient(90deg, var(--rust), var(--rust-glow)); transition:width .3s;"></div>
+          <p class="tool-desc">Procesando…</p>
+          <div style="background:var(--bg); border-radius:4px; height:4px; overflow:hidden; margin-bottom:10px;">
+            <div id="edb-progress" style="height:100%; width:0%; background:var(--rust); transition:width .3s;"></div>
           </div>
-          <div id="edb-log" style="font-size:9px; color:var(--ink-dim); line-height:1.4; max-height:120px; overflow-y:auto; padding:8px; background:var(--panel-2); border-radius:6px; border:1px solid var(--border); font-family:monospace;"></div>
+          <div id="edb-log" style="font-size:9px; color:var(--ink-dim); line-height:1.4; max-height:100px; overflow-y:auto; padding:6px; background:var(--panel-2); border:1px solid var(--border); border-radius:4px; font-family:monospace;"></div>
         </div>
 
         <!-- PASO 5: Resultado -->
-        <div id="edb-step5" style="display:none; text-align:center;">
-          <div id="edb-result-icon" style="font-size:48px; margin-bottom:12px;"></div>
-          <div id="edb-result-title" style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;"></div>
-          <div id="edb-result-msg" style="font-size:10px; color:var(--ink-dim); line-height:1.5; margin-bottom:14px;"></div>
-          <button class="details-btn" id="edb-again-btn" type="button" style="border-color:var(--navy-glow); color:var(--navy);">
-            ↻ Otra operación
-          </button>
+        <div id="edb-step5" style="display:none;">
+          <div id="edb-result-msg" style="font-size:11px; color:var(--ink); margin-bottom:12px;"></div>
+          <button class="details-btn" id="edb-again-btn" type="button">Otra operación</button>
         </div>
 
         </div>
