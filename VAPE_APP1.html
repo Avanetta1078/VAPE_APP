@@ -2078,17 +2078,17 @@
             conteos['bitacora_contrapesos'] = cCpAll  || 0;
             conteos['field_log']            = cFlAll  || 0;
           } else {
-            var wNames = mState.wellNames;
-            if(wNames.length > 0){
+            var wellIds = mState.wellIds;
+            if(wellIds.length > 0){
               var { count: cVis } = await sb.from('bitacora_visitas')
-                .select('visita_id',{count:'exact',head:true}).in('pozo', wNames);
+                .select('visita_id',{count:'exact',head:true}).in('well_id', wellIds);
               conteos['bitacora_visitas'] = cVis || 0;
 
-              var { data: visD } = await sb.from('bitacora_visitas').select('visita_id').in('pozo', wNames);
+              var { data: visD } = await sb.from('bitacora_visitas').select('visita_id').in('well_id', wellIds);
               var vids = (visD||[]).map(function(v){ return v.visita_id; });
               if(vids.length > 0){
                 var { count: cCp } = await sb.from('bitacora_contrapesos')
-                  .select('id',{count:'exact',head:true}).in('visita_id', vids);
+                  .select('contrapeso_row_id',{count:'exact',head:true}).in('visita_id', vids);
                 conteos['bitacora_contrapesos'] = cCp || 0;
               } else { conteos['bitacora_contrapesos'] = 0; }
             } else {
