@@ -2045,7 +2045,7 @@
       }
     }
 
-    // Borrar TODO respetando orden
+    // Borrar TODO respetando orden - VERSIÓN MEJORADA
     async function deleteEverything(counts){
       var sb = supabaseClient;
       var op = state.operadora;
@@ -2053,18 +2053,35 @@
       var steps = Object.keys(counts).length;
       var step = 0;
 
+      // Mapeo de tablas a columnas primarias
+      var pkMap = {
+        'wells': 'well_id',
+        'tests': 'test_id',
+        'dyn_results': 'dyn_result_id',
+        'acu_results': 'acu_result_id',
+        'well_configurations': 'well_config_id',
+        'rod_tapers': 'rod_taper_id',
+        'field_log': 'field_log_id',
+        'bitacora_visitas': 'visita_id',
+        'bitacora_contrapesos': 'contrapeso_row_id',
+        'dyn_curve_points': 'curve_point_id',
+        'acu_curve_points': 'curve_point_id',
+        'well_alerts': 'well_alert_id',
+        'well_markers': 'marker_id'
+      };
+
       try {
-        log('🗑️ Iniciando eliminación en orden...\n');
+        log('🗑️ Iniciando eliminación en orden correcto...\n');
         setBar(0);
 
-        // Orden crítico
+        // Orden crítico respetando FK
         var order = [
           'bitacora_contrapesos',
           'bitacora_visitas',
-          'dyn_results',
-          'acu_results',
           'dyn_curve_points',
           'acu_curve_points',
+          'dyn_results',
+          'acu_results',
           'tests',
           'field_log',
           'rod_tapers',
@@ -2079,40 +2096,56 @@
           if(!counts[table] || counts[table] === 0) continue;
 
           step++;
-          log('(' + step + '/' + steps + ') Eliminando ' + table + '...');
+          var pkCol = pkMap[table] || 'id';
+          log('(' + step + '/' + steps + ') ' + table + ' [PK: ' + pkCol + ']');
 
           try {
             var q = sb.from(table).delete();
-            if(op && (table === 'wells' || table === 'bitacora_visitas' || table === 'field_log')){
-              q = q.eq('operadora', op);
-            } else if(op && table === 'tests'){
-              // tests por well_id
-              var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
-              var wellIds = (wData||[]).map(w => w.well_id);
-              if(wellIds.length > 0) q = q.in('well_id', wellIds);
-            } else if(op && table === 'well_configurations'){
-              var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
-              var wellIds = (wData||[]).map(w => w.well_id);
-              if(wellIds.length > 0) q = q.in('well_id', wellIds);
+
+            // Aplicar filtro si hay operadora seleccionada
+            if(op){
+              if(table === 'wells' || table === 'bitacora_visitas' || table === 'field_log'){
+                q = q.eq('operadora', op);
+              } else if(table === 'tests'){
+                var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+                var wellIds = (wData||[]).map(w => w.well_id);
+                if(wellIds.length > 0) q = q.in('well_id', wellIds);
+                else { log('  ⚠️ sin wells para esta operadora'); continue; }
+              } else if(table === 'well_configurations'){
+                var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+                var wellIds = (wData||[]).map(w => w.well_id);
+                if(wellIds.length > 0) q = q.in('well_id', wellIds);
+                else { log('  ⚠️ sin wells para esta operadora'); continue; }
+              } else {
+                // Para otras tablas sin FK directo a wells, intentar neq con PK
+                q = q.neq(pkCol, null);
+              }
             } else {
-              // Borrar todo sin filtro
-              q = q.neq('id', null);
+              // Sin operadora: borrar TODO usando neq con PK (siempre retorna registros)
+              q = q.neq(pkCol, null);
             }
 
-            var { error: err } = await q;
+            var { data: result, error: err, count: delCount } = await q;
             if(err){
-              log('⚠️ ' + table + ': ' + err.message);
+              log('  ❌ ERROR: ' + err.message);
+              console.error('Error en ' + table, err);
             } else {
-              log('✓ ' + table + ': ' + (counts[table] || 0).toLocaleString() + ' registros eliminados');
+              log('  ✓ ' + (counts[table] || 0).toLocaleString() + ' registros eliminados');
             }
           } catch(e){
-            log('❌ ' + table + ': ' + e.message);
+            log('  ❌ EXCEPTION: ' + e.message);
+            console.error(e);
           }
 
           setBar(Math.round(step / steps * 100));
+          // Pequeño delay entre deletes
+          await new Promise(r => setTimeout(r, 200));
         }
 
-        log('\n✅ Eliminación completada');
+        log('\n✅ Ciclo de eliminación completado');
+        log('⏳ Verificando estado final en 2 segundos...');
+        await new Promise(r => setTimeout(r, 2000));
+
         return true;
       } catch(err){
         log('\n❌ ERROR GENERAL: ' + err.message);
