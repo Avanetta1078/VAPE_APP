@@ -1840,60 +1840,80 @@
       </div>
 
       <!-- CARD: Eliminador BRUTAL (Directo sin filtros) -->
-      <!-- CARD: Limpiar Base de Datos (Eliminación Directa) -->
-      <div class="tool-card" data-tool="limpiar-db-direct">
-        <h3><span class="dot2" style="background:var(--danger,#c83232);"></span>Eliminar Base de Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+      <!-- CARD: Eliminar Datos por Operadora (Profesional) -->
+      <div class="tool-card" data-tool="eliminar-operadora">
+        <h3><span class="dot2" style="background:#c83232;"></span>Eliminar por Operadora<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-          <p class="tool-desc" style="color:#ff7373;">
-            <strong>⚠ Operación crítica.</strong> Elimina registros permanentemente de la base de datos. Esta acción no se puede deshacer.
+          <p class="tool-desc" style="color:#ff7373;margin-bottom:12px;">
+            <strong>⚠ Operación administrativa crítica.</strong> Elimina todos los datos de una operadora de AMBAS apps (VAPE + Bitácora). No se puede deshacer.
           </p>
 
-          <div id="del-main">
-            <div style="margin-bottom:16px;">
-              <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Ingresa contraseña</label>
-              <input type="password" id="del-pwd" placeholder="Contraseña de confirmación" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:16px;">
+          <!-- PASO 1: Selección de Operadora -->
+          <div id="eop-select" style="margin-bottom:16px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;">1. Selecciona Operadora</label>
+            <select id="eop-operadora-sel" style="width:100%;padding:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
+              <option value="">— Cargando operadoras —</option>
+            </select>
 
-              <button id="del-start-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;margin-bottom:10px;">
-                🔍 Verificar contraseña
-              </button>
-            </div>
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;margin-top:12px;">2. Contraseña Admin</label>
+            <input type="password" id="eop-pwd" placeholder="Ingresa contraseña" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
+
+            <button id="eop-next-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              🔍 Verificar y Contar
+            </button>
           </div>
 
-          <div id="del-confirm" style="display:none;">
-            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
-              <div style="font-size:12px;font-weight:700;color:#ff8080;margin-bottom:8px;">⚠ CONFIRMACIÓN REQUERIDA</div>
-              <div style="font-size:11px;color:var(--ink);line-height:1.8;">
-                <strong>Se eliminarán:</strong><br>
-                • wells: <span id="del-count-wells">0</span> registros<br>
-                • well_configurations: <span id="del-count-cfg">0</span> registros<br>
-                • rod_tapers: <span id="del-count-rods">0</span> registros<br>
-                • field_log: <span id="del-count-fl">0</span> registros<br>
-                <strong style="color:#ff7373;">Total: <span id="del-count-total">0</span> registros</strong>
+          <!-- PASO 2: Preview y Confirmación -->
+          <div id="eop-preview" style="display:none;">
+            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:8px;padding:14px;margin-bottom:14px;">
+              <div style="font-size:12px;font-weight:700;color:#ff8080;margin-bottom:10px;">📊 Datos de <span id="eop-op-name"></span></div>
+              <div style="font-size:11px;color:var(--ink);line-height:2;">
+                <div>🏭 <strong>Pozos:</strong> <span id="eop-count-wells">0</span></div>
+                <div>📋 <strong>Field Log (Bitácora histórica):</strong> <span id="eop-count-fl">0</span></div>
+                <div>🧪 <strong>Ensayos (tests):</strong> <span id="eop-count-tests">0</span></div>
+                <div>📈 <strong>Resultados Dina/Sonolog:</strong> <span id="eop-count-results">0</span></div>
+                <div>⚙️ <strong>Configuraciones y Sartas:</strong> <span id="eop-count-config">0</span></div>
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(200,50,50,.2);">
+                  <strong style="color:#ff7373;">TOTAL A ELIMINAR: <span id="eop-count-total">0</span> registros</strong>
+                </div>
               </div>
             </div>
 
-            <button id="del-confirm-btn" style="width:100%;padding:10px;background:#c83232;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;margin-bottom:10px;">
-              🗑 ELIMINAR AHORA
-            </button>
-            <button id="del-cancel-btn" style="width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;font-size:11px;cursor:pointer;">
-              ← Cancelar
-            </button>
-          </div>
-
-          <div id="del-progress" style="display:none;">
-            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">Procesando eliminación…</div>
-            <div style="background:var(--bg);border-radius:6px;height:6px;overflow:hidden;margin-bottom:10px;">
-              <div id="del-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);transition:width .3s;"></div>
+            <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;max-height:200px;overflow-y:auto;">
+              <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px;">📍 Pozos de esta operadora:</div>
+              <div id="eop-wells-list" style="font-size:10px;color:var(--ink-dim);line-height:1.8;"></div>
             </div>
-            <div id="del-progress-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:150px;overflow-y:auto;padding:8px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);"></div>
+
+            <div style="background:rgba(255,115,115,.1);border:1px solid rgba(255,115,115,.3);border-radius:8px;padding:10px;margin-bottom:12px;">
+              <div style="font-size:10px;color:#ff7373;line-height:1.6;">
+                ⚠️ <strong>Advertencia:</strong> Los operadores en Bitácora NO VERÁN estos pozos ni sus datos. Se afectan AMBAS APLICACIONES.
+              </div>
+            </div>
+
+            <button id="eop-confirm-btn" style="width:100%;padding:10px;background:#c83232;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;margin-bottom:8px;">
+              🗑 CONFIRMAR ELIMINACIÓN
+            </button>
+            <button id="eop-back-btn" style="width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;font-size:11px;cursor:pointer;">
+              ← Volver
+            </button>
           </div>
 
-          <div id="del-result" style="display:none;text-align:center;">
-            <div id="del-result-icon" style="font-size:36px;margin-bottom:10px;"></div>
-            <div id="del-result-title" style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--ink);"></div>
-            <div id="del-result-msg" style="font-size:11px;color:var(--ink-dim);line-height:1.6;margin-bottom:16px;"></div>
-            <button id="del-again-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
-              ↻ Nueva operación
+          <!-- PASO 3: Progreso -->
+          <div id="eop-progress" style="display:none;">
+            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">⏳ Eliminando datos…</div>
+            <div style="background:var(--bg);border-radius:6px;height:8px;overflow:hidden;margin-bottom:12px;">
+              <div id="eop-prog-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);transition:width .3s ease;"></div>
+            </div>
+            <div id="eop-prog-log" style="font-size:10px;color:var(--ink-dim);line-height:1.5;max-height:150px;overflow-y:auto;padding:10px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);font-family:monospace;"></div>
+          </div>
+
+          <!-- PASO 4: Resultado -->
+          <div id="eop-result" style="display:none;text-align:center;">
+            <div id="eop-res-icon" style="font-size:48px;margin-bottom:12px;"></div>
+            <div id="eop-res-title" style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--ink);"></div>
+            <div id="eop-res-msg" style="font-size:11px;color:var(--ink-dim);line-height:1.6;margin-bottom:16px;max-height:120px;overflow-y:auto;"></div>
+            <button id="eop-reset-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              ↻ Nueva Operación
             </button>
           </div>
 
@@ -1903,28 +1923,58 @@
   </div>
 
   <script>
-  // ─── ELIMINAR BASE DE DATOS (MÓDULO PROFESIONAL) ─────────────────────────────
+  // ─── ELIMINAR POR OPERADORA (MÓDULO SEGURO Y PROFESIONAL) ──────────────────────
   (function(){
+    var state = { operadora: null };
+
     function log(msg){
-      var el = document.getElementById('del-progress-log');
-      if(el){ el.innerHTML += msg + '<br>'; el.scrollTop = el.scrollHeight; }
+      var el = document.getElementById('eop-prog-log');
+      if(el){
+        el.innerHTML += msg + '\n';
+        el.scrollTop = el.scrollHeight;
+      }
     }
 
     function setProgress(pct){
-      var el = document.getElementById('del-progress-bar');
+      var el = document.getElementById('eop-prog-bar');
       if(el) el.style.width = pct + '%';
     }
 
     function show(screen){
-      document.getElementById('del-main').style.display = screen === 'main' ? '' : 'none';
-      document.getElementById('del-confirm').style.display = screen === 'confirm' ? '' : 'none';
-      document.getElementById('del-progress').style.display = screen === 'progress' ? '' : 'none';
-      document.getElementById('del-result').style.display = screen === 'result' ? '' : 'none';
+      document.getElementById('eop-select').style.display = screen === 'select' ? '' : 'none';
+      document.getElementById('eop-preview').style.display = screen === 'preview' ? '' : 'none';
+      document.getElementById('eop-progress').style.display = screen === 'progress' ? '' : 'none';
+      document.getElementById('eop-result').style.display = screen === 'result' ? '' : 'none';
     }
 
-    // Verificar contraseña y contar registros
-    document.getElementById('del-start-btn').addEventListener('click', async function(){
-      var pwd = document.getElementById('del-pwd').value;
+    // Cargar operadoras al iniciar
+    async function loadOperadoras(){
+      try {
+        if(!supabaseClient) return;
+        var { data } = await supabaseClient.from('wells').select('operadora');
+        var ops = [...new Set((data||[]).map(w => w.operadora).filter(Boolean))].sort();
+        var sel = document.getElementById('eop-operadora-sel');
+        sel.innerHTML = '<option value="">— Selecciona operadora —</option>';
+        ops.forEach(op => {
+          var opt = document.createElement('option');
+          opt.value = op;
+          opt.textContent = op;
+          sel.appendChild(opt);
+        });
+      } catch(err){
+        console.error('Error cargando operadoras:', err);
+      }
+    }
+
+    // Verificar contraseña y contar registros por operadora
+    document.getElementById('eop-next-btn').addEventListener('click', async function(){
+      var operadora = document.getElementById('eop-operadora-sel').value;
+      var pwd = document.getElementById('eop-pwd').value;
+
+      if(!operadora){
+        alert('Selecciona una operadora');
+        return;
+      }
       if(pwd !== '123456'){
         alert('Contraseña incorrecta');
         return;
@@ -1935,105 +1985,200 @@
 
       try {
         var sb = supabaseClient;
-        var { count: cW } = await sb.from('wells').select('*', {count:'exact',head:true});
-        var { count: cC } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
-        var { count: cR } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
-        var { count: cF } = await sb.from('field_log').select('*', {count:'exact',head:true});
+        state.operadora = operadora;
 
-        document.getElementById('del-count-wells').textContent = (cW||0).toLocaleString();
-        document.getElementById('del-count-cfg').textContent = (cC||0).toLocaleString();
-        document.getElementById('del-count-rods').textContent = (cR||0).toLocaleString();
-        document.getElementById('del-count-fl').textContent = (cF||0).toLocaleString();
-        document.getElementById('del-count-total').textContent = ((cW||0) + (cC||0) + (cR||0) + (cF||0)).toLocaleString();
+        // Contar registros de ESTA operadora
+        var { data: wells, count: cWells } = await sb.from('wells')
+          .select('well_id, well_name', {count:'exact'})
+          .eq('operadora', operadora);
 
-        show('confirm');
+        var wellIds = (wells||[]).map(w => w.well_id);
+        var wellNames = (wells||[]).map(w => w.well_name);
+
+        var cFL = 0, cTests = 0, cResults = 0, cConfigs = 0;
+
+        if(wellIds.length > 0){
+          // field_log de estos pozos
+          var { count: c1 } = await sb.from('field_log')
+            .select('*', {count:'exact'})
+            .in('well_id', wellIds);
+          cFL = c1 || 0;
+
+          // tests de estos pozos
+          var { data: testsData, count: c2 } = await sb.from('tests')
+            .select('test_id', {count:'exact'})
+            .in('well_id', wellIds);
+          cTests = c2 || 0;
+
+          var testIds = (testsData||[]).map(t => t.test_id);
+
+          if(testIds.length > 0){
+            var { count: c3 } = await sb.from('dyn_results')
+              .select('*', {count:'exact'})
+              .in('test_id', testIds);
+            var { count: c4 } = await sb.from('acu_results')
+              .select('*', {count:'exact'})
+              .in('test_id', testIds);
+            cResults = (c3||0) + (c4||0);
+          }
+
+          // well_configurations y rod_tapers
+          var { data: cfgsData, count: c5 } = await sb.from('well_configurations')
+            .select('well_config_id', {count:'exact'})
+            .in('well_id', wellIds);
+          var cfgIds = (cfgsData||[]).map(c => c.well_config_id);
+          var { count: c6 } = await sb.from('rod_tapers')
+            .select('*', {count:'exact'})
+            .in('well_config_id', cfgIds);
+          cConfigs = (c5||0) + (c6||0) + (cfgsData||[]).length;
+        }
+
+        // Actualizar UI con conteos
+        document.getElementById('eop-op-name').textContent = operadora;
+        document.getElementById('eop-count-wells').textContent = cWells.toLocaleString();
+        document.getElementById('eop-count-fl').textContent = cFL.toLocaleString();
+        document.getElementById('eop-count-tests').textContent = cTests.toLocaleString();
+        document.getElementById('eop-count-results').textContent = cResults.toLocaleString();
+        document.getElementById('eop-count-config').textContent = cConfigs.toLocaleString();
+        document.getElementById('eop-count-total').textContent = (cWells + cFL + cTests + cResults + cConfigs).toLocaleString();
+
+        // Listar pozos
+        var wellsList = wellNames.length > 0 ? wellNames.join(', ') : '(ninguno)';
+        if(wellsList.length > 100) wellsList = wellsList.substring(0, 100) + '…';
+        document.getElementById('eop-wells-list').textContent = wellsList;
+
+        show('preview');
       } catch(err){
         alert('Error: ' + err.message);
+        console.error(err);
       } finally {
         this.disabled = false;
-        this.textContent = '🔍 Verificar contraseña';
+        this.textContent = '🔍 Verificar y Contar';
       }
     });
 
-    document.getElementById('del-cancel-btn').addEventListener('click', function(){
-      document.getElementById('del-pwd').value = '';
-      show('main');
+    document.getElementById('eop-back-btn').addEventListener('click', function(){
+      document.getElementById('eop-pwd').value = '';
+      show('select');
     });
 
-    // Eliminar
-    document.getElementById('del-confirm-btn').addEventListener('click', async function(){
-      if(!confirm('⚠ Esta acción eliminará todos los registros PERMANENTEMENTE.\n\n¿Confirmar?')){
+    // Confirmar y eliminar
+    document.getElementById('eop-confirm-btn').addEventListener('click', async function(){
+      if(!confirm('⚠ CONFIRMACIÓN FINAL\n\nSe eliminarán TODOS los datos de la operadora "' + state.operadora + '" de AMBAS APPS.\n\n¿Estás seguro?')){
         return;
       }
 
       show('progress');
-      document.getElementById('del-progress-log').innerHTML = '';
+      document.getElementById('eop-prog-log').innerHTML = '';
       this.disabled = true;
 
       try {
         var sb = supabaseClient;
-        var tables = ['bitacora_contrapesos', 'bitacora_visitas', 'dyn_curve_points', 'acu_curve_points',
-                      'dyn_results', 'acu_results', 'tests', 'field_log', 'rod_tapers', 'well_markers',
-                      'well_alerts', 'well_configurations', 'wells'];
+        var op = state.operadora;
+
+        log('▶ Iniciando eliminación selectiva para operadora: ' + op);
+        log('');
+
+        // Paso 1: Obtener well_ids de esta operadora
+        log('1️⃣  Identificando pozos...');
+        var { data: wells } = await sb.from('wells').select('well_id, test_id').eq('operadora', op);
+        var wellIds = (wells||[]).map(w => w.well_id);
+        log('   ✓ Found ' + wellIds.length + ' wells');
+
+        if(wellIds.length === 0){
+          log('   ⚠ No wells found for this operadora');
+          show('result');
+          return;
+        }
+
+        var tables = [
+          { name: 'bitacora_visitas', filter: {well_id: wellIds}, pct: 10 },
+          { name: 'bitacora_contrapesos', filter: {}, pct: 15 },
+          { name: 'dyn_curve_points', testIds: true, pct: 25 },
+          { name: 'acu_curve_points', testIds: true, pct: 35 },
+          { name: 'dyn_results', testIds: true, pct: 45 },
+          { name: 'acu_results', testIds: true, pct: 55 },
+          { name: 'tests', wellIds: wellIds, pct: 65 },
+          { name: 'field_log', wellIds: wellIds, pct: 70 },
+          { name: 'rod_tapers', cfgIds: true, pct: 80 },
+          { name: 'well_markers', wellIds: wellIds, pct: 85 },
+          { name: 'well_alerts', wellIds: wellIds, pct: 90 },
+          { name: 'well_configurations', wellIds: wellIds, pct: 95 },
+          { name: 'wells', operadora: op, pct: 100 }
+        ];
+
+        var deleted = 0;
 
         for(var i = 0; i < tables.length; i++){
           var t = tables[i];
-          var pct = Math.round((i / tables.length) * 100);
-          setProgress(pct);
-          log('Eliminando ' + t + '...');
+          setProgress(t.pct);
 
           try {
-            // Método directo - borra TODO
-            await sb.from(t).delete().gte('created_at', '1900-01-01');
-            log('  ✓');
+            log((i+2) + '️⃣  ' + t.name + '...');
+
+            var q = sb.from(t.name).delete();
+
+            if(t.operadora){
+              q = q.eq('operadora', t.operadora);
+            } else if(t.wellIds){
+              if(t.wellIds.length > 0) q = q.in('well_id', t.wellIds);
+            } else if(t.testIds){
+              var { data: testsData } = await sb.from('tests').select('test_id').in('well_id', wellIds);
+              var testIds = (testsData||[]).map(x => x.test_id);
+              if(testIds.length > 0) q = q.in('test_id', testIds);
+            } else if(t.cfgIds){
+              var { data: cfgsData } = await sb.from('well_configurations').select('well_config_id').in('well_id', wellIds);
+              var cfgIds = (cfgsData||[]).map(x => x.well_config_id);
+              if(cfgIds.length > 0) q = q.in('well_config_id', cfgIds);
+            }
+
+            var { count } = await q;
+            log('   ✓ ' + (count||0) + ' rows deleted');
+            deleted += (count||0);
+
           } catch(e){
-            log('  ⚠ ' + e.message);
+            log('   ⚠ Error: ' + e.message);
           }
 
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 200));
         }
+
+        log('');
+        log('✅ ELIMINACIÓN COMPLETADA');
+        log('Total registros eliminados: ' + deleted);
 
         setProgress(100);
-        log('\nVerificando...');
-        await new Promise(r => setTimeout(r, 1000));
 
-        // Verificación final
-        var { count: cW } = await sb.from('wells').select('*', {count:'exact',head:true});
-        var { count: cC } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
-        var { count: cR } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
-        var { count: cF } = await sb.from('field_log').select('*', {count:'exact',head:true});
+        if(typeof WELLS_DB !== 'undefined') Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+        if(typeof renderInicioGrid === 'function') renderInicioGrid();
 
-        if(cW === 0 && cC === 0 && cR === 0 && cF === 0){
-          document.getElementById('del-result-icon').textContent = '✅';
-          document.getElementById('del-result-title').textContent = 'Completado al 100%';
-          document.getElementById('del-result-msg').textContent = 'Base de datos limpiada completamente.';
-        } else {
-          document.getElementById('del-result-icon').textContent = '⚠';
-          document.getElementById('del-result-title').textContent = 'Completado con remanentes';
-          document.getElementById('del-result-msg').textContent = 'wells: ' + (cW||0) + ' | cfg: ' + (cC||0) + ' | rods: ' + (cR||0) + ' | field_log: ' + (cF||0);
-        }
+        document.getElementById('eop-res-icon').textContent = '✅';
+        document.getElementById('eop-res-title').textContent = 'Eliminación Exitosa';
+        document.getElementById('eop-res-msg').textContent = 'Se eliminaron ' + deleted + ' registros de la operadora "' + op + '" en AMBAS APPS.';
 
       } catch(err){
-        document.getElementById('del-result-icon').textContent = '❌';
-        document.getElementById('del-result-title').textContent = 'Error';
-        document.getElementById('del-result-msg').textContent = err.message;
+        log('❌ ERROR: ' + err.message);
+        document.getElementById('eop-res-icon').textContent = '❌';
+        document.getElementById('eop-res-title').textContent = 'Error en Eliminación';
+        document.getElementById('eop-res-msg').textContent = err.message;
       }
-
-      if(typeof WELLS_DB !== 'undefined') Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
-      if(typeof renderInicioGrid === 'function') renderInicioGrid();
 
       show('result');
       this.disabled = false;
     });
 
-    document.getElementById('del-again-btn').addEventListener('click', function(){
-      document.getElementById('del-pwd').value = '';
-      show('main');
+    document.getElementById('eop-reset-btn').addEventListener('click', function(){
+      document.getElementById('eop-pwd').value = '';
+      document.getElementById('eop-operadora-sel').value = '';
+      state.operadora = null;
+      show('select');
     });
 
-    show('main');
+    // Inicializar
+    loadOperadoras();
+    show('select');
   })();
-  // ─── FIN ELIMINAR BASE DE DATOS ──────────────────────────────────────────────────
+  // ─── FIN ELIMINAR POR OPERADORA ─────────────────────────────────────────────────
 
   // Herramientas: menu desplegable estilo Windows (acordeón, un item a la vez)
   document.addEventListener('DOMContentLoaded', function(){
