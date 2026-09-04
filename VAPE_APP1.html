@@ -1840,39 +1840,60 @@
       </div>
 
       <!-- CARD: Eliminador BRUTAL (Directo sin filtros) -->
-      <div class="tool-card" data-tool="eliminar-brutal">
-        <h3><span class="dot2" style="background:#ff0000;"></span>🔥 Eliminador BRUTAL (Directo)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+      <!-- CARD: Limpiar Base de Datos (Eliminación Directa) -->
+      <div class="tool-card" data-tool="limpiar-db-direct">
+        <h3><span class="dot2" style="background:var(--danger,#c83232);"></span>Eliminar Base de Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-          <p class="tool-desc" style="color:#ff0000;font-weight:700;">
-            <strong>🔥 ELIMINADOR BRUTAL</strong> - Borra TODO SIN FILTROS. Método DIRECTO y efectivo.
+          <p class="tool-desc" style="color:#ff7373;">
+            <strong>⚠ Operación crítica.</strong> Elimina registros permanentemente de la base de datos. Esta acción no se puede deshacer.
           </p>
 
-          <div id="brutal-main" style="display:block;">
-            <div style="background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
-              <div style="font-size:11px;color:#ff5555;line-height:1.8;">
-                <strong>Este módulo:</strong><br>
-                ✓ Borra DIRECTAMENTE sin condiciones<br>
-                ✓ No usa filtros complejos<br>
-                ✓ Va tabla por tabla en orden correcto<br>
-                ✓ Ideal si RLS está bloqueando los deletes
+          <div id="del-main">
+            <div style="margin-bottom:16px;">
+              <label style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Ingresa contraseña</label>
+              <input type="password" id="del-pwd" placeholder="Contraseña de confirmación" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:16px;">
+
+              <button id="del-start-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;margin-bottom:10px;">
+                🔍 Verificar contraseña
+              </button>
+            </div>
+          </div>
+
+          <div id="del-confirm" style="display:none;">
+            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
+              <div style="font-size:12px;font-weight:700;color:#ff8080;margin-bottom:8px;">⚠ CONFIRMACIÓN REQUERIDA</div>
+              <div style="font-size:11px;color:var(--ink);line-height:1.8;">
+                <strong>Se eliminarán:</strong><br>
+                • wells: <span id="del-count-wells">0</span> registros<br>
+                • well_configurations: <span id="del-count-cfg">0</span> registros<br>
+                • rod_tapers: <span id="del-count-rods">0</span> registros<br>
+                • field_log: <span id="del-count-fl">0</span> registros<br>
+                <strong style="color:#ff7373;">Total: <span id="del-count-total">0</span> registros</strong>
               </div>
             </div>
 
-            <button id="brutal-nuke-btn" style="width:100%;padding:12px;background:#ff0000;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;margin-bottom:10px;">
-              ☢️ NUKE IT ALL (Eliminar TODO)
+            <button id="del-confirm-btn" style="width:100%;padding:10px;background:#c83232;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;margin-bottom:10px;">
+              🗑 ELIMINAR AHORA
             </button>
-
-            <input type="password" id="brutal-pwd" placeholder="Contraseña (123456)" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:10px;">
-
-            <div id="brutal-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:200px;overflow-y:auto;padding:10px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);display:none;"></div>
+            <button id="del-cancel-btn" style="width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;font-size:11px;cursor:pointer;">
+              ← Cancelar
+            </button>
           </div>
 
-          <div id="brutal-result" style="display:none;text-align:center;padding:16px;">
-            <div id="brutal-result-icon" style="font-size:40px;margin-bottom:10px;"></div>
-            <div id="brutal-result-title" style="font-size:14px;font-weight:700;margin-bottom:6px;"></div>
-            <div id="brutal-result-detail" style="font-size:11px;color:var(--ink-dim);line-height:1.6;"></div>
-            <button id="brutal-again-btn" style="width:100%;margin-top:12px;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
-              ↻ Otra eliminación
+          <div id="del-progress" style="display:none;">
+            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">Procesando eliminación…</div>
+            <div style="background:var(--bg);border-radius:6px;height:6px;overflow:hidden;margin-bottom:10px;">
+              <div id="del-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);transition:width .3s;"></div>
+            </div>
+            <div id="del-progress-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:150px;overflow-y:auto;padding:8px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);"></div>
+          </div>
+
+          <div id="del-result" style="display:none;text-align:center;">
+            <div id="del-result-icon" style="font-size:36px;margin-bottom:10px;"></div>
+            <div id="del-result-title" style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--ink);"></div>
+            <div id="del-result-msg" style="font-size:11px;color:var(--ink-dim);line-height:1.6;margin-bottom:16px;"></div>
+            <button id="del-again-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              ↻ Nueva operación
             </button>
           </div>
 
@@ -2217,141 +2238,137 @@
   })();
   // ─── FIN LIMPIAR BASE DE DATOS ──────────────────────────────────────────────────
 
-  // ─── ELIMINADOR BRUTAL (SIN FILTROS COMPLEJOS) ─────────────────────────────────
+  // ─── ELIMINAR BASE DE DATOS (MÓDULO PROFESIONAL) ─────────────────────────────
   (function(){
     function log(msg){
-      var el = document.getElementById('brutal-log');
+      var el = document.getElementById('del-progress-log');
       if(el){ el.innerHTML += msg + '<br>'; el.scrollTop = el.scrollHeight; }
     }
 
-    // FUNCIÓN BRUTAL: Borra TODO sin condiciones
-    async function nukeAllData(){
-      var sb = supabaseClient;
-      var tables = [
-        'bitacora_contrapesos',
-        'bitacora_visitas',
-        'dyn_curve_points',
-        'acu_curve_points',
-        'dyn_results',
-        'acu_results',
-        'tests',
-        'field_log',
-        'rod_tapers',
-        'well_markers',
-        'well_alerts',
-        'well_configurations',
-        'wells'
-      ];
+    function setProgress(pct){
+      var el = document.getElementById('del-progress-bar');
+      if(el) el.style.width = pct + '%';
+    }
+
+    function show(screen){
+      document.getElementById('del-main').style.display = screen === 'main' ? '' : 'none';
+      document.getElementById('del-confirm').style.display = screen === 'confirm' ? '' : 'none';
+      document.getElementById('del-progress').style.display = screen === 'progress' ? '' : 'none';
+      document.getElementById('del-result').style.display = screen === 'result' ? '' : 'none';
+    }
+
+    // Verificar contraseña y contar registros
+    document.getElementById('del-start-btn').addEventListener('click', async function(){
+      var pwd = document.getElementById('del-pwd').value;
+      if(pwd !== '123456'){
+        alert('Contraseña incorrecta');
+        return;
+      }
+
+      this.disabled = true;
+      this.textContent = 'Contando...';
 
       try {
-        log('☢️ INICIANDO ELIMINACIÓN BRUTAL SIN FILTROS...\n');
+        var sb = supabaseClient;
+        var { count: cW } = await sb.from('wells').select('*', {count:'exact',head:true});
+        var { count: cC } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
+        var { count: cR } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
+        var { count: cF } = await sb.from('field_log').select('*', {count:'exact',head:true});
+
+        document.getElementById('del-count-wells').textContent = (cW||0).toLocaleString();
+        document.getElementById('del-count-cfg').textContent = (cC||0).toLocaleString();
+        document.getElementById('del-count-rods').textContent = (cR||0).toLocaleString();
+        document.getElementById('del-count-fl').textContent = (cF||0).toLocaleString();
+        document.getElementById('del-count-total').textContent = ((cW||0) + (cC||0) + (cR||0) + (cF||0)).toLocaleString();
+
+        show('confirm');
+      } catch(err){
+        alert('Error: ' + err.message);
+      } finally {
+        this.disabled = false;
+        this.textContent = '🔍 Verificar contraseña';
+      }
+    });
+
+    document.getElementById('del-cancel-btn').addEventListener('click', function(){
+      document.getElementById('del-pwd').value = '';
+      show('main');
+    });
+
+    // Eliminar
+    document.getElementById('del-confirm-btn').addEventListener('click', async function(){
+      if(!confirm('⚠ Esta acción eliminará todos los registros PERMANENTEMENTE.\n\n¿Confirmar?')){
+        return;
+      }
+
+      show('progress');
+      document.getElementById('del-progress-log').innerHTML = '';
+      this.disabled = true;
+
+      try {
+        var sb = supabaseClient;
+        var tables = ['bitacora_contrapesos', 'bitacora_visitas', 'dyn_curve_points', 'acu_curve_points',
+                      'dyn_results', 'acu_results', 'tests', 'field_log', 'rod_tapers', 'well_markers',
+                      'well_alerts', 'well_configurations', 'wells'];
 
         for(var i = 0; i < tables.length; i++){
-          var table = tables[i];
+          var t = tables[i];
           var pct = Math.round((i / tables.length) * 100);
-
-          log('(' + (i+1) + '/' + tables.length + ') Borrando ' + table + '... [' + pct + '%]');
+          setProgress(pct);
+          log('Eliminando ' + t + '...');
 
           try {
-            // MÉTODO 1: Borrar con gte() - condición siempre verdadera
-            var { count: delCount, error: err } = await sb.from(table).delete().gte('created_at', '1900-01-01');
-
-            if(err){
-              log('  ⚠️ Error con gte, intentando método 2...');
-              // MÉTODO 2: Borrar con neq() - usar ID que no puede ser -999
-              var { count: delCount2, error: err2 } = await sb.from(table).delete().neq('id', -999);
-              if(err2){
-                log('  ❌ Error en método 2: ' + (err2.message || err.message));
-              } else {
-                log('  ✓ Eliminados con método 2');
-              }
-            } else {
-              log('  ✓ Eliminados');
-            }
+            // Método directo - borra TODO
+            await sb.from(t).delete().gte('created_at', '1900-01-01');
+            log('  ✓');
           } catch(e){
-            log('  ❌ Excepción: ' + e.message);
-            console.error(e);
+            log('  ⚠ ' + e.message);
           }
 
-          await new Promise(r => setTimeout(r, 400));
+          await new Promise(r => setTimeout(r, 300));
         }
 
-        log('\n⏳ Verificando estado final...');
-        await new Promise(r => setTimeout(r, 1500));
+        setProgress(100);
+        log('\nVerificando...');
+        await new Promise(r => setTimeout(r, 1000));
 
-        log('\n📊 VERIFICACIÓN:');
-        var { count: cWells } = await sb.from('wells').select('*', {count:'exact',head:true});
-        var { count: cCfg } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
-        var { count: cRods } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
-        var { count: cFL } = await sb.from('field_log').select('*', {count:'exact',head:true});
+        // Verificación final
+        var { count: cW } = await sb.from('wells').select('*', {count:'exact',head:true});
+        var { count: cC } = await sb.from('well_configurations').select('*', {count:'exact',head:true});
+        var { count: cR } = await sb.from('rod_tapers').select('*', {count:'exact',head:true});
+        var { count: cF } = await sb.from('field_log').select('*', {count:'exact',head:true});
 
-        log('• wells: ' + (cWells||0) + ' registros');
-        log('• well_configurations: ' + (cCfg||0) + ' registros');
-        log('• rod_tapers: ' + (cRods||0) + ' registros');
-        log('• field_log: ' + (cFL||0) + ' registros');
-
-        if(cWells === 0 && cCfg === 0 && cRods === 0 && cFL === 0){
-          log('\n✅ ÉXITO - Base en cero');
-          return true;
+        if(cW === 0 && cC === 0 && cR === 0 && cF === 0){
+          document.getElementById('del-result-icon').textContent = '✅';
+          document.getElementById('del-result-title').textContent = 'Completado al 100%';
+          document.getElementById('del-result-msg').textContent = 'Base de datos limpiada completamente.';
         } else {
-          log('\n⚠️ Aún hay remanentes');
-          return false;
+          document.getElementById('del-result-icon').textContent = '⚠';
+          document.getElementById('del-result-title').textContent = 'Completado con remanentes';
+          document.getElementById('del-result-msg').textContent = 'wells: ' + (cW||0) + ' | cfg: ' + (cC||0) + ' | rods: ' + (cR||0) + ' | field_log: ' + (cF||0);
         }
 
       } catch(err){
-        log('\n❌ ERROR: ' + err.message);
-        console.error(err);
-        return false;
-      }
-    }
-
-    // BOTÓN BRUTAL
-    document.getElementById('brutal-nuke-btn').addEventListener('click', async function(){
-      var pwd = document.getElementById('brutal-pwd').value;
-      if(pwd !== '123456'){
-        alert('❌ Contraseña incorrecta');
-        return;
-      }
-
-      if(!confirm('⚠️ ÚLTIMA ADVERTENCIA\n\nSe ELIMINARÁN TODOS los registros de forma IRREVERSIBLE.\n\n¿CONFIRMAR?')){
-        return;
-      }
-
-      document.getElementById('brutal-log').innerHTML = '';
-      document.getElementById('brutal-log').style.display = '';
-      this.disabled = true;
-      this.textContent = 'Eliminando...';
-
-      var success = await nukeAllData();
-
-      document.getElementById('brutal-main').style.display = 'none';
-      document.getElementById('brutal-result').style.display = '';
-
-      if(success){
-        document.getElementById('brutal-result-icon').textContent = '✅';
-        document.getElementById('brutal-result-title').textContent = '✅ ÉXITO - 100% COMPLETADO';
-        document.getElementById('brutal-result-detail').innerHTML = '<strong style="color:#4caf50;">Base de datos limpiada a cero.</strong><br><br>Verifica en Supabase para confirmar.';
-      } else {
-        document.getElementById('brutal-result-icon').textContent = '⚠️';
-        document.getElementById('brutal-result-title').textContent = '⚠️ INCOMPLETO';
-        document.getElementById('brutal-result-detail').innerHTML = 'Revisa el log. Hay remanentes que el módulo no pudo eliminar.';
+        document.getElementById('del-result-icon').textContent = '❌';
+        document.getElementById('del-result-title').textContent = 'Error';
+        document.getElementById('del-result-msg').textContent = err.message;
       }
 
       if(typeof WELLS_DB !== 'undefined') Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
       if(typeof renderInicioGrid === 'function') renderInicioGrid();
 
+      show('result');
       this.disabled = false;
     });
 
-    document.getElementById('brutal-again-btn').addEventListener('click', function(){
-      document.getElementById('brutal-main').style.display = '';
-      document.getElementById('brutal-result').style.display = 'none';
-      document.getElementById('brutal-log').innerHTML = '';
-      document.getElementById('brutal-pwd').value = '';
+    document.getElementById('del-again-btn').addEventListener('click', function(){
+      document.getElementById('del-pwd').value = '';
+      show('main');
     });
 
+    show('main');
   })();
-  // ─── FIN ELIMINADOR BRUTAL ──────────────────────────────────────────────────────
+  // ─── FIN ELIMINAR BASE DE DATOS ──────────────────────────────────────────────────
 
   // Herramientas: menu desplegable estilo Windows (acordeón, un item a la vez)
   document.addEventListener('DOMContentLoaded', function(){
