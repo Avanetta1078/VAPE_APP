@@ -1842,106 +1842,79 @@
       <!-- CARD: Eliminador BRUTAL (Directo sin filtros) -->
       <!-- CARD: Eliminar Datos de la Base -->
       <div class="tool-card" data-tool="eliminar-db">
-        <h3><span class="dot2 rust"></span>Eliminar Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <h3><span class="dot2 rust"></span>Eliminar Base de Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
         <p class="tool-desc" style="color:var(--rust);">
-          <strong>Operación crítica.</strong> Elimina permanentemente todos los datos de una operadora (o todas). No se puede deshacer.
+          <strong>⚠ Operación crítica.</strong> Elimina permanentemente todos los datos de una operadora (o todas) de AMBAS apps. No se puede deshacer.
         </p>
 
-        <!-- PASO 1: Mostrar registros -->
+        <!-- PASO 1: Selección -->
         <div id="edb-step1">
-          <button class="details-btn" id="edb-scan-btn" type="button">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 21H3V3h8V1H3a2 2 0 00-2 2v18a2 2 0 002 2h18a2 2 0 002-2v-8h-2v8z M19 1v6h6M9.5 5.5L19 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Mostrar registros a eliminar
+          <div class="tool-upload-row" style="margin-bottom:14px;">
+            <label style="font-size:12px; color:var(--ink-dim); min-width:110px;">Operadora a eliminar</label>
+            <select id="edb-operadora" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--ink); font-size:12px; flex:1;">
+              <option value="__ALL__">✓ TODAS las operadoras</option>
+            </select>
+          </div>
+
+          <div class="tool-upload-row">
+            <label style="font-size:12px; color:var(--ink-dim); min-width:110px;">Contraseña</label>
+            <input type="password" id="edb-pwd" placeholder="Admin" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--ink); font-size:12px; flex:1;">
+          </div>
+
+          <button class="details-btn" id="edb-check-btn" type="button" style="margin-top:12px; border-color:var(--rust); color:var(--rust);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M7 20h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v11a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Verificar
           </button>
-
-          <div id="edb-scan-result" style="display:none; margin-top:14px;">
-            <p class="tool-desc">Registros encontrados:</p>
-            <div style="margin-bottom:14px; padding:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:11px;">
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; line-height:1.8;">
-                <div>Pozos: <strong id="edb-cnt-wells">0</strong></div>
-                <div>Ensayos: <strong id="edb-cnt-tests">0</strong></div>
-                <div>Field Log: <strong id="edb-cnt-fl">0</strong></div>
-                <div>Resultados: <strong id="edb-cnt-results">0</strong></div>
-                <div>Configuraciones: <strong id="edb-cnt-config">0</strong></div>
-                <div>Total: <strong id="edb-cnt-total">0</strong></div>
-              </div>
-              <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:10px; color:var(--ink-dim);">
-                <div id="edb-wells-preview"></div>
-              </div>
-            </div>
-
-            <div class="bit-grid" style="grid-template-columns:1fr 1fr; margin-bottom:14px;">
-              <div>
-                <label>Operadora a eliminar</label>
-                <select id="edb-operadora" class="bit-input">
-                  <option value="__ALL__">TODAS</option>
-                </select>
-              </div>
-            </div>
-
-            <button class="details-btn" id="edb-next-btn" type="button" style="border-color:var(--rust); color:var(--rust);">
-              Continuar
-            </button>
-          </div>
-
-          <div id="edb-scan-empty" style="display:none; padding:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:11px; color:var(--ink-dim);">
-            No hay registros para mostrar.
-          </div>
         </div>
 
-        <!-- PASO 2: Contraseña -->
+        <!-- PASO 2: Confirmación -->
         <div id="edb-step2" style="display:none;">
-          <p class="tool-desc">Ingresá la contraseña de administrador.</p>
-
-          <div class="bit-grid" style="grid-template-columns:1fr; margin-bottom:14px;">
-            <div>
-              <label>Contraseña</label>
-              <input type="password" id="edb-pwd" placeholder="••••••" class="bit-input">
+          <div style="background:rgba(200,50,50,.1); border:1px solid rgba(200,50,50,.25); border-radius:8px; padding:12px; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:700; color:var(--rust); margin-bottom:8px;">📊 Resumen de datos a eliminar</div>
+            <div style="font-size:10px; color:var(--ink); line-height:1.8;">
+              <div>🏭 Pozos: <span id="edb-cnt-wells">0</span></div>
+              <div>🧪 Ensayos: <span id="edb-cnt-tests">0</span></div>
+              <div>📋 Field Log: <span id="edb-cnt-fl">0</span></div>
+              <div>📈 Resultados: <span id="edb-cnt-results">0</span></div>
+              <div>⚙️ Config/Sartas: <span id="edb-cnt-config">0</span></div>
+              <div style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(200,50,50,.2);">
+                <strong style="color:var(--rust);">TOTAL: <span id="edb-cnt-total">0</span></strong>
+              </div>
             </div>
           </div>
 
-          <div id="edb-error-msg" style="display:none; padding:8px; background:var(--panel-2); border:1px solid var(--border); border-radius:6px; font-size:10px; color:var(--rust); margin-bottom:12px;"></div>
-
-          <label style="display:flex; align-items:center; font-size:10px; color:var(--ink-dim); margin-bottom:12px;">
-            <input type="checkbox" id="edb-remember" style="margin-right:6px;">
-            Recordar por 24 hs
-          </label>
-
-          <div>
-            <button class="details-btn" id="edb-check-btn" type="button" style="margin-right:8px; border-color:var(--rust); color:var(--rust);">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M7 20h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v11a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Verificar
-            </button>
-            <button class="details-btn" id="edb-back-btn" type="button">Volver</button>
+          <div style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:12px; max-height:120px; overflow-y:auto;">
+            <div style="font-size:10px; font-weight:700; color:var(--ink); margin-bottom:6px;">📍 Pozos:</div>
+            <div id="edb-wells-preview" style="font-size:9px; color:var(--ink-dim); line-height:1.6;"></div>
           </div>
+
+          <button class="details-btn" id="edb-confirm-btn" type="button" style="margin-bottom:8px; border-color:var(--rust); color:var(--rust);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 7l-7 7-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ELIMINAR AHORA
+          </button>
+          <button class="details-btn" id="edb-back-btn" type="button">
+            ← Volver
+          </button>
         </div>
 
-        <!-- PASO 3: Confirmación -->
+        <!-- PASO 3: Progreso -->
         <div id="edb-step3" style="display:none;">
-          <p class="tool-desc" style="color:var(--rust);">Se eliminarán <strong id="edb-confirm-count">0</strong> registros de <strong id="edb-confirm-op">la operadora</strong>. Esta acción es irreversible.</p>
-
-          <div>
-            <button class="details-btn" id="edb-confirm-btn" type="button" style="margin-right:8px; border-color:var(--rust); color:var(--rust);">
-              Eliminar
-            </button>
-            <button class="details-btn" id="edb-cancel-btn" type="button">Cancelar</button>
+          <div style="font-size:11px; font-weight:700; color:var(--ink); margin-bottom:8px;">Procesando eliminación…</div>
+          <div style="background:var(--bg); border-radius:6px; height:6px; overflow:hidden; margin-bottom:10px;">
+            <div id="edb-progress" style="height:100%; width:0%; background:linear-gradient(90deg, var(--rust), var(--rust-glow)); transition:width .3s;"></div>
           </div>
+          <div id="edb-log" style="font-size:9px; color:var(--ink-dim); line-height:1.4; max-height:120px; overflow-y:auto; padding:8px; background:var(--panel-2); border-radius:6px; border:1px solid var(--border); font-family:monospace;"></div>
         </div>
 
-        <!-- PASO 4: Progreso -->
-        <div id="edb-step4" style="display:none;">
-          <p class="tool-desc">Procesando…</p>
-          <div style="background:var(--bg); border-radius:4px; height:4px; overflow:hidden; margin-bottom:10px;">
-            <div id="edb-progress" style="height:100%; width:0%; background:var(--rust); transition:width .3s;"></div>
-          </div>
-          <div id="edb-log" style="font-size:9px; color:var(--ink-dim); line-height:1.4; max-height:100px; overflow-y:auto; padding:6px; background:var(--panel-2); border:1px solid var(--border); border-radius:4px; font-family:monospace;"></div>
-        </div>
-
-        <!-- PASO 5: Resultado -->
-        <div id="edb-step5" style="display:none;">
-          <div id="edb-result-msg" style="font-size:11px; color:var(--ink); margin-bottom:12px;"></div>
-          <button class="details-btn" id="edb-again-btn" type="button">Otra operación</button>
+        <!-- PASO 4: Resultado -->
+        <div id="edb-step4" style="display:none; text-align:center;">
+          <div id="edb-result-icon" style="font-size:40px; margin-bottom:10px;"></div>
+          <div id="edb-result-title" style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:6px;"></div>
+          <div id="edb-result-msg" style="font-size:10px; color:var(--ink-dim); line-height:1.5; margin-bottom:12px;"></div>
+          <button class="details-btn" id="edb-again-btn" type="button" style="border-color:var(--navy-glow); color:var(--navy);">
+            ↻ Otra operación
+          </button>
         </div>
 
         </div>
@@ -1950,11 +1923,9 @@
   </div>
 
   <script>
-  // ─── ELIMINAR DATOS (MÓDULO MEJORADO v2) ──────────────────────────────────────
+  // ─── ELIMINAR DATOS (MÓDULO PROFESIONAL SEGURO) ───────────────────────────────
   (function(){
-    var state = { operadora: null, counts: {}, recordedSessionPwd: null };
-    const STORAGE_KEY = 'edb_session_token';
-    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 horas
+    var state = { operadora: null, counts: {} };
 
     function log(msg){
       var el = document.getElementById('edb-log');
@@ -1971,62 +1942,46 @@
       document.getElementById('edb-step2').style.display = step === 2 ? '' : 'none';
       document.getElementById('edb-step3').style.display = step === 3 ? '' : 'none';
       document.getElementById('edb-step4').style.display = step === 4 ? '' : 'none';
-      document.getElementById('edb-step5').style.display = step === 5 ? '' : 'none';
     }
 
-    function showError(msg){
-      var el = document.getElementById('edb-error-msg');
-      if(el){
-        el.textContent = msg;
-        el.style.display = '';
-        setTimeout(() => { el.style.display = 'none'; }, 5000);
-      }
-    }
-
-    // Cargar operadoras desde Supabase y cache local
+    // Cargar operadoras
     async function loadOps(){
-      var ops = new Set();
-
-      // Desde Supabase
       try {
-        if(supabaseClient){
-          var { data } = await supabaseClient.from('wells').select('operadora');
-          (data||[]).forEach(w => { if(w.operadora) ops.add(w.operadora); });
-        }
-      } catch(e){ console.error('Error loading operadoras from Supabase:', e); }
-
-      // Desde cache local (WELLS_DB / Planillero)
-      if(typeof WELLS_DB !== 'undefined'){
-        Object.keys(WELLS_DB).forEach(wellId => {
-          var well = WELLS_DB[wellId];
-          if(well && well.operadora) ops.add(well.operadora);
-        });
-      }
-
-      var sel = document.getElementById('edb-operadora');
-      if(sel){
-        var arr = Array.from(ops).sort();
-        arr.forEach(op => {
+        if(!supabaseClient) return;
+        var { data } = await supabaseClient.from('wells').select('operadora');
+        var ops = [...new Set((data||[]).map(w => w.operadora).filter(Boolean))].sort();
+        var sel = document.getElementById('edb-operadora');
+        ops.forEach(op => {
           var opt = document.createElement('option');
           opt.value = op;
           opt.textContent = op;
           sel.appendChild(opt);
         });
+      } catch(e){
+        console.error('Error loading operadoras:', e);
       }
     }
 
-    // Escanear registros
-    document.getElementById('edb-scan-btn').addEventListener('click', async function(){
+    // Verificar y contar
+    document.getElementById('edb-check-btn').addEventListener('click', async function(){
+      var op = document.getElementById('edb-operadora').value;
+      var pwd = document.getElementById('edb-pwd').value;
+
+      if(pwd !== '123456'){
+        alert('Contraseña incorrecta');
+        return;
+      }
+
       this.disabled = true;
-      this.textContent = '🔄 Escaneando…';
+      this.textContent = 'Verificando...';
 
       try {
         var sb = supabaseClient;
+        state.operadora = op;
         state.counts = {};
-        var hasData = false;
 
-        // Escanear Supabase
-        if(sb){
+        if(op === '__ALL__'){
+          // Contar TODO sin filtro
           var { count: cW } = await sb.from('wells').select('*', {count:'exact'});
           var { count: cT } = await sb.from('tests').select('*', {count:'exact'});
           var { count: cF } = await sb.from('field_log').select('*', {count:'exact'});
@@ -2034,118 +1989,14 @@
           var { count: cAcu } = await sb.from('acu_results').select('*', {count:'exact'});
           var { count: cCfg } = await sb.from('well_configurations').select('*', {count:'exact'});
 
-          state.counts = {
-            wells: cW||0, tests: cT||0, fl: cF||0,
-            results: (cDyn||0)+(cAcu||0), config: cCfg||0
-          };
+          state.counts = { wells: cW||0, tests: cT||0, fl: cF||0, results: (cDyn||0)+(cAcu||0), config: cCfg||0 };
 
-          if(cW || cT || cF || cDyn || cAcu || cCfg) hasData = true;
-
-          // Obtener nombres de pozos para preview
-          var { data: wells } = await sb.from('wells').select('well_name').limit(5);
-          var wellNames = (wells||[]).map(w => w.well_name);
-          document.getElementById('edb-wells-preview').textContent = wellNames.length > 0 ? wellNames.join(', ') + '...' : '(ninguno)';
-        }
-
-        // Escanear cache local
-        if(typeof WELLS_DB !== 'undefined' && Object.keys(WELLS_DB).length > 0){
-          state.counts.wells = Math.max(state.counts.wells, Object.keys(WELLS_DB).length);
-          hasData = true;
-
-          var localWells = Object.keys(WELLS_DB).slice(0, 5).map(k => WELLS_DB[k].well_name || k);
-          var preview = document.getElementById('edb-wells-preview').textContent;
-          if(preview && preview !== '(ninguno)'){
-            preview += ', ' + localWells.join(', ');
-          } else {
-            preview = localWells.join(', ');
-          }
-          document.getElementById('edb-wells-preview').textContent = preview.substring(0, 200) + '...';
-        }
-
-        // Actualizar UI
-        document.getElementById('edb-cnt-wells').textContent = state.counts.wells.toLocaleString();
-        document.getElementById('edb-cnt-tests').textContent = state.counts.tests.toLocaleString();
-        document.getElementById('edb-cnt-fl').textContent = state.counts.fl.toLocaleString();
-        document.getElementById('edb-cnt-results').textContent = state.counts.results.toLocaleString();
-        document.getElementById('edb-cnt-config').textContent = state.counts.config.toLocaleString();
-
-        var total = state.counts.wells + state.counts.tests + state.counts.fl + state.counts.results + state.counts.config;
-        document.getElementById('edb-cnt-total').textContent = total.toLocaleString();
-
-        if(hasData){
-          document.getElementById('edb-scan-result').style.display = '';
-          document.getElementById('edb-scan-empty').style.display = 'none';
-          loadOps(); // Recargar opciones de operadora después de escanear
+          document.getElementById('edb-wells-preview').textContent = '(Todas las operadoras)';
         } else {
-          document.getElementById('edb-scan-result').style.display = 'none';
-          document.getElementById('edb-scan-empty').style.display = '';
-        }
-
-      } catch(err){
-        showError('Error al escanear: ' + err.message);
-      } finally {
-        this.disabled = false;
-        this.textContent = '🔄 Actualizar / Mostrar registros a eliminar';
-      }
-    });
-
-    // Siguiente paso (de escaneo a contraseña)
-    document.getElementById('edb-next-btn').addEventListener('click', function(){
-      // Verificar si hay sesión grabada
-      var token = localStorage.getItem(STORAGE_KEY);
-      if(token){
-        var data = JSON.parse(token);
-        if(Date.now() - data.ts < SESSION_DURATION){
-          state.recordedSessionPwd = data.pwd;
-          show(3); // Ir directo a confirmación
-          return;
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-        }
-      }
-      show(2); // Ir a contraseña
-    });
-
-    // Toggle contraseña
-    document.getElementById('edb-pwd-toggle').addEventListener('click', function(){
-      var input = document.getElementById('edb-pwd');
-      if(input.type === 'password'){
-        input.type = 'text';
-        this.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        this.textContent = '👁️';
-      }
-    });
-
-    // Verificar contraseña
-    document.getElementById('edb-check-btn').addEventListener('click', async function(){
-      var op = document.getElementById('edb-operadora').value;
-      var pwd = document.getElementById('edb-pwd').value;
-
-      if(pwd !== '123456'){
-        showError('❌ Contraseña incorrecta');
-        return;
-      }
-
-      var remember = document.getElementById('edb-remember').checked;
-      if(remember){
-        var token = { pwd: pwd, ts: Date.now() };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(token));
-        state.recordedSessionPwd = pwd;
-      }
-
-      state.operadora = op;
-
-      // Actualizar counts para la operadora seleccionada
-      try {
-        var sb = supabaseClient;
-        if(op === '__ALL__'){
-          // Ya están cargados desde el escaneo
-        } else {
-          // Recargar counts solo para esta operadora
+          // Contar solo de esta operadora
           var { data: wells, count: cW } = await sb.from('wells').select('well_id, well_name', {count:'exact'}).eq('operadora', op);
           var wellIds = (wells||[]).map(w => w.well_id);
+          var wellNames = (wells||[]).map(w => w.well_name);
 
           var cT = 0, cF = 0, cResults = 0, cCfg = 0;
 
@@ -2169,33 +2020,40 @@
           }
 
           state.counts = { wells: cW||0, tests: cT, fl: cF, results: cResults, config: cCfg };
+          document.getElementById('edb-wells-preview').textContent = wellNames.length > 0 ? wellNames.join(', ') : '(ninguno)';
         }
+
+        // Actualizar UI
+        document.getElementById('edb-cnt-wells').textContent = state.counts.wells.toLocaleString();
+        document.getElementById('edb-cnt-tests').textContent = state.counts.tests.toLocaleString();
+        document.getElementById('edb-cnt-fl').textContent = state.counts.fl.toLocaleString();
+        document.getElementById('edb-cnt-results').textContent = state.counts.results.toLocaleString();
+        document.getElementById('edb-cnt-config').textContent = state.counts.config.toLocaleString();
+        var total = state.counts.wells + state.counts.tests + state.counts.fl + state.counts.results + state.counts.config;
+        document.getElementById('edb-cnt-total').textContent = total.toLocaleString();
+
+        show(2);
       } catch(err){
-        console.error('Error reloading counts:', err);
+        alert('Error: ' + err.message);
+      } finally {
+        this.disabled = false;
+        this.textContent = 'Verificar';
       }
-
-      // Actualizar confirmación y mostrar paso 3
-      var total = state.counts.wells + state.counts.tests + state.counts.fl + state.counts.results + state.counts.config;
-      document.getElementById('edb-confirm-count').textContent = total.toLocaleString();
-      document.getElementById('edb-confirm-op').textContent = (op === '__ALL__' ? 'TODAS las operadoras' : op);
-
-      show(3);
     });
 
     document.getElementById('edb-back-btn').addEventListener('click', function(){
       document.getElementById('edb-pwd').value = '';
-      document.getElementById('edb-error-msg').style.display = 'none';
-      show(2);
-    });
-
-    document.getElementById('edb-cancel-btn').addEventListener('click', function(){
-      show(2);
+      show(1);
     });
 
     // Eliminar
     document.getElementById('edb-confirm-btn').addEventListener('click', async function(){
       var op = state.operadora;
-      show(4);
+      if(!confirm('⚠ CONFIRMACIÓN FINAL\nSe eliminarán ' + (state.counts.wells + state.counts.tests + state.counts.fl + state.counts.results + state.counts.config) + ' registros de ' + (op === '__ALL__' ? 'TODAS' : op) + '.\n\n¿Estás seguro?')){
+        return;
+      }
+
+      show(3);
       document.getElementById('edb-log').textContent = '';
       this.disabled = true;
 
@@ -2218,7 +2076,7 @@
           log('Obteniendo well_ids...');
           var { data: wells } = await sb.from('wells').select('well_id').eq('operadora', op);
           var wellIds = (wells||[]).map(w => w.well_id);
-          if(wellIds.length === 0){ log('No wells found'); show(5); return; }
+          if(wellIds.length === 0){ log('No wells found'); show(4); return; }
 
           var tables = [
             {name:'bitacora_visitas', wellIds:true}, {name:'bitacora_contrapesos'}, {name:'dyn_curve_points', testIds:true},
@@ -2262,25 +2120,22 @@
 
         document.getElementById('edb-result-icon').textContent = '✅';
         document.getElementById('edb-result-title').textContent = 'Eliminación Exitosa';
-        document.getElementById('edb-result-msg').textContent = 'Se eliminaron ' + deleted + ' registros. La aplicación se actualizará.';
+        document.getElementById('edb-result-msg').textContent = 'Se eliminaron ' + deleted + ' registros.';
 
       } catch(err){
         log('❌ ERROR: ' + err.message);
         document.getElementById('edb-result-icon').textContent = '❌';
-        document.getElementById('edb-result-title').textContent = 'Error en eliminación';
+        document.getElementById('edb-result-title').textContent = 'Error';
         document.getElementById('edb-result-msg').textContent = err.message;
       }
 
-      show(5);
+      show(4);
     });
 
     document.getElementById('edb-again-btn').addEventListener('click', function(){
       document.getElementById('edb-pwd').value = '';
       document.getElementById('edb-operadora').value = '__ALL__';
-      document.getElementById('edb-remember').checked = false;
-      state = { operadora: null, counts: {}, recordedSessionPwd: null };
-      document.getElementById('edb-scan-result').style.display = 'none';
-      document.getElementById('edb-scan-empty').style.display = 'none';
+      state = { operadora: null, counts: {} };
       show(1);
     });
 
