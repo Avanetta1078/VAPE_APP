@@ -2155,51 +2155,7 @@
         var wellIds  = mState.wellIds;
         var wNames   = mState.wellNames;
 
-        // ── VAPE_APP ────────────────────────────────────────────────────
-        if(mState.base === 'vape' || mState.base === 'ambas'){
-
-          if(wellIds.length > 0){
-
-            // 1. well_configurations DIRECTO por well_id (cubre huérfanos sin test)
-            logLine('→ Leyendo well_configurations…');
-            var { data: cfgD } = await sb.from('well_configurations')
-              .select('well_config_id').in('well_id', wellIds);
-            var cfgIds = (cfgD||[]).map(function(c){ return c.well_config_id; });
-
-            // 2. rod_tapers por well_config_id
-            if(cfgIds.length > 0){
-              done = await deleteChunked(sb, 'rod_tapers', 'well_config_id', cfgIds,
-                'Eliminando rod_tapers', done, total);
-            } else { logLine('✓ rod_tapers: 0 (sin configs)'); }
-
-            // 3. tests → dyn_results / acu_results
-            logLine('→ Leyendo tests…');
-            var { data: tD } = await sb.from('tests').select('test_id').in('well_id', wellIds);
-            var testIds = (tD||[]).map(function(t){ return t.test_id; });
-
-            if(testIds.length > 0){
-              done = await deleteChunked(sb, 'dyn_results', 'test_id', testIds,
-                'Eliminando dyn_results', done, total);
-              done = await deleteChunked(sb, 'acu_results', 'test_id', testIds,
-                'Eliminando acu_results', done, total);
-              done = await deleteChunked(sb, 'tests', 'test_id', testIds,
-                'Eliminando tests', done, total);
-            } else { logLine('✓ dyn_results / acu_results / tests: 0'); }
-
-            // 4. well_configurations
-            if(cfgIds.length > 0){
-              done = await deleteChunked(sb, 'well_configurations', 'well_config_id', cfgIds,
-                'Eliminando well_configurations', done, total);
-            }
-
-            // 5. wells — el pozo mismo, último
-            done = await deleteChunked(sb, 'wells', 'well_id', wellIds,
-              'Eliminando wells', done, total);
-          } else {
-            logLine('✓ Sin pozos para esta operadora en VAPE_APP.');
-          }
-        }
-
+        // ── ORDEN CRÍTICO: Bitácora PRIMERO (field_log depende de wells), luego VAPE_APP (wells al final)
         // ── BITÁCORA ────────────────────────────────────────────────────
         if(mState.base === 'bitacora' || mState.base === 'ambas'){
 
@@ -2245,6 +2201,51 @@
             else logLine('✓ field_log: ' + (mState.conteos['field_log']||0).toLocaleString() + ' registros eliminados');
             done += (mState.conteos['field_log'] || 0);
             setProgress(done, total, 'Eliminando field_log');
+          }
+        }
+
+        // ── VAPE_APP (DESPUÉS de bitácora para respetar integridad referencial)
+        if(mState.base === 'vape' || mState.base === 'ambas'){
+
+          if(wellIds.length > 0){
+
+            // 1. well_configurations DIRECTO por well_id (cubre huérfanos sin test)
+            logLine('→ Leyendo well_configurations…');
+            var { data: cfgD } = await sb.from('well_configurations')
+              .select('well_config_id').in('well_id', wellIds);
+            var cfgIds = (cfgD||[]).map(function(c){ return c.well_config_id; });
+
+            // 2. rod_tapers por well_config_id
+            if(cfgIds.length > 0){
+              done = await deleteChunked(sb, 'rod_tapers', 'well_config_id', cfgIds,
+                'Eliminando rod_tapers', done, total);
+            } else { logLine('✓ rod_tapers: 0 (sin configs)'); }
+
+            // 3. tests → dyn_results / acu_results
+            logLine('→ Leyendo tests…');
+            var { data: tD } = await sb.from('tests').select('test_id').in('well_id', wellIds);
+            var testIds = (tD||[]).map(function(t){ return t.test_id; });
+
+            if(testIds.length > 0){
+              done = await deleteChunked(sb, 'dyn_results', 'test_id', testIds,
+                'Eliminando dyn_results', done, total);
+              done = await deleteChunked(sb, 'acu_results', 'test_id', testIds,
+                'Eliminando acu_results', done, total);
+              done = await deleteChunked(sb, 'tests', 'test_id', testIds,
+                'Eliminando tests', done, total);
+            } else { logLine('✓ dyn_results / acu_results / tests: 0'); }
+
+            // 4. well_configurations
+            if(cfgIds.length > 0){
+              done = await deleteChunked(sb, 'well_configurations', 'well_config_id', cfgIds,
+                'Eliminando well_configurations', done, total);
+            }
+
+            // 5. wells — el pozo mismo, ÚLTIMO (después de field_log que fue borrado arriba)
+            done = await deleteChunked(sb, 'wells', 'well_id', wellIds,
+              'Eliminando wells', done, total);
+          } else {
+            logLine('✓ Sin pozos para esta operadora en VAPE_APP.');
           }
         }
 
