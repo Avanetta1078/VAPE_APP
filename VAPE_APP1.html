@@ -5540,11 +5540,17 @@
     return data ? data.well_config_id : null;
   }
 
-  async function upsertWell(wellName, operadora, zona, bateria){
+  async function upsertWell(wellName, operadora, zona, bateria, packerM){
+    const row = { well_name: wellName, operadora: operadora || null, zona: zona || null, bateria: bateria || null };
+    if(packerM != null) row.packer_m = packerM;
     await supabaseClient.from('wells').upsert(
-      { well_name: wellName, operadora: operadora || null, zona: zona || null, bateria: bateria || null },
-      { onConflict: 'well_name', ignoreDuplicates: true }
+      row,
+      { onConflict: 'well_name', ignoreDuplicates: packerM == null }
     );
+    // Si viene packer_m, forzar la actualización (ignoreDuplicates no actualiza)
+    if(packerM != null){
+      await supabaseClient.from('wells').update({ packer_m: packerM }).eq('well_name', wellName);
+    }
     const { data, error } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).single();
     if(error) throw error;
     return data.well_id;
@@ -7025,7 +7031,8 @@
       logFn(`Procesando ${meta.well} · ${meta.type} · ${meta.date} ${meta.time}${csvRow ? '' : ' (sin CSV — solo curva)'}…`);
       matchedWells.add(meta.well);
 
-      const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null);
+      const csvPackerRaw = csvRow ? csvVal(csvRow, 'Packer (m)', false) : null;
+      const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null, csvPackerRaw);
       let wellConfigId;
       const existingTest = await peekExistingTest(wellId, meta.type, meta.date, meta.time);
       if(existingTest){
@@ -7180,7 +7187,8 @@
             else type = 'DYN';
           }
 
-          const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'));
+          const csvPkrVal = csvVal(row, 'Packer (m)', false);
+          const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'), csvPkrVal);
           let wellConfigId;
           const existingTest = rowDate ? await peekExistingTest(wellId, type, rowDate, rowTime) : null;
           if(existingTest){
