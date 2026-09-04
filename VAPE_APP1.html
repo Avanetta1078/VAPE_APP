@@ -4297,7 +4297,7 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState),
+            condicion: h.tipo === 'Dina' ? 'Dinámico' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState)),
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             pkr: w.packerM != null ? w.packerM : null,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
@@ -4364,7 +4364,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: cnCondicionFromWellState(w.wellState),
+          condicion: operacion === 'Dina' ? 'Dinámico' : cnCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           pkr: w.packerM != null ? w.packerM : null,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
@@ -4891,8 +4891,9 @@
     return wellNames.map(n => {
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
+      const condicion = tipoEnsayo === 'Dina' ? 'Dinámico' : cnCondicionFromWellState(w.wellState);
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        name: n, tipoEnsayo, condicion, fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
@@ -4911,7 +4912,7 @@
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
           name:n, fecha:h.dt, tipoEnsayo:h.tipo,
-          condicion: isLatest ? cnCondicionFromWellState(w.wellState) : '—',
+          condicion: h.tipo === 'Dina' ? 'Dinámico' : (isLatest ? cnCondicionFromWellState(w.wellState) : '—'),
           sistema: h.sistema || w.sistema || 'Sin clasificar',
           diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
           torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
