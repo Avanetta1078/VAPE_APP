@@ -689,6 +689,7 @@
     color:var(--ink); font-family:'IBM Plex Mono'; font-size:10px; padding:2px 5px;
   }
   .ie-input:focus{ outline:none; box-shadow:0 0 0 2px rgba(91,118,224,.25); }
+  .cn-pkr-editable:hover{ background:rgba(231,76,60,.08); }
   @keyframes cnPulseGlow{
     0%,100%{ box-shadow:0 0 0 0 rgba(91,118,224,.55); border-color:#5b76e0; }
     50%{ box-shadow:0 0 0 6px rgba(91,118,224,0); border-color:#7d93ea; }
@@ -4497,7 +4498,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
+          <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
           <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
@@ -4864,7 +4865,7 @@
     { key:'cargamin',     label:'Carga Mín',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
     { key:'llenado',      label:'Llenado',      unit:' %',  dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
     { key:'spm',          label:'GPM',          unit:'',    dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
-    { key:'pkr',          label:'PKR',          unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.well]; return w && w.packerM != null && w.packerM > 0 ? w.packerM : null; } },
+    { key:'pkr',          label:'PKR',          unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w && w.packerM != null && w.packerM > 0 ? w.packerM : null; } },
     { key:'prestbg',      label:'Pres. Tbg',    unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
     { key:'pipdyn',       label:'PIP Dyn',      unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
     { key:'fabricante',   label:'Fabricante',   group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
@@ -5054,12 +5055,14 @@
       return `<th class="${stickyCls.trim()}" data-col="${k}">${def.label}<button class="th-filter-btn ${hasFilter?'th-active':''}" data-col="${k}" type="button" title="Filtrar">▾</button></th>`;
     }).join('')}</tr></thead>`;
     const tbody = `<tbody>${rows.slice(0,800).map(r=>{
-      return `<tr>${cols.map(k=>{
+      const wellEsc = (r.well || r.name || '').replace(/"/g,'&quot;');
+      return `<tr data-cn-well="${wellEsc}">${cols.map(k=>{
         const def = CN_DEFS_BY_KEY[k]; if(!def) return '<td>—</td>';
         const val = def.get(r);
         const stickyCls = (k in stickyIdx) ? ` cn-sticky cn-sticky-${stickyIdx[k]}` : '';
         const nameCls = k === 'well' ? ' well-name' : '';
-        return `<td class="${(stickyCls+nameCls).trim()}" data-col="${k}">${cnFmtVal(def, val)}</td>`;
+        const pkrEditable = (k === 'pkr' && currentUser && currentUser.role !== 'cliente') ? ' cn-pkr-editable' : '';
+        return `<td class="${(stickyCls+nameCls+pkrEditable).trim()}" data-col="${k}">${cnFmtVal(def, val)}</td>`;
       }).join('')}</tr>`;
     }).join('')}</tbody>`;
     table.innerHTML = thead + tbody;
@@ -5068,9 +5071,58 @@
       btn.addEventListener('click', (e)=>{ e.stopPropagation(); cnOpenColFilter(btn.dataset.col, btn); });
     });
 
+    // PKR click-to-edit en CONSULTA
+    table.querySelectorAll('td.cn-pkr-editable').forEach(td=>{
+      td.style.cursor = 'pointer';
+      td.title = 'Clic para editar PKR';
+      td.addEventListener('click', ()=> cnPkrCellEdit(td));
+    });
+
     const countEl = document.getElementById('cn-resultcount');
     if(countEl) countEl.innerHTML = `<b>${rows.length}</b> pozo${rows.length===1?'':'s'}${rows.length>800 ? ' — mostrando primeros 800' : ''}`;
   }
+  // ---- PKR inline edit en CONSULTA ----
+  function cnPkrCellEdit(td){
+    if(td.querySelector('input')) return; // ya en modo edición
+    const tr = td.closest('tr');
+    const wellName = tr ? tr.dataset.cnWell : null;
+    if(!wellName) return;
+    const w = WELLS_DB[wellName];
+    if(!w || !w.well_id) return;
+    const curVal = (w.packerM != null && w.packerM > 0) ? String(Math.round(w.packerM)) : '';
+    td.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+      <input type="number" class="ie-input" value="${curVal}" placeholder="m" style="width:55px;color:#e74c3c;font-size:11px;padding:1px 3px;" min="0" step="1">
+      <button type="button" class="cn-pkr-save" title="Guardar" style="background:none;border:none;color:#2ea05a;cursor:pointer;font-size:13px;padding:0;">✓</button>
+      ${curVal ? '<button type="button" class="cn-pkr-del" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:13px;padding:0;">✕</button>' : ''}
+      <button type="button" class="cn-pkr-cancel" title="Cancelar" style="background:none;border:none;color:#888;cursor:pointer;font-size:11px;padding:0;">✖</button>
+    </div>`;
+    const inp = td.querySelector('input');
+    inp.focus(); inp.select();
+    const saveBtn = td.querySelector('.cn-pkr-save');
+    const delBtn = td.querySelector('.cn-pkr-del');
+    const cancelBtn = td.querySelector('.cn-pkr-cancel');
+
+    async function savePkr(val){
+      const pkrVal = val === '' ? null : Number(val);
+      if(val !== '' && (isNaN(pkrVal) || pkrVal < 0)){ alert('PKR debe ser un número positivo.'); return; }
+      try{
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+        cnRenderAll();
+        renderInicioGrid();
+        if(currentWell === wellName) renderWell();
+      } catch(err){ alert('Error guardando PKR: ' + (err.message || err)); }
+    }
+    saveBtn.addEventListener('click', ()=> savePkr(inp.value.trim()));
+    if(delBtn) delBtn.addEventListener('click', ()=> savePkr(''));
+    cancelBtn.addEventListener('click', ()=> cnRenderAll());
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); savePkr(inp.value.trim()); }
+      if(e.key === 'Escape'){ e.preventDefault(); cnRenderAll(); }
+    });
+  }
+
   function cnOpenColFilter(col, anchorBtn){
     document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove());
     const def = CN_DEFS_BY_KEY[col]; if(!def) return;
@@ -8266,6 +8318,7 @@
     const bateriaTd = tr.querySelector('td.ie-cell[data-field="bateria"]');
     const operacionTd = tr.querySelector('td.ie-cell[data-field="operacion"]');
     const condicionTd = tr.querySelector('td.ie-cell[data-field="condicion"]');
+    const pkrTd = tr.querySelector('td.ie-cell[data-field="pkr"]');
     const commentTd = tr.querySelector('td.ie-cell[data-field="comment"]');
 
     if(wellTd){
@@ -8304,6 +8357,19 @@
         <option value="Dinámico" ${curVal==='Dinámico'?'selected':''}>Dinámico</option>
         <option value="Estático" ${curVal==='Estático'?'selected':''}>Estático</option>
       </select>`;
+    }
+    if(pkrTd){
+      const w0 = WELLS_DB[tr.dataset.well];
+      const curPkr = (w0 && w0.packerM != null && w0.packerM > 0) ? String(Math.round(w0.packerM)) : '';
+      pkrTd.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+        <input type="number" class="ie-input" data-orig="${curPkr}" value="${curPkr}" placeholder="m" style="width:60px;color:#e74c3c;" min="0" step="1">
+        ${curPkr ? '<button type="button" class="ie-pkr-clear" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;padding:0 2px;">✕</button>' : ''}
+      </div>`;
+      const clearBtn0 = pkrTd.querySelector('.ie-pkr-clear');
+      if(clearBtn0) clearBtn0.addEventListener('click', ()=>{
+        const inp = pkrTd.querySelector('.ie-input');
+        if(inp) inp.value = '';
+      });
     }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
@@ -8359,11 +8425,13 @@
     const bateriaInput = tr.querySelector('td.ie-cell[data-field="bateria"] .ie-input');
     const operacionInput = tr.querySelector('td.ie-cell[data-field="operacion"] .ie-input');
     const condicionInput = tr.querySelector('td.ie-cell[data-field="condicion"] .ie-input');
+    const pkrInput = tr.querySelector('td.ie-cell[data-field="pkr"] .ie-input');
     const commentInput = tr.querySelector('td.ie-cell[data-field="comment"] .ie-input');
     const newWellName = wellInput ? wellInput.value.trim() : null;
     const newBateria = bateriaInput ? bateriaInput.value.trim() : null;
     const newOperacion = operacionInput ? operacionInput.value : null;
     const newCondicion = condicionInput ? condicionInput.value : null;
+    const newPkr = pkrInput ? pkrInput.value.trim() : null;
     const newComment = commentInput ? commentInput.value.trim() : null;
     const commentTestId = tr.dataset.commentTestid ? Number(tr.dataset.commentTestid) : null;
     const acuTestId = tr.dataset.acuTestid ? Number(tr.dataset.acuTestid) : null;
@@ -8432,6 +8500,21 @@
           throw new Error('No se encontró ningún ensayo asociado a esta fila para guardar el estado.');
         }
       }
+      // ---- PKR (Packer) ----
+      if(pkrInput && newPkr !== pkrInput.dataset.orig){
+        const pkrVal = newPkr === '' ? null : Number(newPkr);
+        if(newPkr !== '' && (isNaN(pkrVal) || pkrVal < 0)){
+          alert('El valor de PKR debe ser un número positivo o vacío para borrarlo.');
+          if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
+          return;
+        }
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+        // Re-evaluar el tipo de ensayo (condicion) dinámicamente:
+        // Si se borra PKR y el pozo tenía badge PACKER (era Estático con packer),
+        // ahora vuelve a mostrar Estático. El panel se actualiza al re-renderizar.
+      }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
         if(error) throw error;
@@ -8456,6 +8539,11 @@
         if(typeof initScopeForUser === 'function') initScopeForUser();
       } else {
         renderInicioGrid();
+        // Si se editó PKR, refrescar el panel Resumen Pozo para actualizar
+        // badge PACKER, Nivel Corregido, y el esquema del pozo.
+        if(pkrInput && newPkr !== pkrInput.dataset.orig && currentWell === wellName){
+          renderWell();
+        }
       }
     } catch(err){
       alert('No se pudo guardar en Supabase: ' + (err.message || err));
