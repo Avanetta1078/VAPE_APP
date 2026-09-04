@@ -3481,6 +3481,22 @@
         <text x="${midX}" y="${(labelY+12).toFixed(1)}" font-size="10" fill="#3B8BD4" text-anchor="middle" font-weight="600">LL: ${fmt(w.nivel,0)} m</text>`;
     }
 
+    // Linea de Nivel Corregido: se dibuja solo si difiere del Nivel Medido.
+    // Nivel Corregido = Prof. de bba - Sumergencia Corregida.
+    let nivelCorrLineSvg = '', nivelCorrLabelSvg = '';
+    const nivelCorregido = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+    if(nivelCorregido != null && w.pumpIntakeDepth && w.nivel != null && Math.abs(nivelCorregido - w.nivel) > 1){
+      const fracCorr = Math.max(0, Math.min(1, nivelCorregido / w.pumpIntakeDepth));
+      const corrY = pipeTop + fracCorr * pipeH;
+      nivelCorrLineSvg = `
+        <line x1="${outerX1-5}" y1="${corrY.toFixed(1)}" x2="${outerX2+5}" y2="${corrY.toFixed(1)}" stroke="rgba(255,170,0,.85)" stroke-width="1.5" stroke-dasharray="6 3" class="rp-nivcorr-line" style="cursor:pointer;"/>`;
+      // Tooltip via SVG <title> — se muestra al hover
+      nivelCorrLabelSvg = `
+        <rect x="${outerX1-5}" y="${(corrY-5).toFixed(1)}" width="${outerX2-outerX1+10}" height="10" fill="transparent" style="cursor:pointer;">
+          <title>Nivel Corregido: ${fmt(nivelCorregido,0)} m</title>
+        </rect>`;
+    }
+
     // ---- Cuando el pozo NO es AIB (sin Dina: BES/PCP/SSE), Pcsg y Ptbg van los
     // dos arriba, mas grandes y con semaforo — es el dato principal de ese
     // tipo de ensayo. Si es AIB/Combinada, Pcsg queda como badge chico solo,
@@ -3521,6 +3537,9 @@
       ${rodSegments}
 
       ${levelLabelSvg}
+
+      ${nivelCorrLineSvg}
+      ${nivelCorrLabelSvg}
     `;
   }
 
