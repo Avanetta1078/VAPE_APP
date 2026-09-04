@@ -1839,97 +1839,87 @@
         </div>
       </div>
 
-      <!-- CARD: Mantenimiento de Base de Datos -->
-      <div class="tool-card" data-tool="mantenimiento">
-        <h3><span class="dot2" style="background:var(--danger,#c83232);"></span>Mantenimiento de Base de Datos<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+      <!-- CARD: Limpiar Base de Datos (NUEVO MÓDULO) -->
+      <div class="tool-card" data-tool="limpiar-db">
+        <h3><span class="dot2" style="background:#c83232;"></span>Limpiar Base de Datos (NUEVO)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
           <p class="tool-desc" style="color:#ff7373;">
-            <strong>⚠ Zona de peligro.</strong> Esta herramienta elimina registros <em>permanentemente</em>. La limpieza incluye los pozos mismos — la base quedará en blanco total.
+            <strong>⚠ PELIGRO - Eliminación permanente.</strong> Esta herramienta borra todos los registros de la base de datos. La operación es irreversible.
           </p>
 
-          <!-- PASO 1 -->
-          <div id="mant-step1">
-            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;letter-spacing:.02em;text-transform:uppercase;">Paso 1 — Base a limpiar</div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-2);">
-                <input type="radio" name="mantBase" value="vape" style="accent-color:var(--navy-glow);">
-                <div>
-                  <div style="font-weight:600;color:var(--ink);">VAPE_APP</div>
-                  <div style="color:var(--ink-dim);font-size:11px;">rod_tapers → well_configurations → dyn_results → acu_results → tests → wells</div>
-                </div>
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-2);">
-                <input type="radio" name="mantBase" value="bitacora" style="accent-color:var(--navy-glow);">
-                <div>
-                  <div style="font-weight:600;color:var(--ink);">App_Bitácora</div>
-                  <div style="color:var(--ink-dim);font-size:11px;">bitacora_contrapesos → bitacora_visitas → field_log</div>
-                </div>
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;padding:8px 12px;border:1px solid rgba(200,50,50,.18);border-radius:8px;background:rgba(200,50,50,.06);">
-                <input type="radio" name="mantBase" value="ambas" style="accent-color:#c83232;">
-                <div>
-                  <div style="font-weight:600;color:#ff8080;">Ambas bases / Completo</div>
-                  <div style="color:var(--ink-dim);font-size:11px;">Todo lo anterior. Base en cero absoluto.</div>
-                </div>
-              </label>
+          <!-- SELECCIÓN INICIAL -->
+          <div id="cleandb-select">
+            <div style="margin-bottom:16px;">
+              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Selecciona qué limpiar</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="cleandb-option" data-mode="vape" style="padding:10px 12px;text-align:left;border:1px solid var(--border);background:var(--panel-2);border-radius:8px;cursor:pointer;transition:all .2s;">
+                  <div style="font-weight:600;color:var(--ink);">📦 VAPE_APP (Pozos y Pruebas)</div>
+                  <div style="font-size:11px;color:var(--ink-dim);margin-top:4px;">Elimina: wells, well_configurations, tests, resultados, rod_tapers</div>
+                </button>
+                <button class="cleandb-option" data-mode="all" style="padding:10px 12px;text-align:left;border:2px solid #c83232;background:rgba(200,50,50,.1);border-radius:8px;cursor:pointer;transition:all .2s;">
+                  <div style="font-weight:600;color:#ff8080;">🗑️ TODO - BASE EN CERO</div>
+                  <div style="font-size:11px;color:#ff7373;margin-top:4px;">Elimina TODAS las tablas. Base completamente vacía.</div>
+                </button>
+              </div>
             </div>
-            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;letter-spacing:.02em;text-transform:uppercase;">Paso 2 — Filtro de operadora</div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-              <select id="mantOperadora" style="flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--ink);font-size:12px;">
-                <option value="">— Seleccioná una operadora —</option>
-                <option value="TODAS">Todas las operadoras</option>
+
+            <div style="margin-bottom:16px;">
+              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;">Operadora (filtro opcional)</div>
+              <select id="cleandb-operadora" style="width:100%;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;">
+                <option value="">— Todas las operadoras —</option>
+                <option value="CROWN POINT">CROWN POINT</option>
                 <option value="PECOM">PECOM</option>
                 <option value="BREST">BREST</option>
-                <option value="CROWN POINT">CROWN POINT</option>
                 <option value="VISTA OIL">VISTA OIL</option>
               </select>
-              <button class="details-btn" id="mantContarBtn" type="button" style="white-space:nowrap;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Consultar registros
-              </button>
+              <div style="font-size:10px;color:var(--ink-dim);margin-top:6px;">Si dejas vacío, se limpiarán TODAS las operadoras</div>
             </div>
+
+            <button id="cleandb-count-btn" style="width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              🔍 Contar registros a eliminar
+            </button>
           </div>
 
-          <!-- PASO 2 -->
-          <div id="mant-step2" style="display:none;">
-            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+          <!-- RESULTADO DE CONTEO -->
+          <div id="cleandb-count-result" style="display:none;margin-top:16px;">
+            <div style="background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:8px;padding:12px;margin-bottom:16px;">
               <div style="font-size:12px;font-weight:700;color:#ff8080;margin-bottom:8px;">📊 Registros encontrados</div>
-              <div id="mantResumenConteo" style="font-size:11.5px;color:var(--ink);line-height:1.9;"></div>
-              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(200,50,50,.2);">
-                <span style="font-size:13px;font-weight:700;color:#ff7373;">Total a eliminar: <span id="mantTotalConteo">0</span> registros</span>
+              <div id="cleandb-count-detail" style="font-size:11px;color:var(--ink);line-height:1.8;"></div>
+              <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(200,50,50,.2);">
+                <span style="font-weight:700;color:#ff7373;">Total: <span id="cleandb-count-total">0</span> registros</span>
               </div>
             </div>
-            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:.02em;text-transform:uppercase;">Paso 3 — Confirmación de seguridad</div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-              <input type="password" id="mantPassword" placeholder="Contraseña de seguridad" style="flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--ink);font-size:12px;">
-              <button class="details-btn" id="mantEliminarBtn" type="button" style="border-color:#c83232;color:#ff8080;white-space:nowrap;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Eliminar ahora
+
+            <div style="display:flex;gap:8px;">
+              <input type="password" id="cleandb-password" placeholder="Contraseña (123456)" style="flex:1;padding:8px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;">
+              <button id="cleandb-delete-btn" style="padding:8px 16px;background:#c83232;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;white-space:nowrap;">
+                🗑️ ELIMINAR
               </button>
             </div>
-            <button class="details-btn" id="mantVolverBtn" type="button" style="font-size:11px;opacity:.7;">← Volver a selección</button>
+            <button id="cleandb-back-btn" style="margin-top:8px;width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--ink);border-radius:8px;font-size:11px;cursor:pointer;">
+              ← Atrás
+            </button>
           </div>
 
-          <!-- PASO 3: Progreso -->
-          <div id="mant-step3" style="display:none;">
-            <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
-              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">🗑 Eliminando registros…</div>
-              <div style="background:var(--bg);border-radius:6px;height:8px;overflow:hidden;margin-bottom:10px;">
-                <div id="mantProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);border-radius:6px;transition:width .3s;"></div>
-              </div>
-              <div id="mantProgressText" style="font-size:11.5px;color:var(--ink-dim);text-align:center;"></div>
-              <div id="mantProgressLog" style="margin-top:10px;font-size:10.5px;color:var(--ink-dim);line-height:1.7;max-height:120px;overflow-y:auto;"></div>
+          <!-- PROGRESO -->
+          <div id="cleandb-progress" style="display:none;margin-top:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px;">🗑️ Eliminando…</div>
+            <div style="background:var(--bg);border-radius:6px;height:6px;overflow:hidden;margin-bottom:10px;">
+              <div id="cleandb-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c83232,#ff7373);transition:width .3s;"></div>
             </div>
+            <div id="cleandb-progress-log" style="font-size:10px;color:var(--ink-dim);line-height:1.6;max-height:150px;overflow-y:auto;padding:8px;background:var(--panel-2);border-radius:6px;border:1px solid var(--border);"></div>
           </div>
 
-          <!-- PASO 4: Resultado -->
-          <div id="mant-step4" style="display:none;">
-            <div id="mantResultBox" style="border-radius:10px;padding:16px;margin-bottom:14px;">
-              <div id="mantResultIcon" style="font-size:28px;text-align:center;margin-bottom:8px;"></div>
-              <div id="mantResultTitle" style="font-size:13px;font-weight:700;text-align:center;margin-bottom:6px;"></div>
-              <div id="mantResultDetail" style="font-size:11.5px;color:var(--ink-dim);line-height:1.7;"></div>
+          <!-- RESULTADO FINAL -->
+          <div id="cleandb-result" style="display:none;margin-top:16px;">
+            <div style="border-radius:8px;padding:14px;text-align:center;">
+              <div id="cleandb-result-icon" style="font-size:32px;margin-bottom:8px;"></div>
+              <div id="cleandb-result-title" style="font-size:13px;font-weight:700;margin-bottom:6px;"></div>
+              <div id="cleandb-result-msg" style="font-size:11px;color:var(--ink-dim);line-height:1.6;"></div>
             </div>
-            <button class="details-btn" id="mantReiniciarBtn" type="button">← Nueva operación</button>
+            <button id="cleandb-new-btn" style="width:100%;margin-top:12px;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;">
+              ↻ Nueva operación
+            </button>
           </div>
 
         </div>
@@ -1938,327 +1928,307 @@
   </div>
 
   <script>
-  // ─── MANTENIMIENTO DE BASE DE DATOS (VERSIÓN SIMPLIFICADA) ──────────────────
+  // ─── LIMPIAR BASE DE DATOS (NUEVO MÓDULO SIMPLE Y EFECTIVO) ──────────────────
   (function(){
+    var state = {
+      mode: null,
+      operadora: null,
+      counts: {},
+      total: 0
+    };
 
-    function showStep(n){
-      ['mant-step1','mant-step2','mant-step3','mant-step4'].forEach(function(id,i){
-        var el = document.getElementById(id);
-        if(el) el.style.display = (i+1===n) ? '' : 'none';
-      });
-    }
-
-    function logLine(msg){
-      var el = document.getElementById('mantProgressLog');
+    function log(msg){
+      var el = document.getElementById('cleandb-progress-log');
       if(el){ el.innerHTML += msg + '<br>'; el.scrollTop = el.scrollHeight; }
     }
 
-    function setProgress(done, total, label){
-      var pct = total > 0 ? Math.round(done/total*100) : 100;
-      document.getElementById('mantProgressBar').style.width = pct + '%';
-      document.getElementById('mantProgressText').textContent = label + ' (' + done.toLocaleString() + ' / ' + total.toLocaleString() + ')';
+    function setBar(pct){
+      var el = document.getElementById('cleandb-progress-bar');
+      if(el) el.style.width = pct + '%';
     }
 
-    // Limpiar memoria JS
-    function limpiarMemoriaJS(){
-      Object.keys(WELLS_DB).forEach(function(k){ delete WELLS_DB[k]; });
-      wellNames = [];
-      if(typeof renderInicioGrid === 'function'){ inicioPage = 0; renderInicioGrid(); }
-      if(typeof populateInicioFilterOptions === 'function') populateInicioFilterOptions();
-      if(typeof cnRenderAll === 'function') cnRenderAll();
-      if(typeof renderWell === 'function') renderWell();
+    function showSection(section){
+      document.getElementById('cleandb-select').style.display = section === 'select' ? '' : 'none';
+      document.getElementById('cleandb-count-result').style.display = section === 'count' ? '' : 'none';
+      document.getElementById('cleandb-progress').style.display = section === 'progress' ? '' : 'none';
+      document.getElementById('cleandb-result').style.display = section === 'result' ? '' : 'none';
     }
 
-    // Función simple y efectiva para borrar TODO
-    async function deleteAllData(){
+    // Contar registros simples
+    async function countRecords(){
       var sb = supabaseClient;
-      logLine('🗑️ ELIMINANDO TODA LA BASE DE DATOS...\n');
+      var op = document.getElementById('cleandb-operadora').value || null;
+      var mode = state.mode;
+      var counts = {};
 
       try {
-        // Orden crítico: respetar claves foráneas
-        // 1. bitacora_contrapesos (FK a bitacora_visitas)
-        logLine('→ Borrando bitacora_contrapesos...');
-        await sb.from('bitacora_contrapesos').delete().neq('contrapeso_row_id', -1);
-        logLine('✓ bitacora_contrapesos eliminados');
-        setProgress(1, 9, 'Limpiando bitácora');
+        // VAPE_APP: wells
+        var wQ = sb.from('wells').select('well_id',{count:'exact',head:true});
+        if(op) wQ = wQ.eq('operadora', op);
+        var { count: cWells } = await wQ;
+        counts.wells = cWells || 0;
 
-        // 2. bitacora_visitas (FK a wells)
-        logLine('→ Borrando bitacora_visitas...');
-        await sb.from('bitacora_visitas').delete().neq('visita_id', -1);
-        logLine('✓ bitacora_visitas eliminados');
-        setProgress(2, 9, 'Limpiando bitácora');
+        if(counts.wells > 0){
+          // tests
+          var tQ = sb.from('tests').select('test_id',{count:'exact',head:true});
+          if(op){
+            var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+            var wellIds = (wData||[]).map(w => w.well_id);
+            if(wellIds.length > 0) tQ = tQ.in('well_id', wellIds);
+          }
+          var { count: cTests } = await tQ;
+          counts.tests = cTests || 0;
 
-        // 3. dyn_curve_points (FK a tests)
-        logLine('→ Borrando dyn_curve_points...');
-        await sb.from('dyn_curve_points').delete().neq('test_id', -1);
-        logLine('✓ dyn_curve_points eliminados');
-        setProgress(3, 9, 'Limpiando curvas');
+          if(counts.tests > 0){
+            var { data: tData } = await sb.from('tests').select('test_id');
+            if(op){
+              var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+              var wellIds = (wData||[]).map(w => w.well_id);
+              if(wellIds.length > 0) tData = tData.filter(t => wellIds.includes(t.well_id));
+            }
+            var testIds = (tData||[]).map(t => t.test_id);
 
-        // 4. acu_curve_points (FK a tests)
-        logLine('→ Borrando acu_curve_points...');
-        await sb.from('acu_curve_points').delete().neq('test_id', -1);
-        logLine('✓ acu_curve_points eliminados');
-        setProgress(4, 9, 'Limpiando curvas');
+            if(testIds.length > 0){
+              var { count: cDyn } = await sb.from('dyn_results').select('dyn_result_id',{count:'exact',head:true}).in('test_id', testIds);
+              var { count: cAcu } = await sb.from('acu_results').select('acu_result_id',{count:'exact',head:true}).in('test_id', testIds);
+              counts.dyn_results = cDyn || 0;
+              counts.acu_results = cAcu || 0;
+            }
+          }
 
-        // 5. dyn_results (FK a tests)
-        logLine('→ Borrando dyn_results...');
-        await sb.from('dyn_results').delete().neq('test_id', -1);
-        logLine('✓ dyn_results eliminados');
-        setProgress(5, 9, 'Limpiando resultados');
+          // well_configurations
+          var cfgQ = sb.from('well_configurations').select('well_config_id',{count:'exact',head:true});
+          if(op){
+            var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+            var wellIds = (wData||[]).map(w => w.well_id);
+            if(wellIds.length > 0) cfgQ = cfgQ.in('well_id', wellIds);
+          }
+          var { count: cCfg } = await cfgQ;
+          counts.well_configurations = cCfg || 0;
 
-        // 6. acu_results (FK a tests)
-        logLine('→ Borrando acu_results...');
-        await sb.from('acu_results').delete().neq('test_id', -1);
-        logLine('✓ acu_results eliminados');
-        setProgress(6, 9, 'Limpiando resultados');
+          if(counts.well_configurations > 0){
+            var { data: cfgData } = await sb.from('well_configurations').select('well_config_id');
+            var cfgIds = (cfgData||[]).map(c => c.well_config_id);
+            var { count: cRods } = await sb.from('rod_tapers').select('rod_taper_id',{count:'exact',head:true}).in('well_config_id', cfgIds);
+            counts.rod_tapers = cRods || 0;
+          }
+        }
 
-        // 7. tests (FK a wells)
-        logLine('→ Borrando tests...');
-        await sb.from('tests').delete().neq('test_id', -1);
-        logLine('✓ tests eliminados');
-        setProgress(7, 9, 'Limpiando tests');
+        // Si es TODO, contar bitácora también
+        if(mode === 'all'){
+          var visQ = sb.from('bitacora_visitas').select('visita_id',{count:'exact',head:true});
+          if(op){
+            var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+            var wellIds = (wData||[]).map(w => w.well_id);
+            if(wellIds.length > 0) visQ = visQ.in('well_id', wellIds);
+          }
+          var { count: cVis } = await visQ;
+          counts.bitacora_visitas = cVis || 0;
 
-        // 8. field_log (FK a wells)
-        logLine('→ Borrando field_log...');
-        await sb.from('field_log').delete().neq('field_log_id', -1);
-        logLine('✓ field_log eliminado');
-        setProgress(8, 9, 'Limpiando field_log');
+          if(counts.bitacora_visitas > 0){
+            var { data: visData } = await sb.from('bitacora_visitas').select('visita_id');
+            var visIds = (visData||[]).map(v => v.visita_id);
+            var { count: cCp } = await sb.from('bitacora_contrapesos').select('contrapeso_row_id',{count:'exact',head:true}).in('visita_id', visIds);
+            counts.bitacora_contrapesos = cCp || 0;
+          }
 
-        // 9. rod_tapers (FK a well_configurations)
-        logLine('→ Borrando rod_tapers...');
-        await sb.from('rod_tapers').delete().neq('rod_taper_id', -1);
-        logLine('✓ rod_tapers eliminados');
+          var flQ = sb.from('field_log').select('field_log_id',{count:'exact',head:true});
+          if(op) flQ = flQ.eq('operadora', op);
+          var { count: cFl } = await flQ;
+          counts.field_log = cFl || 0;
+        }
 
-        // 10. well_markers (FK a well_configurations)
-        logLine('→ Borrando well_markers...');
-        await sb.from('well_markers').delete().neq('marker_id', -1);
-        logLine('✓ well_markers eliminados');
-
-        // 11. well_alerts (FK a wells)
-        logLine('→ Borrando well_alerts...');
-        await sb.from('well_alerts').delete().neq('well_alert_id', -1);
-        logLine('✓ well_alerts eliminados');
-
-        // 12. well_configurations (FK a wells)
-        logLine('→ Borrando well_configurations...');
-        await sb.from('well_configurations').delete().neq('well_config_id', -1);
-        logLine('✓ well_configurations eliminados');
-
-        // 13. wells (ÚLTIMO - base de todo)
-        logLine('→ Borrando wells...');
-        await sb.from('wells').delete().neq('well_id', -1);
-        logLine('✓ wells ELIMINADOS - BASE EN CERO');
-        setProgress(9, 9, 'Completado');
-
-        logLine('\n✅ ELIMINACIÓN COMPLETADA AL 100%');
-        return true;
-
+        return counts;
       } catch(err){
-        logLine('\n❌ ERROR: ' + (err.message || String(err)));
+        console.error(err);
+        throw err;
+      }
+    }
+
+    // Borrar TODO respetando orden
+    async function deleteEverything(counts){
+      var sb = supabaseClient;
+      var op = state.operadora;
+      var total = Object.values(counts).reduce((a,b) => a+b, 0);
+      var steps = Object.keys(counts).length;
+      var step = 0;
+
+      try {
+        log('🗑️ Iniciando eliminación en orden...\n');
+        setBar(0);
+
+        // Orden crítico
+        var order = [
+          'bitacora_contrapesos',
+          'bitacora_visitas',
+          'dyn_results',
+          'acu_results',
+          'dyn_curve_points',
+          'acu_curve_points',
+          'tests',
+          'field_log',
+          'rod_tapers',
+          'well_markers',
+          'well_alerts',
+          'well_configurations',
+          'wells'
+        ];
+
+        for(var i = 0; i < order.length; i++){
+          var table = order[i];
+          if(!counts[table] || counts[table] === 0) continue;
+
+          step++;
+          log('(' + step + '/' + steps + ') Eliminando ' + table + '...');
+
+          try {
+            var q = sb.from(table).delete();
+            if(op && (table === 'wells' || table === 'bitacora_visitas' || table === 'field_log')){
+              q = q.eq('operadora', op);
+            } else if(op && table === 'tests'){
+              // tests por well_id
+              var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+              var wellIds = (wData||[]).map(w => w.well_id);
+              if(wellIds.length > 0) q = q.in('well_id', wellIds);
+            } else if(op && table === 'well_configurations'){
+              var { data: wData } = await sb.from('wells').select('well_id').eq('operadora', op);
+              var wellIds = (wData||[]).map(w => w.well_id);
+              if(wellIds.length > 0) q = q.in('well_id', wellIds);
+            } else {
+              // Borrar todo sin filtro
+              q = q.neq('id', null);
+            }
+
+            var { error: err } = await q;
+            if(err){
+              log('⚠️ ' + table + ': ' + err.message);
+            } else {
+              log('✓ ' + table + ': ' + (counts[table] || 0).toLocaleString() + ' registros eliminados');
+            }
+          } catch(e){
+            log('❌ ' + table + ': ' + e.message);
+          }
+
+          setBar(Math.round(step / steps * 100));
+        }
+
+        log('\n✅ Eliminación completada');
+        return true;
+      } catch(err){
+        log('\n❌ ERROR GENERAL: ' + err.message);
         console.error(err);
         return false;
       }
     }
 
-    // ── BOTÓN: Consultar ───────────────────────────────────────────────────
-    document.getElementById('mantContarBtn').addEventListener('click', async function(){
-      var baseRadio = document.querySelector('input[name="mantBase"]:checked');
-      if(!baseRadio){ alert('Seleccioná una base a limpiar.'); return; }
-      var op = document.getElementById('mantOperadora').value;
-      if(!op){ alert('Seleccioná una operadora (o "Todas las operadoras").'); return; }
-
-      mState.base = baseRadio.value;
-      mState.operadora = op;
-      mState.conteos = {};
-      mState.total = 0;
-      mState.wellIds = [];
-      mState.wellNames = [];
-
-      var btn = document.getElementById('mantContarBtn');
-      btn.disabled = true; btn.textContent = 'Consultando…';
-
-      try {
-        var sb = supabaseClient;
-        var conteos = {};
-
-        // Obtener wellIds y wellNames una sola vez — base de todo
-        var wQ = sb.from('wells').select('well_id, well_name');
-        if(op !== 'TODAS') wQ = wQ.eq('operadora', op);
-        var { data: wData, error: wErr } = await wQ;
-        if(wErr) throw wErr;
-        mState.wellIds   = (wData||[]).map(function(w){ return w.well_id; });
-        mState.wellNames = (wData||[]).map(function(w){ return w.well_name; });
-
-        // ── VAPE_APP ──────────────────────────────────────────────────
-        if(mState.base === 'vape' || mState.base === 'ambas'){
-          var wellIds = mState.wellIds;
-          conteos['wells'] = wellIds.length;
-
-          if(wellIds.length > 0){
-            // tests
-            var { count: cTests } = await sb.from('tests')
-              .select('test_id',{count:'exact',head:true}).in('well_id', wellIds);
-            conteos['tests'] = cTests || 0;
-
-            // test_ids → dyn/acu
-            var { data: tD } = await sb.from('tests').select('test_id').in('well_id', wellIds);
-            var testIds = (tD||[]).map(function(t){ return t.test_id; });
-            if(testIds.length > 0){
-              var { count: cDyn } = await sb.from('dyn_results')
-                .select('dyn_result_id',{count:'exact',head:true}).in('test_id', testIds);
-              var { count: cAcu } = await sb.from('acu_results')
-                .select('acu_result_id',{count:'exact',head:true}).in('test_id', testIds);
-              conteos['dyn_results'] = cDyn || 0;
-              conteos['acu_results'] = cAcu || 0;
-            } else {
-              conteos['dyn_results'] = 0; conteos['acu_results'] = 0;
-            }
-
-            // well_configurations DIRECTO por well_id (captura huérfanos sin test)
-            var { data: cfgD } = await sb.from('well_configurations')
-              .select('well_config_id').in('well_id', wellIds);
-            var cfgIds = (cfgD||[]).map(function(c){ return c.well_config_id; });
-            conteos['well_configurations'] = cfgIds.length;
-
-            if(cfgIds.length > 0){
-              var { count: cRods } = await sb.from('rod_tapers')
-                .select('rod_taper_id',{count:'exact',head:true}).in('well_config_id', cfgIds);
-              conteos['rod_tapers'] = cRods || 0;
-            } else {
-              conteos['rod_tapers'] = 0;
-            }
-          } else {
-            conteos['tests'] = 0; conteos['dyn_results'] = 0; conteos['acu_results'] = 0;
-            conteos['well_configurations'] = 0; conteos['rod_tapers'] = 0;
+    // BOTONES
+    document.querySelectorAll('.cleandb-option').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        state.mode = this.dataset.mode;
+        this.style.borderColor = '#5b76e0';
+        this.style.background = 'rgba(91,118,224,.1)';
+        document.querySelectorAll('.cleandb-option').forEach(function(b){
+          if(b !== btn){
+            b.style.borderColor = 'var(--border)';
+            b.style.background = 'var(--panel-2)';
           }
-        }
-
-        // ── BITÁCORA ──────────────────────────────────────────────────
-        if(mState.base === 'bitacora' || mState.base === 'ambas'){
-          if(op === 'TODAS'){
-            var { count: cVisAll }  = await sb.from('bitacora_visitas').select('visita_id',{count:'exact',head:true});
-            var { count: cCpAll }   = await sb.from('bitacora_contrapesos').select('contrapeso_row_id',{count:'exact',head:true});
-            var { count: cFlAll }   = await sb.from('field_log').select('fecha',{count:'exact',head:true});
-            conteos['bitacora_visitas']     = cVisAll || 0;
-            conteos['bitacora_contrapesos'] = cCpAll  || 0;
-            conteos['field_log']            = cFlAll  || 0;
-          } else {
-            var wellIds = mState.wellIds;
-            if(wellIds.length > 0){
-              var { count: cVis } = await sb.from('bitacora_visitas')
-                .select('visita_id',{count:'exact',head:true}).in('well_id', wellIds);
-              conteos['bitacora_visitas'] = cVis || 0;
-
-              var { data: visD } = await sb.from('bitacora_visitas').select('visita_id').in('well_id', wellIds);
-              var vids = (visD||[]).map(function(v){ return v.visita_id; });
-              if(vids.length > 0){
-                var { count: cCp } = await sb.from('bitacora_contrapesos')
-                  .select('contrapeso_row_id',{count:'exact',head:true}).in('visita_id', vids);
-                conteos['bitacora_contrapesos'] = cCp || 0;
-              } else { conteos['bitacora_contrapesos'] = 0; }
-            } else {
-              conteos['bitacora_visitas'] = 0; conteos['bitacora_contrapesos'] = 0;
-            }
-            var { count: cFl } = await sb.from('field_log')
-              .select('fecha',{count:'exact',head:true}).eq('operadora', op);
-            conteos['field_log'] = cFl || 0;
-          }
-        }
-
-        mState.conteos = conteos;
-        mState.total = Object.values(conteos).reduce(function(a,b){ return a+b; }, 0);
-
-        var baseLabel = mState.base === 'vape' ? 'VAPE_APP' : mState.base === 'bitacora' ? 'App_Bitácora' : 'Ambas bases';
-        var opLabel   = op === 'TODAS' ? 'todas las operadoras' : op;
-        var html = '<strong>' + baseLabel + '</strong> · Operadora: <strong>' + opLabel + '</strong><br><br>';
-        Object.entries(conteos).forEach(function(e){
-          var warn = e[1] > 0 ? '' : ' <span style="color:var(--ink-dim);font-size:10px;">(vacío)</span>';
-          html += '• <code style="font-size:10.5px;">' + e[0] + '</code>: <strong>' + e[1].toLocaleString() + '</strong> registros' + warn + '<br>';
         });
-        document.getElementById('mantResumenConteo').innerHTML = html;
-        document.getElementById('mantTotalConteo').textContent = mState.total.toLocaleString();
-        showStep(2);
-
-      } catch(err){
-        console.error(err);
-        alert('Error al consultar: ' + (err.message || err));
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 8-8M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Consultar registros';
-      }
+      });
     });
 
-    // ── BOTÓN: Volver ──────────────────────────────────────────────────────
-    document.getElementById('mantVolverBtn').addEventListener('click', function(){
-      document.getElementById('mantPassword').value = '';
-      showStep(1);
-    });
-
-    // ── BOTÓN: Eliminar ────────────────────────────────────────────────────
-    document.getElementById('mantEliminarBtn').addEventListener('click', async function(){
-      var pwd = document.getElementById('mantPassword').value;
-      if(pwd !== '123456'){
-        alert('Contraseña incorrecta. La operación fue cancelada.');
-        document.getElementById('mantPassword').value = '';
+    document.getElementById('cleandb-count-btn').addEventListener('click', async function(){
+      if(!state.mode){
+        alert('Selecciona qué limpiar primero');
         return;
       }
-      if(mState.total === 0){
-        alert('No hay registros que eliminar con los filtros seleccionados.');
-        return;
-      }
-      if(!confirm('⚠ CONFIRMACIÓN FINAL\n\nSe eliminarán ' + mState.total.toLocaleString() +
-          ' registros, incluidos los pozos.\nEsta acción es IRREVERSIBLE.\n\n¿Confirmar?')) return;
 
-      showStep(3);
-      document.getElementById('mantProgressLog').innerHTML = '';
+      state.operadora = document.getElementById('cleandb-operadora').value || null;
+      this.disabled = true;
+      this.textContent = 'Contando…';
 
       try {
-        // Llamar la función simple y efectiva que borra TODO
-        var success = await deleteAllData();
+        state.counts = await countRecords();
+        state.total = Object.values(state.counts).reduce((a,b) => a+b, 0);
 
-        // ── Resultado final ───────────────────────────────────────────────
-        var box = document.getElementById('mantResultBox');
-        if(success){
-          box.style.cssText = 'border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(50,180,80,.08);border:1px solid rgba(50,180,80,.3);';
-          document.getElementById('mantResultIcon').textContent  = '✅';
-          document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#5fd68a;">Limpieza completada al 100%</span>';
-          document.getElementById('mantResultDetail').innerHTML  =
-            'Se eliminaron <strong>' + mState.total.toLocaleString() + '</strong> registros. ' +
-            'Base de datos y pantalla en cero absoluto. ✅ Todos los pozos eliminados.';
-
-          // Limpiar memoria JS
-          limpiarMemoriaJS();
-        } else {
-          box.style.cssText = 'border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(200,150,50,.08);border:1px solid rgba(200,150,50,.3);';
-          document.getElementById('mantResultIcon').textContent  = '⚠️';
-          document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#e6c34d;">Eliminación completada con advertencia</span>';
-          document.getElementById('mantResultDetail').innerHTML  = 'Se procesó la eliminación pero hubo errores. Revisa el log arriba.';
+        if(state.total === 0){
+          alert('No hay registros para eliminar con estos filtros');
+          this.disabled = false;
+          this.textContent = '🔍 Contar registros a eliminar';
+          return;
         }
-        showStep(4);
 
+        var html = '';
+        Object.entries(state.counts).forEach(function(e){
+          if(e[1] > 0) html += '• <strong>' + e[0] + '</strong>: ' + e[1].toLocaleString() + '<br>';
+        });
+        document.getElementById('cleandb-count-detail').innerHTML = html;
+        document.getElementById('cleandb-count-total').textContent = state.total.toLocaleString();
+
+        showSection('count');
       } catch(err){
-        console.error(err);
-        var box2 = document.getElementById('mantResultBox');
-        box2.style.cssText = 'border-radius:10px;padding:16px;margin-bottom:14px;background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);';
-        document.getElementById('mantResultIcon').textContent  = '❌';
-        document.getElementById('mantResultTitle').innerHTML   = '<span style="color:#ff7373;">Error durante la eliminación</span>';
-        document.getElementById('mantResultDetail').textContent = err.message || String(err);
-        showStep(4);
+        alert('Error: ' + err.message);
+      } finally {
+        this.disabled = false;
+        this.textContent = '🔍 Contar registros a eliminar';
       }
     });
 
-    // ── BOTÓN: Reiniciar ───────────────────────────────────────────────────
-    document.getElementById('mantReiniciarBtn').addEventListener('click', function(){
-      document.querySelectorAll('input[name="mantBase"]').forEach(function(r){ r.checked=false; });
-      document.getElementById('mantOperadora').value = '';
-      document.getElementById('mantPassword').value  = '';
-      document.getElementById('mantProgressLog').innerHTML = '';
-      mState = { base:null, operadora:null, conteos:{}, total:0, wellIds:[], wellNames:[] };
-      showStep(1);
+    document.getElementById('cleandb-back-btn').addEventListener('click', function(){
+      showSection('select');
     });
 
+    document.getElementById('cleandb-delete-btn').addEventListener('click', async function(){
+      var pwd = document.getElementById('cleandb-password').value;
+      if(pwd !== '123456'){
+        alert('Contraseña incorrecta');
+        return;
+      }
+
+      if(!confirm('⚠ CONFIRMACIÓN: Se eliminarán ' + state.total.toLocaleString() + ' registros PERMANENTEMENTE. ¿Confirmar?')){
+        return;
+      }
+
+      document.getElementById('cleandb-progress-log').innerHTML = '';
+      showSection('progress');
+      this.disabled = true;
+
+      var success = await deleteEverything(state.counts);
+
+      if(success){
+        document.getElementById('cleandb-result-icon').textContent = '✅';
+        document.getElementById('cleandb-result-title').textContent = '100% Completado';
+        document.getElementById('cleandb-result-msg').innerHTML = 'Se eliminaron <strong>' + state.total.toLocaleString() + '</strong> registros. Base en cero.';
+        setBar(100);
+      } else {
+        document.getElementById('cleandb-result-icon').textContent = '⚠️';
+        document.getElementById('cleandb-result-title').textContent = 'Completado con errores';
+        document.getElementById('cleandb-result-msg').textContent = 'Revisa el log. Algunos registros pudieron no eliminarse.';
+      }
+
+      showSection('result');
+      this.disabled = false;
+
+      // Limpiar memoria
+      if(typeof WELLS_DB !== 'undefined'){
+        Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+      }
+      if(typeof renderInicioGrid === 'function'){ renderInicioGrid(); }
+    });
+
+    document.getElementById('cleandb-new-btn').addEventListener('click', function(){
+      state = { mode: null, operadora: null, counts: {}, total: 0 };
+      document.querySelectorAll('.cleandb-option').forEach(b => {
+        b.style.borderColor = 'var(--border)';
+        b.style.background = 'var(--panel-2)';
+      });
+      document.getElementById('cleandb-operadora').value = '';
+      document.getElementById('cleandb-password').value = '';
+      showSection('select');
+    });
+
+    showSection('select');
   })();
-  // ─── FIN MANTENIMIENTO ──────────────────────────────────────────────────────
+  // ─── FIN LIMPIAR BASE DE DATOS ──────────────────────────────────────────────────
 
   // Herramientas: menu desplegable estilo Windows (acordeón, un item a la vez)
   document.addEventListener('DOMContentLoaded', function(){
