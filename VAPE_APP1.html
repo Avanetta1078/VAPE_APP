@@ -5451,6 +5451,20 @@
     return key !== undefined ? row[key] : undefined;
   }
 
+  // Busca el valor del Packer (m) en el CSV — el nombre de la columna varía
+  // entre exports del Echometer/TAM: "Packer (m)", "Packer Depth (m)",
+  // "Packer Setting Depth (m)", etc. Se busca cualquier encabezado que
+  // contenga "packer" y se toma su valor numérico.
+  function findCsvPackerM(row){
+    if(!row) return null;
+    const key = Object.keys(row).find(k => k.toLowerCase().includes('packer'));
+    if(key === undefined) return null;
+    const v = row[key];
+    if(v === undefined || v === null || v === '') return null;
+    const n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
   // Version estricta (sin el "ultimo recurso" de buscar por palabra suelta),
   // para usar en casos donde ese fallback es riesgoso: si dos columnas
   // distintas terminan en la misma unidad entre parentesis (ej. "(in)"),
@@ -7031,7 +7045,7 @@
       logFn(`Procesando ${meta.well} · ${meta.type} · ${meta.date} ${meta.time}${csvRow ? '' : ' (sin CSV — solo curva)'}…`);
       matchedWells.add(meta.well);
 
-      const csvPackerRaw = csvRow ? csvVal(csvRow, 'Packer (m)', false) : null;
+      const csvPackerRaw = findCsvPackerM(csvRow);
       const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null, csvPackerRaw);
       let wellConfigId;
       const existingTest = await peekExistingTest(wellId, meta.type, meta.date, meta.time);
@@ -7187,7 +7201,7 @@
             else type = 'DYN';
           }
 
-          const csvPkrVal = csvVal(row, 'Packer (m)', false);
+          const csvPkrVal = findCsvPackerM(row);
           const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'), csvPkrVal);
           let wellConfigId;
           const existingTest = rowDate ? await peekExistingTest(wellId, type, rowDate, rowTime) : null;
