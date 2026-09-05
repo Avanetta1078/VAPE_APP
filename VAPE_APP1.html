@@ -312,6 +312,21 @@
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
   .rp-panel-nivel{height:auto;}
   .rp-panel-nivel .rp-comment-box{min-height:44px; max-height:70px;}
+  /* Estado inactivo: sin datos de dina */
+  .rp-panel-dina.dina-inactive{background:rgba(120,120,130,.08);}
+  .rp-panel-dina.dina-inactive .rp-chips-row,
+  .rp-panel-dina.dina-inactive .rp-chart-box,
+  .rp-panel-dina.dina-inactive .rp-comment-box,
+  .rp-panel-dina.dina-inactive .stamp{opacity:.35; filter:grayscale(1);}
+  /* Badge de clasificación se mantiene intacto */
+  /* Estado inactivo: sin datos de nivel */
+  .rp-panel-nivel.nivel-inactive{background:rgba(120,120,130,.08);}
+  .rp-panel-nivel.nivel-inactive .panel-head h2,
+  .rp-panel-nivel.nivel-inactive .rp-comment-box,
+  .rp-panel-nivel.nivel-inactive .rp-chip-hzrpm,
+  .rp-panel-nivel.nivel-inactive .rp-nivel-row,
+  .rp-panel-nivel.nivel-inactive .stamp{opacity:.35; filter:grayscale(1);}
+  /* Badges (PKR, Sistema, Estado, clasificación) se mantienen intactos */
   .rp-pkr-badge{
     position:absolute; top:-9px; right:14px; z-index:5;
     background:#c8342c; color:#fff; font-family:'IBM Plex Mono'; font-size:10px; font-weight:700;
@@ -338,6 +353,12 @@
   .rp-chip-estado{border-radius:7px; padding:3px 9px; font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.02em;}
   .rp-chip-estado.dinamico{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.4);}
   .rp-chip-estado.estatico{background:rgba(230,70,70,.16); color:#ff6b6b; border:1px solid rgba(230,70,70,.4);}
+  .rp-chip-estado.packer{background:rgba(200,52,44,.18); color:#ff6b6b; border:1px solid rgba(200,52,44,.5);}
+  .rp-chip-nivcorr-alert{animation:nivcorrPulse 1.2s ease-in-out infinite;}
+  @keyframes nivcorrPulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(255,170,0,.6); }
+    50%{ box-shadow:0 0 8px 4px rgba(255,170,0,.35); }
+  }
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
@@ -456,6 +477,10 @@
   table.gtab td{
     padding:6px 8px 6px 0; font-family:'IBM Plex Mono'; color:var(--ink); border-bottom:1px solid rgba(255,255,255,.03);
   }
+  /* Centrar valores destacados en DINA */
+  #d-gb-pctdown, #d-gb-pctbal, #d-cargamax, #d-sarta-peso{text-align:center;}
+  /* Equipo de bombeo (API) más notable */
+  #d-unit-api{font-size:14px; font-weight:700; letter-spacing:.03em; color:var(--navy-glow,#5b76e0);}
   table.gtab tr:last-child td{border-bottom:none;}
 
   /* ---------- History chart ---------- */
@@ -503,11 +528,12 @@
   .dina-side table.gtab{font-size:10.5px;}
   .dina-side table.gtab th{padding:4px 5px 4px 0;}
   .dina-side table.gtab td{padding:4px 5px 4px 0;}
-  .cp-cards .cp-card{border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:8px;}
-  .cp-cards .cp-card:last-child{margin-bottom:0;}
-  .cp-cards .cp-card-title{font-size:10.5px; font-weight:700; margin-bottom:5px;}
+  .cp-cards{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px;}
+  .cp-cards .cp-card{padding:7px 0; margin-bottom:0;}
+  .cp-cards .cp-card + .cp-card{border-top:1px dashed var(--border);}
+  .cp-cards .cp-card-title{font-size:11px; font-weight:700; margin-bottom:5px; letter-spacing:.04em; text-transform:uppercase;}
   .cp-cards .cp-card-title.crank-1{color:var(--steel-glow);}
-  .cp-cards .cp-card-title.crank-2{color:var(--rust,#c0603a);}
+  .cp-cards .cp-card-title.crank-2{color:var(--steel-glow);}
   .cp-cards .cp-grid{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-family:'IBM Plex Mono'; font-size:10.5px;}
   .cp-cards .cp-grid .cp-lbl{color:var(--ink-faint);}
   .cp-cards .cp-grid .cp-val{color:var(--ink); text-align:right;}
@@ -683,6 +709,7 @@
     color:var(--ink); font-family:'IBM Plex Mono'; font-size:10px; padding:2px 5px;
   }
   .ie-input:focus{ outline:none; box-shadow:0 0 0 2px rgba(91,118,224,.25); }
+  .cn-pkr-editable:hover{ background:rgba(231,76,60,.08); }
   @keyframes cnPulseGlow{
     0%,100%{ box-shadow:0 0 0 0 rgba(91,118,224,.55); border-color:#5b76e0; }
     50%{ box-shadow:0 0 0 6px rgba(91,118,224,0); border-color:#7d93ea; }
@@ -705,11 +732,12 @@
     text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); padding:5px 6px;
     border-bottom:1px solid var(--border); white-space:nowrap; z-index:2;
   }
-  .cn-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap;
-    overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35; max-width:220px;}
+  .cn-table td{padding:4px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.45; max-width:220px;}
   .cn-table td[data-col="commentDyn"], .cn-table td[data-col="commentAcu"]{
-    max-width:380px; width:380px; min-width:260px; white-space:normal; overflow:hidden; text-overflow:ellipsis;
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3;
+    max-width:580px; width:580px; min-width:380px; white-space:normal; overflow:hidden; text-overflow:ellipsis;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.5; padding:5px 8px;
+    font-size:10.5px;
   }
   .cn-table tbody tr:hover{background:var(--panel-2);}
   .cn-table tbody tr:hover td.cn-sticky{background:var(--panel-2) !important;}
@@ -1132,7 +1160,7 @@
 
     <div class="rp-grid">
 
-      <div class="panel rp-panel">
+      <div class="panel rp-panel rp-panel-dina">
         <div class="panel-head">
           <h2><span class="dot2 navy"></span>Carta Dinamométrica</h2>
           <span id="rp-classif" class="rp-badge rp-badge-accent" style="margin-left:8px;">—</span>
@@ -1173,6 +1201,7 @@
           <div class="rp-side-stack">
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
+            <div class="rp-chip rp-chip-acu" id="rp-nivcorr-chip"><span class="rp-lbl">Niv. corr.</span><span class="rp-val" id="rp-nivcorr">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sum. corr.</span><span class="rp-val" id="rp-sumergc">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
@@ -1212,7 +1241,7 @@
       <div class="panel">
         <div class="panel-head"><h2><span class="dot2 navy"></span>Carta Dinamométrica</h2><div class="prom-tiles-inline">
           <div class="chip2"><span class="lbl">Llenado</span><span class="val" id="d-fillage">44.9<span class="unit">%</span></span></div>
-          <div class="chip2"><span class="lbl">P. Tubing</span><span class="val" id="d-tubpres">4.5<span class="unit">kg</span></span></div>
+          <div class="chip2"><span class="lbl">P.Tbg</span><span class="val" id="d-tubpres">4.5<span class="unit">kg</span></span></div>
           <div class="chip2"><span class="lbl">GPM</span><span class="val" id="d-spm">7.31</span></div>
           <div class="hist-nav" id="dyn-hist-nav">
             <button id="dyn-hist-prev" title="Ensayo anterior">‹</button>
@@ -1308,6 +1337,13 @@
         </div>
         <div class="dina-side-col">
           <div class="mini-grid">
+            <h4><i></i>Motor</h4>
+            <table class="gtab" style="margin-bottom:10px;">
+              <tr><th>Marca</th><td id="d-motor-marca">—</td></tr>
+              <tr><th>RPM</th><td id="d-motor-rpm">—</td></tr>
+              <tr><th>Potencia</th><td id="d-motor-hp">—</td></tr>
+              <tr><th>Polea</th><td id="d-motor-polea">—</td></tr>
+            </table>
             <h4><i></i>Contrapesos</h4>
             <div id="d-contrapesos-table" class="cp-cards">
               <p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>
@@ -1675,6 +1711,10 @@
         <button class="details-btn" id="uploadSaveBtn" type="button" style="margin-top:12px; margin-left:8px; border-color:var(--navy-glow);">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Guardar en la base de datos
+        </button>
+        <button class="details-btn" id="uploadClearBtn" type="button" style="margin-top:12px; margin-left:8px; border-color:#888; color:#aaa;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6h12z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Limpiar
         </button>
 
         <div id="uploadPreviewArea" class="upload-preview"></div>
@@ -2642,7 +2682,7 @@
       // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
       // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
       const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
-        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m'),
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m, motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos'),
         fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb, pump_designation_api, total_rod_weight_lb'),
         fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
         fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id'),
@@ -2678,7 +2718,14 @@
       const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
 
       wells.forEach(w => {
-        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null };
+        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null,
+          motorMarca: w.motor_marca || null, motorRpm: w.motor_rpm ?? null, motorHp: w.motor_hp ?? null, motorPolea: w.motor_polea || null,
+          contrapesosRaw: w.contrapesos || null,
+        };
+        // Pre-cargar contrapesos desde wells si existen
+        if(w.contrapesos && !(w.well_name in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[w.well_name] = { contrapesos: w.contrapesos, motor_marca: w.motor_marca, motor_rpm: w.motor_rpm, motor_potencia_hp: w.motor_hp, motor_polea: w.motor_polea };
+        }
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
@@ -2859,6 +2906,10 @@
       // Vuelve a calcular la lista de pozos por si Supabase trae pozos nuevos
       // que todavia no estaban embebidos en el HTML.
       wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
+
+      // Motor y Contrapesos ahora se leen directamente de la tabla wells (columnas
+      // motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos) y ya se cargaron
+      // arriba en el forEach de wells — no se necesita la consulta separada a field_log.
 
       // Trae las cartas ya guardadas en Storage (persisten aunque se cierre la sesion).
       try {
@@ -3148,8 +3199,9 @@
 
     if(!w){
       ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-fabricante','rp-modeloapi','rp-carrera','rp-pipdyn',
-       'rp-nivel','rp-sumerg','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
+       'rp-nivel','rp-sumerg','rp-nivcorr','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
         .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
+      const ncChip = document.getElementById('rp-nivcorr-chip'); if(ncChip) ncChip.classList.remove('rp-chip-nivcorr-alert');
       const dynImg = document.getElementById('rp-dyn-img'); if(dynImg) dynImg.style.display = 'none';
       const svgEl = document.getElementById('rp-wellsvg'); if(svgEl) svgEl.innerHTML = '';
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
@@ -3160,6 +3212,12 @@
 
     document.getElementById('rp-dyn-stamp').textContent = w.hasDyn ? fmtDate(w.dynDate) : '—';
     document.getElementById('rp-acu-stamp').textContent = w.hasAcu ? fmtDate(w.acuDate) : '—';
+
+    // Paneles inactivos: grey out si no hay datos
+    const dinaPanel = document.querySelector('.rp-panel-dina');
+    if(dinaPanel) dinaPanel.classList.toggle('dina-inactive', !w.hasDyn);
+    const nivelPanel = document.querySelector('.rp-panel-nivel');
+    if(nivelPanel) nivelPanel.classList.toggle('nivel-inactive', !w.hasAcu);
 
     // Clasificacion del ensayo: Combinada (Dina+Nivel) / Dina (sin Nivel) /
     // Nivel - Dinamico o Estatico (segun Well State del CSV, Producing/Static).
@@ -3207,10 +3265,15 @@
     const estadoEl = document.getElementById('rp-estado-pozo');
     if(estadoEl){
       const estado = (w.wellState || '').toUpperCase();
-      if(estado.includes('STATIC')){
+      const tienePacker = w.packerM != null && w.packerM > 0;
+      if(estado.includes('STATIC') && tienePacker){
+        estadoEl.textContent = 'PACKER'; estadoEl.className = 'rp-chip-estado packer'; estadoEl.style.display = '';
+      } else if(estado.includes('STATIC')){
         estadoEl.textContent = 'Estático'; estadoEl.className = 'rp-chip-estado estatico'; estadoEl.style.display = '';
       } else if(estado.includes('PRODUC')){
         estadoEl.textContent = 'Dinámico'; estadoEl.className = 'rp-chip-estado dinamico'; estadoEl.style.display = '';
+      } else if(tienePacker){
+        estadoEl.textContent = 'PACKER'; estadoEl.className = 'rp-chip-estado packer'; estadoEl.style.display = '';
       } else {
         estadoEl.style.display = 'none';
       }
@@ -3275,6 +3338,15 @@
     // ---- Chips Nivel ----
     setTxt('rp-nivel', w.nivel, ' m', 0);
     setTxt('rp-sumerg', w.sumerg, ' m', 0);
+    // Nivel Corregido = Prof. de bba - Sumergencia Corregida
+    const nivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+    setTxt('rp-nivcorr', nivelCorr, ' m', 0);
+    const nivcorrChip = document.getElementById('rp-nivcorr-chip');
+    if(nivcorrChip){
+      // Alerta de pulso: si Nivel Corregido difiere del Nivel Medido
+      const diffAlert = nivelCorr != null && w.nivel != null && Math.abs(nivelCorr - w.nivel) > 1;
+      nivcorrChip.classList.toggle('rp-chip-nivcorr-alert', diffAlert);
+    }
     setTxt('rp-sumergc', w.sumergc, ' m', 0);
     setTxt('rp-pipacu', w.pipEco, ' kg', 1);
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
@@ -3459,6 +3531,22 @@
         <text x="${midX}" y="${(labelY+12).toFixed(1)}" font-size="10" fill="#3B8BD4" text-anchor="middle" font-weight="600">LL: ${fmt(w.nivel,0)} m</text>`;
     }
 
+    // Linea de Nivel Corregido: se dibuja solo si difiere del Nivel Medido.
+    // Nivel Corregido = Prof. de bba - Sumergencia Corregida.
+    let nivelCorrLineSvg = '', nivelCorrLabelSvg = '';
+    const nivelCorregido = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+    if(nivelCorregido != null && w.pumpIntakeDepth && w.nivel != null && Math.abs(nivelCorregido - w.nivel) > 1){
+      const fracCorr = Math.max(0, Math.min(1, nivelCorregido / w.pumpIntakeDepth));
+      const corrY = pipeTop + fracCorr * pipeH;
+      nivelCorrLineSvg = `
+        <line x1="${outerX1-5}" y1="${corrY.toFixed(1)}" x2="${outerX2+5}" y2="${corrY.toFixed(1)}" stroke="rgba(255,170,0,.85)" stroke-width="1.5" stroke-dasharray="6 3" class="rp-nivcorr-line" style="cursor:pointer;"/>`;
+      // Tooltip via SVG <title> — se muestra al hover
+      nivelCorrLabelSvg = `
+        <rect x="${outerX1-5}" y="${(corrY-5).toFixed(1)}" width="${outerX2-outerX1+10}" height="10" fill="transparent" style="cursor:pointer;">
+          <title>Nivel Corregido: ${fmt(nivelCorregido,0)} m</title>
+        </rect>`;
+    }
+
     // ---- Cuando el pozo NO es AIB (sin Dina: BES/PCP/SSE), Pcsg y Ptbg van los
     // dos arriba, mas grandes y con semaforo — es el dato principal de ese
     // tipo de ensayo. Si es AIB/Combinada, Pcsg queda como badge chico solo,
@@ -3499,6 +3587,9 @@
       ${rodSegments}
 
       ${levelLabelSvg}
+
+      ${nivelCorrLineSvg}
+      ${nivelCorrLabelSvg}
     `;
   }
 
@@ -4297,7 +4388,7 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState),
+            condicion: h.tipo === 'Dina' ? 'Dinámico' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState)),
             nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             pkr: w.packerM != null ? w.packerM : null,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
@@ -4364,7 +4455,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: cnCondicionFromWellState(w.wellState),
+          condicion: operacion === 'Dina' ? 'Dinámico' : cnCondicionFromWellState(w.wellState),
           nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           pkr: w.packerM != null ? w.packerM : null,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
@@ -4456,7 +4547,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
+          <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
           <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
@@ -4620,7 +4711,13 @@
     function fillReport(){
       const w = WELLS_DB[currentWell] || {};
 
-      document.getElementById('fr-well').textContent = currentWell || '—';
+      // Nombre del pozo + sistema de extracción al lado, mismo estilo
+      const frWellEl = document.getElementById('fr-well');
+      if(frWellEl){
+        const wellTxt = currentWell || '—';
+        const sisTxt = w.sistema ? ` · ${w.sistema}` : '';
+        frWellEl.textContent = wellTxt + sisTxt;
+      }
       const fechaTxt = w.dynDate ? fmtDate(w.dynDate) : (w.acuDate ? fmtDate(w.acuDate) : '—');
       document.getElementById('fr-sub').textContent = `${w.bateria || '—'} · ${w.operadora || '—'} · ${fechaTxt}`;
       const esCombinada = w.hasDyn && w.hasAcu;
@@ -4724,13 +4821,28 @@
       document.getElementById('fr-rodpower').textContent = txt('dd-rodpower');
 
       // ---- Seccion 2: Nivel ----
+      const frNivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
       const acuChips = [
         ['Nivel', w.nivel != null ? fmt(w.nivel,0) + ' m' : '—'],
         ['Sumerg.', w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—'],
+        ['Niv. corr.', frNivelCorr != null ? fmt(frNivelCorr,0) + ' m' : '—'],
         ['Sum. corr.', w.sumergc != null ? fmt(w.sumergc,0) + ' m' : '—'],
         ['PIP Acu', w.pipEco != null ? fmt(w.pipEco,1) + ' kg' : '—'],
         ['Prof. bba', w.pumpIntakeDepth != null ? fmt(w.pumpIntakeDepth,0) + ' m' : '—'],
       ];
+      // Hz (BES) / RPM (PCP): extraer del comentario de nivel
+      let frHzRpm = null;
+      {
+        const cmt = w.commentAcu || '';
+        if(w.sistema === 'BES'){
+          const m = cmt.match(/(\d+(?:[.,]\d+)?)\s*hz/i);
+          if(m) frHzRpm = { lbl:'Hz', val: m[1].replace(',','.') + ' Hz' };
+        } else if(w.sistema === 'PCP'){
+          const m = cmt.match(/rpm\s*[:\-]?\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*rpm/i);
+          if(m) frHzRpm = { lbl:'RPM', val: (m[1]||m[2]).replace(',','.') + ' RPM' };
+        }
+      }
+      if(frHzRpm) acuChips.unshift([frHzRpm.lbl, frHzRpm.val]);
       document.getElementById('fr-acu-chips').innerHTML = acuChips.map(([lbl,val]) => `<div class="qr-chip"><span class="qr-lbl">${lbl}</span><span class="qr-val">${val}</span></div>`).join('');
       document.getElementById('fr-acu-comment').textContent = w.commentAcu || 'Sin comentarios registrados.';
 
@@ -4755,8 +4867,8 @@
         if(liveBuildupSvg){
           const clone = liveBuildupSvg.cloneNode(true);
           clone.removeAttribute('id');
-          clone.setAttribute('width', '260');
-          clone.setAttribute('height', '160');
+          clone.setAttribute('width', '380');
+          clone.setAttribute('height', '230');
           buildupWrap.appendChild(clone);
         }
       }
@@ -4823,7 +4935,7 @@
     { key:'cargamin',     label:'Carga Mín',    unit:' lb', dec:0, group:'Dina', filterType:'numeric', get:r=>r.sv },
     { key:'llenado',      label:'Llenado',      unit:' %',  dec:1, group:'Dina', filterType:'numeric', get:r=>r.fillage },
     { key:'spm',          label:'GPM',          unit:'',    dec:2, group:'Dina', filterType:'numeric', get:r=>r.spm },
-    { key:'pkr',          label:'PKR',          unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.well]; return w && w.packerM != null && w.packerM > 0 ? w.packerM : null; } },
+    { key:'pkr',          label:'PKR',          unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w && w.packerM != null && w.packerM > 0 ? w.packerM : null; } },
     { key:'prestbg',      label:'Pres. Tbg',    unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.tubpres },
     { key:'pipdyn',       label:'PIP Dyn',      unit:' kg', dec:1, group:'Dina', filterType:'numeric', get:r=>r.pipdyn },
     { key:'fabricante',   label:'Fabricante',   group:'Dina', filterType:'checkbox', get:r=>r.surfaceUnitMfr },
@@ -4837,6 +4949,12 @@
     { key:'nivel',        label:'Nivel',        unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
     { key:'sumerg',       label:'Sumergencia',  unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumerg },
     { key:'sumergc',      label:'Sum. Corr.',   unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.sumergc },
+    { key:'nivelCorr',    label:'Nivel Corregido', unit:' m', dec:0, group:'Nivel', filterType:'numeric', get:r=>{
+        const w = WELLS_DB[r.name||r.well];
+        const sc = r.sumergc != null ? r.sumergc : (w ? w.sumergc : null);
+        const pid = r.pumpIntakeDepth != null ? r.pumpIntakeDepth : (w ? w.pumpIntakeDepth : null);
+        return (sc != null && pid != null) ? (pid - sc) : null;
+      } },
     { key:'pipeco',       label:'PIP Eco',      unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pipEco },
     { key:'pcsg',         label:'P. Casing',    unit:' kg', dec:1, group:'Nivel', filterType:'numeric', get:r=>r.pcsg },
     { key:'commentAcu',   label:'Comentario Nivel', group:'Nivel', filterType:'text', get:r=>r.commentAcu },
@@ -4861,6 +4979,20 @@
         const a = cnTorquePct(r.torqueUp, r.torqueDown, r.gearboxRating), b = cnTorquePct(r.torqueUpBal, r.torqueDownBal, r.gearboxRating);
         return (a != null && b != null) ? a - b : null;
       } },
+
+    // Motor
+    { key:'motorMarca',    label:'Motor Marca',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorMarca : null; } },
+    { key:'motorRpm',      label:'Motor RPM',     unit:'',    dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorRpm : null; } },
+    { key:'motorHp',       label:'Motor Potencia', unit:' HP', dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorHp : null; } },
+    { key:'motorPolea',    label:'Motor Polea',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorPolea : null; } },
+
+    // Contrapesos
+    { key:'cpTipoPpal',    label:'Placas Ppal.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.tipo : null; } },
+    { key:'cpCantPpal',    label:'Cant. Ppal.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant != null ? Number(cp.cant) : null; } },
+    { key:'cpDistPpal',    label:'Dist. Ppal.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm != null ? Number(cp.cm) : null; } },
+    { key:'cpTipoSecu',    label:'Placas Secu.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.secu : null; } },
+    { key:'cpCantSecu',    label:'Cant. Secu.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant2 != null ? Number(cp.cant2) : null; } },
+    { key:'cpDistSecu',    label:'Dist. Secu.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm2 != null ? Number(cp.cm2) : null; } },
 
     // Diámetros de tubería
     { key:'casingOd',      label:'Casing OD',    unit:' in', dec:3, group:'Diámetros', filterType:'numeric', get:r=>r.casingOd },
@@ -4891,8 +5023,9 @@
     return wellNames.map(n => {
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
+      const condicion = tipoEnsayo === 'Dina' ? 'Dinámico' : cnCondicionFromWellState(w.wellState);
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        name: n, tipoEnsayo, condicion, fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
@@ -4911,7 +5044,7 @@
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
           name:n, fecha:h.dt, tipoEnsayo:h.tipo,
-          condicion: isLatest ? cnCondicionFromWellState(w.wellState) : '—',
+          condicion: h.tipo === 'Dina' ? 'Dinámico' : (isLatest ? cnCondicionFromWellState(w.wellState) : '—'),
           sistema: h.sistema || w.sistema || 'Sin clasificar',
           diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
           torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
@@ -5012,12 +5145,14 @@
       return `<th class="${stickyCls.trim()}" data-col="${k}">${def.label}<button class="th-filter-btn ${hasFilter?'th-active':''}" data-col="${k}" type="button" title="Filtrar">▾</button></th>`;
     }).join('')}</tr></thead>`;
     const tbody = `<tbody>${rows.slice(0,800).map(r=>{
-      return `<tr>${cols.map(k=>{
+      const wellEsc = (r.well || r.name || '').replace(/"/g,'&quot;');
+      return `<tr data-cn-well="${wellEsc}">${cols.map(k=>{
         const def = CN_DEFS_BY_KEY[k]; if(!def) return '<td>—</td>';
         const val = def.get(r);
         const stickyCls = (k in stickyIdx) ? ` cn-sticky cn-sticky-${stickyIdx[k]}` : '';
         const nameCls = k === 'well' ? ' well-name' : '';
-        return `<td class="${(stickyCls+nameCls).trim()}" data-col="${k}">${cnFmtVal(def, val)}</td>`;
+        const pkrEditable = (k === 'pkr' && currentUser && currentUser.role !== 'cliente') ? ' cn-pkr-editable' : '';
+        return `<td class="${(stickyCls+nameCls+pkrEditable).trim()}" data-col="${k}">${cnFmtVal(def, val)}</td>`;
       }).join('')}</tr>`;
     }).join('')}</tbody>`;
     table.innerHTML = thead + tbody;
@@ -5026,9 +5161,58 @@
       btn.addEventListener('click', (e)=>{ e.stopPropagation(); cnOpenColFilter(btn.dataset.col, btn); });
     });
 
+    // PKR click-to-edit en CONSULTA
+    table.querySelectorAll('td.cn-pkr-editable').forEach(td=>{
+      td.style.cursor = 'pointer';
+      td.title = 'Clic para editar PKR';
+      td.addEventListener('click', ()=> cnPkrCellEdit(td));
+    });
+
     const countEl = document.getElementById('cn-resultcount');
     if(countEl) countEl.innerHTML = `<b>${rows.length}</b> pozo${rows.length===1?'':'s'}${rows.length>800 ? ' — mostrando primeros 800' : ''}`;
   }
+  // ---- PKR inline edit en CONSULTA ----
+  function cnPkrCellEdit(td){
+    if(td.querySelector('input')) return; // ya en modo edición
+    const tr = td.closest('tr');
+    const wellName = tr ? tr.dataset.cnWell : null;
+    if(!wellName) return;
+    const w = WELLS_DB[wellName];
+    if(!w || !w.well_id) return;
+    const curVal = (w.packerM != null && w.packerM > 0) ? String(Math.round(w.packerM)) : '';
+    td.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+      <input type="number" class="ie-input" value="${curVal}" placeholder="m" style="width:55px;color:#e74c3c;font-size:11px;padding:1px 3px;" min="0" step="1">
+      <button type="button" class="cn-pkr-save" title="Guardar" style="background:none;border:none;color:#2ea05a;cursor:pointer;font-size:13px;padding:0;">✓</button>
+      ${curVal ? '<button type="button" class="cn-pkr-del" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:13px;padding:0;">✕</button>' : ''}
+      <button type="button" class="cn-pkr-cancel" title="Cancelar" style="background:none;border:none;color:#888;cursor:pointer;font-size:11px;padding:0;">✖</button>
+    </div>`;
+    const inp = td.querySelector('input');
+    inp.focus(); inp.select();
+    const saveBtn = td.querySelector('.cn-pkr-save');
+    const delBtn = td.querySelector('.cn-pkr-del');
+    const cancelBtn = td.querySelector('.cn-pkr-cancel');
+
+    async function savePkr(val){
+      const pkrVal = val === '' ? null : Number(val);
+      if(val !== '' && (isNaN(pkrVal) || pkrVal < 0)){ alert('PKR debe ser un número positivo.'); return; }
+      try{
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+        cnRenderAll();
+        renderInicioGrid();
+        if(currentWell === wellName) renderWell();
+      } catch(err){ alert('Error guardando PKR: ' + (err.message || err)); }
+    }
+    saveBtn.addEventListener('click', ()=> savePkr(inp.value.trim()));
+    if(delBtn) delBtn.addEventListener('click', ()=> savePkr(''));
+    cancelBtn.addEventListener('click', ()=> cnRenderAll());
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); savePkr(inp.value.trim()); }
+      if(e.key === 'Escape'){ e.preventDefault(); cnRenderAll(); }
+    });
+  }
+
   function cnOpenColFilter(col, anchorBtn){
     document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove());
     const def = CN_DEFS_BY_KEY[col]; if(!def) return;
@@ -5450,6 +5634,20 @@
     return key !== undefined ? row[key] : undefined;
   }
 
+  // Busca el valor del Packer (m) en el CSV — el nombre de la columna varía
+  // entre exports del Echometer/TAM: "Packer (m)", "Packer Depth (m)",
+  // "Packer Setting Depth (m)", etc. Se busca cualquier encabezado que
+  // contenga "packer" y se toma su valor numérico.
+  function findCsvPackerM(row){
+    if(!row) return null;
+    const key = Object.keys(row).find(k => k.toLowerCase().includes('packer'));
+    if(key === undefined) return null;
+    const v = row[key];
+    if(v === undefined || v === null || v === '') return null;
+    const n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
   // Version estricta (sin el "ultimo recurso" de buscar por palabra suelta),
   // para usar en casos donde ese fallback es riesgoso: si dos columnas
   // distintas terminan en la misma unidad entre parentesis (ej. "(in)"),
@@ -5539,11 +5737,17 @@
     return data ? data.well_config_id : null;
   }
 
-  async function upsertWell(wellName, operadora, zona, bateria){
+  async function upsertWell(wellName, operadora, zona, bateria, packerM){
+    const row = { well_name: wellName, operadora: operadora || null, zona: zona || null, bateria: bateria || null };
+    if(packerM != null) row.packer_m = packerM;
     await supabaseClient.from('wells').upsert(
-      { well_name: wellName, operadora: operadora || null, zona: zona || null, bateria: bateria || null },
-      { onConflict: 'well_name', ignoreDuplicates: true }
+      row,
+      { onConflict: 'well_name', ignoreDuplicates: packerM == null }
     );
+    // Si viene packer_m, forzar la actualización (ignoreDuplicates no actualiza)
+    if(packerM != null){
+      await supabaseClient.from('wells').update({ packer_m: packerM }).eq('well_name', wellName);
+    }
     const { data, error } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).single();
     if(error) throw error;
     return data.well_id;
@@ -6302,33 +6506,52 @@
   async function loadContrapesosForWell(wellName){
     const table = document.getElementById('d-contrapesos-table');
     if(!table) return;
+    // Motor y contrapesos ahora se leen de WELLS_DB (cargado desde tabla wells).
+    // Si no está en CONTRAPESOS_CACHE, lo construimos desde WELLS_DB.
     if(!(wellName in CONTRAPESOS_CACHE)){
-      if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = null; }
-      else {
-        try{
-          const wellNumber = String(wellName).replace(/\D/g, '');
-          if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
-          else {
-            const { data, error } = await supabaseClient
-              .from('field_log').select('fecha, contrapesos')
-              .eq('well_number', wellNumber)
-              .not('contrapesos', 'is', null)
-              .order('fecha', { ascending: false }).limit(1).maybeSingle();
-            if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
-            else { CONTRAPESOS_CACHE[wellName] = data || null; }
-          }
-        } catch(e){
-          console.error('Excepción buscando contrapesos:', e);
-          CONTRAPESOS_CACHE[wellName] = null;
-        }
+      const wdb = WELLS_DB[wellName];
+      if(wdb && (wdb.motorMarca || wdb.motorRpm != null || wdb.motorHp != null || wdb.motorPolea || wdb.contrapesosRaw)){
+        CONTRAPESOS_CACHE[wellName] = {
+          contrapesos: wdb.contrapesosRaw || null,
+          motor_marca: wdb.motorMarca, motor_rpm: wdb.motorRpm,
+          motor_potencia_hp: wdb.motorHp, motor_polea: wdb.motorPolea
+        };
+      } else {
+        CONTRAPESOS_CACHE[wellName] = null;
       }
     }
     const row = CONTRAPESOS_CACHE[wellName];
     if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
+
+    // ---- Motor ----
+    const motorMarcaEl = document.getElementById('d-motor-marca');
+    const motorRpmEl = document.getElementById('d-motor-rpm');
+    const motorHpEl = document.getElementById('d-motor-hp');
+    const motorPoleaEl = document.getElementById('d-motor-polea');
+    if(row){
+      if(motorMarcaEl) motorMarcaEl.textContent = row.motor_marca || '—';
+      if(motorRpmEl) motorRpmEl.textContent = row.motor_rpm != null ? row.motor_rpm : '—';
+      if(motorHpEl) motorHpEl.textContent = (row.motor_potencia_hp ?? row.motor_hp) != null ? (row.motor_potencia_hp ?? row.motor_hp) + ' HP' : '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = row.motor_polea || '—';
+      // Guardar en WELLS_DB para que Armado Consulta pueda leerlos
+      const w = WELLS_DB[wellName];
+      if(w){
+        w.motorMarca = row.motor_marca || null;
+        w.motorRpm = row.motor_rpm ?? null;
+        w.motorHp = (row.motor_potencia_hp ?? row.motor_hp) ?? null;
+        w.motorPolea = row.motor_polea || null;
+      }
+    } else {
+      if(motorMarcaEl) motorMarcaEl.textContent = '—';
+      if(motorRpmEl) motorRpmEl.textContent = '—';
+      if(motorHpEl) motorHpEl.textContent = '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = '—';
+    }
+
     const cp = row && row.contrapesos;
-    // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
+    // El planillero guarda un objeto plano { tipo, cant, cm, secu, cant2, cm2 } —
     // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
-    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.placas == null && cp.cm == null && cp.cm2 == null)){
+    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.cm == null && cp.cm2 == null)){
       table.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo (no hay bitácora cargada, o no trae este dato).</p>';
       return;
     }
@@ -7024,7 +7247,8 @@
       logFn(`Procesando ${meta.well} · ${meta.type} · ${meta.date} ${meta.time}${csvRow ? '' : ' (sin CSV — solo curva)'}…`);
       matchedWells.add(meta.well);
 
-      const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null);
+      const csvPackerRaw = findCsvPackerM(csvRow);
+      const wellId = await upsertWell(meta.well, operadora, csvRow ? findCsvColumnValue(csvRow, 'Group') : null, csvRow ? findCsvColumnValue(csvRow, 'Sub Group') : null, csvPackerRaw);
       let wellConfigId;
       const existingTest = await peekExistingTest(wellId, meta.type, meta.date, meta.time);
       if(existingTest){
@@ -7179,7 +7403,8 @@
             else type = 'DYN';
           }
 
-          const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'));
+          const csvPkrVal = findCsvPackerM(row);
+          const wellId = await upsertWell(wellName, operadora, findCsvColumnValue(row, 'Group'), findCsvColumnValue(row, 'Sub Group'), csvPkrVal);
           let wellConfigId;
           const existingTest = rowDate ? await peekExistingTest(wellId, type, rowDate, rowTime) : null;
           if(existingTest){
@@ -7271,6 +7496,18 @@
           console.error('Error guardando en Supabase:', e);
           previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al guardar: ${e.message || e}</p></div>`;
         }
+      });
+    }
+
+    // Botón Limpiar: resetear inputs, estado y preview
+    const clearBtn = document.getElementById('uploadClearBtn');
+    if(clearBtn){
+      clearBtn.addEventListener('click', ()=>{
+        csvInput.value = ''; csvName.textContent = 'Ningún archivo';
+        txtInput.value = ''; txtName.textContent = 'Ningún archivo';
+        const opSel = document.getElementById('uploadOperadora');
+        if(opSel) opSel.selectedIndex = 0;
+        previewArea.innerHTML = '';
       });
     }
 
@@ -7425,14 +7662,14 @@
           sistema_extraccion_tipo: sistemaExtraccionTipo,
           unidad_descripcion: unidadDescripcion,
           contrapesos: {
-            tipo: get(13), placas: get(14), cant: get(15), cm: get(16),
-            secu: get(17), cant2: get(18), cm2: get(19)
-          }, // N-S
-          motor_marca: get(19+1) ? String(get(20)).trim() : null, // T
-          motor_rpm: numOrNull(get(21)), // U
-          motor_potencia_hp: numOrNull(get(22)), // V
-          motor_polea: get(23) ? String(get(23)).trim() : null, // W
-          observaciones: get(23+1) ? String(get(24)).trim() : null, // X
+            tipo: get(13), cant: get(14), cm: get(15),
+            secu: get(16), cant2: get(17), cm2: get(18)
+          }, // N(Placas Ppal) O(Cant) P(Dist cm) Q(Placas Secu) R(Cant) S(Dist cm)
+          motor_marca: get(19) ? String(get(19)).trim() : null, // T (col index 19)
+          motor_rpm: numOrNull(get(20)), // U (col index 20)
+          motor_potencia_hp: numOrNull(get(21)), // V (col index 21)
+          motor_polea: get(22) ? String(get(22)).trim() : null, // W (col index 22)
+          observaciones: get(23) ? String(get(23)).trim() : null, // X (col index 23)
           extra_fields: { pulg_pip_torque: get(5) } // F, campo multiuso, sin tipar todavía
         });
       }
@@ -7496,16 +7733,52 @@
 
       previewArea.innerHTML = `<div class="up-block"><p class="up-note">Guardando ${rows.length} filas de ${sheets.length} hoja(s)…</p></div>`;
       try{
-        // Carga cruzada well_id contra wells.well_number, para linkear cuando existe.
-        const numbers = [...new Set(rows.map(r => r.well_number).filter(Boolean))];
-        let wellMap = {};
-        if(numbers.length){
-          const { data: wellsData, error: wellsErr } = await supabaseClient
-            .from('wells').select('well_id, well_number').in('well_number', numbers);
-          if(wellsErr) throw wellsErr;
-          (wellsData||[]).forEach(w => { wellMap[w.well_number] = w.well_id; });
+        // ---- Matching tolerante: well_name_raw del planillero vs well_name en Supabase ----
+        // Normalización escalonada para tolerar variaciones de tipeo del operador:
+        //   1) Exacto               S-2194 = S-2194
+        //   2) Ignorando mayúsculas  s-2194 = S-2194
+        //   3) Sin guiones/espacios  s2194  = S2194
+        //   4) Solo dígitos          2194   = 2194  (si hay un solo pozo con ese número)
+        function normLower(s){ return String(s).trim().toLowerCase(); }
+        function normStrip(s){ return normLower(s).replace(/[-\s().]/g, ''); }
+        function normDigits(s){ return String(s).replace(/\D/g, ''); }
+
+        const { data: wellsData, error: wellsErr } = await supabaseClient
+          .from('wells').select('well_id, well_name');
+        if(wellsErr) throw wellsErr;
+
+        // Construir índices de búsqueda desde wells
+        const byExact = {};    // well_name exacto → well_id
+        const byLower = {};    // lowercase → well_id
+        const byStrip = {};    // sin guiones/espacios, lowercase → well_id
+        const byDigits = {};   // solo dígitos → well_id (null si hay colisión)
+        (wellsData||[]).forEach(w => {
+          byExact[w.well_name] = w.well_id;
+          byLower[normLower(w.well_name)] = w.well_id;
+          byStrip[normStrip(w.well_name)] = w.well_id;
+          const d = normDigits(w.well_name);
+          if(d) byDigits[d] = (d in byDigits) ? null : w.well_id; // null = ambiguo (2+ pozos con mismo número)
+        });
+
+        function matchWell(rawName){
+          if(!rawName) return null;
+          const name = String(rawName).trim();
+          if(byExact[name]) return byExact[name];
+          const lo = normLower(name);
+          if(byLower[lo]) return byLower[lo];
+          const st = normStrip(name);
+          if(byStrip[st]) return byStrip[st];
+          const dg = normDigits(name);
+          if(dg && byDigits[dg]) return byDigits[dg]; // solo si no es ambiguo
+          return null;
         }
-        const finalRows = rows.map(r => ({ ...r, operadora: operadoraSel.value, well_id: wellMap[r.well_number] || null }));
+
+        let wellMap = {}; // well_name_raw → well_id (para el mensaje final)
+        const finalRows = rows.map(r => {
+          const wid = matchWell(r.well_name_raw);
+          if(wid) wellMap[r.well_name_raw] = wid;
+          return { ...r, operadora: operadoraSel.value, well_id: wid };
+        });
 
         // Carga incremental: por cada fecha a procesar, borra lo existente de esa fecha+operadora (fuente=hoja) y vuelve a insertar,
         // asi se puede recargar "solo un dia" sin duplicar filas viejas de la misma hoja.
@@ -7524,9 +7797,56 @@
           if(error) throw error;
         }
 
+        // ---- Matching y persistencia de motor/contrapesos en tabla wells ----
+        // Por cada pozo con well_id, tomar el registro más reciente (última fecha)
+        // y actualizar las columnas motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos.
+        let wellsUpdated = 0;
+        const latestByWell = {};
+        finalRows.forEach(r => {
+          if(!r.well_id) return;
+          if(!latestByWell[r.well_id] || r.fecha > latestByWell[r.well_id].fecha){
+            latestByWell[r.well_id] = r;
+          }
+        });
+        for(const [wellId, r] of Object.entries(latestByWell)){
+          const upd = {};
+          // Siempre poblar well_number si el pozo lo tiene
+          if(r.well_number) upd.well_number = r.well_number;
+          // Motor
+          const hasMotor = r.motor_marca || r.motor_rpm != null || r.motor_potencia_hp != null || r.motor_polea;
+          if(hasMotor){
+            upd.motor_marca = r.motor_marca || null;
+            upd.motor_rpm = r.motor_rpm ?? null;
+            upd.motor_hp = r.motor_potencia_hp ?? null;
+            upd.motor_polea = r.motor_polea || null;
+          }
+          // Contrapesos
+          const hasCp = r.contrapesos && (r.contrapesos.tipo != null || r.contrapesos.cant != null || r.contrapesos.secu != null);
+          if(hasCp) upd.contrapesos = r.contrapesos;
+          if(!Object.keys(upd).length) continue;
+          const { error: updErr } = await supabaseClient
+            .from('wells').update(upd).eq('well_id', wellId);
+          if(!updErr) wellsUpdated++;
+          else console.warn('Error actualizando wells con motor/cp:', updErr);
+          // Actualizar WELLS_DB en memoria
+          const wName = Object.keys(WELLS_DB).find(n => WELLS_DB[n].well_id === wellId);
+          if(wName && WELLS_DB[wName]){
+            if(hasMotor){
+              WELLS_DB[wName].motorMarca = r.motor_marca || null;
+              WELLS_DB[wName].motorRpm = r.motor_rpm ?? null;
+              WELLS_DB[wName].motorHp = r.motor_potencia_hp ?? null;
+              WELLS_DB[wName].motorPolea = r.motor_polea || null;
+            }
+            if(hasCp){
+              WELLS_DB[wName].contrapesosRaw = r.contrapesos;
+              delete CONTRAPESOS_CACHE[wName]; // invalidar para que se recargue
+            }
+          }
+        }
+
         previewArea.innerHTML = `<div class="up-block"><h4>Listo</h4>
           <p class="up-note">${finalRows.length} filas guardadas en Bitácora (field_log), de ${sheets.length} hoja(s): ${fechasUnicas.map(f=>fmtDDMMYYYY(new Date(f+'T00:00:00Z'))).join(', ')}.</p>
-          <p class="up-note">${Object.keys(wellMap).length} pozos linkeados a wells por well_number; el resto queda con well_id nulo (solo well_name_raw) hasta que el pozo exista en wells.</p>
+          <p class="up-note">${Object.keys(wellMap).length} de ${rows.length} pozos matcheados con wells; ${wellsUpdated} actualizados con Motor/Contrapesos.</p>
         </div>`;
       } catch(e){
         console.error('Error guardando planillero:', e);
@@ -8202,6 +8522,7 @@
     const bateriaTd = tr.querySelector('td.ie-cell[data-field="bateria"]');
     const operacionTd = tr.querySelector('td.ie-cell[data-field="operacion"]');
     const condicionTd = tr.querySelector('td.ie-cell[data-field="condicion"]');
+    const pkrTd = tr.querySelector('td.ie-cell[data-field="pkr"]');
     const commentTd = tr.querySelector('td.ie-cell[data-field="comment"]');
 
     if(wellTd){
@@ -8240,6 +8561,19 @@
         <option value="Dinámico" ${curVal==='Dinámico'?'selected':''}>Dinámico</option>
         <option value="Estático" ${curVal==='Estático'?'selected':''}>Estático</option>
       </select>`;
+    }
+    if(pkrTd){
+      const w0 = WELLS_DB[tr.dataset.well];
+      const curPkr = (w0 && w0.packerM != null && w0.packerM > 0) ? String(Math.round(w0.packerM)) : '';
+      pkrTd.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+        <input type="number" class="ie-input" data-orig="${curPkr}" value="${curPkr}" placeholder="m" style="width:60px;color:#e74c3c;" min="0" step="1">
+        ${curPkr ? '<button type="button" class="ie-pkr-clear" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;padding:0 2px;">✕</button>' : ''}
+      </div>`;
+      const clearBtn0 = pkrTd.querySelector('.ie-pkr-clear');
+      if(clearBtn0) clearBtn0.addEventListener('click', ()=>{
+        const inp = pkrTd.querySelector('.ie-input');
+        if(inp) inp.value = '';
+      });
     }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
@@ -8295,11 +8629,13 @@
     const bateriaInput = tr.querySelector('td.ie-cell[data-field="bateria"] .ie-input');
     const operacionInput = tr.querySelector('td.ie-cell[data-field="operacion"] .ie-input');
     const condicionInput = tr.querySelector('td.ie-cell[data-field="condicion"] .ie-input');
+    const pkrInput = tr.querySelector('td.ie-cell[data-field="pkr"] .ie-input');
     const commentInput = tr.querySelector('td.ie-cell[data-field="comment"] .ie-input');
     const newWellName = wellInput ? wellInput.value.trim() : null;
     const newBateria = bateriaInput ? bateriaInput.value.trim() : null;
     const newOperacion = operacionInput ? operacionInput.value : null;
     const newCondicion = condicionInput ? condicionInput.value : null;
+    const newPkr = pkrInput ? pkrInput.value.trim() : null;
     const newComment = commentInput ? commentInput.value.trim() : null;
     const commentTestId = tr.dataset.commentTestid ? Number(tr.dataset.commentTestid) : null;
     const acuTestId = tr.dataset.acuTestid ? Number(tr.dataset.acuTestid) : null;
@@ -8368,6 +8704,21 @@
           throw new Error('No se encontró ningún ensayo asociado a esta fila para guardar el estado.');
         }
       }
+      // ---- PKR (Packer) ----
+      if(pkrInput && newPkr !== pkrInput.dataset.orig){
+        const pkrVal = newPkr === '' ? null : Number(newPkr);
+        if(newPkr !== '' && (isNaN(pkrVal) || pkrVal < 0)){
+          alert('El valor de PKR debe ser un número positivo o vacío para borrarlo.');
+          if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
+          return;
+        }
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+        // Re-evaluar el tipo de ensayo (condicion) dinámicamente:
+        // Si se borra PKR y el pozo tenía badge PACKER (era Estático con packer),
+        // ahora vuelve a mostrar Estático. El panel se actualiza al re-renderizar.
+      }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
         if(error) throw error;
@@ -8392,6 +8743,11 @@
         if(typeof initScopeForUser === 'function') initScopeForUser();
       } else {
         renderInicioGrid();
+        // Si se editó PKR, refrescar el panel Resumen Pozo para actualizar
+        // badge PACKER, Nivel Corregido, y el esquema del pozo.
+        if(pkrInput && newPkr !== pkrInput.dataset.orig && currentWell === wellName){
+          renderWell();
+        }
       }
     } catch(err){
       alert('No se pudo guardar en Supabase: ' + (err.message || err));
