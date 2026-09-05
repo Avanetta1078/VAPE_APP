@@ -312,6 +312,14 @@
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
   .rp-panel-nivel{height:auto;}
   .rp-panel-nivel .rp-comment-box{min-height:44px; max-height:70px;}
+  /* Estado inactivo: sin datos de nivel */
+  .rp-panel-nivel.nivel-inactive{background:rgba(120,120,130,.08);}
+  .rp-panel-nivel.nivel-inactive .panel-head h2,
+  .rp-panel-nivel.nivel-inactive .rp-comment-box,
+  .rp-panel-nivel.nivel-inactive .rp-chip-hzrpm,
+  .rp-panel-nivel.nivel-inactive .rp-nivel-row,
+  .rp-panel-nivel.nivel-inactive .stamp{opacity:.35; filter:grayscale(1);}
+  /* Badges (PKR, Sistema, Estado, clasificación) se mantienen intactos */
   .rp-pkr-badge{
     position:absolute; top:-9px; right:14px; z-index:5;
     background:#c8342c; color:#fff; font-family:'IBM Plex Mono'; font-size:10px; font-weight:700;
@@ -3194,6 +3202,10 @@
     document.getElementById('rp-dyn-stamp').textContent = w.hasDyn ? fmtDate(w.dynDate) : '—';
     document.getElementById('rp-acu-stamp').textContent = w.hasAcu ? fmtDate(w.acuDate) : '—';
 
+    // Nivel panel: grey out si no hay datos de nivel
+    const nivelPanel = document.querySelector('.rp-panel-nivel');
+    if(nivelPanel) nivelPanel.classList.toggle('nivel-inactive', !w.hasAcu);
+
     // Clasificacion del ensayo: Combinada (Dina+Nivel) / Dina (sin Nivel) /
     // Nivel - Dinamico o Estatico (segun Well State del CSV, Producing/Static).
     // El sistema de extraccion real (AIB/BES/PCP/SSE) queda pendiente: ese
@@ -4686,7 +4698,13 @@
     function fillReport(){
       const w = WELLS_DB[currentWell] || {};
 
-      document.getElementById('fr-well').textContent = currentWell || '—';
+      // Nombre del pozo + sistema de extracción al lado, mismo estilo
+      const frWellEl = document.getElementById('fr-well');
+      if(frWellEl){
+        const wellTxt = currentWell || '—';
+        const sisTxt = w.sistema ? ` · ${w.sistema}` : '';
+        frWellEl.textContent = wellTxt + sisTxt;
+      }
       const fechaTxt = w.dynDate ? fmtDate(w.dynDate) : (w.acuDate ? fmtDate(w.acuDate) : '—');
       document.getElementById('fr-sub').textContent = `${w.bateria || '—'} · ${w.operadora || '—'} · ${fechaTxt}`;
       const esCombinada = w.hasDyn && w.hasAcu;
@@ -4790,13 +4808,28 @@
       document.getElementById('fr-rodpower').textContent = txt('dd-rodpower');
 
       // ---- Seccion 2: Nivel ----
+      const frNivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
       const acuChips = [
         ['Nivel', w.nivel != null ? fmt(w.nivel,0) + ' m' : '—'],
         ['Sumerg.', w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—'],
+        ['Niv. corr.', frNivelCorr != null ? fmt(frNivelCorr,0) + ' m' : '—'],
         ['Sum. corr.', w.sumergc != null ? fmt(w.sumergc,0) + ' m' : '—'],
         ['PIP Acu', w.pipEco != null ? fmt(w.pipEco,1) + ' kg' : '—'],
         ['Prof. bba', w.pumpIntakeDepth != null ? fmt(w.pumpIntakeDepth,0) + ' m' : '—'],
       ];
+      // Hz (BES) / RPM (PCP): extraer del comentario de nivel
+      let frHzRpm = null;
+      {
+        const cmt = w.commentAcu || '';
+        if(w.sistema === 'BES'){
+          const m = cmt.match(/(\d+(?:[.,]\d+)?)\s*hz/i);
+          if(m) frHzRpm = { lbl:'Hz', val: m[1].replace(',','.') + ' Hz' };
+        } else if(w.sistema === 'PCP'){
+          const m = cmt.match(/rpm\s*[:\-]?\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*rpm/i);
+          if(m) frHzRpm = { lbl:'RPM', val: (m[1]||m[2]).replace(',','.') + ' RPM' };
+        }
+      }
+      if(frHzRpm) acuChips.unshift([frHzRpm.lbl, frHzRpm.val]);
       document.getElementById('fr-acu-chips').innerHTML = acuChips.map(([lbl,val]) => `<div class="qr-chip"><span class="qr-lbl">${lbl}</span><span class="qr-val">${val}</span></div>`).join('');
       document.getElementById('fr-acu-comment').textContent = w.commentAcu || 'Sin comentarios registrados.';
 
@@ -4821,8 +4854,8 @@
         if(liveBuildupSvg){
           const clone = liveBuildupSvg.cloneNode(true);
           clone.removeAttribute('id');
-          clone.setAttribute('width', '260');
-          clone.setAttribute('height', '160');
+          clone.setAttribute('width', '380');
+          clone.setAttribute('height', '230');
           buildupWrap.appendChild(clone);
         }
       }
