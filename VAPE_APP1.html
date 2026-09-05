@@ -312,6 +312,13 @@
   .rp-panel{padding:14px 16px; height:640px; box-sizing:border-box;}
   .rp-panel-nivel{height:auto;}
   .rp-panel-nivel .rp-comment-box{min-height:44px; max-height:70px;}
+  /* Estado inactivo: sin datos de dina */
+  .rp-panel-dina.dina-inactive{background:rgba(120,120,130,.08);}
+  .rp-panel-dina.dina-inactive .rp-chips-row,
+  .rp-panel-dina.dina-inactive .rp-chart-box,
+  .rp-panel-dina.dina-inactive .rp-comment-box,
+  .rp-panel-dina.dina-inactive .stamp{opacity:.35; filter:grayscale(1);}
+  /* Badge de clasificación se mantiene intacto */
   /* Estado inactivo: sin datos de nivel */
   .rp-panel-nivel.nivel-inactive{background:rgba(120,120,130,.08);}
   .rp-panel-nivel.nivel-inactive .panel-head h2,
@@ -1153,7 +1160,7 @@
 
     <div class="rp-grid">
 
-      <div class="panel rp-panel">
+      <div class="panel rp-panel rp-panel-dina">
         <div class="panel-head">
           <h2><span class="dot2 navy"></span>Carta Dinamométrica</h2>
           <span id="rp-classif" class="rp-badge rp-badge-accent" style="margin-left:8px;">—</span>
@@ -3202,7 +3209,9 @@
     document.getElementById('rp-dyn-stamp').textContent = w.hasDyn ? fmtDate(w.dynDate) : '—';
     document.getElementById('rp-acu-stamp').textContent = w.hasAcu ? fmtDate(w.acuDate) : '—';
 
-    // Nivel panel: grey out si no hay datos de nivel
+    // Paneles inactivos: grey out si no hay datos
+    const dinaPanel = document.querySelector('.rp-panel-dina');
+    if(dinaPanel) dinaPanel.classList.toggle('dina-inactive', !w.hasDyn);
     const nivelPanel = document.querySelector('.rp-panel-nivel');
     if(nivelPanel) nivelPanel.classList.toggle('nivel-inactive', !w.hasAcu);
 
