@@ -1712,6 +1712,10 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Guardar en la base de datos
         </button>
+        <button class="details-btn" id="uploadClearBtn" type="button" style="margin-top:12px; margin-left:8px; border-color:#888; color:#aaa;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6h12z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Limpiar
+        </button>
 
         <div id="uploadPreviewArea" class="upload-preview"></div>
         </div>
@@ -7492,6 +7496,18 @@
           console.error('Error guardando en Supabase:', e);
           previewArea.innerHTML = `<div class="up-block"><p class="up-warn">Error al guardar: ${e.message || e}</p></div>`;
         }
+      });
+    }
+
+    // Botón Limpiar: resetear inputs, estado y preview
+    const clearBtn = document.getElementById('uploadClearBtn');
+    if(clearBtn){
+      clearBtn.addEventListener('click', ()=>{
+        csvInput.value = ''; csvName.textContent = 'Ningún archivo';
+        txtInput.value = ''; txtName.textContent = 'Ningún archivo';
+        const opSel = document.getElementById('uploadOperadora');
+        if(opSel) opSel.selectedIndex = 0;
+        previewArea.innerHTML = '';
       });
     }
 
