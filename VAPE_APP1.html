@@ -2782,6 +2782,9 @@
           }
           if(!entry.dt) entry.dt = t.test_date;
           entry.commentAcu = t.test_comments || null; // comentario del ensayo Eco, unicamente
+          // Deteccion de Nivel Indefinido: si el comentario del ensayo ACU mas
+          // reciente indica que no se registró nivel, se marca como indefinido.
+          entry.nivelIndefinido = isNivelIndefinido(t.test_comments);
         }
         // Para pozos Solo-Dina (sin ensayo ACU), el well_state puede haber sido
         // guardado en acu_results usando el DYN test_id como clave (via UPSERT desde
@@ -2844,7 +2847,8 @@
             nivel: a.liquid_level_tvd_m, sumerg: a.fluid_above_pump_m,
             comment: t.test_comments || null,
             sistema: classifySistema(cBlob, unitBlob, false),
-            wellState: a.well_state // "Producing" (dinamico) / "Static" (estatico), propio de ESTE ensayo de Nivel
+            wellState: a.well_state, // "Producing" (dinamico) / "Static" (estatico), propio de ESTE ensayo de Nivel
+            nivelIndefinido: isNivelIndefinido(t.test_comments)
           });
         });
         entry.history.sort((a, b) => (a.dt < b.dt ? 1 : (a.dt > b.dt ? -1 : 0)));
@@ -3163,20 +3167,31 @@
 
     // Clasificacion del ensayo: Combinada (Dina+Nivel) / Dina (sin Nivel) /
     // Nivel - Dinamico o Estatico (segun Well State del CSV, Producing/Static).
-    // El sistema de extraccion real (AIB/BES/PCP/SSE) queda pendiente: ese
-    // dato vive solo en Bitacora, no en Supabase todavia.
+    // Si el nivel fue marcado como indefinido (NRN / "no registra nivel" /
+    // "nivel indefinido"), se muestra INDEFINIDO en vez de Combinada/Nivel.
     const classifEl = document.getElementById('rp-classif');
     if(classifEl){
       const esCombinada = w.hasDyn && w.hasAcu;
-      classifEl.classList.toggle('rp-badge-combinada', esCombinada);
-      if(esCombinada) classifEl.textContent = 'Combinada';
-      else if(w.hasDyn) classifEl.textContent = 'Dina';
-      else if(w.hasAcu){
+      classifEl.classList.toggle('rp-badge-combinada', esCombinada && !w.nivelIndefinido);
+      if(w.nivelIndefinido){
+        classifEl.textContent = 'INDEFINIDO';
+        classifEl.style.color = '#e8663f'; // rust-glow para resaltar visualmente
+      } else if(esCombinada){
+        classifEl.textContent = 'Combinada';
+        classifEl.style.color = '';
+      } else if(w.hasDyn){
+        classifEl.textContent = 'Dina';
+        classifEl.style.color = '';
+      } else if(w.hasAcu){
         const estado = (w.wellState || '').toUpperCase();
         if(estado.includes('STATIC')) classifEl.textContent = 'Nivel — Estático';
         else if(estado.includes('PRODUC')) classifEl.textContent = 'Nivel — Dinámico';
         else classifEl.textContent = 'Nivel';
-      } else classifEl.textContent = 'Sin ensayos';
+        classifEl.style.color = '';
+      } else {
+        classifEl.textContent = 'Sin ensayos';
+        classifEl.style.color = '';
+      }
     }
 
     const pkrBadgeEl = document.getElementById('rp-pkr-badge');
@@ -3273,10 +3288,19 @@
     }
 
     // ---- Chips Nivel ----
-    setTxt('rp-nivel', w.nivel, ' m', 0);
-    setTxt('rp-sumerg', w.sumerg, ' m', 0);
-    setTxt('rp-sumergc', w.sumergc, ' m', 0);
-    setTxt('rp-pipacu', w.pipEco, ' kg', 1);
+    // Si el nivel fue marcado como indefinido, no se muestran valores numéricos
+    // de nivel/sumergencia/PIP — se muestra "INDEF." para evitar confusión.
+    if(w.nivelIndefinido){
+      setRaw('rp-nivel', 'INDEF.');
+      setRaw('rp-sumerg', 'INDEF.');
+      setRaw('rp-sumergc', 'INDEF.');
+      setRaw('rp-pipacu', 'INDEF.');
+    } else {
+      setTxt('rp-nivel', w.nivel, ' m', 0);
+      setTxt('rp-sumerg', w.sumerg, ' m', 0);
+      setTxt('rp-sumergc', w.sumergc, ' m', 0);
+      setTxt('rp-pipacu', w.pipEco, ' kg', 1);
+    }
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
 
@@ -4297,8 +4321,10 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState),
-            nivel: h.nivel, sumerg: h.sumerg, fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
+            condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState)),
+            nivel: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.nivel,
+            sumerg: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.sumerg,
+            fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             pkr: w.packerM != null ? w.packerM : null,
             comment: h.comment, pendiente: false, testIds: h.testId != null ? [h.testId] : [],
             commentTestId: h.testId != null ? h.testId : null,
@@ -4364,8 +4390,10 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: cnCondicionFromWellState(w.wellState),
-          nivel: w.nivel, sumerg: w.sumerg, fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
+          condicion: w.nivelIndefinido ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState),
+          nivel: w.nivelIndefinido ? null : w.nivel,
+          sumerg: w.nivelIndefinido ? null : w.sumerg,
+          fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           pkr: w.packerM != null ? w.packerM : null,
           comment: comentarioUltimo, pendiente: !w.hasDyn && !w.hasAcu,
           testIds: [w.dynTestId, w.acuTestId].filter(x => x != null),
@@ -4892,7 +4920,7 @@
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        name: n, tipoEnsayo, condicion: w.nivelIndefinido ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
@@ -4911,7 +4939,7 @@
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
           name:n, fecha:h.dt, tipoEnsayo:h.tipo,
-          condicion: isLatest ? cnCondicionFromWellState(w.wellState) : '—',
+          condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (isLatest ? cnCondicionFromWellState(w.wellState) : '—'),
           sistema: h.sistema || w.sistema || 'Sin clasificar',
           diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
           torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
@@ -5615,6 +5643,14 @@
     }).select('test_id').single();
     if(error) throw error;
     return { testId: data.test_id, isNew: true };
+  }
+
+  // ---- Deteccion de Nivel Indefinido ----
+  // Devuelve true si el comentario del ensayo ACU indica que no se registró nivel válido.
+  function isNivelIndefinido(comment){
+    if(!comment) return false;
+    const c = comment.replace(/\s+/g,' ').trim().toUpperCase();
+    return /NO\s*REGISTRA\s*NIVEL/.test(c) || /NIVEL\s*INDEFINIDO/.test(c) || /\bNRN\b/.test(c) || /NO\s*REG\.?\s*NIVEL/.test(c);
   }
 
   // ---- Sonolog: grafico interactivo (zoom/pan real sobre los datos) ----
@@ -7153,7 +7189,60 @@
     // consumidas por un TXT emparejado arriba. Cada fila es un ensayo propio
     // (aunque el pozo se repita con distinta fecha/hora, ej. "1500" x3) y
     // se guarda como test independiente para poder navegarlos en Historial.
+    //
+    // ── 2da validación (Fallback): Selección de Nivel entre duplicados ──
+    // Cuando un pozo trae MÚLTIPLES filas de Nivel (ACU) en el CSV para la
+    // misma fecha, y ninguna fue consumida por un TXT emparejado, se aplica
+    // esta lógica secundaria para elegir la fila válida:
+    //   1. Se agrupan las filas ACU restantes por pozo+fecha.
+    //   2. Si un grupo tiene >1 fila, se elige la que tenga comentario
+    //      (Test Comments) no vacío, indicando que el operador marcó ESE
+    //      registro como el ensayo correcto.
+    //   3. Las demás filas duplicadas se marcan como consumidas (se descartan).
+    //   4. Se detecta "nivel indefinido" en el comentario para marcar el ensayo.
     if(csvRows.length){
+      const pendingAcuByWellDate = {};
+      for(const row of csvRows){
+        if(consumedCsvRows.has(row)) continue;
+        const wn = (row['Well Name'] || '').trim();
+        if(!wn) continue;
+        const rawType = (findCsvColumnValue(row, 'Test Type') || '').toString().toUpperCase();
+        let isAcu = rawType.includes('ACU') || rawType.includes('SONOLOG') || rawType.includes('STATIC');
+        if(!isAcu && !rawType.includes('DYN') && !rawType.includes('DINA')){
+          const hasDynData = findCsvColumnValue(row, 'Peak Polished Rod Load (lb)');
+          const hasAcuData = findCsvColumnValue(row, 'Liquid Level - TVD (m)') || findCsvColumnValue(row, 'Distance to Liquid (m)');
+          isAcu = hasAcuData && !hasDynData;
+        }
+        if(!isAcu) continue;
+        const rd = parseCsvDate(findCsvColumnValue(row, 'Date')) || '_nodate';
+        const key = wn + '||' + rd;
+        if(!pendingAcuByWellDate[key]) pendingAcuByWellDate[key] = [];
+        pendingAcuByWellDate[key].push(row);
+      }
+      // Para cada grupo con duplicados, elegir la mejor fila y descartar las demás
+      for(const key of Object.keys(pendingAcuByWellDate)){
+        const group = pendingAcuByWellDate[key];
+        if(group.length <= 1) continue; // sin duplicados, nada que resolver
+        // Prioridad: fila con comentario no vacío y que NO sea nivel indefinido
+        const withComment = group.filter(r => {
+          const c = (findCsvColumnValue(r, 'Test Comments') || '').trim();
+          return c.length > 0 && !isNivelIndefinido(c);
+        });
+        let chosen;
+        if(withComment.length >= 1){
+          chosen = withComment[0]; // la primera con comentario válido
+        } else {
+          // Si todas son indefinidas o sin comentario, elegir la primera con comentario (aunque sea indefinido)
+          const anyComment = group.filter(r => (findCsvColumnValue(r, 'Test Comments') || '').trim().length > 0);
+          chosen = anyComment.length ? anyComment[0] : group[0];
+        }
+        // Marcar las demás como consumidas (descartarlas)
+        for(const r of group){
+          if(r !== chosen) consumedCsvRows.add(r);
+        }
+        logFn(`⚡ ${(chosen['Well Name']||'').trim()}: ${group.length} registros de Nivel para misma fecha — se eligió el registro con comentario${isNivelIndefinido(findCsvColumnValue(chosen, 'Test Comments')) ? ' (NIVEL INDEFINIDO)' : ''}, ${group.length - 1} duplicado(s) descartado(s).`);
+      }
+
       for(const row of csvRows){
         if(consumedCsvRows.has(row)) continue;
         const wellName = (row['Well Name'] || '').trim();
