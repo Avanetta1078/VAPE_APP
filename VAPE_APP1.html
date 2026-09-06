@@ -1159,6 +1159,7 @@
         <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
+          <span id="rp-nivel-indef" class="rp-badge" style="display:none; margin-left:8px; background:rgba(200,73,44,.15); color:#e8663f; border:1px solid rgba(200,73,44,.4); font-weight:700; font-size:11px; padding:3px 9px; border-radius:7px; letter-spacing:.03em;">INDEFINIDO</span>
           <span id="rp-sistema" class="rp-badge rp-badge-pending rp-sistema-badge" style="margin-left:8px;">Sistema: pendiente</span>
           <span id="rp-estado-pozo" class="rp-chip-estado" style="display:none;"></span>
           <span class="stamp" id="rp-acu-stamp">—</span>
@@ -3157,6 +3158,7 @@
       const dynImg = document.getElementById('rp-dyn-img'); if(dynImg) dynImg.style.display = 'none';
       const svgEl = document.getElementById('rp-wellsvg'); if(svgEl) svgEl.innerHTML = '';
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
+      const indefReset = document.getElementById('rp-nivel-indef'); if(indefReset) indefReset.style.display = 'none';
       setRaw('rp-dyn-comment', 'Sin pozos cargados.');
       setRaw('rp-acu-comment', 'Sin pozos cargados.');
       return;
@@ -3167,31 +3169,34 @@
 
     // Clasificacion del ensayo: Combinada (Dina+Nivel) / Dina (sin Nivel) /
     // Nivel - Dinamico o Estatico (segun Well State del CSV, Producing/Static).
-    // Si el nivel fue marcado como indefinido (NRN / "no registra nivel" /
-    // "nivel indefinido"), se muestra INDEFINIDO en vez de Combinada/Nivel.
+    // INDEFINIDO se muestra en el cuadro de Nivel (rp-nivel-indef), NO aqui.
+    // Un pozo Dina es siempre Dinámico con o sin nivel; su estado se toma del
+    // campo well_state del CSV, no de si tiene nivel asignado.
     const classifEl = document.getElementById('rp-classif');
     if(classifEl){
       const esCombinada = w.hasDyn && w.hasAcu;
-      classifEl.classList.toggle('rp-badge-combinada', esCombinada && !w.nivelIndefinido);
-      if(w.nivelIndefinido){
-        classifEl.textContent = 'INDEFINIDO';
-        classifEl.style.color = '#e8663f'; // rust-glow para resaltar visualmente
-      } else if(esCombinada){
+      classifEl.classList.toggle('rp-badge-combinada', esCombinada);
+      if(esCombinada){
         classifEl.textContent = 'Combinada';
-        classifEl.style.color = '';
       } else if(w.hasDyn){
         classifEl.textContent = 'Dina';
-        classifEl.style.color = '';
       } else if(w.hasAcu){
         const estado = (w.wellState || '').toUpperCase();
         if(estado.includes('STATIC')) classifEl.textContent = 'Nivel — Estático';
         else if(estado.includes('PRODUC')) classifEl.textContent = 'Nivel — Dinámico';
         else classifEl.textContent = 'Nivel';
-        classifEl.style.color = '';
       } else {
         classifEl.textContent = 'Sin ensayos';
-        classifEl.style.color = '';
       }
+      classifEl.style.color = '';
+    }
+
+    // Badge INDEFINIDO en el cuadro de Nivel: se muestra solo si el nivel
+    // del ensayo ACU fue marcado como indefinido (NRN / "no registra nivel").
+    // Para pozos BES sin nivel, muestra INDEFINIDO junto con BES y su estado.
+    const indefBadge = document.getElementById('rp-nivel-indef');
+    if(indefBadge){
+      indefBadge.style.display = w.nivelIndefinido ? 'inline-block' : 'none';
     }
 
     const pkrBadgeEl = document.getElementById('rp-pkr-badge');
@@ -4390,7 +4395,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: w.nivelIndefinido ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState),
+          condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState),
           nivel: w.nivelIndefinido ? null : w.nivel,
           sumerg: w.nivelIndefinido ? null : w.sumerg,
           fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
@@ -4920,7 +4925,7 @@
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: w.nivelIndefinido ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
@@ -5636,7 +5641,17 @@
     const { data: existing } = await supabaseClient
       .from('tests').select('test_id')
       .eq('well_id', wellId).eq('test_date', date).eq('test_time', time).eq('test_type', type).maybeSingle();
-    if(existing) return { testId: existing.test_id, isNew: false };
+    if(existing){
+      // Si el CSV trae comentario (ej. "ELECTRO…" para BES), se actualiza
+      // el campo test_comments del ensayo existente para que la detección
+      // de sistema funcione sin necesidad de editar manualmente.
+      if(comments){
+        await supabaseClient.from('tests')
+          .update({ test_comments: comments })
+          .eq('test_id', existing.test_id);
+      }
+      return { testId: existing.test_id, isNew: false };
+    }
     const { data, error } = await supabaseClient.from('tests').insert({
       well_id: wellId, well_config_id: wellConfigId, test_type: type,
       test_date: date, test_time: time, source_file: sourceFile, test_comments: comments || null,
@@ -7088,6 +7103,13 @@
           vals.test_id = testId;
           const { error } = await supabaseClient.from('dyn_results').upsert(vals, { onConflict: 'test_id' });
           if(error) throw error;
+          // Guardar well_state en acu_results usando el DYN test_id, para que
+          // pozos Solo-Dina tengan su estado (Dinámico/Estático) disponible.
+          const wsRaw = findCsvColumnValue(csvRow, 'Well State');
+          if(wsRaw){
+            await supabaseClient.from('acu_results')
+              .upsert({ test_id: testId, well_state: wsRaw }, { onConflict: 'test_id', ignoreDuplicates: false });
+          }
         } else {
           const { data: existingDyn } = await supabaseClient
             .from('dyn_results')
@@ -7296,6 +7318,18 @@
             const { error } = await supabaseClient.from(table).upsert(vals, { onConflict: 'test_id' });
             if(error) throw error;
             summary.tests++;
+          }
+          // Para filas DYN: guardar el well_state del CSV en acu_results usando
+          // el DYN test_id, igual que inicioSaveEdit. Asi el pozo Solo-Dina
+          // tiene su estado (Dinámico/Estático) disponible sin necesidad de
+          // edicion manual. Se hace siempre (nuevo o existente) para que una
+          // reimportación actualice el estado si cambió en el CSV.
+          if(type === 'DYN'){
+            const wsRaw = findCsvColumnValue(row, 'Well State');
+            if(wsRaw){
+              await supabaseClient.from('acu_results')
+                .upsert({ test_id: testId, well_state: wsRaw }, { onConflict: 'test_id', ignoreDuplicates: false });
+            }
           }
           summary.wells.add(wellName);
           matchedWells.add(wellName);
