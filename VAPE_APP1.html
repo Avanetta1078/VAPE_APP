@@ -5531,7 +5531,7 @@
     maximum_rod_loading_goodman_pct: 'Maximum Rod Loading % Goodman',
     rod_tubing_stretch_lb_in: 'Rod/Tubing Stretch (lb/in)',
     tubing_stretch_lb_in: 'Tubing Stretch (lb/in)',
-    dyn_tubing_pressure_kg: 'Tubing Pressure (kilo (g))',
+    dyn_tubing_pressure_kg: 'DYN Tubing Pressure (kilo (g))',
     existing_max_torque_upstroke_inlb: 'Existing Max Gearbox Torque. Upstroke (in-lb)',
     existing_max_torque_downstroke_inlb: 'Existing Max Gearbox Torque. DownStroke (in-lb)',
     existing_counterbalance_inlb: 'Existing Counterbalance (in-lb)',
@@ -5541,7 +5541,7 @@
     to_balance_move_note: 'To Balance Move',
     in_balance_max_torque_upstroke_inlb: 'In Balance Max Gearbox Torque. Upstroke (in-lb)',
     in_balance_max_torque_downstroke_inlb: 'In Balance Max Gearbox Torque. DownStroke (in-lb)',
-    dyn_casing_pressure_kg: 'Casing Pressure (kilo (g))',
+    dyn_casing_pressure_kg: 'DYN Casing Pressure (kilo (g))',
     pip_dyn_kg: 'PIP DYN (kilo (g))',
     pip_vt_kg: 'PIP VT (kilo (g))',
   };
@@ -7271,9 +7271,9 @@
 
       if(meta.type === 'DYN'){
         let dynVals = csvRow ? buildFieldValues(csvRow, DYN_FIELD_MAP, DYN_LENGTH_FIELDS) : {};
-        // Fallback: buscar cualquier columna que contenga "tubing pressure"
+        // Fallback: buscar columna "DYN Tubing Pressure"
         if(csvRow && dynVals.dyn_tubing_pressure_kg == null){
-          const tbgKey = Object.keys(csvRow).find(k => /tubing\s+pressure/i.test(k) && !/casing/i.test(k));
+          const tbgKey = Object.keys(csvRow).find(k => /dyn\s+tubing\s+pressure/i.test(k));
           if(tbgKey){
             const n = Number(csvRow[tbgKey]);
             if(!isNaN(n)) dynVals.dyn_tubing_pressure_kg = n;
@@ -7435,9 +7435,9 @@
             const map = type === 'DYN' ? DYN_FIELD_MAP : ACU_FIELD_MAP;
             const lengthFields = type === 'DYN' ? DYN_LENGTH_FIELDS : null;
             const vals = buildFieldValues(row, map, lengthFields);
-            // Fallback tubpres: buscar cualquier columna "tubing pressure"
+            // Fallback tubpres: buscar columna "DYN Tubing Pressure"
             if(type === 'DYN' && vals.dyn_tubing_pressure_kg == null){
-              const tbgKey = Object.keys(row).find(k => /tubing\s+pressure/i.test(k) && !/casing/i.test(k));
+              const tbgKey = Object.keys(row).find(k => /dyn\s+tubing\s+pressure/i.test(k));
               if(tbgKey){
                 const n = Number(row[tbgKey]);
                 if(!isNaN(n)) vals.dyn_tubing_pressure_kg = n;
