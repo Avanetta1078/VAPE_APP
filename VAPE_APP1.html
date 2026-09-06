@@ -5612,11 +5612,11 @@
   function parseCsvRows(text){
     const delim = text.split('\n')[0].includes(';') ? ';' : ',';
     const lines = text.split(/\r?\n/).filter(l => l.length);
-    const headers = lines[0].split(delim).map(h => h.replace(/^\uFEFF/,'').trim());
+    const headers = lines[0].split(delim).map(h => h.replace(/^\uFEFF/,'').replace(/^"|"$/g, '').trim());
     return lines.slice(1).map(line => {
       const cells = line.split(delim);
       const row = {};
-      headers.forEach((h, i) => { row[h] = cells[i] !== undefined ? cells[i].trim() : ''; });
+      headers.forEach((h, i) => { row[h] = cells[i] !== undefined ? cells[i].replace(/^"|"$/g, '').trim() : ''; });
       return row;
     });
   }
@@ -7271,10 +7271,13 @@
 
       if(meta.type === 'DYN'){
         let dynVals = csvRow ? buildFieldValues(csvRow, DYN_FIELD_MAP, DYN_LENGTH_FIELDS) : {};
-        // Fallback: algunos exports usan "Tubing Pressure" sin prefijo "DYN"
+        // Fallback: buscar cualquier columna que contenga "tubing pressure"
         if(csvRow && dynVals.dyn_tubing_pressure_kg == null){
-          const alt = csvVal(csvRow, 'Tubing Pressure (kilo (g))');
-          if(alt != null) dynVals.dyn_tubing_pressure_kg = alt;
+          const tbgKey = Object.keys(csvRow).find(k => /tubing\s+pressure/i.test(k) && !/casing/i.test(k));
+          if(tbgKey){
+            const n = Number(csvRow[tbgKey]);
+            if(!isNaN(n)) dynVals.dyn_tubing_pressure_kg = n;
+          }
         }
         if(csvRow){
           const vals = Object.assign({}, dynVals);
@@ -7432,10 +7435,13 @@
             const map = type === 'DYN' ? DYN_FIELD_MAP : ACU_FIELD_MAP;
             const lengthFields = type === 'DYN' ? DYN_LENGTH_FIELDS : null;
             const vals = buildFieldValues(row, map, lengthFields);
-            // Fallback tubpres: algunos exports usan "Tubing Pressure" sin "DYN"
+            // Fallback tubpres: buscar cualquier columna "tubing pressure"
             if(type === 'DYN' && vals.dyn_tubing_pressure_kg == null){
-              const alt = csvVal(row, 'Tubing Pressure (kilo (g))');
-              if(alt != null) vals.dyn_tubing_pressure_kg = alt;
+              const tbgKey = Object.keys(row).find(k => /tubing\s+pressure/i.test(k) && !/casing/i.test(k));
+              if(tbgKey){
+                const n = Number(row[tbgKey]);
+                if(!isNaN(n)) vals.dyn_tubing_pressure_kg = n;
+              }
             }
             vals.test_id = testId;
             const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
