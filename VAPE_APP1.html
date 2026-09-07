@@ -2870,7 +2870,7 @@
         const commentsBlob = `${entry.commentDyn||''} ${entry.commentAcu||''}`.toUpperCase();
         entry.besConfirmado = /\bBES\b|ELECTRO|\bHZ\b/.test(commentsBlob);
         // Detección de Nivel INDEFINIDO / NRN (case-insensitive sobre ambos comentarios)
-        entry.nivelIndefinido = /\bNRN\b|NO\s+REGISTRA\s+NIVEL|NIVEL\s+INDEFINIDO/i.test(commentsBlob);
+        entry.nivelIndefinido = /\bNRN\b|NO\s+REGISTRA\s+NIVEL|\bINDEFINIDO\b/i.test(commentsBlob);
         // Detección de Nivel CANCELADO (solo comentario Dina: "no se realiza nivel/ensayo")
         entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '') && !(entry.packerM != null && entry.packerM > 0);
         // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
@@ -8674,8 +8674,8 @@
     if(nivelTd){
       // Nivel: acepta un número (m) o la sigla "NRN"
       const w0 = WELLS_DB[tr.dataset.well];
-      const curNivel = (w0 && w0.nivelIndefinido) ? 'NRN' : (w0 && w0.nivel != null ? String(Math.round(w0.nivel)) : '');
-      nivelTd.innerHTML = `<input type="text" class="ie-input" data-orig="${curNivel}" value="${curNivel}" placeholder="m / NRN" style="width:60px;">`;
+      const curNivel = (w0 && w0.nivelIndefinido) ? 'Indefinido' : (w0 && w0.nivel != null ? String(Math.round(w0.nivel)) : '');
+      nivelTd.innerHTML = `<input type="text" class="ie-input" data-orig="${curNivel}" value="${curNivel}" placeholder="m / Indef." style="width:70px;">`;
     }
     if(wellTd){
       const cur = tr.dataset.well;
@@ -8860,7 +8860,7 @@
       }
       // ---- NIVEL / NRN (edición manual) ----
       if(nivelInput && newNivel !== nivelInput.dataset.orig){
-        const isNRN = /^\s*NRN\s*$/i.test(newNivel);
+        const isNRN = /^\s*(NRN|INDEFINIDO)\s*$/i.test(newNivel);
         // Buscar un test_id donde guardar el NRN (comentario) o el nivel
         const targetTestId = acuTestId != null ? acuTestId : (dynTestId != null ? dynTestId : null);
         if(isNRN && targetTestId != null){
@@ -8879,10 +8879,10 @@
         } else if(!isNRN && newNivel !== ''){
           // Valor numérico: no se guarda en tests (viene del CSV/acu_results), solo informativo
           // Pero si antes era NRN, limpiar la marca
-          if(nivelInput.dataset.orig === 'NRN' && targetTestId != null){
+          if(/^(NRN|Indefinido)$/i.test(nivelInput.dataset.orig) && targetTestId != null){
             const { data: testRow } = await supabaseClient.from('tests').select('test_comments').eq('test_id', targetTestId).maybeSingle();
             const oldCmt = (testRow && testRow.test_comments) || '';
-            const cleanCmt = oldCmt.replace(/\s*—?\s*\bNRN\b/gi, '').trim();
+            const cleanCmt = oldCmt.replace(/\s*—?\s*(\bNRN\b|\bnivl?\s+indefinido\b\.?)/gi, '').trim();
             if(cleanCmt !== oldCmt){
               const { error } = await supabaseClient.from('tests').update({ test_comments: cleanCmt || null }).eq('test_id', targetTestId);
               if(error) throw error;
