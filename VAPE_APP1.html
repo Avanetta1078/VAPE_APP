@@ -7103,13 +7103,6 @@
           vals.test_id = testId;
           const { error } = await supabaseClient.from('dyn_results').upsert(vals, { onConflict: 'test_id' });
           if(error) throw error;
-          // Guardar well_state en acu_results usando el DYN test_id, para que
-          // pozos Solo-Dina tengan su estado (Dinámico/Estático) disponible.
-          const wsRaw = findCsvColumnValue(csvRow, 'Well State');
-          if(wsRaw){
-            await supabaseClient.from('acu_results')
-              .upsert({ test_id: testId, well_state: wsRaw }, { onConflict: 'test_id', ignoreDuplicates: false });
-          }
         } else {
           const { data: existingDyn } = await supabaseClient
             .from('dyn_results')
@@ -7318,18 +7311,6 @@
             const { error } = await supabaseClient.from(table).upsert(vals, { onConflict: 'test_id' });
             if(error) throw error;
             summary.tests++;
-          }
-          // Para filas DYN: guardar el well_state del CSV en acu_results usando
-          // el DYN test_id, igual que inicioSaveEdit. Asi el pozo Solo-Dina
-          // tiene su estado (Dinámico/Estático) disponible sin necesidad de
-          // edicion manual. Se hace siempre (nuevo o existente) para que una
-          // reimportación actualice el estado si cambió en el CSV.
-          if(type === 'DYN'){
-            const wsRaw = findCsvColumnValue(row, 'Well State');
-            if(wsRaw){
-              await supabaseClient.from('acu_results')
-                .upsert({ test_id: testId, well_state: wsRaw }, { onConflict: 'test_id', ignoreDuplicates: false });
-            }
           }
           summary.wells.add(wellName);
           matchedWells.add(wellName);
