@@ -1677,6 +1677,9 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Guardar en la base de datos
         </button>
+        <button class="details-btn" id="uploadClearBtn" type="button" style="margin-top:12px; margin-left:8px; border-color:var(--border); color:var(--ink-dim);">
+          ✕ Limpiar
+        </button>
 
         <div id="uploadPreviewArea" class="upload-preview"></div>
         </div>
@@ -4339,7 +4342,7 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState) : cnCondicionFromWellState(w.wellState)),
+            condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState, false) : cnCondicionFromWellState(w.wellState, h.tipo === 'Dina' || w.hasDyn)),
             nivel: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.nivel,
             sumerg: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.sumerg,
             fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
@@ -4408,7 +4411,7 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState),
+          condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn),
           nivel: w.nivelIndefinido ? null : w.nivel,
           sumerg: w.nivelIndefinido ? null : w.sumerg,
           fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
@@ -4836,9 +4839,12 @@
     if(!dynDate) return null;
     return Math.floor((new Date() - new Date(dynDate + 'T00:00:00')) / 86400000);
   }
-  function cnCondicionFromWellState(wellState){
+  function cnCondicionFromWellState(wellState, hasDyn){
     if(wellState === 'Static') return 'Estático';
     if(wellState === 'Producing') return 'Dinámico';
+    // Solo-Dina sin well_state explícito: todo Dina es dinámico por definición
+    // (el pozo estaba produciendo al momento del ensayo dinamométrico).
+    if(hasDyn) return 'Dinámico';
     return '—';
   }
   function cnOpLabel(op){ return op === '>' ? 'Mayor a' : (op === '<' ? 'Menor a' : (op === '=' ? 'Igual a' : op)); }
@@ -4938,7 +4944,7 @@
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState), fecha: w.dt,
+        name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
       });
     });
@@ -4957,7 +4963,7 @@
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
           name:n, fecha:h.dt, tipoEnsayo:h.tipo,
-          condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (isLatest ? cnCondicionFromWellState(w.wellState) : '—'),
+          condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (isLatest ? cnCondicionFromWellState(w.wellState, w.hasDyn) : (h.tipo === 'Dina' ? 'Dinámico' : '—')),
           sistema: h.sistema || w.sistema || 'Sin clasificar',
           diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
           torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
@@ -7360,6 +7366,17 @@
         ? (txtInput.files.length === 1 ? txtInput.files[0].name : `${txtInput.files.length} archivos`)
         : 'Ningún archivo';
     });
+
+    const clearBtn = document.getElementById('uploadClearBtn');
+    if(clearBtn){
+      clearBtn.addEventListener('click', ()=>{
+        csvInput.value = ''; csvName.textContent = 'Ningún archivo';
+        txtInput.value = ''; txtName.textContent = 'Ningún archivo';
+        const operadoraSel = document.getElementById('uploadOperadora');
+        if(operadoraSel) operadoraSel.selectedIndex = 0;
+        previewArea.innerHTML = '';
+      });
+    }
 
     if(saveBtn){
       saveBtn.addEventListener('click', async ()=>{
