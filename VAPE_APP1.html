@@ -5544,8 +5544,9 @@
     if(isTextField) return v;
     const n = Number(v);
     // Si la columna es numérica en la base y el valor no es un número real
-    // (ej. "-1.$"), se descarta como null en vez de mandar el texto crudo.
-    return isNaN(n) ? null : n;
+    // (ej. "-1.$", fechas como "31/1/1901" en columnas numéricas, o Infinity),
+    // se descarta como null en vez de mandar el texto crudo.
+    return Number.isFinite(n) ? n : null;
   }
   const DYN_LENGTH_FIELDS = {
     computed_stroke_length_in: 'Computed Stroke Length',
@@ -5615,8 +5616,8 @@
       rows.push({
         well_config_id: wellConfigId,
         taper_number: i + 1,
-        diameter_in: diams[i] !== undefined ? Number(diams[i]) : null,
-        length_m: lens[i] !== undefined ? Number(lens[i]) : null,
+        diameter_in: diams[i] !== undefined && Number.isFinite(Number(diams[i])) ? Number(diams[i]) : null,
+        length_m: lens[i] !== undefined && Number.isFinite(Number(lens[i])) ? Number(lens[i]) : null,
         manufacturer: mfrs[i] || null,
         grade: grades[i] || null,
       });
@@ -7044,6 +7045,7 @@
     const consumedCsvRows = new Set(); // filas del CSV ya usadas por un TXT emparejado
 
     for(const f of txtFiles){
+     try{
       const meta = parseTxtFilename(f.name);
       if(!meta){
         summary.omitidos.push(`${f.name} (nombre de archivo no reconocido)`);
@@ -7211,6 +7213,9 @@
         }
       }
       logFn(`✓ ${meta.well} · ${meta.type} ${isNew ? '(nuevo, guardado)' : '(ya existía, no se duplicó)'}${csvRow ? '' : ' — sin valores calculados (no se subió CSV)'}`);
+     } catch(e){
+       summary.omitidos.push(`${f.name} (error al procesar TXT: ${e.message||e})`);
+     }
     }
 
     // Carga masiva del CSV general: procesa TODAS las filas que no fueron
