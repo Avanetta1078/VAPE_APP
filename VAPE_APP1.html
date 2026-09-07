@@ -331,8 +331,8 @@
     font-family:'IBM Plex Mono'; font-size:9px; font-weight:700; letter-spacing:.04em;
     padding:1px 5px; border-radius:4px; vertical-align:middle; line-height:1.3;}
   .badge-indef-big{display:inline-block; background:rgba(255,170,0,.22); color:#e6a700; border:1.5px solid rgba(255,170,0,.6);
-    font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.04em;
-    padding:3px 9px; border-radius:6px; margin-top:4px;}
+    font-family:'IBM Plex Mono'; font-size:9px; font-weight:700; letter-spacing:.04em;
+    padding:2px 6px; border-radius:5px; margin-top:2px; white-space:nowrap; overflow:visible;}
   /* Alerta CANCELADO (overlay flotante en panel nivel) */
   .nivel-cancelado-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     z-index:10; pointer-events:none; background:rgba(0,0,0,.12); border-radius:inherit;}
@@ -2872,7 +2872,7 @@
         // Detección de Nivel INDEFINIDO / NRN (case-insensitive sobre ambos comentarios)
         entry.nivelIndefinido = /\bNRN\b|NO\s+REGISTRA\s+NIVEL|NIVEL\s+INDEFINIDO/i.test(commentsBlob);
         // Detección de Nivel CANCELADO (solo comentario Dina: "no se realiza nivel/ensayo")
-        entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '');
+        entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '') && !(entry.packerM != null && entry.packerM > 0);
         // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
         // (ver nota en memoria: "rota"/"rotador" sueltos son un accesorio de un AIB, no un Rotaflex).
         // AIB se infiere por marca de unidad de bombeo (Lufkin/Siam/Vulcan) o, en su defecto,
@@ -3303,6 +3303,18 @@
       } else {
         estadoEl.style.display = 'none';
       }
+      // Chip INDEFINIDO al lado de Estado (si el nivel es indefinido)
+      let indefEstadoEl = document.getElementById('rp-estado-indef');
+      if(!indefEstadoEl){
+        indefEstadoEl = document.createElement('span');
+        indefEstadoEl.id = 'rp-estado-indef';
+        indefEstadoEl.className = 'badge-indef-big';
+        indefEstadoEl.style.marginLeft = '6px';
+        indefEstadoEl.textContent = 'INDEFINIDO';
+        estadoEl.parentNode.insertBefore(indefEstadoEl, estadoEl.nextSibling);
+      }
+      indefEstadoEl.style.display = w.nivelIndefinido ? 'inline-block' : 'none';
+      }
     }
 
     // Hz (BES) / RPM (PCP): se escriben a mano en el comentario del ensayo
@@ -3556,7 +3568,7 @@
     // esquema y la Profundidad de Bomba (largo total). Si falta alguno de
     // los dos datos, no se puede ubicar la linea y se omite (no se inventa).
     let levelBgSvg = '', levelLabelSvg = '';
-    if(w.nivel != null && w.pumpIntakeDepth){
+    if(w.nivel != null && w.pumpIntakeDepth && !w.nivelIndefinido){
       const frac = Math.max(0, Math.min(1, w.nivel / w.pumpIntakeDepth));
       const levelY = pipeTop + frac * pipeH;
       // El rotulo "LL:" normalmente va debajo de la linea — pero si el nivel
@@ -3581,7 +3593,7 @@
     // Nivel Corregido = Prof. de bba - Sumergencia Corregida.
     let nivelCorrLineSvg = '', nivelCorrLabelSvg = '';
     const nivelCorregido = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
-    if(nivelCorregido != null && w.pumpIntakeDepth && w.nivel != null && Math.abs(nivelCorregido - w.nivel) > 1){
+    if(nivelCorregido != null && w.pumpIntakeDepth && w.nivel != null && !w.nivelIndefinido && Math.abs(nivelCorregido - w.nivel) > 1){
       const fracCorr = Math.max(0, Math.min(1, nivelCorregido / w.pumpIntakeDepth));
       const corrY = pipeTop + fracCorr * pipeH;
       nivelCorrLineSvg = `
@@ -4040,8 +4052,8 @@
       case 'tipo': return r.tipo || '—';
       case 'condicion': return r.condicion || '—';
       case 'sistema': return r.sistema || '—';
-      case 'nivel': return r.nivel != null ? fmtN(r.nivel,0) : '—';
-      case 'sumerg': return r.sumerg != null ? fmtN(r.sumerg,0) : '—';
+      case 'nivel': { const wf = WELLS_DB[r.well]; return (wf && wf.nivelIndefinido) ? 'Indefinido' : (r.nivel != null ? fmtN(r.nivel,0) : '—'); }
+      case 'sumerg': { const wf = WELLS_DB[r.well]; return (wf && wf.nivelIndefinido) ? 'Indefinido' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—'); }
       case 'fillage': return r.fillage != null ? fmtN(r.fillage,1) : '—';
       case 'spm': return r.spm != null ? fmtN(r.spm,2) : '—';
       case 'pkr': return r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—';
@@ -4346,7 +4358,20 @@
 
   async function deleteInicioRow(rowKey){
     const testIds = inicioRowTestIdsMap[rowKey] || [];
-    if(!testIds.length) return;
+    const wellName = rowKey.split('|')[0];
+    const w = WELLS_DB[wellName];
+    // Pozo sin ensayos (pendiente): borrar directamente el registro del pozo
+    if(!testIds.length){
+      if(!w || !w.well_id) return;
+      if(!confirm(`¿Eliminar el pozo "${wellName}" (sin ensayos) de forma permanente?`)) return;
+      await supabaseClient.from('well_configurations').delete().eq('well_id', w.well_id);
+      await supabaseClient.from('wells').delete().eq('well_id', w.well_id);
+      inicioSelectedRowKeys.delete(rowKey);
+      await loadLiveDataFromSupabase();
+      populateInicioFilterOptions();
+      renderInicioGrid();
+      return;
+    }
     if(!confirm(`¿Eliminar ${testIds.length === 1 ? 'este ensayo' : 'estos ' + testIds.length + ' ensayos'} de forma permanente?`)) return;
     // Recopilar well_ids antes de borrar
     const { data: testWells } = await supabaseClient.from('tests').select('well_id').in('test_id', testIds);
@@ -4362,14 +4387,34 @@
 
   async function deleteInicioSelected(){
     const allIds = [...new Set([].concat(...[...inicioSelectedRowKeys].map(k => inicioRowTestIdsMap[k] || [])))];
-    if(!allIds.length) return;
-    if(!confirm(`¿Eliminar ${allIds.length} ensayo${allIds.length===1?'':'s'} seleccionado${allIds.length===1?'':'s'} de forma permanente?`)) return;
-    // Recopilar well_ids antes de borrar
-    const { data: testWells } = await supabaseClient.from('tests').select('well_id').in('test_id', allIds);
-    const wellIds = testWells ? testWells.map(t => t.well_id) : [];
-    const ok = await deleteTestIds(allIds);
-    if(!ok){ alert('No se pudo eliminar. Revisá la consola para más detalle.'); return; }
-    await cleanupOrphanedWells(wellIds);
+    // Recopilar pozos pendientes (sin tests) seleccionados para borrar directamente
+    const pendienteWellIds = [];
+    for(const rk of inicioSelectedRowKeys){
+      const tids = inicioRowTestIdsMap[rk] || [];
+      if(tids.length === 0){
+        const wn = rk.split('|')[0];
+        const wdb = WELLS_DB[wn];
+        if(wdb && wdb.well_id) pendienteWellIds.push(wdb.well_id);
+      }
+    }
+    if(!allIds.length && !pendienteWellIds.length) return;
+    const totalDesc = [];
+    if(allIds.length) totalDesc.push(`${allIds.length} ensayo${allIds.length===1?'':'s'}`);
+    if(pendienteWellIds.length) totalDesc.push(`${pendienteWellIds.length} pozo${pendienteWellIds.length===1?'':'s'} sin ensayos`);
+    if(!confirm(`¿Eliminar ${totalDesc.join(' y ')} de forma permanente?`)) return;
+    // Borrar ensayos
+    if(allIds.length){
+      const { data: testWells } = await supabaseClient.from('tests').select('well_id').in('test_id', allIds);
+      const wellIds = testWells ? testWells.map(t => t.well_id) : [];
+      const ok = await deleteTestIds(allIds);
+      if(!ok){ alert('No se pudo eliminar ensayos. Revisá la consola para más detalle.'); return; }
+      await cleanupOrphanedWells(wellIds);
+    }
+    // Borrar pozos pendientes (sin tests) directamente
+    for(const wid of pendienteWellIds){
+      await supabaseClient.from('well_configurations').delete().eq('well_id', wid);
+      await supabaseClient.from('wells').delete().eq('well_id', wid);
+    }
     inicioSelectedRowKeys.clear();
     await loadLiveDataFromSupabase();
     populateInicioFilterOptions();
@@ -4587,7 +4632,8 @@
         const n = r.well;
         const rowKey = `${n}|${r.dt||''}|${r.tipo||'ULT'}`;
         inicioRowTestIdsMap[rowKey] = r.testIds || [];
-        const canDelete = r.testIds && r.testIds.length > 0;
+        const w0db = WELLS_DB[n];
+        const canDelete = (r.testIds && r.testIds.length > 0) || (r.pendiente && w0db && w0db.well_id);
         const checked = inicioSelectedRowKeys.has(rowKey) ? 'checked' : '';
         const rowClass = r.pendiente ? 'row-pendiente' : '';
         const w0 = WELLS_DB[n];
@@ -4607,7 +4653,7 @@
             <button class="row-preview-btn" type="button" onclick="openQuickPreview('${n.replace(/'/g,"\\'")}')" title="Vista rápida">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
             </button>
-            ${canDelete ? `<button class="row-del-btn" type="button" onclick="deleteInicioRow('${rowKey.replace(/'/g,"\\'")}')" title="Eliminar ensayo">
+            ${canDelete ? `<button class="row-del-btn" type="button" onclick="deleteInicioRow('${rowKey.replace(/'/g,"\\'")}')" title="${r.pendiente ? 'Eliminar pozo' : 'Eliminar ensayo'}">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0-1 13a1 1 0 01-1 1H8a1 1 0 01-1-1L6 7h12z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>` : ''}
           </div></td>
@@ -4617,8 +4663,8 @@
           <td class="ie-cell" data-field="operacion">${r.operacion || '—'}</td>
           <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
-          <td class="ie-cell" data-field="nivel">${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">INDEF.</span>' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
-          <td>${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">INDEF.</span>' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—')}</td>
+          <td class="ie-cell" data-field="nivel">${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">Indefinido</span>' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
+          <td>${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">Indefinido</span>' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—')}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
           <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
@@ -5174,7 +5220,7 @@
   function cnFmtValWithBadge(def, val, row){
     if((def.key === 'nivel' || def.key === 'sumerg') && row){
       const w = WELLS_DB[row.name || row.well];
-      if(w && w.nivelIndefinido) return '<span class="badge-indef">INDEF.</span>';
+      if(w && w.nivelIndefinido) return '<span class="badge-indef">Indefinido</span>';
     }
     return cnFmtVal(def, val, row);
   }
