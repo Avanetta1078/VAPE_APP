@@ -3308,12 +3308,12 @@
       if(!indefEstadoEl){
         indefEstadoEl = document.createElement('span');
         indefEstadoEl.id = 'rp-estado-indef';
-        indefEstadoEl.className = 'badge-indef-big';
-        indefEstadoEl.style.marginLeft = '6px';
+        indefEstadoEl.className = 'rp-chip-estado';
+        indefEstadoEl.style.cssText = 'margin-left:6px; background:rgba(255,170,0,.18); color:#e6a700; border-color:rgba(255,170,0,.5);';
         indefEstadoEl.textContent = 'INDEFINIDO';
         estadoEl.parentNode.insertBefore(indefEstadoEl, estadoEl.nextSibling);
       }
-      indefEstadoEl.style.display = w.nivelIndefinido ? 'inline-block' : 'none';
+      indefEstadoEl.style.display = w.nivelIndefinido ? '' : 'none';
     }
 
     // Hz (BES) / RPM (PCP): se escriben a mano en el comentario del ensayo
