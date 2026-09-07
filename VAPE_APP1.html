@@ -3998,6 +3998,24 @@
       // 5. Etiquetar sesión en topbar
       const scopeEl = document.getElementById('userScopeTag');
       if(scopeEl) scopeEl.style.background = 'rgba(212,175,55,.15)';
+      // 6. Protección anti-copia casual (solo cliente)
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('keydown', e => {
+        // Bloquear Ctrl+U (ver fuente), Ctrl+S (guardar), Ctrl+Shift+I/J/C (DevTools), F12
+        if(e.key === 'F12') { e.preventDefault(); return; }
+        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') { e.preventDefault(); return; }
+        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); return; }
+        if((e.ctrlKey || e.metaKey) && e.shiftKey && 'ijc'.includes(e.key.toLowerCase())) { e.preventDefault(); return; }
+      });
+      // Deshabilitar arrastrar elementos (imágenes, SVGs)
+      document.addEventListener('dragstart', e => e.preventDefault());
+      // Deshabilitar selección de texto en la app (no afecta inputs)
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+      // Permitir selección dentro de inputs y textareas
+      const allowSelectStyle = document.createElement('style');
+      allowSelectStyle.textContent = 'input,textarea,select{user-select:text!important;-webkit-user-select:text!important;}';
+      document.head.appendChild(allowSelectStyle);
     } else if(role === 'admin'){
       // Admin: asegurar que todo esté visible (por si se re-aplica tras cambio de sesión)
       document.querySelectorAll('#menu button').forEach(btn => btn.style.display = '');
