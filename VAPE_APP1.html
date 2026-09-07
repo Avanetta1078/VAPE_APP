@@ -1170,7 +1170,7 @@
         <div style="margin-bottom:6px;">
           <div class="rp-chip rp-chip-hzrpm" style="display:inline-flex;"><span class="rp-lbl" id="rp-hzrpm-lbl">Hz</span><span class="rp-val" id="rp-hzrpm">—</span></div>
         </div>
-        <div class="rp-nivel-row">
+        <div class="rp-nivel-row" id="rp-nivel-row">
           <div class="rp-side-stack">
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
@@ -3159,6 +3159,7 @@
       const svgEl = document.getElementById('rp-wellsvg'); if(svgEl) svgEl.innerHTML = '';
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
       const indefReset = document.getElementById('rp-nivel-indef'); if(indefReset) indefReset.style.display = 'none';
+      const nivelRowReset = document.getElementById('rp-nivel-row'); if(nivelRowReset) nivelRowReset.hidden = false;
       setRaw('rp-dyn-comment', 'Sin pozos cargados.');
       setRaw('rp-acu-comment', 'Sin pozos cargados.');
       return;
@@ -3326,8 +3327,20 @@
     setRaw('rp-apibba', w.pumpDesignationApi);
 
     // ---- Esquema de pozo (SVG dinamico) ----
-    renderWellSchematic(w, esBes);
-    renderBuildupChart(w);
+    // Si el nivel es INDEFINIDO, se oculta toda la fila de graficos (esquema
+    // de pozo, buildup, chips y tramos) porque no hay datos validos para graficar.
+    const nivelRowEl = document.getElementById('rp-nivel-row');
+    if(nivelRowEl){
+      nivelRowEl.hidden = !!w.nivelIndefinido;
+    }
+    if(!w.nivelIndefinido){
+      renderWellSchematic(w, esBes);
+      renderBuildupChart(w);
+    } else {
+      // Limpiar SVGs para que no queden datos de un pozo anterior
+      const svgW = document.getElementById('rp-wellsvg'); if(svgW) svgW.innerHTML = '';
+      const svgB = document.getElementById('rp-buildup-svg'); if(svgB) svgB.innerHTML = '';
+    }
   }
 
   // Buildup de presion simplificado (2 puntos: inicio -> fin), a partir de
