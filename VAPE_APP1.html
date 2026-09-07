@@ -3308,12 +3308,12 @@
       if(!indefEstadoEl){
         indefEstadoEl = document.createElement('span');
         indefEstadoEl.id = 'rp-estado-indef';
-        indefEstadoEl.className = 'badge-indef-big';
-        indefEstadoEl.style.marginLeft = '6px';
+        indefEstadoEl.className = 'rp-chip-estado';
+        indefEstadoEl.style.cssText = 'margin-left:6px; background:rgba(255,170,0,.18); color:#e6a700; border-color:rgba(255,170,0,.5);';
         indefEstadoEl.textContent = 'INDEFINIDO';
         estadoEl.parentNode.insertBefore(indefEstadoEl, estadoEl.nextSibling);
       }
-      indefEstadoEl.style.display = w.nivelIndefinido ? 'inline-block' : 'none';
+      indefEstadoEl.style.display = w.nivelIndefinido ? '' : 'none';
     }
 
     // Hz (BES) / RPM (PCP): se escriben a mano en el comentario del ensayo
@@ -3375,11 +3375,10 @@
     // ---- Chips Nivel ----
     // Nivel INDEFINIDO: badge en vez de valor numérico
     if(w.nivelIndefinido){
-      const indefHtml = '<span class="badge-indef-big">INDEFINIDO</span>';
       const rpNivelEl = document.getElementById('rp-nivel');
-      if(rpNivelEl) rpNivelEl.innerHTML = indefHtml;
+      if(rpNivelEl) rpNivelEl.textContent = 'INDEFINIDO';
       const rpSumergEl = document.getElementById('rp-sumerg');
-      if(rpSumergEl) rpSumergEl.innerHTML = indefHtml;
+      if(rpSumergEl) rpSumergEl.textContent = 'INDEFINIDO';
     } else {
       setTxt('rp-nivel', w.nivel, ' m', 0);
       setTxt('rp-sumerg', w.sumerg, ' m', 0);
@@ -3388,9 +3387,9 @@
     const nivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
     if(w.nivelIndefinido){
       const rpNivcorrEl = document.getElementById('rp-nivcorr');
-      if(rpNivcorrEl) rpNivcorrEl.innerHTML = '<span class="badge-indef-big">INDEFINIDO</span>';
+      if(rpNivcorrEl) rpNivcorrEl.textContent = 'INDEFINIDO';
       const rpSumergcEl = document.getElementById('rp-sumergc');
-      if(rpSumergcEl) rpSumergcEl.innerHTML = '<span class="badge-indef-big">INDEFINIDO</span>';
+      if(rpSumergcEl) rpSumergcEl.textContent = 'INDEFINIDO';
     } else {
       setTxt('rp-nivcorr', nivelCorr, ' m', 0);
       setTxt('rp-sumergc', w.sumergc, ' m', 0);
@@ -4662,8 +4661,8 @@
           <td class="ie-cell" data-field="operacion">${r.operacion || '—'}</td>
           <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
-          <td class="ie-cell" data-field="nivel">${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">Indefinido</span>' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
-          <td>${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">Indefinido</span>' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—')}</td>
+          <td class="ie-cell" data-field="nivel">${(w0 && w0.nivelIndefinido) ? '<span style="color:#e6a700;font-weight:600;font-size:11px;">Indefinido</span>' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
+          <td>${(w0 && w0.nivelIndefinido) ? '<span style="color:#e6a700;font-weight:600;font-size:11px;">Indefinido</span>' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—')}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
           <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
@@ -5219,7 +5218,7 @@
   function cnFmtValWithBadge(def, val, row){
     if((def.key === 'nivel' || def.key === 'sumerg') && row){
       const w = WELLS_DB[row.name || row.well];
-      if(w && w.nivelIndefinido) return '<span class="badge-indef">Indefinido</span>';
+      if(w && w.nivelIndefinido) return '<span style="color:#e6a700;font-weight:600;">Indefinido</span>';
     }
     return cnFmtVal(def, val, row);
   }
