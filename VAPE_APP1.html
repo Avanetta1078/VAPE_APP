@@ -5399,7 +5399,7 @@
     maximum_rod_loading_goodman_pct: 'Maximum Rod Loading % Goodman',
     rod_tubing_stretch_lb_in: 'Rod/Tubing Stretch (lb/in)',
     tubing_stretch_lb_in: 'Tubing Stretch (lb/in)',
-    dyn_tubing_pressure_kg: 'Tubing Pressure (kilo (g))',
+    dyn_tubing_pressure_kg: 'DYN Tubing Pressure (kilo (g))',
     existing_max_torque_upstroke_inlb: 'Existing Max Gearbox Torque. Upstroke (in-lb)',
     existing_max_torque_downstroke_inlb: 'Existing Max Gearbox Torque. DownStroke (in-lb)',
     existing_counterbalance_inlb: 'Existing Counterbalance (in-lb)',
@@ -5409,7 +5409,7 @@
     to_balance_move_note: 'To Balance Move',
     in_balance_max_torque_upstroke_inlb: 'In Balance Max Gearbox Torque. Upstroke (in-lb)',
     in_balance_max_torque_downstroke_inlb: 'In Balance Max Gearbox Torque. DownStroke (in-lb)',
-    dyn_casing_pressure_kg: 'Casing Pressure (kilo (g))',
+    dyn_casing_pressure_kg: 'DYN Casing Pressure (kilo (g))',
     pip_dyn_kg: 'PIP DYN (kilo (g))',
     pip_vt_kg: 'PIP VT (kilo (g))',
   };
@@ -5494,6 +5494,10 @@
     if(row[wantedName] !== undefined) return row[wantedName];
     const target = wantedName.toLowerCase().replace(/\s+/g, ' ').trim();
     let key = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, ' ').trim() === target);
+    if(key !== undefined) return row[key];
+    // Tercer intento: columna que TERMINA con el nombre buscado (para que
+    // "Tubing Pressure (kilo (g))" matchee "DYN Tubing Pressure (kilo (g))").
+    key = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, ' ').trim().endsWith(target));
     if(key !== undefined) return row[key];
     // Ultimo recurso: cualquier encabezado que CONTENGA la palabra principal
     // (ej. busca "comment" y encuentra "Test Comments (optional)" o similar).
