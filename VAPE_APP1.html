@@ -326,6 +326,25 @@
   .rp-panel-nivel.nivel-inactive .rp-chip-hzrpm,
   .rp-panel-nivel.nivel-inactive .rp-nivel-row,
   .rp-panel-nivel.nivel-inactive .stamp{opacity:.35; filter:grayscale(1);}
+  /* Badge INDEFINIDO (nivel) */
+  .badge-indef{display:inline-block; background:rgba(255,170,0,.18); color:#e6a700; border:1px solid rgba(255,170,0,.5);
+    font-family:'IBM Plex Mono'; font-size:9px; font-weight:700; letter-spacing:.04em;
+    padding:1px 5px; border-radius:4px; vertical-align:middle; line-height:1.3;}
+  .badge-indef-big{display:inline-block; background:rgba(255,170,0,.22); color:#e6a700; border:1.5px solid rgba(255,170,0,.6);
+    font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.04em;
+    padding:3px 9px; border-radius:6px; margin-top:4px;}
+  /* Alerta CANCELADO (overlay flotante en panel nivel) */
+  .nivel-cancelado-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    z-index:10; pointer-events:none; background:rgba(0,0,0,.12); border-radius:inherit;}
+  .nivel-cancelado-overlay .cancel-msg{background:rgba(200,40,40,.92); color:#fff;
+    font-family:'IBM Plex Mono'; font-size:15px; font-weight:800; letter-spacing:.05em;
+    padding:14px 22px; border-radius:10px; text-align:center; line-height:1.4;
+    box-shadow:0 4px 24px rgba(200,40,40,.55); pointer-events:auto;
+    animation:cancelPulse 2s ease-in-out infinite;}
+  @keyframes cancelPulse{
+    0%, 100%{ transform:scale(1); box-shadow:0 4px 24px rgba(200,40,40,.55); }
+    50%{ transform:scale(1.03); box-shadow:0 6px 32px rgba(200,40,40,.7); }
+  }
   /* Badges (PKR, Sistema, Estado, clasificación) se mantienen intactos */
   .rp-pkr-badge{
     position:absolute; top:-9px; right:14px; z-index:5;
@@ -1184,6 +1203,9 @@
       </div>
 
       <div class="panel rp-panel rp-panel-nivel" style="position:relative;">
+        <div id="rp-nivel-cancelado" class="nivel-cancelado-overlay" style="display:none;">
+          <div class="cancel-msg">⚠ CANCELADO<br>REALIZAR MANTENIMIENTO</div>
+        </div>
         <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
@@ -2847,6 +2869,10 @@
         // diferencia de la sospecha "nunca tuvo Dina" que es solo un indicio.
         const commentsBlob = `${entry.commentDyn||''} ${entry.commentAcu||''}`.toUpperCase();
         entry.besConfirmado = /\bBES\b|ELECTRO|\bHZ\b/.test(commentsBlob);
+        // Detección de Nivel INDEFINIDO / NRN (case-insensitive sobre ambos comentarios)
+        entry.nivelIndefinido = /\bNRN\b|NO\s+REGISTRA\s+NIVEL|NIVEL\s+INDEFINIDO/i.test(commentsBlob);
+        // Detección de Nivel CANCELADO (solo comentario Dina: "no se realiza nivel/ensayo")
+        entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '');
         // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
         // (ver nota en memoria: "rota"/"rotador" sueltos son un accesorio de un AIB, no un Rotaflex).
         // AIB se infiere por marca de unidad de bombeo (Lufkin/Siam/Vulcan) o, en su defecto,
@@ -3336,21 +3362,41 @@
     }
 
     // ---- Chips Nivel ----
-    setTxt('rp-nivel', w.nivel, ' m', 0);
-    setTxt('rp-sumerg', w.sumerg, ' m', 0);
+    // Nivel INDEFINIDO: badge en vez de valor numérico
+    if(w.nivelIndefinido){
+      const indefHtml = '<span class="badge-indef-big">INDEFINIDO</span>';
+      const rpNivelEl = document.getElementById('rp-nivel');
+      if(rpNivelEl) rpNivelEl.innerHTML = indefHtml;
+      const rpSumergEl = document.getElementById('rp-sumerg');
+      if(rpSumergEl) rpSumergEl.innerHTML = indefHtml;
+    } else {
+      setTxt('rp-nivel', w.nivel, ' m', 0);
+      setTxt('rp-sumerg', w.sumerg, ' m', 0);
+    }
     // Nivel Corregido = Prof. de bba - Sumergencia Corregida
     const nivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
-    setTxt('rp-nivcorr', nivelCorr, ' m', 0);
+    if(w.nivelIndefinido){
+      const rpNivcorrEl = document.getElementById('rp-nivcorr');
+      if(rpNivcorrEl) rpNivcorrEl.innerHTML = '<span class="badge-indef-big">INDEFINIDO</span>';
+      const rpSumergcEl = document.getElementById('rp-sumergc');
+      if(rpSumergcEl) rpSumergcEl.innerHTML = '<span class="badge-indef-big">INDEFINIDO</span>';
+    } else {
+      setTxt('rp-nivcorr', nivelCorr, ' m', 0);
+      setTxt('rp-sumergc', w.sumergc, ' m', 0);
+    }
     const nivcorrChip = document.getElementById('rp-nivcorr-chip');
     if(nivcorrChip){
       // Alerta de pulso: si Nivel Corregido difiere del Nivel Medido
-      const diffAlert = nivelCorr != null && w.nivel != null && Math.abs(nivelCorr - w.nivel) > 1;
+      const diffAlert = !w.nivelIndefinido && nivelCorr != null && w.nivel != null && Math.abs(nivelCorr - w.nivel) > 1;
       nivcorrChip.classList.toggle('rp-chip-nivcorr-alert', diffAlert);
     }
-    setTxt('rp-sumergc', w.sumergc, ' m', 0);
     setTxt('rp-pipacu', w.pipEco, ' kg', 1);
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
+
+    // Nivel CANCELADO: overlay rojo imponente
+    const cancelOverlay = document.getElementById('rp-nivel-cancelado');
+    if(cancelOverlay) cancelOverlay.style.display = w.nivelCancelado ? 'flex' : 'none';
 
     // ---- Tabla de tramos ----
     const tramosTable = document.getElementById('rp-tramos-table');
@@ -3979,7 +4025,7 @@
   let inicioActiveRowKey = null;
   let inicioEditingRowKey = null;
   const inicioColumnFilters = {}; // colKey -> Set de valores permitidos (vacío/ausente = sin filtro)
-  const inicioSort = { col: null, dir: 'asc' };
+  const inicioSort = { col: 'dt', dir: 'desc' };
   let inicioBaseRowsForColFilters = [];
 
   // Devuelve el valor "de columna" ya formateado tal cual se ve en la celda —
@@ -4284,12 +4330,30 @@
     }
   }
 
+  // Limpia pozos huérfanos: si un well_id ya no tiene ensayos en tests,
+  // elimina sus well_configs y el registro de wells para que no "resucite".
+  async function cleanupOrphanedWells(wellIds){
+    if(!wellIds || !wellIds.length || !supabaseClient) return;
+    const uniqueIds = [...new Set(wellIds)];
+    for(const wid of uniqueIds){
+      const { data: remaining } = await supabaseClient.from('tests').select('test_id').eq('well_id', wid).limit(1);
+      if(remaining && remaining.length > 0) continue; // aún tiene ensayos
+      // Sin ensayos: borrar configs y pozo
+      await supabaseClient.from('well_configurations').delete().eq('well_id', wid);
+      await supabaseClient.from('wells').delete().eq('well_id', wid);
+    }
+  }
+
   async function deleteInicioRow(rowKey){
     const testIds = inicioRowTestIdsMap[rowKey] || [];
     if(!testIds.length) return;
     if(!confirm(`¿Eliminar ${testIds.length === 1 ? 'este ensayo' : 'estos ' + testIds.length + ' ensayos'} de forma permanente?`)) return;
+    // Recopilar well_ids antes de borrar
+    const { data: testWells } = await supabaseClient.from('tests').select('well_id').in('test_id', testIds);
+    const wellIds = testWells ? testWells.map(t => t.well_id) : [];
     const ok = await deleteTestIds(testIds);
     if(!ok){ alert('No se pudo eliminar. Revisá la consola para más detalle.'); return; }
+    await cleanupOrphanedWells(wellIds);
     inicioSelectedRowKeys.delete(rowKey);
     await loadLiveDataFromSupabase();
     populateInicioFilterOptions();
@@ -4300,8 +4364,12 @@
     const allIds = [...new Set([].concat(...[...inicioSelectedRowKeys].map(k => inicioRowTestIdsMap[k] || [])))];
     if(!allIds.length) return;
     if(!confirm(`¿Eliminar ${allIds.length} ensayo${allIds.length===1?'':'s'} seleccionado${allIds.length===1?'':'s'} de forma permanente?`)) return;
+    // Recopilar well_ids antes de borrar
+    const { data: testWells } = await supabaseClient.from('tests').select('well_id').in('test_id', allIds);
+    const wellIds = testWells ? testWells.map(t => t.well_id) : [];
     const ok = await deleteTestIds(allIds);
     if(!ok){ alert('No se pudo eliminar. Revisá la consola para más detalle.'); return; }
+    await cleanupOrphanedWells(wellIds);
     inicioSelectedRowKeys.clear();
     await loadLiveDataFromSupabase();
     populateInicioFilterOptions();
@@ -4478,11 +4546,17 @@
     if(inicioSort.col){
       const col = inicioSort.col, dir = inicioSort.dir;
       rows = rows.slice().sort((a,b) => {
-        const av = inicioColValue(a, col), bv = inicioColValue(b, col);
-        const an = Number(av), bn = Number(bv);
         let c;
-        if(!isNaN(an) && !isNaN(bn) && av !== '—' && bv !== '—') c = an - bn;
-        else c = String(av).localeCompare(String(bv), 'es');
+        if(col === 'dt'){
+          // Fecha: ordenar por valor ISO (yyyy-mm-dd) para que el orden sea cronológico
+          const ad = a.dt || '', bd = b.dt || '';
+          c = ad < bd ? -1 : ad > bd ? 1 : 0;
+        } else {
+          const av = inicioColValue(a, col), bv = inicioColValue(b, col);
+          const an = Number(av), bn = Number(bv);
+          if(!isNaN(an) && !isNaN(bn) && av !== '—' && bv !== '—') c = an - bn;
+          else c = String(av).localeCompare(String(bv), 'es');
+        }
         return dir === 'asc' ? c : -c;
       });
     }
@@ -4543,8 +4617,8 @@
           <td class="ie-cell" data-field="operacion">${r.operacion || '—'}</td>
           <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
-          <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
-          <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
+          <td class="ie-cell" data-field="nivel">${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">INDEF.</span>' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
+          <td>${(w0 && w0.nivelIndefinido) ? '<span class="badge-indef">INDEF.</span>' : (r.sumerg != null ? fmtN(r.sumerg,0) : '—')}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
           <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
@@ -4822,11 +4896,12 @@
 
       // ---- Seccion 2: Nivel ----
       const frNivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+      const indef = w.nivelIndefinido ? 'INDEFINIDO' : null;
       const acuChips = [
-        ['Nivel', w.nivel != null ? fmt(w.nivel,0) + ' m' : '—'],
-        ['Sumerg.', w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—'],
-        ['Niv. corr.', frNivelCorr != null ? fmt(frNivelCorr,0) + ' m' : '—'],
-        ['Sum. corr.', w.sumergc != null ? fmt(w.sumergc,0) + ' m' : '—'],
+        ['Nivel', indef || (w.nivel != null ? fmt(w.nivel,0) + ' m' : '—')],
+        ['Sumerg.', indef || (w.sumerg != null ? fmt(w.sumerg,0) + ' m' : '—')],
+        ['Niv. corr.', indef || (frNivelCorr != null ? fmt(frNivelCorr,0) + ' m' : '—')],
+        ['Sum. corr.', indef || (w.sumergc != null ? fmt(w.sumergc,0) + ' m' : '—')],
         ['PIP Acu', w.pipEco != null ? fmt(w.pipEco,1) + ' kg' : '—'],
         ['Prof. bba', w.pumpIntakeDepth != null ? fmt(w.pumpIntakeDepth,0) + ' m' : '—'],
       ];
@@ -5087,13 +5162,21 @@
       !!cnState.commentSearch || Object.values(cnState.colFilters).some(s => s && s.size);
   }
   function cnColumns(){ return CN_BASE_KEYS.concat(cnState.extraCols); }
-  function cnFmtVal(def, val){
+  function cnFmtVal(def, val, row){
     if(val == null || val === '') return '—';
     if(def.filterType === 'numeric' && typeof val === 'number'){
       return val.toFixed(def.dec != null ? def.dec : 1) + (def.unit || '');
     }
     if(def.key === 'fecha') return fmtDate(val);
     return String(val);
+  }
+  // Wrapper que agrega badge INDEFINIDO en columnas de nivel/sumerg
+  function cnFmtValWithBadge(def, val, row){
+    if((def.key === 'nivel' || def.key === 'sumerg') && row){
+      const w = WELLS_DB[row.name || row.well];
+      if(w && w.nivelIndefinido) return '<span class="badge-indef">INDEF.</span>';
+    }
+    return cnFmtVal(def, val, row);
   }
 
   // ---- Render ----
@@ -5134,7 +5217,9 @@
   }
   function cnRenderTable(){
     const cols = cnColumns();
-    const rows = cnBuildRows().filter(cnRowMatches);
+    let rows = cnBuildRows().filter(cnRowMatches);
+    // Orden predeterminado: fecha descendente (más reciente primero)
+    rows.sort((a,b)=>{ const ad = a.fecha||'', bd = b.fecha||''; return ad < bd ? 1 : ad > bd ? -1 : 0; });
     const table = document.getElementById('cn-table');
     if(!table) return;
     const stickyIdx = { well:0, fecha:1, bateria:2, diasSinDina:3 }; // primeras 4 columnas base: fijas al hacer scroll horizontal
@@ -5152,7 +5237,7 @@
         const stickyCls = (k in stickyIdx) ? ` cn-sticky cn-sticky-${stickyIdx[k]}` : '';
         const nameCls = k === 'well' ? ' well-name' : '';
         const pkrEditable = (k === 'pkr' && currentUser && currentUser.role !== 'cliente') ? ' cn-pkr-editable' : '';
-        return `<td class="${(stickyCls+nameCls+pkrEditable).trim()}" data-col="${k}">${cnFmtVal(def, val)}</td>`;
+        return `<td class="${(stickyCls+nameCls+pkrEditable).trim()}" data-col="${k}">${cnFmtValWithBadge(def, val, r)}</td>`;
       }).join('')}</tr>`;
     }).join('')}</tbody>`;
     table.innerHTML = thead + tbody;
@@ -8538,9 +8623,16 @@
     const bateriaTd = tr.querySelector('td.ie-cell[data-field="bateria"]');
     const operacionTd = tr.querySelector('td.ie-cell[data-field="operacion"]');
     const condicionTd = tr.querySelector('td.ie-cell[data-field="condicion"]');
+    const nivelTd = tr.querySelector('td.ie-cell[data-field="nivel"]');
     const pkrTd = tr.querySelector('td.ie-cell[data-field="pkr"]');
     const commentTd = tr.querySelector('td.ie-cell[data-field="comment"]');
 
+    if(nivelTd){
+      // Nivel: acepta un número (m) o la sigla "NRN"
+      const w0 = WELLS_DB[tr.dataset.well];
+      const curNivel = (w0 && w0.nivelIndefinido) ? 'NRN' : (w0 && w0.nivel != null ? String(Math.round(w0.nivel)) : '');
+      nivelTd.innerHTML = `<input type="text" class="ie-input" data-orig="${curNivel}" value="${curNivel}" placeholder="m / NRN" style="width:60px;">`;
+    }
     if(wellTd){
       const cur = tr.dataset.well;
       wellTd.innerHTML = `<input type="text" class="ie-input" data-orig="${cur.replace(/"/g,'&quot;')}" value="${cur.replace(/"/g,'&quot;')}">`;
@@ -8645,12 +8737,14 @@
     const bateriaInput = tr.querySelector('td.ie-cell[data-field="bateria"] .ie-input');
     const operacionInput = tr.querySelector('td.ie-cell[data-field="operacion"] .ie-input');
     const condicionInput = tr.querySelector('td.ie-cell[data-field="condicion"] .ie-input');
+    const nivelInput = tr.querySelector('td.ie-cell[data-field="nivel"] .ie-input');
     const pkrInput = tr.querySelector('td.ie-cell[data-field="pkr"] .ie-input');
     const commentInput = tr.querySelector('td.ie-cell[data-field="comment"] .ie-input');
     const newWellName = wellInput ? wellInput.value.trim() : null;
     const newBateria = bateriaInput ? bateriaInput.value.trim() : null;
     const newOperacion = operacionInput ? operacionInput.value : null;
     const newCondicion = condicionInput ? condicionInput.value : null;
+    const newNivel = nivelInput ? nivelInput.value.trim() : null;
     const newPkr = pkrInput ? pkrInput.value.trim() : null;
     const newComment = commentInput ? commentInput.value.trim() : null;
     const commentTestId = tr.dataset.commentTestid ? Number(tr.dataset.commentTestid) : null;
@@ -8718,6 +8812,41 @@
           (w.history || []).forEach(h => { if(h.testId === targetDynId) h.wellState = wsValue; });
         } else {
           throw new Error('No se encontró ningún ensayo asociado a esta fila para guardar el estado.');
+        }
+      }
+      // ---- NIVEL / NRN (edición manual) ----
+      if(nivelInput && newNivel !== nivelInput.dataset.orig){
+        const isNRN = /^\s*NRN\s*$/i.test(newNivel);
+        // Buscar un test_id donde guardar el NRN (comentario) o el nivel
+        const targetTestId = acuTestId != null ? acuTestId : (dynTestId != null ? dynTestId : null);
+        if(isNRN && targetTestId != null){
+          // Agregar "NRN" al comentario del test si no lo tiene ya
+          const { data: testRow } = await supabaseClient.from('tests').select('test_comments').eq('test_id', targetTestId).maybeSingle();
+          const oldCmt = (testRow && testRow.test_comments) || '';
+          if(!/\bNRN\b/i.test(oldCmt)){
+            const newCmt = oldCmt ? oldCmt + ' — NRN' : 'NRN';
+            const { error } = await supabaseClient.from('tests').update({ test_comments: newCmt }).eq('test_id', targetTestId);
+            if(error) throw error;
+            // Actualizar cache local
+            if(acuTestId) w.commentAcu = newCmt;
+            else w.commentDyn = newCmt;
+          }
+          w.nivelIndefinido = true;
+        } else if(!isNRN && newNivel !== ''){
+          // Valor numérico: no se guarda en tests (viene del CSV/acu_results), solo informativo
+          // Pero si antes era NRN, limpiar la marca
+          if(nivelInput.dataset.orig === 'NRN' && targetTestId != null){
+            const { data: testRow } = await supabaseClient.from('tests').select('test_comments').eq('test_id', targetTestId).maybeSingle();
+            const oldCmt = (testRow && testRow.test_comments) || '';
+            const cleanCmt = oldCmt.replace(/\s*—?\s*\bNRN\b/gi, '').trim();
+            if(cleanCmt !== oldCmt){
+              const { error } = await supabaseClient.from('tests').update({ test_comments: cleanCmt || null }).eq('test_id', targetTestId);
+              if(error) throw error;
+              if(acuTestId) w.commentAcu = cleanCmt || null;
+              else w.commentDyn = cleanCmt || null;
+            }
+            w.nivelIndefinido = false;
+          }
         }
       }
       // ---- PKR (Packer) ----
