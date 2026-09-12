@@ -955,10 +955,18 @@
   .bit-grid label{display:block; font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
   .bit-input{width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Sans';}
 
-  /* ── Alerta de Comentarios (cancelación / sin nivel) ── */
-  .rp-comment-alert{display:inline-flex;align-items:center;gap:5px;background:rgba(200,73,44,.15);border:1px solid rgba(200,73,44,.45);color:#e8663f;font-size:11px;font-weight:700;padding:5px 12px;border-radius:7px;margin-bottom:8px;animation:alertPulse 1.6s ease-in-out infinite;}
-  @keyframes alertPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,73,44,.35);}50%{opacity:.7;box-shadow:0 0 8px 2px rgba(200,73,44,.25);}}
-  .rp-comment-alert svg{flex-shrink:0;}
+  /* Alerta CANCELADO (overlay flotante en panel nivel) */
+  .nivel-cancelado-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    z-index:10; pointer-events:none; background:rgba(0,0,0,.12); border-radius:inherit;}
+  .nivel-cancelado-overlay .cancel-msg{background:rgba(200,40,40,.92); color:#fff;
+    font-family:'IBM Plex Mono'; font-size:15px; font-weight:800; letter-spacing:.05em;
+    padding:14px 22px; border-radius:10px; text-align:center; line-height:1.4;
+    box-shadow:0 4px 24px rgba(200,40,40,.55); pointer-events:auto;
+    animation:cancelPulse 2s ease-in-out infinite;}
+  @keyframes cancelPulse{
+    0%, 100%{ transform:scale(1); box-shadow:0 4px 24px rgba(200,40,40,.55); }
+    50%{ transform:scale(1.03); box-shadow:0 6px 32px rgba(200,40,40,.7); }
+  }
 
   /* ── Botón editar comentario (admin) ── */
   .rp-edit-comment-btn{background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--ink-faint);opacity:.6;transition:opacity .2s,color .2s;vertical-align:middle;margin-left:6px;}
@@ -1226,6 +1234,9 @@
       </div>
 
       <div class="panel rp-panel rp-panel-nivel" style="position:relative;">
+        <div id="rp-nivel-cancelado" class="nivel-cancelado-overlay" style="display:none;">
+          <div class="cancel-msg">⚠ CANCELADO<br>REALIZAR MANTENIMIENTO</div>
+        </div>
         <span id="rp-pkr-badge" class="rp-pkr-badge" style="display:none;">PKR</span>
         <div class="panel-head">
           <h2><span class="dot2 steel"></span>Nivel</h2>
@@ -2933,6 +2944,8 @@
         // un dato CONFIRMADO (viene escrito por alguien en el campo), a
         // diferencia de la sospecha "nunca tuvo Dina" que es solo un indicio.
         const commentsBlob = `${entry.commentDyn||''} ${entry.commentAcu||''}`.toUpperCase();
+        // Detección de Nivel CANCELADO (solo comentario Dyn: "no se realiza nivel/ensayo")
+        entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '') && !(entry.packerM != null && entry.packerM > 0);
         entry.besConfirmado = /\bBES\b|ELECTRO|\bHZ\b/.test(commentsBlob);
         // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
         // (ver nota en memoria: "rota"/"rotador" sueltos son un accesorio de un AIB, no un Rotaflex).
@@ -3299,6 +3312,7 @@
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
       const indefReset = document.getElementById('rp-nivel-indef'); if(indefReset) indefReset.style.display = 'none';
       const nivelRowReset = document.getElementById('rp-nivel-row'); if(nivelRowReset) nivelRowReset.hidden = false;
+      const cancelReset = document.getElementById('rp-nivel-cancelado'); if(cancelReset) cancelReset.style.display = 'none';
       setRaw('rp-dyn-comment', 'Sin pozos cargados.');
       setRaw('rp-acu-comment', 'Sin pozos cargados.');
       return;
@@ -3451,6 +3465,9 @@
     }
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
+    // Overlay CANCELADO / REALIZAR MANTENIMIENTO (original)
+    const cancelOverlay = document.getElementById('rp-nivel-cancelado');
+    if(cancelOverlay) cancelOverlay.style.display = w.nivelCancelado ? 'flex' : 'none';
     // Alerta de comentario — evalúa AMBOS comentarios (Dyn + Acu), se muestra en panel Nivel
     checkCommentAlertNivel(w.commentDyn, w.commentAcu);
     // Botón editar (solo admin)
