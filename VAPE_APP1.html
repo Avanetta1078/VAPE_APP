@@ -953,11 +953,30 @@
   .bit-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px;}
   .bit-grid label{display:block; font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
   .bit-input{width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Sans';}
+
+  /* ── Loading Spinner Overlay ── */
+  .loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,17,23,.88);backdrop-filter:blur(6px);transition:opacity .3s;}
+  .loading-overlay.hidden{opacity:0;pointer-events:none;}
+  .loading-spinner{width:48px;height:48px;border:3px solid rgba(91,118,224,.25);border-top-color:var(--accent,#5b76e0);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-overlay .loading-text{margin-top:16px;font-size:13px;color:#eeece4;letter-spacing:.04em;font-family:'IBM Plex Sans';}
+
+  /* ── Refresh button ── */
+  .refresh-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--ink-dim);font-size:11px;font-family:'IBM Plex Sans';transition:border-color .2s,color .2s;}
+  .refresh-btn:hover{border-color:var(--accent,#5b76e0);color:var(--ink);}
+  .refresh-btn svg{transition:transform .3s;}
+  .refresh-btn.spinning svg{animation:spin .8s linear infinite;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando datos de Supabase…</div>
+</div>
 
   <div id="dashboardStage" style="display:none;">
 <div class="topbar-wrap">
@@ -998,6 +1017,10 @@
       <span class="user-scope-tag" id="dbStatusTag" title="Estado de conexión a la base de datos">DB: probando…</span>
       <span class="user-scope-tag" id="userScopeTag" title="Alcance de datos del usuario"></span>
     </div>
+    <button id="refreshDataBtn" class="refresh-btn" title="Recargar datos de Supabase">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Sync</span>
+    </button>
     <button id="themeToggle" class="theme-toggle" title="Cambiar modo claro/oscuro">
       <svg id="themeIconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="#eeece4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <svg id="themeIconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none;"><circle cx="12" cy="12" r="4.5" stroke="#e6a95c" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke="#e6a95c" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -2869,10 +2892,19 @@
       wellNames = Object.keys(WELLS_DB).sort(naturalCompare);
 
       // Trae las cartas ya guardadas en Storage (persisten aunque se cierre la sesion).
+      // Paginado para soportar >1000 archivos.
       try {
-        const { data: files, error: listErr } = await supabaseClient.storage.from('cartas').list('', { limit: 1000 });
-        if(!listErr && files){
-          const fileSet = new Set(files.map(f => f.name));
+        const PAGE_SIZE = 1000;
+        let offset = 0;
+        const fileSet = new Set();
+        while(true){
+          const { data: files, error: listErr } = await supabaseClient.storage.from('cartas').list('', { limit: PAGE_SIZE, offset: offset });
+          if(listErr || !files || files.length === 0) break;
+          files.forEach(f => fileSet.add(f.name));
+          if(files.length < PAGE_SIZE) break;
+          offset += PAGE_SIZE;
+        }
+        if(fileSet.size > 0){
           wellNames.forEach(name => {
             const safe = safePathName(name);
             ['DYN', 'ACU'].forEach(type => {
@@ -3858,6 +3890,7 @@
     applyRoleRestrictions(data.role);
 
     initWellSearch();
+    initRefreshButton();
     Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
     wellNames = [];
     renderWell();
@@ -3865,8 +3898,13 @@
     const scopeElInit = document.getElementById('userScopeTag');
     if(scopeElInit) scopeElInit.textContent = 'Cargando…';
     testSupabaseConnection();
+    // Mostrar spinner mientras carga
+    const overlay = document.getElementById('loadingOverlay');
+    if(overlay) overlay.classList.remove('hidden');
     loadLiveDataFromSupabase().then(() => {
       initScopeForUser();
+    }).finally(() => {
+      if(overlay) overlay.classList.add('hidden');
     });
   }
 
@@ -5293,6 +5331,31 @@
     closeBtn.addEventListener('click', ()=> modal.classList.remove('active'));
     modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('active'); });
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.classList.remove('active'); });
+  }
+
+  // ── Botón Refresh / Sync ──
+  function initRefreshButton(){
+    const btn = document.getElementById('refreshDataBtn');
+    if(!btn) return;
+    btn.addEventListener('click', async ()=>{
+      if(btn.classList.contains('spinning')) return; // evita doble-click
+      btn.classList.add('spinning');
+      const overlay = document.getElementById('loadingOverlay');
+      if(overlay) overlay.classList.remove('hidden');
+      try{
+        Object.keys(WELLS_DB).forEach(k => delete WELLS_DB[k]);
+        wellNames = [];
+        await loadLiveDataFromSupabase();
+        initScopeForUser();
+        renderWell();
+        if(typeof populateInicioFilterOptions === 'function'){ populateInicioFilterOptions(); renderInicioGrid(); }
+      }catch(e){
+        console.error('Error re-sincronizando datos:', e);
+      }finally{
+        btn.classList.remove('spinning');
+        if(overlay) overlay.classList.add('hidden');
+      }
+    });
   }
 
   function initThemeToggle(){
