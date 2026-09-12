@@ -920,16 +920,17 @@
     display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:10.5px; min-height:100px; text-align:center; padding:8px;}
   .qp-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
 
-  /* ---- Herramientas (Tarea 4) ---- */
-  .tools-grid{display:flex; flex-direction:column; gap:10px; max-width:560px;}
-  .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden;}
-  .tool-card h3{margin:0; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px; padding:14px 18px; cursor:pointer; user-select:none;}
+  /* ---- Herramientas (Tarea 4) — grid tipo Win11 ---- */
+  .tools-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:12px; max-width:100%;}
+  .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden; align-self:start;}
+  .tool-card h3{margin:0; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px; padding:12px 16px; cursor:pointer; user-select:none;}
   .tool-card h3:hover{background:var(--panel-2);}
+  .tool-card h3 .dot2{width:7px;height:7px;}
   .tool-card h3 .chev{margin-left:auto; display:flex; align-items:center; transition:transform .18s ease; color:var(--ink-faint);}
   .tool-card.open h3 .chev{transform:rotate(180deg);}
-  .tool-card .tool-body{max-height:0; overflow:hidden; transition:max-height .22s ease; padding:0 20px;}
-  .tool-card.open .tool-body{max-height:3000px; padding:0 20px 18px;}
-  .tool-card.open{border-color:var(--navy-glow);}
+  .tool-card .tool-body{max-height:0; overflow:hidden; transition:max-height .22s ease; padding:0 16px;}
+  .tool-card.open .tool-body{max-height:4000px; padding:0 16px 16px;}
+  .tool-card.open{border-color:var(--navy-glow); grid-column:1 / -1;}
   .tool-desc{font-size:12px; color:var(--ink-dim); line-height:1.55; margin:0 0 14px;}
   .tool-upload-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
   .tool-file-btn{
@@ -1011,6 +1012,8 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -1214,10 +1217,6 @@
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
         </div>
         <div class="rp-chart-box"><img id="rp-dyn-img" alt="Carta dinamométrica"></div>
-        <div id="rp-dyn-alert" class="rp-comment-alert" style="display:none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span id="rp-dyn-alert-text"></span>
-        </div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-dyn-comment">Sin comentarios registrados.</div>
           <button type="button" class="rp-edit-comment-btn" id="rp-edit-dyn-btn" title="Editar comentario Dyn" style="display:none;" onclick="openCommentEditor('dyn')">
@@ -1717,7 +1716,7 @@
   <!-- ===================== VIEW: HERRAMIENTAS ===================== -->
   <div class="view" id="view-herramientas">
     <div class="tools-grid">
-      <div class="tool-card open" data-tool="cargar">
+      <div class="tool-card" data-tool="cargar">
         <h3><span class="dot2 navy"></span>Cargar Datos (CSV / TXT)<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
         <p class="tool-desc">Subí el CSV general del ensayo (export Echometer) y/o los archivos TXT de Dina y Sonolog para ver una vista previa. La carga permanente a la base de datos se habilita cuando conectemos el servidor (Tarea 4, pendiente).</p>
@@ -1956,6 +1955,14 @@
           <button class="details-btn" id="partePrintBtn" type="button" style="display:none;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Imprimir
+          </button>
+          <button class="details-btn" id="parteExportPdfBtn" type="button" style="display:none; border-color:var(--rust);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.8"/></svg>
+            Exportar PDF
+          </button>
+          <button class="details-btn" id="parteExportXlsBtn" type="button" style="display:none; border-color:#2e7d32;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.8"/></svg>
+            Exportar Excel
           </button>
         </div>
 
@@ -3412,8 +3419,6 @@
     setTxt('rp-carrera', w.strokeComputed, ' in', 1);
     setTxt('rp-pipdyn', w.pipdyn, ' kg', 1);
     setRaw('rp-dyn-comment', w.commentDyn || 'Sin comentarios registrados.');
-    // Alerta de comentario Dyn
-    checkCommentAlert('dyn', w.commentDyn);
     // Botón editar (solo admin)
     const editDynBtn = document.getElementById('rp-edit-dyn-btn');
     if(editDynBtn) editDynBtn.style.display = (currentRole === 'admin' && w.hasDyn) ? 'inline-block' : 'none';
@@ -3446,8 +3451,8 @@
     }
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
-    // Alerta de comentario Acu
-    checkCommentAlert('acu', w.commentAcu);
+    // Alerta de comentario — evalúa AMBOS comentarios (Dyn + Acu), se muestra en panel Nivel
+    checkCommentAlertNivel(w.commentDyn, w.commentAcu);
     // Botón editar (solo admin)
     const editAcuBtn = document.getElementById('rp-edit-acu-btn');
     if(editAcuBtn) editAcuBtn.style.display = (currentRole === 'admin' && w.hasAcu) ? 'inline-block' : 'none';
@@ -5856,22 +5861,23 @@
 
   // ---- Deteccion de Nivel Indefinido ----
   // Devuelve true si el comentario del ensayo ACU indica que no se registró nivel válido.
-  // ===================== ALERTA DE COMENTARIOS =====================
-  // Detecta palabras clave que indican cancelación o nivel no realizado.
-  function checkCommentAlert(type, comment){
-    const alertEl = document.getElementById('rp-' + type + '-alert');
-    const textEl = document.getElementById('rp-' + type + '-alert-text');
+  // ===================== ALERTA DE COMENTARIOS (PANEL NIVEL) =====================
+  // Evalúa AMBOS comentarios (Dyn + Acu) y muestra la alerta únicamente en el
+  // panel de Nivel del Resumen Pozo, con pulso y diseño original.
+  function checkCommentAlertNivel(commentDyn, commentAcu){
+    const alertEl = document.getElementById('rp-acu-alert');
+    const textEl = document.getElementById('rp-acu-alert-text');
     if(!alertEl || !textEl) return;
-    if(!comment){ alertEl.style.display = 'none'; return; }
-    const c = comment.replace(/\s+/g,' ').trim().toUpperCase();
+    const blob = `${commentDyn||''} ${commentAcu||''}`.replace(/\s+/g,' ').trim().toUpperCase();
+    if(!blob){ alertEl.style.display = 'none'; return; }
     const alertas = [];
-    if(/NO\s*SE\s*REALIZA\s*NIVEL/.test(c)) alertas.push('No se realiza nivel');
-    if(/SE\s*CANCELA\s*NIVEL/.test(c)) alertas.push('Se cancela nivel');
-    if(/NIVEL\s*CANCELAD/.test(c)) alertas.push('Nivel cancelado');
-    if(/\bSOLO\s*DINA\b/.test(c)) alertas.push('Solo dina');
-    if(/CANCELAD/.test(c) && !alertas.length) alertas.push('Cancelada');
+    if(/NO\s*SE\s*REALIZA\s*NIVEL/.test(blob)) alertas.push('No se realiza nivel');
+    if(/SE\s*CANCELA\s*NIVEL/.test(blob)) alertas.push('Se cancela nivel');
+    if(/NIVEL\s*CANCELAD/.test(blob)) alertas.push('Nivel cancelado');
+    if(/\bSOLO\s*DINA\b/.test(blob)) alertas.push('Solo dina');
+    if(/CANCELAD/.test(blob) && !alertas.length) alertas.push('Cancelada');
     if(alertas.length){
-      textEl.textContent = alertas.join(' · ');
+      textEl.textContent = '⚠ Alerta: ' + alertas.join(' · ');
       alertEl.style.display = 'inline-flex';
     } else {
       alertEl.style.display = 'none';
@@ -5934,19 +5940,20 @@
   }
 
   // ===================== GENERAR PARTE =====================
+  let _parteData = null; // estado compartido entre generar/exportar
   (function(){
     const genBtn = document.getElementById('parteGenerateBtn');
     const printBtn = document.getElementById('partePrintBtn');
+    const pdfBtn = document.getElementById('parteExportPdfBtn');
+    const xlsBtn = document.getElementById('parteExportXlsBtn');
     const output = document.getElementById('parteOutputArea');
     if(!genBtn) return;
 
-    genBtn.addEventListener('click', () => {
+    function collectParteData(){
       const fecha = document.getElementById('parteFecha').value;
-      if(!fecha){ alert('Seleccioná una fecha para el parte.'); return; }
+      if(!fecha){ alert('Seleccioná una fecha para el parte.'); return null; }
       const opFilter = document.getElementById('parteOperadora').value;
       const numParte = document.getElementById('parteNumero').value.trim() || '0-001';
-
-      // Recolectar ensayos del día
       const rows = [];
       wellNames.forEach(name => {
         const w = WELLS_DB[name];
@@ -5956,30 +5963,19 @@
         hist.forEach(h => {
           if(h.dt !== fecha) return;
           const estado = h.wellState ? (h.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
-          rows.push({
-            well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—',
-            estado: estado, operadora: w.operadora || opFilter || '—',
-            cancelada: isCancelComment(h.comment)
-          });
+          rows.push({ well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(h.comment) });
         });
-        // Pozo con datos del último ensayo en esa fecha pero sin historial desglosado
         if(!hist.length && w.dt === fecha){
           const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
           if(op){
             const estado = w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
-            rows.push({
-              well: name, dt: fecha, tipo: op, sistema: w.sistema || '—',
-              estado: estado, operadora: w.operadora || opFilter || '—',
-              cancelada: isCancelComment(w.comment)
-            });
+            rows.push({ well: name, dt: fecha, tipo: op, sistema: w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(w.comment) });
           }
         }
       });
-
-      // Agrupar por pozo — si tiene Dina Y Nivel mismo día = Combinada
       const byWell = {};
       rows.forEach(r => {
-        if(!byWell[r.well]) byWell[r.well] = { tipos: [], sistema: r.sistema, estado: r.estado, operadora: r.operadora, cancelada: r.cancelada };
+        if(!byWell[r.well]) byWell[r.well] = { tipos:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, cancelada:r.cancelada };
         byWell[r.well].tipos.push(r.tipo);
         if(r.cancelada) byWell[r.well].cancelada = true;
       });
@@ -5990,24 +5986,21 @@
         else if(info.tipos.includes('Combinada')) ensayo = 'Combinada';
         else if(info.tipos.includes('Dina')) ensayo = 'Dina';
         else ensayo = 'Nivel';
-        return { well, ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora };
+        return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora };
       });
-
-      // Contadores
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
-      const total = parteRows.length;
-
-      // Yacimiento
-      const yacimiento = opFilter || (parteRows.length ? parteRows[0].operadora : '—');
-
-      // Fecha formateada
       const [y,m,d] = fecha.split('-');
-      const fechaFmt = `${d}/${m}/${y}`;
+      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, yacimiento: opFilter || (parteRows.length ? parteRows[0].operadora : '—'), parteRows, counts, total:parteRows.length };
+    }
 
-      // Render
+    genBtn.addEventListener('click', () => {
+      const data = collectParteData();
+      if(!data) return;
+      _parteData = data;
+      const { fechaFmt, numParte, yacimiento, parteRows, counts, total } = data;
       output.style.display = 'block';
-      printBtn.style.display = '';
+      [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
       output.innerHTML = `
         <div class="parte-header">
           <div class="parte-title-block">
@@ -6019,12 +6012,10 @@
             <div class="parte-num" contenteditable="true" title="Editable">${numParte}</div>
           </div>
         </div>
-
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px;color:var(--ink);">
           <div><strong>Fecha:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${fechaFmt}</span></div>
           <div><strong>Operadora / Yacimiento:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${yacimiento}</span></div>
         </div>
-
         <div class="parte-summary">
           <div class="parte-stat"><div class="ps-val">${counts.Combinada}</div><div class="ps-lbl">Combinada</div></div>
           <div class="parte-stat"><div class="ps-val">${counts.Dina}</div><div class="ps-lbl">Dina</div></div>
@@ -6032,13 +6023,8 @@
           <div class="parte-stat"><div class="ps-val">${counts.Cancelada}</div><div class="ps-lbl">Canceladas</div></div>
           <div class="parte-stat" style="border-color:var(--accent,#5b76e0);"><div class="ps-val" style="color:var(--accent,#5b76e0);">${total}</div><div class="ps-lbl">Total</div></div>
         </div>
-
-        <table class="parte-table">
-          <thead>
-            <tr>
-              <th>#</th><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th>
-            </tr>
-          </thead>
+        <table class="parte-table" id="parteTableResult">
+          <thead><tr><th>#</th><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
           <tbody>
             ${parteRows.map((r, i) => `<tr>
               <td>${i+1}</td>
@@ -6051,13 +6037,163 @@
             ${parteRows.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:20px;">No se encontraron ensayos para esta fecha.</td></tr>' : ''}
           </tbody>
         </table>
-
-        <div class="parte-obs" contenteditable="true" data-placeholder="Observaciones / Comentarios:">Observaciones / Comentarios:</div>
+        <div class="parte-obs" id="parteObsArea" contenteditable="true">Observaciones / Comentarios:</div>
         <div class="parte-footer">VA&PE — Servicio de Ecodinamometría · Comodoro Rivadavia — Chubut</div>
       `;
     });
 
     if(printBtn) printBtn.addEventListener('click', () => window.print());
+
+    // ---- Exportar PDF (A4 profesional con jsPDF) ----
+    if(pdfBtn) pdfBtn.addEventListener('click', () => {
+      if(!_parteData || !window.jspdf){ alert('Generá el parte primero.'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const pw = 210, ph = 297, mx = 18;
+      const cw = pw - mx*2;
+      let y = 18;
+
+      // --- Header con logo VA&PE ---
+      doc.setFillColor(14,17,22);
+      doc.rect(0,0,pw,42,  'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(238,236,228);
+      doc.text('VA&PE', mx, y+6);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(138,145,157);
+      doc.text('Servicio de Eco - Dinamometría Computarizada', mx, y+12);
+      doc.text('Comodoro Rivadavia — Chubut', mx, y+17);
+
+      // N° Parte
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(238,236,228);
+      doc.text('N° Parte', pw - mx - 30, y+4);
+      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(91,118,224);
+      doc.text(_parteData.numParte, pw - mx - 30, y+12);
+
+      y = 48;
+      // --- Título ---
+      doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(40,40,40);
+      doc.text('PARTE DINAMOMETRÍA', mx, y);
+      y += 8;
+
+      // --- Fecha y Operadora ---
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,60,60);
+      doc.text('Fecha: ' + _parteData.fechaFmt, mx, y);
+      doc.text('Operadora / Yacimiento: ' + _parteData.yacimiento, pw/2, y);
+      y += 10;
+
+      // --- Recuento (stats boxes) ---
+      const stats = [
+        { lbl:'Combinada', val:_parteData.counts.Combinada },
+        { lbl:'Dina', val:_parteData.counts.Dina },
+        { lbl:'Nivel', val:_parteData.counts.Nivel },
+        { lbl:'Canceladas', val:_parteData.counts.Cancelada },
+        { lbl:'TOTAL', val:_parteData.total }
+      ];
+      const bw = cw / 5;
+      stats.forEach((s, i) => {
+        const bx = mx + i*bw;
+        doc.setFillColor(240,240,245); doc.roundedRect(bx+1, y, bw-2, 16, 2, 2, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(i===4 ? 91 : 40, i===4 ? 118 : 40, i===4 ? 224 : 40);
+        doc.text(String(s.val), bx + bw/2, y+9, { align:'center' });
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,120,120);
+        doc.text(s.lbl, bx + bw/2, y+14, { align:'center' });
+      });
+      y += 22;
+
+      // --- Tabla de datos (leer del DOM editado) ---
+      const tableEl = document.getElementById('parteTableResult');
+      const tableData = [];
+      if(tableEl){
+        tableEl.querySelectorAll('tbody tr').forEach(tr => {
+          const cells = [];
+          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
+          if(cells.length >= 6) tableData.push(cells);
+        });
+      }
+
+      doc.autoTable({
+        startY: y,
+        margin: { left: mx, right: mx },
+        head: [['#', 'Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo']],
+        body: tableData,
+        styles: { fontSize:9, cellPadding:2.5, lineColor:[200,200,200], lineWidth:0.2 },
+        headStyles: { fillColor:[30,35,45], textColor:[238,236,228], fontStyle:'bold', fontSize:8 },
+        alternateRowStyles: { fillColor:[248,248,252] },
+        columnStyles: { 0:{ cellWidth:10, halign:'center' }, 1:{ cellWidth:24 } },
+        didDrawPage: function(data){ y = data.cursor.y; }
+      });
+
+      y = doc.lastAutoTable.finalY + 8;
+
+      // --- Observaciones ---
+      const obsEl = document.getElementById('parteObsArea');
+      const obsText = obsEl ? obsEl.textContent.trim() : '';
+      if(obsText && obsText !== 'Observaciones / Comentarios:'){
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(60,60,60);
+        doc.text('Observaciones / Comentarios:', mx, y);
+        y += 5;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        const lines = doc.splitTextToSize(obsText, cw);
+        doc.text(lines, mx, y);
+        y += lines.length * 4 + 4;
+      }
+
+      // --- Footer ---
+      doc.setFontSize(8); doc.setTextColor(140,140,140);
+      doc.text('VA&PE — Servicio de Eco - Dinamometría · Comodoro Rivadavia — Chubut', pw/2, ph-10, { align:'center' });
+
+      // Guardar
+      const fname = `Parte_${_parteData.yacimiento.replace(/\s+/g,'_')}_${_parteData.fechaFmt.replace(/\//g,'-')}_N_${_parteData.numParte}.pdf`;
+      doc.save(fname);
+    });
+
+    // ---- Exportar Excel ----
+    if(xlsBtn) xlsBtn.addEventListener('click', () => {
+      if(!_parteData || typeof XLSX === 'undefined'){ alert('Generá el parte primero.'); return; }
+      const wb = XLSX.utils.book_new();
+      // Cabecera
+      const wsData = [
+        ['', '', '', 'Servicio de Ecodinamometria', '', '', '', 'N° Parte', _parteData.numParte],
+        ['', '', '', 'PARTE DINAMOMETRIA', '', '', '', '', ''],
+        ['Fecha', '', _parteData.fechaFmt, '', '', '', '', 'Operadora |Yacimiento', ''],
+        ['', '', '', '', '', '', '', _parteData.yacimiento, ''],
+        ['', 'Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
+      ];
+      // Filas de datos (desde el DOM editado)
+      const tableEl = document.getElementById('parteTableResult');
+      const countsXls = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
+      if(tableEl){
+        tableEl.querySelectorAll('tbody tr').forEach(tr => {
+          const cells = [];
+          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
+          if(cells.length >= 6){
+            const ensayo = cells[4];
+            if(countsXls[ensayo] !== undefined) countsXls[ensayo]++;
+            // Columnas: (vacío), Fecha, Pozo, Estado, Ensayo, Tipo, (vacío), ops label (solo fila 1-4), ops count
+            wsData.push(['', cells[1], cells[2], cells[3], cells[4], cells[5], '', '', '']);
+          }
+        });
+      }
+      // Completar operaciones en filas 5-9 (índice 4-8)
+      const opsLabels = ['Combinada', 'Dina', 'Nivel', 'Canceladas', 'TOTAL'];
+      const opsVals = [countsXls.Combinada, countsXls.Dina, countsXls.Nivel, countsXls.Cancelada, _parteData.total];
+      for(let i=0; i<5; i++){
+        if(wsData[5+i]){ wsData[5+i][7] = opsLabels[i]; wsData[5+i][8] = String(opsVals[i]); }
+        else { const row = ['','','','','','','',opsLabels[i], String(opsVals[i])]; wsData.push(row); }
+      }
+      // Observaciones
+      wsData.push([]);
+      const obsEl = document.getElementById('parteObsArea');
+      wsData.push(['Observaciones / Comentarios:   ' + (obsEl ? obsEl.textContent.trim() : '')]);
+      wsData.push([]);
+      wsData.push(['', 'VA&PE - Servicio de Ecodinamometria']);
+      wsData.push(['', 'Comodoro Rivadavia - Chubut']);
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{wch:3},{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:18},{wch:10}];
+      XLSX.utils.book_append_sheet(wb, ws, _parteData.fechaFmt.replace(/\//g,'-'));
+      const fname = `Parte_${_parteData.yacimiento.replace(/\s+/g,'_')}_${_parteData.fechaFmt.replace(/\//g,'-')}_N_${_parteData.numParte}.xlsx`;
+      XLSX.writeFile(wb, fname);
+    });
   })();
 
   function isCancelComment(comment){
