@@ -954,6 +954,48 @@
   .bit-grid label{display:block; font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
   .bit-input{width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Sans';}
 
+  /* ── Alerta de Comentarios (cancelación / sin nivel) ── */
+  .rp-comment-alert{display:inline-flex;align-items:center;gap:5px;background:rgba(200,73,44,.15);border:1px solid rgba(200,73,44,.45);color:#e8663f;font-size:11px;font-weight:700;padding:5px 12px;border-radius:7px;margin-bottom:8px;animation:alertPulse 1.6s ease-in-out infinite;}
+  @keyframes alertPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,73,44,.35);}50%{opacity:.7;box-shadow:0 0 8px 2px rgba(200,73,44,.25);}}
+  .rp-comment-alert svg{flex-shrink:0;}
+
+  /* ── Botón editar comentario (admin) ── */
+  .rp-edit-comment-btn{background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--ink-faint);opacity:.6;transition:opacity .2s,color .2s;vertical-align:middle;margin-left:6px;}
+  .rp-edit-comment-btn:hover{opacity:1;color:var(--accent,#5b76e0);}
+
+  /* ── Modal edición comentario ── */
+  .comment-edit-overlay{position:fixed;inset:0;z-index:9998;background:rgba(14,17,23,.8);display:flex;align-items:center;justify-content:center;}
+  .comment-edit-modal{background:var(--panel,#1b1f27);border:1px solid var(--border);border-radius:14px;padding:24px;width:460px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+  .comment-edit-modal h3{margin:0 0 14px;font-size:14px;color:var(--ink);font-family:'IBM Plex Sans Condensed';font-weight:700;letter-spacing:.03em;}
+  .comment-edit-modal textarea{width:100%;min-height:100px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;color:var(--ink);font-family:'IBM Plex Sans';resize:vertical;box-sizing:border-box;}
+  .comment-edit-modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+  .comment-edit-modal .modal-btn{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--panel-2);color:var(--ink);transition:all .2s;}
+  .comment-edit-modal .modal-btn.primary{background:var(--accent,#5b76e0);border-color:var(--accent,#5b76e0);color:#fff;}
+  .comment-edit-modal .modal-btn.primary:hover{filter:brightness(1.15);}
+
+  /* ── Parte — estilos ── */
+  .parte-container{margin-top:14px;}
+  .parte-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:16px;flex-wrap:wrap;}
+  .parte-title-block{display:flex;flex-direction:column;gap:2px;}
+  .parte-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:18px;color:var(--ink);letter-spacing:.03em;text-transform:uppercase;}
+  .parte-subtitle{font-size:11px;color:var(--ink-faint);letter-spacing:.04em;}
+  .parte-meta{text-align:right;font-size:12px;color:var(--ink);}
+  .parte-meta .parte-num{font-family:'IBM Plex Mono';font-size:16px;font-weight:700;color:var(--accent,#5b76e0);}
+  .parte-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+  .parte-stat{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:12px 10px;text-align:center;}
+  .parte-stat .ps-val{font-family:'IBM Plex Mono';font-size:20px;font-weight:700;color:var(--ink);}
+  .parte-stat .ps-lbl{font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+  .parte-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .parte-table th{background:var(--panel-2);color:var(--ink-dim);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+  .parte-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--ink);}
+  .parte-table tr:hover td{background:rgba(91,118,224,.05);}
+  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:3px;transition:background .15s;}
+  .parte-table td[contenteditable="true"]:focus{background:rgba(91,118,224,.12);box-shadow:inset 0 0 0 1px var(--accent,#5b76e0);}
+  .parte-obs{margin-top:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;min-height:40px;font-size:12px;color:var(--ink);outline:none;}
+  .parte-obs:focus{box-shadow:inset 0 0 0 1px var(--accent,#5b76e0);}
+  .parte-footer{margin-top:16px;text-align:center;font-size:10px;color:var(--ink-faint);letter-spacing:.04em;}
+  @media print{.parte-container{break-inside:avoid;} .topbar-wrap,.menu{display:none!important;}}
+
   /* ── Loading Spinner Overlay ── */
   .loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,17,23,.88);backdrop-filter:blur(6px);transition:opacity .3s;}
   .loading-overlay.hidden{opacity:0;pointer-events:none;}
@@ -1172,8 +1214,15 @@
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
         </div>
         <div class="rp-chart-box"><img id="rp-dyn-img" alt="Carta dinamométrica"></div>
+        <div id="rp-dyn-alert" class="rp-comment-alert" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="rp-dyn-alert-text"></span>
+        </div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-dyn-comment">Sin comentarios registrados.</div>
+          <button type="button" class="rp-edit-comment-btn" id="rp-edit-dyn-btn" title="Editar comentario Dyn" style="display:none;" onclick="openCommentEditor('dyn')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
       </div>
 
@@ -1186,8 +1235,15 @@
           <span id="rp-estado-pozo" class="rp-chip-estado" style="display:none;"></span>
           <span class="stamp" id="rp-acu-stamp">—</span>
         </div>
+        <div id="rp-acu-alert" class="rp-comment-alert" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="rp-acu-alert-text"></span>
+        </div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-acu-comment">Sin comentarios registrados.</div>
+          <button type="button" class="rp-edit-comment-btn" id="rp-edit-acu-btn" title="Editar comentario Acu" style="display:none;" onclick="openCommentEditor('acu')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <div style="margin-bottom:6px;">
           <div class="rp-chip rp-chip-hzrpm" style="display:inline-flex;"><span class="rp-lbl" id="rp-hzrpm-lbl">Hz</span><span class="rp-val" id="rp-hzrpm">—</span></div>
@@ -1862,6 +1918,48 @@
             <span style="font-size:11px; color:var(--ink-dim);">Cargando…</span>
           </div>
         </div>
+        </div>
+      </div>
+
+      <!-- CARD: Generar Parte -->
+      <div class="tool-card" data-tool="parte">
+        <h3><span class="dot2 navy"></span>Generar Parte<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
+        <div class="tool-body">
+        <p class="tool-desc">Genera un parte de dinamometría a partir de los datos cargados en la grilla de Inicio. Seleccioná la fecha y operadora para generar el detalle con recuentos automáticos. Todos los campos son editables para corrección.</p>
+
+        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; margin-top:10px;">
+          <div>
+            <label>Fecha del parte</label>
+            <input type="date" id="parteFecha" class="bit-input">
+          </div>
+          <div>
+            <label>Operadora</label>
+            <select id="parteOperadora" class="bit-input">
+              <option value="">Todas</option>
+              <option value="PECOM">PECOM</option>
+              <option value="BREST">BREST</option>
+              <option value="CROWN POINT">CROWN POINT</option>
+              <option value="VISTA OIL">VISTA OIL</option>
+            </select>
+          </div>
+          <div>
+            <label>N° Parte</label>
+            <input type="text" id="parteNumero" class="bit-input" placeholder="0-001" value="">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="details-btn" id="parteGenerateBtn" type="button" style="border-color:var(--navy-glow);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Generar Parte
+          </button>
+          <button class="details-btn" id="partePrintBtn" type="button" style="display:none;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Imprimir
+          </button>
+        </div>
+
+        <div id="parteOutputArea" class="parte-container" style="display:none;"></div>
         </div>
       </div>
 
@@ -3314,6 +3412,11 @@
     setTxt('rp-carrera', w.strokeComputed, ' in', 1);
     setTxt('rp-pipdyn', w.pipdyn, ' kg', 1);
     setRaw('rp-dyn-comment', w.commentDyn || 'Sin comentarios registrados.');
+    // Alerta de comentario Dyn
+    checkCommentAlert('dyn', w.commentDyn);
+    // Botón editar (solo admin)
+    const editDynBtn = document.getElementById('rp-edit-dyn-btn');
+    if(editDynBtn) editDynBtn.style.display = (currentRole === 'admin' && w.hasDyn) ? 'inline-block' : 'none';
 
     const dynImg = document.getElementById('rp-dyn-img');
     if(dynImg){
@@ -3343,6 +3446,11 @@
     }
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
+    // Alerta de comentario Acu
+    checkCommentAlert('acu', w.commentAcu);
+    // Botón editar (solo admin)
+    const editAcuBtn = document.getElementById('rp-edit-acu-btn');
+    if(editAcuBtn) editAcuBtn.style.display = (currentRole === 'admin' && w.hasAcu) ? 'inline-block' : 'none';
 
     // ---- Tabla de tramos ----
     const tramosTable = document.getElementById('rp-tramos-table');
@@ -5748,6 +5856,216 @@
 
   // ---- Deteccion de Nivel Indefinido ----
   // Devuelve true si el comentario del ensayo ACU indica que no se registró nivel válido.
+  // ===================== ALERTA DE COMENTARIOS =====================
+  // Detecta palabras clave que indican cancelación o nivel no realizado.
+  function checkCommentAlert(type, comment){
+    const alertEl = document.getElementById('rp-' + type + '-alert');
+    const textEl = document.getElementById('rp-' + type + '-alert-text');
+    if(!alertEl || !textEl) return;
+    if(!comment){ alertEl.style.display = 'none'; return; }
+    const c = comment.replace(/\s+/g,' ').trim().toUpperCase();
+    const alertas = [];
+    if(/NO\s*SE\s*REALIZA\s*NIVEL/.test(c)) alertas.push('No se realiza nivel');
+    if(/SE\s*CANCELA\s*NIVEL/.test(c)) alertas.push('Se cancela nivel');
+    if(/NIVEL\s*CANCELAD/.test(c)) alertas.push('Nivel cancelado');
+    if(/\bSOLO\s*DINA\b/.test(c)) alertas.push('Solo dina');
+    if(/CANCELAD/.test(c) && !alertas.length) alertas.push('Cancelada');
+    if(alertas.length){
+      textEl.textContent = alertas.join(' · ');
+      alertEl.style.display = 'inline-flex';
+    } else {
+      alertEl.style.display = 'none';
+    }
+  }
+
+  // ===================== EDITOR DE COMENTARIOS (ADMIN) =====================
+  function openCommentEditor(type){
+    const w = WELLS_DB[currentWell];
+    if(!w || currentRole !== 'admin') return;
+    const testId = type === 'dyn' ? w.dynTestId : w.acuTestId;
+    const currentComment = type === 'dyn' ? (w.commentDyn || '') : (w.commentAcu || '');
+    const label = type === 'dyn' ? 'Comentario Dinamometría' : 'Comentario Nivel / Acústico';
+    if(!testId){ alert('No hay ensayo asociado para editar.'); return; }
+
+    // Crear modal
+    const overlay = document.createElement('div');
+    overlay.className = 'comment-edit-overlay';
+    overlay.innerHTML = `
+      <div class="comment-edit-modal">
+        <h3>${label} — ${currentWell}</h3>
+        <textarea id="commentEditTextarea">${currentComment.replace(/</g,'&lt;')}</textarea>
+        <div class="modal-actions">
+          <button class="modal-btn" id="commentEditCancel">Cancelar</button>
+          <button class="modal-btn primary" id="commentEditSave">Guardar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const textarea = document.getElementById('commentEditTextarea');
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+    document.getElementById('commentEditCancel').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+
+    document.getElementById('commentEditSave').onclick = async () => {
+      const newComment = textarea.value.trim() || null;
+      const saveBtn = document.getElementById('commentEditSave');
+      saveBtn.textContent = 'Guardando…'; saveBtn.disabled = true;
+      try{
+        const { error } = await supabaseClient.from('tests').update({ test_comments: newComment }).eq('test_id', testId);
+        if(error) throw error;
+        // Actualizar en memoria
+        if(type === 'dyn'){
+          w.commentDyn = newComment;
+          w.comment = newComment || w.commentAcu || null;
+        } else {
+          w.commentAcu = newComment;
+          w.comment = w.commentDyn || newComment || null;
+          w.nivelIndefinido = isNivelIndefinido(newComment);
+        }
+        renderResumenPozo();
+        overlay.remove();
+      } catch(e){
+        alert('Error al guardar: ' + (e.message || e));
+        saveBtn.textContent = 'Guardar'; saveBtn.disabled = false;
+      }
+    };
+  }
+
+  // ===================== GENERAR PARTE =====================
+  (function(){
+    const genBtn = document.getElementById('parteGenerateBtn');
+    const printBtn = document.getElementById('partePrintBtn');
+    const output = document.getElementById('parteOutputArea');
+    if(!genBtn) return;
+
+    genBtn.addEventListener('click', () => {
+      const fecha = document.getElementById('parteFecha').value;
+      if(!fecha){ alert('Seleccioná una fecha para el parte.'); return; }
+      const opFilter = document.getElementById('parteOperadora').value;
+      const numParte = document.getElementById('parteNumero').value.trim() || '0-001';
+
+      // Recolectar ensayos del día
+      const rows = [];
+      wellNames.forEach(name => {
+        const w = WELLS_DB[name];
+        if(!w) return;
+        if(opFilter && w.operadora !== opFilter) return;
+        const hist = w.history || [];
+        hist.forEach(h => {
+          if(h.dt !== fecha) return;
+          const estado = h.wellState ? (h.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
+          rows.push({
+            well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—',
+            estado: estado, operadora: w.operadora || opFilter || '—',
+            cancelada: isCancelComment(h.comment)
+          });
+        });
+        // Pozo con datos del último ensayo en esa fecha pero sin historial desglosado
+        if(!hist.length && w.dt === fecha){
+          const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
+          if(op){
+            const estado = w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
+            rows.push({
+              well: name, dt: fecha, tipo: op, sistema: w.sistema || '—',
+              estado: estado, operadora: w.operadora || opFilter || '—',
+              cancelada: isCancelComment(w.comment)
+            });
+          }
+        }
+      });
+
+      // Agrupar por pozo — si tiene Dina Y Nivel mismo día = Combinada
+      const byWell = {};
+      rows.forEach(r => {
+        if(!byWell[r.well]) byWell[r.well] = { tipos: [], sistema: r.sistema, estado: r.estado, operadora: r.operadora, cancelada: r.cancelada };
+        byWell[r.well].tipos.push(r.tipo);
+        if(r.cancelada) byWell[r.well].cancelada = true;
+      });
+      const parteRows = Object.entries(byWell).map(([well, info]) => {
+        let ensayo;
+        if(info.cancelada) ensayo = 'Cancelada';
+        else if(info.tipos.includes('Dina') && info.tipos.includes('Nivel')) ensayo = 'Combinada';
+        else if(info.tipos.includes('Combinada')) ensayo = 'Combinada';
+        else if(info.tipos.includes('Dina')) ensayo = 'Dina';
+        else ensayo = 'Nivel';
+        return { well, ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora };
+      });
+
+      // Contadores
+      const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
+      parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
+      const total = parteRows.length;
+
+      // Yacimiento
+      const yacimiento = opFilter || (parteRows.length ? parteRows[0].operadora : '—');
+
+      // Fecha formateada
+      const [y,m,d] = fecha.split('-');
+      const fechaFmt = `${d}/${m}/${y}`;
+
+      // Render
+      output.style.display = 'block';
+      printBtn.style.display = '';
+      output.innerHTML = `
+        <div class="parte-header">
+          <div class="parte-title-block">
+            <div class="parte-title">Servicio de Ecodinamometría</div>
+            <div class="parte-subtitle">PARTE DINAMOMETRÍA</div>
+          </div>
+          <div class="parte-meta">
+            <div style="font-size:10px;color:var(--ink-faint);margin-bottom:2px;">N° Parte</div>
+            <div class="parte-num" contenteditable="true" title="Editable">${numParte}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px;color:var(--ink);">
+          <div><strong>Fecha:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${fechaFmt}</span></div>
+          <div><strong>Operadora / Yacimiento:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${yacimiento}</span></div>
+        </div>
+
+        <div class="parte-summary">
+          <div class="parte-stat"><div class="ps-val">${counts.Combinada}</div><div class="ps-lbl">Combinada</div></div>
+          <div class="parte-stat"><div class="ps-val">${counts.Dina}</div><div class="ps-lbl">Dina</div></div>
+          <div class="parte-stat"><div class="ps-val">${counts.Nivel}</div><div class="ps-lbl">Nivel</div></div>
+          <div class="parte-stat"><div class="ps-val">${counts.Cancelada}</div><div class="ps-lbl">Canceladas</div></div>
+          <div class="parte-stat" style="border-color:var(--accent,#5b76e0);"><div class="ps-val" style="color:var(--accent,#5b76e0);">${total}</div><div class="ps-lbl">Total</div></div>
+        </div>
+
+        <table class="parte-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${parteRows.map((r, i) => `<tr>
+              <td>${i+1}</td>
+              <td contenteditable="true">${fechaFmt}</td>
+              <td contenteditable="true">${r.well}</td>
+              <td contenteditable="true">${r.estado}</td>
+              <td contenteditable="true">${r.ensayo}</td>
+              <td contenteditable="true">${r.sistema}</td>
+            </tr>`).join('')}
+            ${parteRows.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:20px;">No se encontraron ensayos para esta fecha.</td></tr>' : ''}
+          </tbody>
+        </table>
+
+        <div class="parte-obs" contenteditable="true" data-placeholder="Observaciones / Comentarios:">Observaciones / Comentarios:</div>
+        <div class="parte-footer">VA&PE — Servicio de Ecodinamometría · Comodoro Rivadavia — Chubut</div>
+      `;
+    });
+
+    if(printBtn) printBtn.addEventListener('click', () => window.print());
+  })();
+
+  function isCancelComment(comment){
+    if(!comment) return false;
+    const c = comment.replace(/\s+/g,' ').trim().toUpperCase();
+    return /CANCELAD/.test(c) || /NO\s*SE\s*REALIZA/.test(c) || /SE\s*CANCELA/.test(c);
+  }
+
   function isNivelIndefinido(comment){
     if(!comment) return false;
     const c = comment.replace(/\s+/g,' ').trim().toUpperCase();
