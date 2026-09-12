@@ -921,7 +921,7 @@
   .qp-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
 
   /* ---- Herramientas (Tarea 4) — grid tipo Win11 ---- */
-  .tools-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:12px; max-width:100%;}
+  .tools-grid{display:flex; flex-direction:column; gap:8px; max-width:560px;}
   .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden; align-self:start;}
   .tool-card h3{margin:0; font-family:'IBM Plex Sans Condensed'; font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); display:flex; align-items:center; gap:8px; padding:12px 16px; cursor:pointer; user-select:none;}
   .tool-card h3:hover{background:var(--panel-2);}
@@ -930,7 +930,7 @@
   .tool-card.open h3 .chev{transform:rotate(180deg);}
   .tool-card .tool-body{max-height:0; overflow:hidden; transition:max-height .22s ease; padding:0 16px;}
   .tool-card.open .tool-body{max-height:4000px; padding:0 16px 16px;}
-  .tool-card.open{border-color:var(--navy-glow); grid-column:1 / -1;}
+  .tool-card.open{border-color:var(--navy-glow);}
   .tool-desc{font-size:12px; color:var(--ink-dim); line-height:1.55; margin:0 0 14px;}
   .tool-upload-row{display:flex; align-items:center; gap:10px; margin-bottom:9px;}
   .tool-file-btn{
@@ -1245,8 +1245,7 @@
           <span id="rp-estado-pozo" class="rp-chip-estado" style="display:none;"></span>
           <span class="stamp" id="rp-acu-stamp">—</span>
         </div>
-        <div id="rp-acu-alert" class="rp-comment-alert" style="display:none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div id="rp-acu-alert" style="display:none; font-size:12px; font-weight:700; color:#d32f2f; margin-top:4px;">
           <span id="rp-acu-alert-text"></span>
         </div>
         <div class="rp-comment-box">
@@ -3472,7 +3471,7 @@
     checkCommentAlertNivel(w.commentDyn, w.commentAcu);
     // Botón editar (solo admin)
     const editAcuBtn = document.getElementById('rp-edit-acu-btn');
-    if(editAcuBtn) editAcuBtn.style.display = (currentRole === 'admin' && w.hasAcu) ? 'inline-block' : 'none';
+    if(editAcuBtn) editAcuBtn.style.display = (currentRole === 'admin' && (w.hasAcu || w.nivelCancelado)) ? 'inline-block' : 'none';
 
     // ---- Tabla de tramos ----
     const tramosTable = document.getElementById('rp-tramos-table');
@@ -5957,7 +5956,7 @@
   }
 
   // ===================== GENERAR PARTE =====================
-  let _parteData = null; // estado compartido entre generar/exportar
+  window._parteData = null; // estado compartido entre generar/exportar (global explícito)
   (function(){
     const genBtn = document.getElementById('parteGenerateBtn');
     const printBtn = document.getElementById('partePrintBtn');
@@ -6014,7 +6013,7 @@
     genBtn.addEventListener('click', () => {
       const data = collectParteData();
       if(!data) return;
-      _parteData = data;
+      window._parteData = data;
       const { fechaFmt, numParte, yacimiento, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
@@ -6063,8 +6062,10 @@
 
     // ---- Exportar PDF (A4 profesional con jsPDF) ----
     if(pdfBtn) pdfBtn.addEventListener('click', () => {
-      if(!_parteData || !window.jspdf){ alert('Generá el parte primero.'); return; }
-      const { jsPDF } = window.jspdf;
+      if(!window._parteData){ alert('Generá el parte primero.'); return; }
+      const jspdfLib = window.jspdf || window.jsPDF;
+      if(!jspdfLib){ alert('Error: la librería jsPDF no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
+      const { jsPDF } = jspdfLib;
       const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
       const pw = 210, ph = 297, mx = 18;
       const cw = pw - mx*2;
@@ -6083,7 +6084,7 @@
       doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(238,236,228);
       doc.text('N° Parte', pw - mx - 30, y+4);
       doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(91,118,224);
-      doc.text(_parteData.numParte, pw - mx - 30, y+12);
+      doc.text(window._parteData.numParte, pw - mx - 30, y+12);
 
       y = 48;
       // --- Título ---
@@ -6093,17 +6094,17 @@
 
       // --- Fecha y Operadora ---
       doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,60,60);
-      doc.text('Fecha: ' + _parteData.fechaFmt, mx, y);
-      doc.text('Operadora / Yacimiento: ' + _parteData.yacimiento, pw/2, y);
+      doc.text('Fecha: ' + window._parteData.fechaFmt, mx, y);
+      doc.text('Operadora / Yacimiento: ' + window._parteData.yacimiento, pw/2, y);
       y += 10;
 
       // --- Recuento (stats boxes) ---
       const stats = [
-        { lbl:'Combinada', val:_parteData.counts.Combinada },
-        { lbl:'Dina', val:_parteData.counts.Dina },
-        { lbl:'Nivel', val:_parteData.counts.Nivel },
-        { lbl:'Canceladas', val:_parteData.counts.Cancelada },
-        { lbl:'TOTAL', val:_parteData.total }
+        { lbl:'Combinada', val:window._parteData.counts.Combinada },
+        { lbl:'Dina', val:window._parteData.counts.Dina },
+        { lbl:'Nivel', val:window._parteData.counts.Nivel },
+        { lbl:'Canceladas', val:window._parteData.counts.Cancelada },
+        { lbl:'TOTAL', val:window._parteData.total }
       ];
       const bw = cw / 5;
       stats.forEach((s, i) => {
@@ -6159,20 +6160,21 @@
       doc.text('VA&PE — Servicio de Eco - Dinamometría · Comodoro Rivadavia — Chubut', pw/2, ph-10, { align:'center' });
 
       // Guardar
-      const fname = `Parte_${_parteData.yacimiento.replace(/\s+/g,'_')}_${_parteData.fechaFmt.replace(/\//g,'-')}_N_${_parteData.numParte}.pdf`;
+      const fname = `Parte_${window._parteData.yacimiento.replace(/\s+/g,'_')}_${window._parteData.fechaFmt.replace(/\//g,'-')}_N_${window._parteData.numParte}.pdf`;
       doc.save(fname);
     });
 
     // ---- Exportar Excel ----
     if(xlsBtn) xlsBtn.addEventListener('click', () => {
-      if(!_parteData || typeof XLSX === 'undefined'){ alert('Generá el parte primero.'); return; }
+      if(!window._parteData){ alert('Generá el parte primero.'); return; }
+      if(typeof XLSX === 'undefined'){ alert('Error: la librería XLSX no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
       const wb = XLSX.utils.book_new();
       // Cabecera
       const wsData = [
-        ['', '', '', 'Servicio de Ecodinamometria', '', '', '', 'N° Parte', _parteData.numParte],
+        ['', '', '', 'Servicio de Ecodinamometria', '', '', '', 'N° Parte', window._parteData.numParte],
         ['', '', '', 'PARTE DINAMOMETRIA', '', '', '', '', ''],
-        ['Fecha', '', _parteData.fechaFmt, '', '', '', '', 'Operadora |Yacimiento', ''],
-        ['', '', '', '', '', '', '', _parteData.yacimiento, ''],
+        ['Fecha', '', window._parteData.fechaFmt, '', '', '', '', 'Operadora |Yacimiento', ''],
+        ['', '', '', '', '', '', '', window._parteData.yacimiento, ''],
         ['', 'Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
       ];
       // Filas de datos (desde el DOM editado)
@@ -6192,7 +6194,7 @@
       }
       // Completar operaciones en filas 5-9 (índice 4-8)
       const opsLabels = ['Combinada', 'Dina', 'Nivel', 'Canceladas', 'TOTAL'];
-      const opsVals = [countsXls.Combinada, countsXls.Dina, countsXls.Nivel, countsXls.Cancelada, _parteData.total];
+      const opsVals = [countsXls.Combinada, countsXls.Dina, countsXls.Nivel, countsXls.Cancelada, window._parteData.total];
       for(let i=0; i<5; i++){
         if(wsData[5+i]){ wsData[5+i][7] = opsLabels[i]; wsData[5+i][8] = String(opsVals[i]); }
         else { const row = ['','','','','','','',opsLabels[i], String(opsVals[i])]; wsData.push(row); }
@@ -6207,8 +6209,8 @@
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       ws['!cols'] = [{wch:3},{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:18},{wch:10}];
-      XLSX.utils.book_append_sheet(wb, ws, _parteData.fechaFmt.replace(/\//g,'-'));
-      const fname = `Parte_${_parteData.yacimiento.replace(/\s+/g,'_')}_${_parteData.fechaFmt.replace(/\//g,'-')}_N_${_parteData.numParte}.xlsx`;
+      XLSX.utils.book_append_sheet(wb, ws, window._parteData.fechaFmt.replace(/\//g,'-'));
+      const fname = `Parte_${window._parteData.yacimiento.replace(/\s+/g,'_')}_${window._parteData.fechaFmt.replace(/\//g,'-')}_N_${window._parteData.numParte}.xlsx`;
       XLSX.writeFile(wb, fname);
     });
   })();
