@@ -1999,10 +1999,14 @@
         <!-- Campo fecha oculto para compatibilidad -->
         <input type="hidden" id="parteFecha" value="">
 
-        <div style="display:flex; gap:8px; margin-top:12px;">
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
           <button class="details-btn" id="parteGenerateBtn" type="button" style="border-color:var(--navy-glow);">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Generar Parte
+          </button>
+          <button class="details-btn" id="parteLimpiarBtn" type="button" style="border-color:#999;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Limpiar
           </button>
           <button class="details-btn" id="partePrintBtn" type="button" style="display:none;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -6151,9 +6155,11 @@
   }
 
   // --- Reset completo del panel de partes ---
-  function resetPartePanel() {
+  function resetPartePanel(keepCombos) {
     const numInput = document.getElementById('parteNumero');
     const numSelect = document.getElementById('parteNumeroSelect');
+    const campSel = document.getElementById('parteCampanaSelect');
+    const opSelect = document.getElementById('parteOperadora');
     const infoPanel = document.getElementById('parteCampanaInfo');
     const statusEl = document.getElementById('parteNumStatus');
     const fechaInput = document.getElementById('parteFecha');
@@ -6162,13 +6168,23 @@
     const pdfBtn = document.getElementById('parteExportPdfBtn');
     const xlsBtn = document.getElementById('parteExportXlsBtn');
     if (numInput) numInput.value = '';
-    if (numSelect) numSelect.value = '';
+    if (!keepCombos) {
+      if (numSelect) numSelect.value = '';
+      if (campSel) campSel.value = '';
+      if (opSelect) opSelect.value = '';
+    }
     if (infoPanel) infoPanel.style.display = 'none';
     if (statusEl) statusEl.textContent = '';
     if (fechaInput) fechaInput.value = '';
     if (output) { output.style.display = 'none'; output.innerHTML = ''; }
     [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
     window._parteData = null;
+  }
+
+  // Disparar generación de parte programáticamente
+  function triggerGenerarParte() {
+    const btn = document.getElementById('parteGenerateBtn');
+    if (btn) btn.click();
   }
 
   // --- Lógica principal del módulo Generar Parte ---
@@ -6182,22 +6198,57 @@
     const labelEl = document.getElementById('parteCampanaLabel');
     const pozosEl = document.getElementById('parteCampanaPozos');
     const statusEl = document.getElementById('parteNumStatus');
+    const limpiarBtn = document.getElementById('parteLimpiarBtn');
     if (!opSelect || !campSel) return;
 
-    // 1) Al cambiar OPERADORA → recargar todo y limpiar
-    opSelect.addEventListener('change', async () => {
-      resetPartePanel();
-      campSel.value = '';
-      const op = opSelect.value;
-      populateCampanaCombo(op);
-      await populateParteNumCombo(op);
+    // Flag para evitar loops de eventos
+    let _updating = false;
+
+    // ===== BOTÓN LIMPIAR =====
+    if (limpiarBtn) limpiarBtn.addEventListener('click', () => {
+      resetPartePanel(false);
+      populateCampanaCombo(opSelect.value);
+      populateParteNumCombo(opSelect.value);
     });
 
-    // 2) Al elegir un PARTE del combobox → cargar fecha correspondiente
+    // ===== 1) OPERADORA → recargar campañas + partes, limpiar output =====
+    opSelect.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
+      const op = opSelect.value;
+      // Limpiar todo menos operadora
+      if (numInput) numInput.value = '';
+      if (campSel) campSel.value = '';
+      if (numSelect) numSelect.value = '';
+      if (fechaInput) fechaInput.value = '';
+      if (infoPanel) infoPanel.style.display = 'none';
+      const output = document.getElementById('parteOutputArea');
+      if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+      const printBtn = document.getElementById('partePrintBtn');
+      const pdfBtn = document.getElementById('parteExportPdfBtn');
+      const xlsBtn = document.getElementById('parteExportXlsBtn');
+      [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
+      window._parteData = null;
+      populateCampanaCombo(op);
+      await populateParteNumCombo(op);
+      _updating = false;
+    });
+
+    // ===== 2) Nº PARTE (combo) → cargar fecha, auto-generar =====
     if (numSelect) numSelect.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
       const val = numSelect.value;
       if (!val) {
-        resetPartePanel();
+        // Reset solo output, mantener operadora y combos
+        if (numInput) numInput.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (campSel) campSel.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        _updating = false;
         return;
       }
       if (val === '__nuevo__') {
@@ -6207,9 +6258,10 @@
         if (fechaInput) fechaInput.value = '';
         if (campSel) campSel.value = '';
         if (infoPanel) infoPanel.style.display = 'block';
-        if (statusEl) { statusEl.textContent = '🆕 Nuevo — elegí la fecha'; statusEl.style.color = '#e65100'; }
+        if (statusEl) { statusEl.textContent = '🆕 Nuevo — elegí la fecha abajo'; statusEl.style.color = '#e65100'; }
         if (labelEl) labelEl.textContent = 'Parte nuevo — seleccioná fecha de campaña';
         if (pozosEl) pozosEl.textContent = '—';
+        _updating = false;
         return;
       }
       // Formato: "nro_parte|fecha"
@@ -6217,59 +6269,65 @@
       if (numInput) numInput.value = nro;
       if (fechaInput) fechaInput.value = fecha;
       if (campSel) campSel.value = fecha;
-      updateCampanaInfo(fecha, nro);
+      showCampanaInfo(fecha, nro, true); // true = existente
+      _updating = false;
+      // Auto-generar el parte completo
+      triggerGenerarParte();
     });
 
-    // 3) Al elegir CAMPAÑA (fecha) → limpiar parte anterior, buscar si existe
-    campSel.addEventListener('change', () => {
+    // ===== 3) CAMPAÑA (fecha) → buscar parte, auto-generar =====
+    campSel.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
       const fecha = campSel.value;
       if (!fecha) {
-        resetPartePanel();
+        if (numInput) numInput.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        _updating = false;
         return;
       }
-      // Limpiar parte anterior: siempre empezar fresco al cambiar fecha
-      if (numInput) numInput.value = '';
-      if (numSelect) numSelect.value = '';
       if (fechaInput) fechaInput.value = fecha;
-      // Ocultar output del parte anterior
-      const output = document.getElementById('parteOutputArea');
-      if (output) { output.style.display = 'none'; output.innerHTML = ''; }
-      const printBtn = document.getElementById('partePrintBtn');
-      const pdfBtn = document.getElementById('parteExportPdfBtn');
-      const xlsBtn = document.getElementById('parteExportXlsBtn');
-      [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
-      window._parteData = null;
-      updateCampanaInfo(fecha, null);
+
+      // Buscar parte existente en Supabase
+      const op = opSelect.value;
+      const existing = await loadParteForDate(fecha, op || null);
+      if (existing) {
+        if (numInput) numInput.value = existing.nro_parte;
+        // Sincronizar combo Nº Parte
+        if (numSelect) {
+          const optVal = existing.nro_parte + '|' + fecha;
+          const found = [...numSelect.options].some(o => o.value === optVal);
+          numSelect.value = found ? optVal : '';
+        }
+        showCampanaInfo(fecha, existing.nro_parte, true);
+      } else {
+        // Generar próximo nro
+        const next = await getNextParteNumber(fecha);
+        if (numInput) numInput.value = next;
+        if (numSelect) numSelect.value = '';
+        showCampanaInfo(fecha, next, false);
+      }
+      _updating = false;
+      // Auto-generar el parte con los pozos
+      triggerGenerarParte();
     });
 
-    async function updateCampanaInfo(fecha, forceNro) {
-      if (!fecha) return;
+    // Mostrar panel info
+    function showCampanaInfo(fecha, nro, isExisting) {
       const op = opSelect.value;
       const count = countPozosFecha(fecha, op);
       const [y, m, d] = fecha.split('-');
       if (labelEl) labelEl.textContent = `${d}/${m}/${y}` + (op ? ` — ${op}` : '');
       if (pozosEl) pozosEl.textContent = count;
       if (infoPanel) infoPanel.style.display = 'block';
-
-      // Buscar parte existente en Supabase
-      if (statusEl) statusEl.textContent = '⏳';
-      const existing = await loadParteForDate(fecha, op || null);
-      if (existing) {
-        if (numInput) numInput.value = forceNro || existing.nro_parte;
+      if (isExisting) {
         if (statusEl) { statusEl.textContent = '✅ Parte asignado'; statusEl.style.color = '#2e7d32'; }
-        if (numSelect) {
-          const optVal = existing.nro_parte + '|' + fecha;
-          if ([...numSelect.options].some(o => o.value === optVal)) numSelect.value = optVal;
-        }
       } else {
-        // No tiene parte → avisar y sugerir
-        if (forceNro) {
-          if (numInput) numInput.value = forceNro;
-        } else {
-          const next = await getNextParteNumber(fecha);
-          if (numInput) numInput.value = next;
-        }
-        if (statusEl) { statusEl.textContent = '⚠️ Sin parte asignado — Generá para guardar'; statusEl.style.color = '#e65100'; }
+        if (statusEl) { statusEl.textContent = '⚠️ Sin parte — Generá para guardar'; statusEl.style.color = '#e65100'; }
       }
     }
   })();
