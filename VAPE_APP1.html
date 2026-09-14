@@ -1950,7 +1950,38 @@
         <div class="tool-body">
         <p class="tool-desc">Genera un parte de dinamometría a partir de los datos cargados en la grilla de Inicio. Seleccioná la fecha y operadora para generar el detalle con recuentos automáticos. Todos los campos son editables para corrección.</p>
 
-        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; margin-top:10px;">
+        <!-- Buscador de campañas / partes -->
+        <div style="display:flex; align-items:center; gap:10px; margin-top:10px; margin-bottom:6px;">
+          <span style="font-size:11px; font-weight:700; color:var(--ink); letter-spacing:.3px;">BUSCAR CAMPAÑA</span>
+          <div style="flex:1; height:1px; background:var(--border);"></div>
+          <button class="details-btn" id="parteListBtn" type="button" style="font-size:10px; padding:3px 10px; border-color:#2D5F6F;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Ver historial
+          </button>
+        </div>
+        <div id="parteHistorial" style="display:none; max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; margin-bottom:10px; background:var(--bg-alt,#fafafa);">
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <thead>
+              <tr style="background:#2D5F6F; color:#fff; position:sticky; top:0;">
+                <th style="padding:5px 8px; text-align:left;">Nº Parte</th>
+                <th style="padding:5px 8px; text-align:left;">Fecha</th>
+                <th style="padding:5px 8px; text-align:left;">Operadora</th>
+                <th style="padding:5px 8px; text-align:center;">Pozos</th>
+                <th style="padding:5px 8px; text-align:center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="parteHistorialBody">
+              <tr><td colspan="5" style="text-align:center; padding:12px; color:#999;">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <span style="font-size:11px; font-weight:700; color:var(--ink); letter-spacing:.3px;">NUEVO PARTE</span>
+          <div style="flex:1; height:1px; background:var(--border);"></div>
+        </div>
+
+        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; margin-top:4px;">
           <div>
             <label>Fecha del parte</label>
             <input type="date" id="parteFecha" class="bit-input">
@@ -1967,7 +1998,7 @@
           </div>
           <div>
             <label>N° Parte</label>
-            <input type="text" id="parteNumero" class="bit-input" placeholder="0-001" value="">
+            <input type="text" id="parteNumero" class="bit-input" placeholder="Auto" value="">
           </div>
         </div>
 
@@ -6037,6 +6068,76 @@
       return null;
     }
   }
+
+  // --- Historial de partes (buscar campañas) ---
+  async function loadPartesHistorial() {
+    const tbody = document.getElementById('parteHistorialBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:#999;">Cargando…</td></tr>';
+    try {
+      const { data, error } = await supabase
+        .from('partes')
+        .select('*')
+        .order('fecha', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:#999;">No hay partes registrados aún.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(p => {
+        const [y,m,d] = p.fecha.split('-');
+        const fechaFmt = `${d}/${m}/${y}`;
+        return `<tr style="cursor:pointer;border-bottom:1px solid #eee;" class="parte-hist-row" data-fecha="${p.fecha}" data-op="${p.operadora}" data-nro="${p.nro_parte}">
+          <td style="padding:5px 8px;font-weight:600;color:#2D5F6F;">${p.nro_parte}</td>
+          <td style="padding:5px 8px;">${fechaFmt}</td>
+          <td style="padding:5px 8px;">${p.operadora}</td>
+          <td style="padding:5px 8px;text-align:center;font-weight:600;">${p.total_pozos || 0}</td>
+          <td style="padding:5px 8px;text-align:center;">
+            <button class="details-btn parte-hist-load" style="font-size:9px;padding:2px 8px;border-color:#2D5F6F;" data-fecha="${p.fecha}" data-op="${p.operadora}" data-nro="${p.nro_parte}">Cargar</button>
+          </td>
+        </tr>`;
+      }).join('');
+      // Click en "Cargar" → setear fecha, operadora y nro en el formulario y generar
+      tbody.querySelectorAll('.parte-hist-load').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fecha = btn.dataset.fecha;
+          const op = btn.dataset.op;
+          const nro = btn.dataset.nro;
+          const fechaInput = document.getElementById('parteFecha');
+          const opSelect = document.getElementById('parteOperadora');
+          const numInput = document.getElementById('parteNumero');
+          if (fechaInput) fechaInput.value = fecha;
+          if (opSelect) {
+            // Seleccionar la operadora si existe en el select, sino dejar "Todas"
+            const opOpt = [...opSelect.options].find(o => o.value === op);
+            opSelect.value = opOpt ? op : '';
+          }
+          if (numInput) numInput.value = nro;
+          // Auto-generar el parte
+          document.getElementById('parteGenerateBtn')?.click();
+          // Colapsar historial
+          const panel = document.getElementById('parteHistorial');
+          if (panel) panel.style.display = 'none';
+        });
+      });
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:12px;color:#d32f2f;">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  // Botón Ver historial
+  (function() {
+    const listBtn = document.getElementById('parteListBtn');
+    const panel = document.getElementById('parteHistorial');
+    if (!listBtn || !panel) return;
+    listBtn.addEventListener('click', () => {
+      const visible = panel.style.display !== 'none';
+      panel.style.display = visible ? 'none' : 'block';
+      if (!visible) loadPartesHistorial();
+    });
+  })();
 
   // Auto-cargar Nº Parte al cambiar fecha u operadora
   (function setupParteAutoLoad() {
