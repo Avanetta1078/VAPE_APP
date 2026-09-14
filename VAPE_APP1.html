@@ -1948,24 +1948,13 @@
       <div class="tool-card" data-tool="parte">
         <h3><span class="dot2 navy"></span>Generar Parte<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-        <p class="tool-desc">Seleccioná una campaña del combobox para cargar los pozos medidos y asignar el Nº de Parte. El parte se guarda automáticamente en la base de datos.</p>
+        <p class="tool-desc">Seleccioná operadora, campaña y asigná el Nº de Parte. Al generar se guarda automáticamente en la base de datos.</p>
 
-        <!-- Combobox de campañas realizadas -->
-        <div style="display:flex; align-items:center; gap:10px; margin-top:10px; margin-bottom:6px;">
-          <span style="font-size:11px; font-weight:700; color:#2D5F6F; letter-spacing:.3px;">📋 CAMPAÑA</span>
-          <div style="flex:1; height:1px; background:var(--border);"></div>
-        </div>
-
-        <div class="bit-grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
-          <div>
-            <label style="font-size:11px;">Campaña (fecha)</label>
-            <select id="parteCampanaSelect" class="bit-input" style="font-weight:600;">
-              <option value="">— Seleccionar campaña —</option>
-            </select>
-          </div>
+        <!-- Fila: Operadora + Nº Parte (combobox) + Campaña (fecha) -->
+        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
           <div>
             <label style="font-size:11px;">Operadora</label>
-            <select id="parteOperadora" class="bit-input">
+            <select id="parteOperadora" class="bit-input" style="font-weight:600;">
               <option value="">Todas</option>
               <option value="PECOM">PECOM</option>
               <option value="BREST">BREST</option>
@@ -1973,13 +1962,26 @@
               <option value="VISTA OIL">VISTA OIL</option>
             </select>
           </div>
+          <div>
+            <label style="font-size:11px;">Nº Parte</label>
+            <select id="parteNumeroSelect" class="bit-input" style="font-weight:700; color:#2D5F6F;">
+              <option value="">— Elegir o crear —</option>
+              <option value="__nuevo__">➕ Nuevo parte…</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;">Campaña (fecha)</label>
+            <select id="parteCampanaSelect" class="bit-input" style="font-weight:600;">
+              <option value="">— Seleccionar fecha —</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Info de campaña seleccionada + asignación de parte -->
-        <div id="parteCampanaInfo" style="display:none; background:linear-gradient(135deg,#f0f7f8,#e8f0f1); border:1px solid #c5dade; border-radius:8px; padding:10px 14px; margin-bottom:10px;">
+        <!-- Panel de info + edición de Nº Parte -->
+        <div id="parteCampanaInfo" style="display:none; background:linear-gradient(135deg,#f0f7f8,#e8f0f1); border:1px solid #c5dade; border-radius:8px; padding:10px 14px; margin-top:8px; margin-bottom:10px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <div>
-              <span style="font-size:10px; color:#666; text-transform:uppercase; letter-spacing:.4px;">Campaña seleccionada</span>
+              <span style="font-size:10px; color:#666; text-transform:uppercase; letter-spacing:.4px;">Campaña</span>
               <div style="font-size:13px; font-weight:700; color:#2D5F6F;" id="parteCampanaLabel">—</div>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
@@ -1988,7 +1990,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
               <label style="font-size:10px; color:#666; white-space:nowrap;">Nº Parte</label>
-              <input type="text" id="parteNumero" class="bit-input" placeholder="Auto" value="" style="width:110px; font-weight:700; text-align:center; border-color:#2D5F6F;">
+              <input type="text" id="parteNumero" class="bit-input" placeholder="Ej: 2026-0001" value="" style="width:120px; font-weight:700; text-align:center; border-color:#2D5F6F;">
               <span id="parteNumStatus" style="font-size:9px; color:#2D5F6F; white-space:nowrap;"></span>
             </div>
           </div>
@@ -1996,32 +1998,6 @@
 
         <!-- Campo fecha oculto para compatibilidad -->
         <input type="hidden" id="parteFecha" value="">
-
-        <!-- Historial de partes guardados -->
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-          <span style="font-size:10px; font-weight:600; color:var(--ink-dim); letter-spacing:.3px;">PARTES GUARDADOS</span>
-          <div style="flex:1; height:1px; background:var(--border);"></div>
-          <button class="details-btn" id="parteListBtn" type="button" style="font-size:9px; padding:2px 8px; border-color:#2D5F6F;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Ver historial
-          </button>
-        </div>
-        <div id="parteHistorial" style="display:none; max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; margin-bottom:10px; background:var(--bg-alt,#fafafa);">
-          <table style="width:100%; border-collapse:collapse; font-size:11px;">
-            <thead>
-              <tr style="background:#2D5F6F; color:#fff; position:sticky; top:0;">
-                <th style="padding:5px 8px; text-align:left;">Nº Parte</th>
-                <th style="padding:5px 8px; text-align:left;">Fecha</th>
-                <th style="padding:5px 8px; text-align:left;">Operadora</th>
-                <th style="padding:5px 8px; text-align:center;">Pozos</th>
-                <th style="padding:5px 8px; text-align:center;">Acción</th>
-              </tr>
-            </thead>
-            <tbody id="parteHistorialBody">
-              <tr><td colspan="5" style="text-align:center; padding:12px; color:#999;">Cargando…</td></tr>
-            </tbody>
-          </table>
-        </div>
 
         <div style="display:flex; gap:8px; margin-top:12px;">
           <button class="details-btn" id="parteGenerateBtn" type="button" style="border-color:var(--navy-glow);">
@@ -4097,7 +4073,8 @@
     if(overlay) overlay.classList.remove('hidden');
     loadLiveDataFromSupabase().then(() => {
       initScopeForUser();
-      if(typeof populateCampanaCombo === 'function') populateCampanaCombo();
+      if(typeof populateCampanaCombo === 'function') populateCampanaCombo('');
+      if(typeof populateParteNumCombo === 'function') populateParteNumCombo('');
     }).finally(() => {
       if(overlay) overlay.classList.add('hidden');
     });
@@ -6025,11 +6002,12 @@
   // ===================== GENERAR PARTE =====================
   window._parteData = null; // estado compartido entre generar/exportar (global explícito)
 
-  // --- Partes: auto-numeración y persistencia en Supabase ---
+  // --- Partes: funciones de Supabase (usan supabaseClient) ---
   async function getNextParteNumber(fecha) {
+    if (!supabaseClient) return '0-001';
     try {
       const year = fecha.split('-')[0];
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('partes')
         .select('nro_parte')
         .ilike('nro_parte', `${year}-%`)
@@ -6037,7 +6015,7 @@
         .limit(1);
       if (error) throw error;
       if (data && data.length > 0) {
-        const last = data[0].nro_parte; // e.g. "2026-0005"
+        const last = data[0].nro_parte;
         const seq = parseInt(last.split('-').pop(), 10) || 0;
         return `${year}-${String(seq + 1).padStart(4, '0')}`;
       }
@@ -6049,20 +6027,35 @@
   }
 
   async function loadParteForDate(fecha, operadora) {
-    if (!fecha) return null;
+    if (!fecha || !supabaseClient) return null;
     try {
-      let q = supabase.from('partes').select('*').eq('fecha', fecha);
+      let q = supabaseClient.from('partes').select('*').eq('fecha', fecha);
       if (operadora) q = q.eq('operadora', operadora);
       const { data, error } = await q.maybeSingle();
       if (error) throw error;
-      return data; // null si no existe
+      return data;
     } catch (e) {
       console.warn('loadParteForDate error:', e);
       return null;
     }
   }
 
+  async function loadPartesForOperadora(operadora) {
+    if (!supabaseClient) return [];
+    try {
+      let q = supabaseClient.from('partes').select('*').order('fecha', { ascending: false }).limit(100);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn('loadPartesForOperadora error:', e);
+      return [];
+    }
+  }
+
   async function saveParteToSupabase(parteData) {
+    if (!supabaseClient) return null;
     try {
       const record = {
         fecha: parteData.fecha,
@@ -6075,9 +6068,9 @@
         pozos_dyn: parteData.counts.Dina || 0,
         pozos_acu: parteData.counts.Nivel || 0,
         pozos_ambos: parteData.counts.Combinada || 0,
-        created_by: typeof currentUser !== 'undefined' ? currentUser : 'sistema'
+        created_by: typeof currentUser !== 'undefined' ? (currentUser.user || currentUser) : 'sistema'
       };
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('partes')
         .upsert(record, { onConflict: 'fecha,operadora' })
         .select()
@@ -6091,140 +6084,128 @@
     }
   }
 
-  // --- Poblar combobox de campañas desde datos cargados ---
-  function getCampanasFromData() {
-    // Extrae fechas únicas + operadora de WELLS_DB y su historial
-    const campMap = {}; // key: "fecha|op" → {fecha, op, count}
+  // --- Campañas: extraer fechas únicas de WELLS_DB filtradas por operadora ---
+  function getCampanasFromData(opFilter) {
+    const campMap = {};
     if (typeof wellNames === 'undefined' || typeof WELLS_DB === 'undefined') return [];
     wellNames.forEach(name => {
       const w = WELLS_DB[name];
       if (!w) return;
-      const op = w.operadora || 'SIN_OP';
+      if (opFilter && w.operadora !== opFilter) return;
       const hist = w.history || [];
       hist.forEach(h => {
-        const key = h.dt + '|' + op;
-        if (!campMap[key]) campMap[key] = { fecha: h.dt, op, count: 0 };
-        campMap[key].count++;
+        if (!campMap[h.dt]) campMap[h.dt] = 0;
+        campMap[h.dt]++;
       });
       if (!hist.length && w.dt) {
-        const key = w.dt + '|' + op;
-        if (!campMap[key]) campMap[key] = { fecha: w.dt, op, count: 0 };
-        campMap[key].count++;
+        if (!campMap[w.dt]) campMap[w.dt] = 0;
+        campMap[w.dt]++;
       }
     });
-    return Object.values(campMap).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    return Object.entries(campMap)
+      .map(([fecha, count]) => ({ fecha, count }))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
   }
 
-  function populateCampanaCombo() {
+  // Poblar combobox de campañas (fechas) filtrado por operadora
+  function populateCampanaCombo(opFilter) {
     const sel = document.getElementById('parteCampanaSelect');
     if (!sel) return;
-    const campanas = getCampanasFromData();
-    // Agrupar por fecha (puede haber varias operadoras)
-    const fechaMap = {};
+    const campanas = getCampanasFromData(opFilter);
+    sel.innerHTML = '<option value="">— Seleccionar fecha —</option>';
     campanas.forEach(c => {
-      if (!fechaMap[c.fecha]) fechaMap[c.fecha] = { total: 0, ops: [] };
-      fechaMap[c.fecha].total += c.count;
-      fechaMap[c.fecha].ops.push(c.op);
-    });
-    const fechas = Object.keys(fechaMap).sort((a, b) => b.localeCompare(a));
-    sel.innerHTML = '<option value="">— Seleccionar campaña —</option>';
-    fechas.forEach(f => {
-      const [y, m, d] = f.split('-');
-      const info = fechaMap[f];
-      const opsStr = info.ops.length > 1 ? info.ops.join(', ') : info.ops[0];
+      const [y, m, d] = c.fecha.split('-');
       const opt = document.createElement('option');
-      opt.value = f;
-      opt.textContent = `${d}/${m}/${y} — ${opsStr} (${info.total} pozos)`;
+      opt.value = c.fecha;
+      opt.textContent = `${d}/${m}/${y}  (${c.count} pozos)`;
       sel.appendChild(opt);
     });
   }
 
-  // --- Historial de partes (buscar campañas guardadas en Supabase) ---
-  async function loadPartesHistorial() {
-    const tbody = document.getElementById('parteHistorialBody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:#999;">Cargando…</td></tr>';
-    try {
-      const { data, error } = await supabase
-        .from('partes')
-        .select('*')
-        .order('fecha', { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:#999;">No hay partes registrados aún.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map(p => {
-        const [y,m,d] = p.fecha.split('-');
-        const fechaFmt = `${d}/${m}/${y}`;
-        return `<tr style="cursor:pointer;border-bottom:1px solid #eee;" data-fecha="${p.fecha}" data-op="${p.operadora}" data-nro="${p.nro_parte}">
-          <td style="padding:5px 8px;font-weight:600;color:#2D5F6F;">${p.nro_parte}</td>
-          <td style="padding:5px 8px;">${fechaFmt}</td>
-          <td style="padding:5px 8px;">${p.operadora}</td>
-          <td style="padding:5px 8px;text-align:center;font-weight:600;">${p.total_pozos || 0}</td>
-          <td style="padding:5px 8px;text-align:center;">
-            <button class="details-btn parte-hist-load" style="font-size:9px;padding:2px 8px;border-color:#2D5F6F;" data-fecha="${p.fecha}" data-op="${p.operadora}" data-nro="${p.nro_parte}">Cargar</button>
-          </td>
-        </tr>`;
-      }).join('');
-      tbody.querySelectorAll('.parte-hist-load').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const { fecha, op, nro } = btn.dataset;
-          // Setear combobox de campaña
-          const campSel = document.getElementById('parteCampanaSelect');
-          if (campSel) campSel.value = fecha;
-          const opSelect = document.getElementById('parteOperadora');
-          if (opSelect) { const opOpt = [...opSelect.options].find(o => o.value === op); opSelect.value = opOpt ? op : ''; }
-          document.getElementById('parteFecha').value = fecha;
-          document.getElementById('parteNumero').value = nro;
-          // Generar
-          document.getElementById('parteGenerateBtn')?.click();
-          document.getElementById('parteHistorial').style.display = 'none';
-        });
-      });
-    } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:12px;color:#d32f2f;">Error: ${e.message}</td></tr>`;
-    }
+  // Poblar combobox de Nº Parte según operadora (partes guardados en Supabase)
+  async function populateParteNumCombo(operadora) {
+    const sel = document.getElementById('parteNumeroSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Elegir o crear —</option><option value="__nuevo__">➕ Nuevo parte…</option>';
+    const partes = await loadPartesForOperadora(operadora || null);
+    partes.forEach(p => {
+      const [y, m, d] = p.fecha.split('-');
+      const opt = document.createElement('option');
+      opt.value = p.nro_parte + '|' + p.fecha;
+      opt.textContent = `${p.nro_parte}  —  ${d}/${m}/${y}  (${p.total_pozos || 0} pozos)`;
+      sel.appendChild(opt);
+    });
   }
 
-  // Botón Ver historial
-  (function() {
-    const listBtn = document.getElementById('parteListBtn');
-    const panel = document.getElementById('parteHistorial');
-    if (!listBtn || !panel) return;
-    listBtn.addEventListener('click', () => {
-      const visible = panel.style.display !== 'none';
-      panel.style.display = visible ? 'none' : 'block';
-      if (!visible) loadPartesHistorial();
-    });
-  })();
-
-  // --- Combobox campaña: al seleccionar fecha, auto-cargar info y Nº Parte ---
-  (function setupCampanaCombo() {
-    const campSel = document.getElementById('parteCampanaSelect');
+  // --- Lógica principal del módulo Generar Parte ---
+  (function setupParteModule() {
     const opSelect = document.getElementById('parteOperadora');
+    const numSelect = document.getElementById('parteNumeroSelect');
+    const campSel = document.getElementById('parteCampanaSelect');
     const fechaInput = document.getElementById('parteFecha');
     const numInput = document.getElementById('parteNumero');
     const infoPanel = document.getElementById('parteCampanaInfo');
     const labelEl = document.getElementById('parteCampanaLabel');
     const pozosEl = document.getElementById('parteCampanaPozos');
     const statusEl = document.getElementById('parteNumStatus');
-    if (!campSel) return;
+    if (!opSelect || !campSel) return;
 
-    async function onCampanaChange() {
+    // 1) Al cambiar OPERADORA → recargar campañas y partes guardados
+    opSelect.addEventListener('change', async () => {
+      const op = opSelect.value;
+      populateCampanaCombo(op);
+      await populateParteNumCombo(op);
+      // Reset panel info
+      if (infoPanel) infoPanel.style.display = 'none';
+      if (fechaInput) fechaInput.value = '';
+      if (numInput) numInput.value = '';
+    });
+
+    // 2) Al elegir un PARTE del combobox → cargar fecha y armar parte
+    if (numSelect) numSelect.addEventListener('change', async () => {
+      const val = numSelect.value;
+      if (!val || val === '__nuevo__') {
+        if (val === '__nuevo__') {
+          // Generar próximo número
+          const today = new Date().toISOString().split('T')[0];
+          const next = await getNextParteNumber(today);
+          if (numInput) numInput.value = next;
+          if (infoPanel) infoPanel.style.display = 'block';
+          if (statusEl) { statusEl.textContent = '🆕 Nuevo — elegí fecha'; statusEl.style.color = '#e65100'; }
+          if (labelEl) labelEl.textContent = 'Nuevo parte — seleccioná fecha abajo';
+          if (pozosEl) pozosEl.textContent = '—';
+        }
+        return;
+      }
+      // Formato: "nro_parte|fecha"
+      const [nro, fecha] = val.split('|');
+      if (numInput) numInput.value = nro;
+      if (fechaInput) fechaInput.value = fecha;
+      // Seleccionar la fecha en el combo de campañas
+      if (campSel) {
+        campSel.value = fecha;
+        if (!campSel.value) campSel.value = ''; // Si la fecha no está en campañas cargadas
+      }
+      // Mostrar info
+      updateCampanaInfo(fecha);
+    });
+
+    // 3) Al elegir CAMPAÑA (fecha) → cargar info y buscar parte existente
+    campSel.addEventListener('change', () => {
       const fecha = campSel.value;
       if (!fecha) {
         if (infoPanel) infoPanel.style.display = 'none';
         if (fechaInput) fechaInput.value = '';
         return;
       }
-      // Setear fecha oculta
       if (fechaInput) fechaInput.value = fecha;
-      const op = opSelect ? opSelect.value : '';
+      updateCampanaInfo(fecha);
+    });
 
-      // Contar pozos de la campaña
+    async function updateCampanaInfo(fecha) {
+      if (!fecha) return;
+      const op = opSelect.value;
+      // Contar pozos
       let count = 0;
       if (typeof wellNames !== 'undefined' && typeof WELLS_DB !== 'undefined') {
         wellNames.forEach(name => {
@@ -6232,31 +6213,34 @@
           if (!w) return;
           if (op && w.operadora !== op) return;
           const hist = w.history || [];
-          const hasDate = hist.some(h => h.dt === fecha);
-          if (hasDate || (!hist.length && w.dt === fecha)) count++;
+          if (hist.some(h => h.dt === fecha) || (!hist.length && w.dt === fecha)) count++;
         });
       }
-
       const [y, m, d] = fecha.split('-');
-      if (labelEl) labelEl.textContent = `${d}/${m}/${y}` + (op ? ` — ${op}` : ' — Todas');
+      if (labelEl) labelEl.textContent = `${d}/${m}/${y}` + (op ? ` — ${op}` : '');
       if (pozosEl) pozosEl.textContent = count;
       if (infoPanel) infoPanel.style.display = 'block';
 
-      // Buscar parte existente en Supabase
+      // Buscar parte existente
       if (statusEl) statusEl.textContent = '⏳';
       const existing = await loadParteForDate(fecha, op || null);
       if (existing) {
         if (numInput) numInput.value = existing.nro_parte;
         if (statusEl) { statusEl.textContent = '✅ Guardado'; statusEl.style.color = '#2e7d32'; }
+        // Seleccionar en combo de partes
+        if (numSelect) {
+          const optVal = existing.nro_parte + '|' + fecha;
+          if ([...numSelect.options].some(o => o.value === optVal)) numSelect.value = optVal;
+        }
       } else {
-        const next = await getNextParteNumber(fecha);
-        if (numInput) numInput.value = next;
+        // Si el campo tiene valor manual, respetar; sino auto-generar
+        if (!numInput.value || numInput.value === '0-001') {
+          const next = await getNextParteNumber(fecha);
+          numInput.value = next;
+        }
         if (statusEl) { statusEl.textContent = '🆕 Nuevo'; statusEl.style.color = '#e65100'; }
       }
     }
-
-    campSel.addEventListener('change', onCampanaChange);
-    if (opSelect) opSelect.addEventListener('change', onCampanaChange);
   })();
 
   (function(){
@@ -6326,11 +6310,16 @@
       const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
-      // Auto-guardar parte en Supabase
+      // Auto-guardar parte en Supabase y actualizar combos
       saveParteToSupabase(data).then(saved => {
         if(saved) {
-          const numInput = document.getElementById('parteNumero');
-          if(numInput) numInput.value = saved.nro_parte;
+          const numI = document.getElementById('parteNumero');
+          if(numI) numI.value = saved.nro_parte;
+          const statusEl = document.getElementById('parteNumStatus');
+          if(statusEl){ statusEl.textContent = '✅ Guardado'; statusEl.style.color = '#2e7d32'; }
+          // Refrescar combo de partes
+          const op = document.getElementById('parteOperadora')?.value;
+          if(typeof populateParteNumCombo === 'function') populateParteNumCombo(op);
         }
       });
       const shortDate = fechaFmt.substring(0,5);
