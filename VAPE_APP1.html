@@ -1948,10 +1948,10 @@
       <div class="tool-card" data-tool="parte">
         <h3><span class="dot2 navy"></span>Generar Parte<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-        <p class="tool-desc">Elegí operadora y fecha de campaña para ver los pozos. Asigná el Nº de Parte manualmente o con Correlativo, luego Generá para guardar.</p>
+        <p class="tool-desc">Elegí operadora y fecha de campaña, editá el Nº de Parte y hacé click en Generar para guardar.</p>
 
-        <!-- Fila: Operadora + Nº Parte (combobox) + Campaña (fecha) -->
-        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
+        <!-- Fila: Operadora + Campaña (fecha) -->
+        <div class="bit-grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
           <div>
             <label style="font-size:11px;">Operadora</label>
             <select id="parteOperadora" class="bit-input" style="font-weight:600;">
@@ -1963,17 +1963,25 @@
             </select>
           </div>
           <div>
-            <label style="font-size:11px;">Nº Parte</label>
-            <select id="parteNumeroSelect" class="bit-input" style="font-weight:700; color:#2D5F6F;">
-              <option value="">— Partes guardados —</option>
-            </select>
-          </div>
-          <div>
             <label style="font-size:11px;">Campaña (fecha)</label>
             <select id="parteCampanaSelect" class="bit-input" style="font-weight:600;">
               <option value="">— Seleccionar fecha —</option>
             </select>
           </div>
+        </div>
+
+        <!-- Fila: Partes guardados + Eliminar -->
+        <div style="display:flex; align-items:flex-end; gap:8px; margin-top:8px;">
+          <div style="flex:1;">
+            <label style="font-size:11px;">Partes guardados</label>
+            <select id="parteNumeroSelect" class="bit-input" style="font-weight:700; color:#2D5F6F;">
+              <option value="">— Partes guardados —</option>
+            </select>
+          </div>
+          <button type="button" id="parteDeleteBtn" class="details-btn" style="border-color:#c62828; color:#c62828; padding:5px 10px; display:none;" title="Eliminar este parte de la base de datos">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Eliminar
+          </button>
         </div>
 
         <!-- Panel de info + edición de Nº Parte -->
@@ -1989,8 +1997,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
               <label style="font-size:10px; color:#666; white-space:nowrap;">Nº Parte</label>
-              <input type="text" id="parteNumero" class="bit-input" placeholder="Manual o Correlativo →" value="" style="width:130px; font-weight:700; text-align:center; border-color:#2D5F6F;">
-              <button type="button" id="parteCorrelativoBtn" class="details-btn" style="font-size:9px; padding:3px 8px; white-space:nowrap; border-color:#2D5F6F; color:#2D5F6F;" title="Asignar próximo número correlativo">Correlativo</button>
+              <input type="text" id="parteNumero" class="bit-input" placeholder="Ej: 2026-0001" value="" style="width:130px; font-weight:700; text-align:center; border-color:#2D5F6F;">
               <span id="parteNumStatus" style="font-size:9px; color:#2D5F6F; white-space:nowrap;"></span>
             </div>
           </div>
@@ -6154,6 +6161,23 @@
     });
   }
 
+  // --- Eliminar parte de Supabase ---
+  async function deleteParteFromSupabase(fecha, operadora) {
+    if (!supabaseClient || !fecha) return false;
+    try {
+      let q = supabaseClient.from('partes').delete().eq('fecha', fecha);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { error } = await q;
+      if (error) throw error;
+      console.log('Parte eliminado:', fecha, operadora);
+      return true;
+    } catch (e) {
+      console.warn('deleteParteFromSupabase error:', e);
+      alert('Error al eliminar: ' + e.message);
+      return false;
+    }
+  }
+
   // --- Reset completo del panel de partes ---
   function resetPartePanel(keepCombos) {
     const numInput = document.getElementById('parteNumero');
@@ -6199,7 +6223,7 @@
     const pozosEl = document.getElementById('parteCampanaPozos');
     const statusEl = document.getElementById('parteNumStatus');
     const limpiarBtn = document.getElementById('parteLimpiarBtn');
-    const correlBtn = document.getElementById('parteCorrelativoBtn');
+    const deleteBtn = document.getElementById('parteDeleteBtn');
     if (!opSelect || !campSel) return;
 
     let _updating = false;
@@ -6207,17 +6231,32 @@
     // ===== BOTÓN LIMPIAR =====
     if (limpiarBtn) limpiarBtn.addEventListener('click', () => {
       resetPartePanel(false);
+      if (deleteBtn) deleteBtn.style.display = 'none';
       populateCampanaCombo(opSelect.value);
       populateParteNumCombo(opSelect.value);
     });
 
-    // ===== BOTÓN CORRELATIVO → asignar próximo Nº automático =====
-    if (correlBtn) correlBtn.addEventListener('click', async () => {
-      const fecha = fechaInput?.value || campSel?.value;
-      if (!fecha) { alert('Primero seleccioná una fecha de campaña.'); return; }
-      const next = await getNextParteNumber(fecha);
-      if (numInput) numInput.value = next;
-      if (statusEl) { statusEl.textContent = '🔢 Correlativo asignado — Generá para guardar'; statusEl.style.color = '#1565c0'; }
+    // ===== BOTÓN ELIMINAR → borrar parte seleccionado de Supabase =====
+    if (deleteBtn) deleteBtn.addEventListener('click', async () => {
+      const val = numSelect?.value;
+      if (!val) { alert('Seleccioná un parte guardado para eliminar.'); return; }
+      const [nro, fecha] = val.split('|');
+      const op = opSelect.value || null;
+      if (!confirm(`¿Eliminar parte ${nro} del ${fecha}? Esta acción no se puede deshacer.`)) return;
+      const ok = await deleteParteFromSupabase(fecha, op);
+      if (ok) {
+        // Limpiar y refrescar
+        if (numInput) numInput.value = '';
+        if (numSelect) numSelect.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        deleteBtn.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        await populateParteNumCombo(opSelect.value);
+        if (statusEl) { statusEl.textContent = '🗑️ Parte eliminado'; statusEl.style.color = '#c62828'; }
+      }
     });
 
     // ===== 1) OPERADORA → recargar campañas + partes, limpiar output =====
@@ -6230,6 +6269,7 @@
       if (numSelect) numSelect.value = '';
       if (fechaInput) fechaInput.value = '';
       if (infoPanel) infoPanel.style.display = 'none';
+      if (deleteBtn) deleteBtn.style.display = 'none';
       const output = document.getElementById('parteOutputArea');
       if (output) { output.style.display = 'none'; output.innerHTML = ''; }
       [document.getElementById('partePrintBtn'), document.getElementById('parteExportPdfBtn'), document.getElementById('parteExportXlsBtn')].forEach(b => { if (b) b.style.display = 'none'; });
@@ -6239,11 +6279,13 @@
       _updating = false;
     });
 
-    // ===== 2) Nº PARTE (combo) → cargar parte guardado, auto-generar vista =====
+    // ===== 2) Nº PARTE (combo) → cargar parte guardado, mostrar vista =====
     if (numSelect) numSelect.addEventListener('change', async () => {
       if (_updating) return;
       _updating = true;
       const val = numSelect.value;
+      // Mostrar/ocultar botón eliminar según haya selección
+      if (deleteBtn) deleteBtn.style.display = val ? '' : 'none';
       if (!val) {
         if (numInput) numInput.value = '';
         if (fechaInput) fechaInput.value = '';
@@ -6255,7 +6297,6 @@
         _updating = false;
         return;
       }
-      // Formato: "nro_parte|fecha"
       const [nro, fecha] = val.split('|');
       if (numInput) numInput.value = nro;
       if (fechaInput) fechaInput.value = fecha;
@@ -6265,7 +6306,7 @@
       triggerGenerarParte();
     });
 
-    // ===== 3) CAMPAÑA (fecha) → solo MOSTRAR pozos, NO asignar Nº Parte =====
+    // ===== 3) CAMPAÑA (fecha) → mostrar pozos, verificar si tiene parte =====
     campSel.addEventListener('change', async () => {
       if (_updating) return;
       _updating = true;
@@ -6274,6 +6315,7 @@
         if (numInput) numInput.value = '';
         if (fechaInput) fechaInput.value = '';
         if (infoPanel) infoPanel.style.display = 'none';
+        if (deleteBtn) deleteBtn.style.display = 'none';
         const output = document.getElementById('parteOutputArea');
         if (output) { output.style.display = 'none'; output.innerHTML = ''; }
         window._parteData = null;
@@ -6281,32 +6323,28 @@
         return;
       }
       if (fechaInput) fechaInput.value = fecha;
-      // Limpiar Nº Parte anterior
       if (numInput) numInput.value = '';
       if (numSelect) numSelect.value = '';
+      if (deleteBtn) deleteBtn.style.display = 'none';
 
-      // Solo verificar si ya existe un parte en Supabase
+      // Verificar si ya tiene parte en Supabase
       const op = opSelect.value;
       const existing = await loadParteForDate(fecha, op || null);
       if (existing) {
-        // Parte ya guardado → mostrar su número (lectura)
         if (numInput) numInput.value = existing.nro_parte;
         if (numSelect) {
           const optVal = existing.nro_parte + '|' + fecha;
           const found = [...numSelect.options].some(o => o.value === optVal);
-          numSelect.value = found ? optVal : '';
+          if (found) { numSelect.value = optVal; if (deleteBtn) deleteBtn.style.display = ''; }
         }
         showCampanaInfo(fecha, existing.nro_parte, true);
       } else {
-        // Sin parte → NO auto-asignar, solo informar
         showCampanaInfo(fecha, '', false);
       }
       _updating = false;
-      // Mostrar los pozos de la campaña (sin guardar nada)
       triggerGenerarParte();
     });
 
-    // Mostrar panel info
     function showCampanaInfo(fecha, nro, isExisting) {
       const op = opSelect.value;
       const count = countPozosFecha(fecha, op);
@@ -6315,9 +6353,9 @@
       if (pozosEl) pozosEl.textContent = count;
       if (infoPanel) infoPanel.style.display = 'block';
       if (isExisting) {
-        if (statusEl) { statusEl.textContent = '✅ Parte asignado: ' + nro; statusEl.style.color = '#2e7d32'; }
+        if (statusEl) { statusEl.textContent = '✅ Parte: ' + nro; statusEl.style.color = '#2e7d32'; }
       } else {
-        if (statusEl) { statusEl.textContent = '⚠️ Sin parte — Asigná manual o Correlativo'; statusEl.style.color = '#e65100'; }
+        if (statusEl) { statusEl.textContent = '⚠️ Sin parte — Escribí el Nº y hacé click en Generar'; statusEl.style.color = '#e65100'; }
       }
     }
   })();
@@ -6389,22 +6427,24 @@
       const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
-      // Guardar en Supabase SOLO si hay Nº Parte asignado (no vacío ni placeholder)
-      const hasNumParte = numParte && numParte !== '0-001' && numParte.trim() !== '';
-      if (hasNumParte) {
+      // Guardar en Supabase SOLO si hay Nº Parte escrito
+      if (numParte) {
         saveParteToSupabase(data).then(saved => {
           if(saved) {
             const numI = document.getElementById('parteNumero');
             if(numI) numI.value = saved.nro_parte;
             const statusEl = document.getElementById('parteNumStatus');
-            if(statusEl){ statusEl.textContent = '✅ Guardado en base de datos'; statusEl.style.color = '#2e7d32'; }
+            if(statusEl){ statusEl.textContent = '✅ Guardado'; statusEl.style.color = '#2e7d32'; }
             const op = document.getElementById('parteOperadora')?.value;
             if(typeof populateParteNumCombo === 'function') populateParteNumCombo(op);
+            // Mostrar botón eliminar
+            const delBtn = document.getElementById('parteDeleteBtn');
+            if(delBtn) delBtn.style.display = '';
           }
         });
       } else {
         const statusEl = document.getElementById('parteNumStatus');
-        if(statusEl){ statusEl.textContent = '📋 Vista previa — Asigná Nº Parte para guardar'; statusEl.style.color = '#e65100'; }
+        if(statusEl){ statusEl.textContent = '📋 Vista previa — Escribí el Nº Parte y volvé a Generar'; statusEl.style.color = '#e65100'; }
       }
       const shortDate = fechaFmt.substring(0,5);
       const now = new Date();
