@@ -6084,26 +6084,39 @@
     }
   }
 
-  // --- Campañas: extraer fechas únicas de WELLS_DB filtradas por operadora ---
+  // --- Campañas: contar POZOS ÚNICOS por fecha (no entradas duplicadas) ---
+  function countPozosFecha(fecha, opFilter) {
+    const seen = new Set();
+    if (typeof wellNames === 'undefined' || typeof WELLS_DB === 'undefined') return 0;
+    wellNames.forEach(name => {
+      const w = WELLS_DB[name];
+      if (!w) return;
+      if (opFilter && w.operadora !== opFilter) return;
+      const hist = w.history || [];
+      const hasFecha = hist.some(h => h.dt === fecha);
+      if (hasFecha || (!hist.length && w.dt === fecha)) seen.add(name);
+    });
+    return seen.size;
+  }
+
   function getCampanasFromData(opFilter) {
-    const campMap = {};
+    const fechaSet = {};
     if (typeof wellNames === 'undefined' || typeof WELLS_DB === 'undefined') return [];
     wellNames.forEach(name => {
       const w = WELLS_DB[name];
       if (!w) return;
       if (opFilter && w.operadora !== opFilter) return;
       const hist = w.history || [];
-      hist.forEach(h => {
-        if (!campMap[h.dt]) campMap[h.dt] = 0;
-        campMap[h.dt]++;
+      const fechas = new Set();
+      hist.forEach(h => fechas.add(h.dt));
+      if (!hist.length && w.dt) fechas.add(w.dt);
+      fechas.forEach(f => {
+        if (!fechaSet[f]) fechaSet[f] = new Set();
+        fechaSet[f].add(name); // pozo único
       });
-      if (!hist.length && w.dt) {
-        if (!campMap[w.dt]) campMap[w.dt] = 0;
-        campMap[w.dt]++;
-      }
     });
-    return Object.entries(campMap)
-      .map(([fecha, count]) => ({ fecha, count }))
+    return Object.entries(fechaSet)
+      .map(([fecha, wells]) => ({ fecha, count: wells.size }))
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
   }
 
@@ -6137,6 +6150,27 @@
     });
   }
 
+  // --- Reset completo del panel de partes ---
+  function resetPartePanel() {
+    const numInput = document.getElementById('parteNumero');
+    const numSelect = document.getElementById('parteNumeroSelect');
+    const infoPanel = document.getElementById('parteCampanaInfo');
+    const statusEl = document.getElementById('parteNumStatus');
+    const fechaInput = document.getElementById('parteFecha');
+    const output = document.getElementById('parteOutputArea');
+    const printBtn = document.getElementById('partePrintBtn');
+    const pdfBtn = document.getElementById('parteExportPdfBtn');
+    const xlsBtn = document.getElementById('parteExportXlsBtn');
+    if (numInput) numInput.value = '';
+    if (numSelect) numSelect.value = '';
+    if (infoPanel) infoPanel.style.display = 'none';
+    if (statusEl) statusEl.textContent = '';
+    if (fechaInput) fechaInput.value = '';
+    if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+    [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
+    window._parteData = null;
+  }
+
   // --- Lógica principal del módulo Generar Parte ---
   (function setupParteModule() {
     const opSelect = document.getElementById('parteOperadora');
@@ -6150,95 +6184,92 @@
     const statusEl = document.getElementById('parteNumStatus');
     if (!opSelect || !campSel) return;
 
-    // 1) Al cambiar OPERADORA → recargar campañas y partes guardados
+    // 1) Al cambiar OPERADORA → recargar todo y limpiar
     opSelect.addEventListener('change', async () => {
+      resetPartePanel();
+      campSel.value = '';
       const op = opSelect.value;
       populateCampanaCombo(op);
       await populateParteNumCombo(op);
-      // Reset panel info
-      if (infoPanel) infoPanel.style.display = 'none';
-      if (fechaInput) fechaInput.value = '';
-      if (numInput) numInput.value = '';
     });
 
-    // 2) Al elegir un PARTE del combobox → cargar fecha y armar parte
+    // 2) Al elegir un PARTE del combobox → cargar fecha correspondiente
     if (numSelect) numSelect.addEventListener('change', async () => {
       const val = numSelect.value;
-      if (!val || val === '__nuevo__') {
-        if (val === '__nuevo__') {
-          // Generar próximo número
-          const today = new Date().toISOString().split('T')[0];
-          const next = await getNextParteNumber(today);
-          if (numInput) numInput.value = next;
-          if (infoPanel) infoPanel.style.display = 'block';
-          if (statusEl) { statusEl.textContent = '🆕 Nuevo — elegí fecha'; statusEl.style.color = '#e65100'; }
-          if (labelEl) labelEl.textContent = 'Nuevo parte — seleccioná fecha abajo';
-          if (pozosEl) pozosEl.textContent = '—';
-        }
+      if (!val) {
+        resetPartePanel();
+        return;
+      }
+      if (val === '__nuevo__') {
+        const today = new Date().toISOString().split('T')[0];
+        const next = await getNextParteNumber(today);
+        if (numInput) numInput.value = next;
+        if (fechaInput) fechaInput.value = '';
+        if (campSel) campSel.value = '';
+        if (infoPanel) infoPanel.style.display = 'block';
+        if (statusEl) { statusEl.textContent = '🆕 Nuevo — elegí la fecha'; statusEl.style.color = '#e65100'; }
+        if (labelEl) labelEl.textContent = 'Parte nuevo — seleccioná fecha de campaña';
+        if (pozosEl) pozosEl.textContent = '—';
         return;
       }
       // Formato: "nro_parte|fecha"
       const [nro, fecha] = val.split('|');
       if (numInput) numInput.value = nro;
       if (fechaInput) fechaInput.value = fecha;
-      // Seleccionar la fecha en el combo de campañas
-      if (campSel) {
-        campSel.value = fecha;
-        if (!campSel.value) campSel.value = ''; // Si la fecha no está en campañas cargadas
-      }
-      // Mostrar info
-      updateCampanaInfo(fecha);
+      if (campSel) campSel.value = fecha;
+      updateCampanaInfo(fecha, nro);
     });
 
-    // 3) Al elegir CAMPAÑA (fecha) → cargar info y buscar parte existente
+    // 3) Al elegir CAMPAÑA (fecha) → limpiar parte anterior, buscar si existe
     campSel.addEventListener('change', () => {
       const fecha = campSel.value;
       if (!fecha) {
-        if (infoPanel) infoPanel.style.display = 'none';
-        if (fechaInput) fechaInput.value = '';
+        resetPartePanel();
         return;
       }
+      // Limpiar parte anterior: siempre empezar fresco al cambiar fecha
+      if (numInput) numInput.value = '';
+      if (numSelect) numSelect.value = '';
       if (fechaInput) fechaInput.value = fecha;
-      updateCampanaInfo(fecha);
+      // Ocultar output del parte anterior
+      const output = document.getElementById('parteOutputArea');
+      if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+      const printBtn = document.getElementById('partePrintBtn');
+      const pdfBtn = document.getElementById('parteExportPdfBtn');
+      const xlsBtn = document.getElementById('parteExportXlsBtn');
+      [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
+      window._parteData = null;
+      updateCampanaInfo(fecha, null);
     });
 
-    async function updateCampanaInfo(fecha) {
+    async function updateCampanaInfo(fecha, forceNro) {
       if (!fecha) return;
       const op = opSelect.value;
-      // Contar pozos
-      let count = 0;
-      if (typeof wellNames !== 'undefined' && typeof WELLS_DB !== 'undefined') {
-        wellNames.forEach(name => {
-          const w = WELLS_DB[name];
-          if (!w) return;
-          if (op && w.operadora !== op) return;
-          const hist = w.history || [];
-          if (hist.some(h => h.dt === fecha) || (!hist.length && w.dt === fecha)) count++;
-        });
-      }
+      const count = countPozosFecha(fecha, op);
       const [y, m, d] = fecha.split('-');
       if (labelEl) labelEl.textContent = `${d}/${m}/${y}` + (op ? ` — ${op}` : '');
       if (pozosEl) pozosEl.textContent = count;
       if (infoPanel) infoPanel.style.display = 'block';
 
-      // Buscar parte existente
+      // Buscar parte existente en Supabase
       if (statusEl) statusEl.textContent = '⏳';
       const existing = await loadParteForDate(fecha, op || null);
       if (existing) {
-        if (numInput) numInput.value = existing.nro_parte;
-        if (statusEl) { statusEl.textContent = '✅ Guardado'; statusEl.style.color = '#2e7d32'; }
-        // Seleccionar en combo de partes
+        if (numInput) numInput.value = forceNro || existing.nro_parte;
+        if (statusEl) { statusEl.textContent = '✅ Parte asignado'; statusEl.style.color = '#2e7d32'; }
         if (numSelect) {
           const optVal = existing.nro_parte + '|' + fecha;
           if ([...numSelect.options].some(o => o.value === optVal)) numSelect.value = optVal;
         }
       } else {
-        // Si el campo tiene valor manual, respetar; sino auto-generar
-        if (!numInput.value || numInput.value === '0-001') {
+        // No tiene parte → avisar y sugerir
+        if (forceNro) {
+          if (numInput) numInput.value = forceNro;
+        } else {
           const next = await getNextParteNumber(fecha);
-          numInput.value = next;
+          if (numInput) numInput.value = next;
         }
-        if (statusEl) { statusEl.textContent = '🆕 Nuevo'; statusEl.style.color = '#e65100'; }
+        if (statusEl) { statusEl.textContent = '⚠️ Sin parte asignado — Generá para guardar'; statusEl.style.color = '#e65100'; }
       }
     }
   })();
