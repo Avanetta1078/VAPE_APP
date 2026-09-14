@@ -5992,19 +5992,19 @@
         hist.forEach(h => {
           if(h.dt !== fecha) return;
           const estado = h.wellState ? (h.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
-          rows.push({ well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(h.comment) });
+          rows.push({ well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '', cancelada: isCancelComment(h.comment) });
         });
         if(!hist.length && w.dt === fecha){
           const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
           if(op){
             const estado = w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
-            rows.push({ well: name, dt: fecha, tipo: op, sistema: w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(w.comment) });
+            rows.push({ well: name, dt: fecha, tipo: op, sistema: w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '', cancelada: isCancelComment(w.comment) });
           }
         }
       });
       const byWell = {};
       rows.forEach(r => {
-        if(!byWell[r.well]) byWell[r.well] = { tipos:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, cancelada:r.cancelada };
+        if(!byWell[r.well]) byWell[r.well] = { tipos:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, bateria:r.bateria, zona:r.zona, cancelada:r.cancelada };
         byWell[r.well].tipos.push(r.tipo);
         if(r.cancelada) byWell[r.well].cancelada = true;
       });
@@ -6015,19 +6015,26 @@
         else if(info.tipos.includes('Combinada')) ensayo = 'Combinada';
         else if(info.tipos.includes('Dina')) ensayo = 'Dina';
         else ensayo = 'Nivel';
-        return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora };
+        return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora, bateria:info.bateria, zona:info.zona };
       });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
+      // Recolectar baterías y zonas únicas automáticamente
+      const bateriasSet = new Set(); const zonasSet = new Set();
+      parteRows.forEach(r => { if(r.bateria) bateriasSet.add(r.bateria); if(r.zona) zonasSet.add(r.zona); });
+      const baterias = [...bateriasSet].sort().join(', ') || '—';
+      const zonaAuto = [...zonasSet].sort().join(', ') || '';
+      const operadora = opFilter || (parteRows.length ? parteRows[0].operadora : '—');
+      const yacimiento = zonaAuto || operadora;
       const [y,m,d] = fecha.split('-');
-      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, yacimiento: opFilter || (parteRows.length ? parteRows[0].operadora : '—'), parteRows, counts, total:parteRows.length };
+      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, operadora, yacimiento, baterias, parteRows, counts, total:parteRows.length };
     }
 
     genBtn.addEventListener('click', () => {
       const data = collectParteData();
       if(!data) return;
       window._parteData = data;
-      const { fechaFmt, numParte, yacimiento, parteRows, counts, total } = data;
+      const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
       const shortDate = fechaFmt.substring(0,5);
@@ -6045,8 +6052,12 @@
           <div class="parte-meta-grid">
             <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum">${numParte}</span></div>
             <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" contenteditable="true" id="parteMetaFecha">${fechaFmt}</span></div>
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${yacimiento}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${operadora}</span></div>
             <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" contenteditable="true" id="parteMetaYac">${yacimiento}</span></div>
+          </div>
+          <div style="padding-top:6px;">
+            <span class="parte-meta-lbl">Baterías recorridas</span>
+            <span class="parte-meta-val" contenteditable="true" id="parteMetaBat" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
           </div>
         </div>
         <div class="parte-content">
@@ -6099,8 +6110,9 @@
       // Leer meta editables del DOM
       const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
       const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
-      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.operadora;
       const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim()) || window._parteData.baterias;
 
       // --- Logo block ---
       doc.setFillColor(...teal);
@@ -6134,6 +6146,14 @@
         doc.text(m.val, bx, y+4.5);
       });
       y += 10;
+
+      // --- Baterías recorridas ---
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(153,153,153);
+      doc.text('Baterías recorridas', mx, y);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(51,51,51);
+      const batLines = doc.splitTextToSize(metaBat, cw);
+      doc.text(batLines, mx, y+4.5);
+      y += 5 + batLines.length * 3.5 + 3;
 
       // --- Section headers ---
       const tableW = cw - 42; // leave 42mm for ops panel
@@ -6250,8 +6270,9 @@
       // Leer meta editables del DOM
       const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
       const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
-      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.operadora;
       const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim()) || window._parteData.baterias;
 
       const wb = XLSX.utils.book_new();
       const wsData = [
@@ -6259,7 +6280,8 @@
         ['', '', 'Parte Dinamometría', '', '', '', '', ''],
         [],
         ['Nº Parte', metaNum, '', 'Fecha', metaFecha, '', 'Operadora', metaOp],
-        ['Yacimiento', metaYac],
+        ['Yacimiento', metaYac, '', '', '', '', '', ''],
+        ['Baterías recorridas', metaBat],
         [],
         ['Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
       ];
