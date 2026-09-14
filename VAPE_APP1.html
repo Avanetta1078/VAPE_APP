@@ -983,27 +983,40 @@
   .comment-edit-modal .modal-btn.primary:hover{filter:brightness(1.15);}
 
   /* ── Parte — estilos ── */
-  .parte-container{margin-top:14px;}
-  .parte-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:16px;flex-wrap:wrap;}
-  .parte-title-block{display:flex;flex-direction:column;gap:2px;}
-  .parte-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:18px;color:var(--ink);letter-spacing:.03em;text-transform:uppercase;}
-  .parte-subtitle{font-size:11px;color:var(--ink-faint);letter-spacing:.04em;}
-  .parte-meta{text-align:right;font-size:12px;color:var(--ink);}
-  .parte-meta .parte-num{font-family:'IBM Plex Mono';font-size:16px;font-weight:700;color:var(--accent,#5b76e0);}
-  .parte-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
-  .parte-stat{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:12px 10px;text-align:center;}
-  .parte-stat .ps-val{font-family:'IBM Plex Mono';font-size:20px;font-weight:700;color:var(--ink);}
-  .parte-stat .ps-lbl{font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
-  .parte-table{width:100%;border-collapse:collapse;font-size:12px;}
-  .parte-table th{background:var(--panel-2);color:var(--ink-dim);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
-  .parte-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--ink);}
-  .parte-table tr:hover td{background:rgba(91,118,224,.05);}
-  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:3px;transition:background .15s;}
-  .parte-table td[contenteditable="true"]:focus{background:rgba(91,118,224,.12);box-shadow:inset 0 0 0 1px var(--accent,#5b76e0);}
-  .parte-obs{margin-top:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;min-height:40px;font-size:12px;color:var(--ink);outline:none;}
-  .parte-obs:focus{box-shadow:inset 0 0 0 1px var(--accent,#5b76e0);}
-  .parte-footer{margin-top:16px;text-align:center;font-size:10px;color:var(--ink-faint);letter-spacing:.04em;}
-  @media print{.parte-container{break-inside:avoid;} .topbar-wrap,.menu{display:none!important;}}
+  /* ---- Parte Dinamometría (diseño v8 template) ---- */
+  .parte-container{margin-top:14px; background:#fff; border-radius:8px; padding:20px; color:#333; font-size:11px; max-width:21cm; border:1px solid var(--border);}
+  .parte-hdr{display:flex; flex-direction:column; gap:8px; margin-bottom:8px; border-bottom:2px solid #2D5F6F; padding-bottom:10px;}
+  .parte-hdr-top{display:flex; align-items:flex-start; gap:10px;}
+  .parte-logo{width:50px;height:38px;background:linear-gradient(135deg,#2D5F6F,#1a3a4a);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;flex-shrink:0;}
+  .parte-hdr-title{font-size:13px;font-weight:600;color:#2D5F6F;line-height:1.2;}
+  .parte-hdr-sub{font-size:10px;color:#666;}
+  .parte-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;padding-top:4px;}
+  .parte-meta-item{display:flex;flex-direction:column;}
+  .parte-meta-lbl{font-size:9px;color:#999;font-weight:500;margin-bottom:1px;}
+  .parte-meta-val{font-size:10px;color:#333;font-weight:600;word-wrap:break-word;}
+  .parte-meta-val[contenteditable="true"]{cursor:text;outline:none;border-bottom:1px dashed #ccc;padding:0 2px;}
+  .parte-meta-val[contenteditable="true"]:focus{border-color:#2D5F6F;background:rgba(45,95,111,.06);}
+  .parte-content{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:start;}
+  .parte-table{width:100%;border-collapse:collapse;font-size:10px;border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;}
+  .parte-table thead{background:#2D5F6F;color:#fff;}
+  .parte-table th{padding:5px 6px;text-align:left;font-weight:600;font-size:10px;white-space:nowrap;}
+  .parte-table td{padding:6px 6px;border-bottom:0.5px solid #f0f0f0;color:#333;}
+  .parte-table tbody tr:hover{background:#f9fbfd;}
+  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:2px;}
+  .parte-table td[contenteditable="true"]:focus{background:rgba(45,95,111,.08);box-shadow:inset 0 0 0 1px #2D5F6F;}
+  .parte-ops{border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;background:#fff;height:fit-content;}
+  .parte-ops-hdr{background:#2D5F6F;color:#fff;padding:5px 6px;font-size:10px;font-weight:600;text-transform:uppercase;}
+  .parte-ops-row{display:grid;grid-template-columns:1fr 50px;border-bottom:0.5px solid #f0f0f0;align-items:center;}
+  .parte-ops-row:last-child{border-bottom:none;}
+  .parte-ops-lbl{padding:6px;font-weight:500;color:#333;border-right:0.5px solid #f0f0f0;font-size:10px;}
+  .parte-ops-val{padding:6px;text-align:center;font-weight:700;color:#2D5F6F;font-size:13px;}
+  .parte-ops-total{background:#f9f9f9;border-top:1px solid #2D5F6F;font-weight:600;}
+  .parte-obs-section{border-top:1px solid #e0e0e0;padding-top:10px;margin-top:12px;}
+  .parte-obs-title{font-size:10px;font-weight:600;color:#2D5F6F;text-transform:uppercase;margin-bottom:6px;}
+  .parte-obs-area{min-height:50px;padding:8px;border:0.5px solid #e0e0e0;border-radius:3px;font-size:10px;color:#333;outline:none;}
+  .parte-obs-area:focus{border-color:#2D5F6F;background:rgba(45,95,111,.04);}
+  .parte-footer{text-align:center;font-size:8px;color:#999;margin-top:10px;padding-top:6px;border-top:0.5px solid #e0e0e0;}
+  @media print{.parte-container{box-shadow:none;margin:0;width:100%;border:none;} .topbar-wrap,.menu{display:none!important;} .parte-table thead{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .parte-ops-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 
   /* ── Loading Spinner Overlay ── */
   .loading-overlay{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,17,23,.88);backdrop-filter:blur(6px);transition:opacity .3s;}
@@ -6017,200 +6030,280 @@
       const { fechaFmt, numParte, yacimiento, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
+      const shortDate = fechaFmt.substring(0,5);
+      const now = new Date();
+      const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
       output.innerHTML = `
-        <div class="parte-header">
-          <div class="parte-title-block">
-            <div class="parte-title">Servicio de Ecodinamometría</div>
-            <div class="parte-subtitle">PARTE DINAMOMETRÍA</div>
+        <div class="parte-hdr">
+          <div class="parte-hdr-top">
+            <div class="parte-logo">VA&amp;PE</div>
+            <div>
+              <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
+              <div class="parte-hdr-sub">Parte Dinamometría</div>
+            </div>
           </div>
-          <div class="parte-meta">
-            <div style="font-size:10px;color:var(--ink-faint);margin-bottom:2px;">N° Parte</div>
-            <div class="parte-num" contenteditable="true" title="Editable">${numParte}</div>
+          <div class="parte-meta-grid">
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum">${numParte}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" contenteditable="true" id="parteMetaFecha">${fechaFmt}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${yacimiento}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" contenteditable="true" id="parteMetaYac">${yacimiento}</span></div>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px;color:var(--ink);">
-          <div><strong>Fecha:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${fechaFmt}</span></div>
-          <div><strong>Operadora / Yacimiento:</strong> <span contenteditable="true" title="Editable" style="border-bottom:1px dashed var(--border);padding:0 4px;">${yacimiento}</span></div>
+        <div class="parte-content">
+          <div>
+            <table class="parte-table" id="parteTableResult">
+              <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
+              <tbody>
+                ${parteRows.map(r => `<tr>
+                  <td contenteditable="true">${shortDate}</td>
+                  <td contenteditable="true">${r.well}</td>
+                  <td contenteditable="true">${r.estado}</td>
+                  <td contenteditable="true">${r.ensayo}</td>
+                  <td contenteditable="true">${r.sistema}</td>
+                </tr>`).join('')}
+                ${parteRows.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No se encontraron ensayos para esta fecha.</td></tr>' : ''}
+              </tbody>
+            </table>
+          </div>
+          <div class="parte-ops">
+            <div class="parte-ops-hdr">Operaciones</div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
+            <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
+          </div>
         </div>
-        <div class="parte-summary">
-          <div class="parte-stat"><div class="ps-val">${counts.Combinada}</div><div class="ps-lbl">Combinada</div></div>
-          <div class="parte-stat"><div class="ps-val">${counts.Dina}</div><div class="ps-lbl">Dina</div></div>
-          <div class="parte-stat"><div class="ps-val">${counts.Nivel}</div><div class="ps-lbl">Nivel</div></div>
-          <div class="parte-stat"><div class="ps-val">${counts.Cancelada}</div><div class="ps-lbl">Canceladas</div></div>
-          <div class="parte-stat" style="border-color:var(--accent,#5b76e0);"><div class="ps-val" style="color:var(--accent,#5b76e0);">${total}</div><div class="ps-lbl">Total</div></div>
+        <div class="parte-obs-section">
+          <div class="parte-obs-title">Observaciones (Dina / Nivel)</div>
+          <div class="parte-obs-area" id="parteObsArea" contenteditable="true"></div>
         </div>
-        <table class="parte-table" id="parteTableResult">
-          <thead><tr><th>#</th><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
-          <tbody>
-            ${parteRows.map((r, i) => `<tr>
-              <td>${i+1}</td>
-              <td contenteditable="true">${fechaFmt}</td>
-              <td contenteditable="true">${r.well}</td>
-              <td contenteditable="true">${r.estado}</td>
-              <td contenteditable="true">${r.ensayo}</td>
-              <td contenteditable="true">${r.sistema}</td>
-            </tr>`).join('')}
-            ${parteRows.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:20px;">No se encontraron ensayos para esta fecha.</td></tr>' : ''}
-          </tbody>
-        </table>
-        <div class="parte-obs" id="parteObsArea" contenteditable="true">Observaciones / Comentarios:</div>
-        <div class="parte-footer">VA&PE — Servicio de Ecodinamometría · Comodoro Rivadavia — Chubut</div>
+        <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | Generado: ${genTimestamp}</div>
       `;
     });
 
     if(printBtn) printBtn.addEventListener('click', () => window.print());
 
-    // ---- Exportar PDF (A4 profesional con jsPDF) ----
+    // ---- Exportar PDF (A4 — diseño v8 template) ----
     if(pdfBtn) pdfBtn.addEventListener('click', () => {
       if(!window._parteData){ alert('Generá el parte primero.'); return; }
       const jspdfLib = window.jspdf || window.jsPDF;
       if(!jspdfLib){ alert('Error: la librería jsPDF no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
       const { jsPDF } = jspdfLib;
       const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-      const pw = 210, ph = 297, mx = 18;
+      const pw = 210, ph = 297, mx = 16;
       const cw = pw - mx*2;
-      let y = 18;
+      let y = 14;
+      const teal = [45,95,111]; // #2D5F6F
 
-      // --- Header con logo VA&PE ---
-      doc.setFillColor(14,17,22);
-      doc.rect(0,0,pw,42,  'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(238,236,228);
-      doc.text('VA&PE', mx, y+6);
-      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(138,145,157);
-      doc.text('Servicio de Eco - Dinamometría Computarizada', mx, y+12);
-      doc.text('Comodoro Rivadavia — Chubut', mx, y+17);
+      // Leer meta editables del DOM
+      const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
+      const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
 
-      // N° Parte
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(238,236,228);
-      doc.text('N° Parte', pw - mx - 30, y+4);
-      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(91,118,224);
-      doc.text(window._parteData.numParte, pw - mx - 30, y+12);
+      // --- Logo block ---
+      doc.setFillColor(...teal);
+      doc.roundedRect(mx, y, 16, 12, 1.5, 1.5, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+      doc.text('VA&PE', mx+8, y+7.5, {align:'center'});
 
-      y = 48;
-      // --- Título ---
-      doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(40,40,40);
-      doc.text('PARTE DINAMOMETRÍA', mx, y);
-      y += 8;
+      // Title
+      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...teal);
+      doc.text('Servicio de Ecodinamometría', mx+20, y+5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(102,102,102);
+      doc.text('Parte Dinamometría', mx+20, y+10);
 
-      // --- Fecha y Operadora ---
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,60,60);
-      doc.text('Fecha: ' + window._parteData.fechaFmt, mx, y);
-      doc.text('Operadora / Yacimiento: ' + window._parteData.yacimiento, pw/2, y);
+      y += 16;
+      // Header line
+      doc.setDrawColor(...teal); doc.setLineWidth(0.6);
+      doc.line(mx, y, pw-mx, y);
+      y += 6;
+
+      // --- Meta grid (4 cols) ---
+      const metaItems = [
+        {lbl:'Nº Parte', val:metaNum}, {lbl:'Fecha', val:metaFecha},
+        {lbl:'Operadora', val:metaOp}, {lbl:'Yacimiento', val:metaYac}
+      ];
+      const metaW = cw/4;
+      metaItems.forEach((m,i) => {
+        const bx = mx + i*metaW;
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(153,153,153);
+        doc.text(m.lbl, bx, y);
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(51,51,51);
+        doc.text(m.val, bx, y+4.5);
+      });
       y += 10;
 
-      // --- Recuento (stats boxes) ---
-      const stats = [
-        { lbl:'Combinada', val:window._parteData.counts.Combinada },
-        { lbl:'Dina', val:window._parteData.counts.Dina },
-        { lbl:'Nivel', val:window._parteData.counts.Nivel },
-        { lbl:'Canceladas', val:window._parteData.counts.Cancelada },
-        { lbl:'TOTAL', val:window._parteData.total }
-      ];
-      const bw = cw / 5;
-      stats.forEach((s, i) => {
-        const bx = mx + i*bw;
-        doc.setFillColor(240,240,245); doc.roundedRect(bx+1, y, bw-2, 16, 2, 2, 'F');
-        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(i===4 ? 91 : 40, i===4 ? 118 : 40, i===4 ? 224 : 40);
-        doc.text(String(s.val), bx + bw/2, y+9, { align:'center' });
-        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,120,120);
-        doc.text(s.lbl, bx + bw/2, y+14, { align:'center' });
-      });
-      y += 22;
+      // --- Section headers ---
+      const tableW = cw - 42; // leave 42mm for ops panel
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...teal);
+      doc.text('DETALLE DE OPERACIONES', mx, y);
+      doc.text('OPERACIONES', mx + tableW + 4, y);
+      y += 4;
 
-      // --- Tabla de datos (leer del DOM editado) ---
+      // --- Read table from DOM ---
       const tableEl = document.getElementById('parteTableResult');
       const tableData = [];
+      const countsFromDOM = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
       if(tableEl){
         tableEl.querySelectorAll('tbody tr').forEach(tr => {
           const cells = [];
           tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
-          if(cells.length >= 6) tableData.push(cells);
-        });
-      }
-
-      doc.autoTable({
-        startY: y,
-        margin: { left: mx, right: mx },
-        head: [['#', 'Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo']],
-        body: tableData,
-        styles: { fontSize:9, cellPadding:2.5, lineColor:[200,200,200], lineWidth:0.2 },
-        headStyles: { fillColor:[30,35,45], textColor:[238,236,228], fontStyle:'bold', fontSize:8 },
-        alternateRowStyles: { fillColor:[248,248,252] },
-        columnStyles: { 0:{ cellWidth:10, halign:'center' }, 1:{ cellWidth:24 } },
-        didDrawPage: function(data){ y = data.cursor.y; }
-      });
-
-      y = doc.lastAutoTable.finalY + 8;
-
-      // --- Observaciones ---
-      const obsEl = document.getElementById('parteObsArea');
-      const obsText = obsEl ? obsEl.textContent.trim() : '';
-      if(obsText && obsText !== 'Observaciones / Comentarios:'){
-        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(60,60,60);
-        doc.text('Observaciones / Comentarios:', mx, y);
-        y += 5;
-        doc.setFont('helvetica','normal'); doc.setFontSize(9);
-        const lines = doc.splitTextToSize(obsText, cw);
-        doc.text(lines, mx, y);
-        y += lines.length * 4 + 4;
-      }
-
-      // --- Footer ---
-      doc.setFontSize(8); doc.setTextColor(140,140,140);
-      doc.text('VA&PE — Servicio de Eco - Dinamometría · Comodoro Rivadavia — Chubut', pw/2, ph-10, { align:'center' });
-
-      // Guardar
-      const fname = `Parte_${window._parteData.yacimiento.replace(/\s+/g,'_')}_${window._parteData.fechaFmt.replace(/\//g,'-')}_N_${window._parteData.numParte}.pdf`;
-      doc.save(fname);
-    });
-
-    // ---- Exportar Excel ----
-    if(xlsBtn) xlsBtn.addEventListener('click', () => {
-      if(!window._parteData){ alert('Generá el parte primero.'); return; }
-      if(typeof XLSX === 'undefined'){ alert('Error: la librería XLSX no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
-      const wb = XLSX.utils.book_new();
-      // Cabecera
-      const wsData = [
-        ['', '', '', 'Servicio de Ecodinamometria', '', '', '', 'N° Parte', window._parteData.numParte],
-        ['', '', '', 'PARTE DINAMOMETRIA', '', '', '', '', ''],
-        ['Fecha', '', window._parteData.fechaFmt, '', '', '', '', 'Operadora |Yacimiento', ''],
-        ['', '', '', '', '', '', '', window._parteData.yacimiento, ''],
-        ['', 'Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
-      ];
-      // Filas de datos (desde el DOM editado)
-      const tableEl = document.getElementById('parteTableResult');
-      const countsXls = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
-      if(tableEl){
-        tableEl.querySelectorAll('tbody tr').forEach(tr => {
-          const cells = [];
-          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
-          if(cells.length >= 6){
-            const ensayo = cells[4];
-            if(countsXls[ensayo] !== undefined) countsXls[ensayo]++;
-            // Columnas: (vacío), Fecha, Pozo, Estado, Ensayo, Tipo, (vacío), ops label (solo fila 1-4), ops count
-            wsData.push(['', cells[1], cells[2], cells[3], cells[4], cells[5], '', '', '']);
+          if(cells.length >= 5){
+            tableData.push(cells);
+            const ensayo = cells[3];
+            if(countsFromDOM[ensayo] !== undefined) countsFromDOM[ensayo]++;
           }
         });
       }
-      // Completar operaciones en filas 5-9 (índice 4-8)
-      const opsLabels = ['Combinada', 'Dina', 'Nivel', 'Canceladas', 'TOTAL'];
-      const opsVals = [countsXls.Combinada, countsXls.Dina, countsXls.Nivel, countsXls.Cancelada, window._parteData.total];
-      for(let i=0; i<5; i++){
-        if(wsData[5+i]){ wsData[5+i][7] = opsLabels[i]; wsData[5+i][8] = String(opsVals[i]); }
-        else { const row = ['','','','','','','',opsLabels[i], String(opsVals[i])]; wsData.push(row); }
+      const totalFromDOM = tableData.length;
+
+      // --- Main table ---
+      doc.autoTable({
+        startY: y,
+        margin: { left: mx, right: mx + 44 },
+        head: [['Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo']],
+        body: tableData,
+        styles: { fontSize:8.5, cellPadding:2.2, lineColor:[224,224,224], lineWidth:0.15, textColor:[51,51,51] },
+        headStyles: { fillColor:teal, textColor:[255,255,255], fontStyle:'bold', fontSize:8 },
+        alternateRowStyles: { fillColor:[249,251,253] },
+        tableWidth: tableW
+      });
+
+      // --- Ops panel (right side) ---
+      const opsX = mx + tableW + 4;
+      const opsW = 38;
+      let oy = y;
+      // Header
+      doc.setFillColor(...teal);
+      doc.rect(opsX, oy, opsW, 6, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+      doc.text('Cantidad', opsX+2, oy+4.2);
+      oy += 6;
+      // Rows
+      const opsRows = [
+        {lbl:'Nivel', val:countsFromDOM.Nivel},
+        {lbl:'Combinada', val:countsFromDOM.Combinada},
+        {lbl:'Dina', val:countsFromDOM.Dina},
+        {lbl:'Canceladas', val:countsFromDOM.Cancelada}
+      ];
+      opsRows.forEach(r => {
+        doc.setDrawColor(240,240,240); doc.setLineWidth(0.15);
+        doc.line(opsX, oy+7, opsX+opsW, oy+7);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(51,51,51);
+        doc.text(r.lbl, opsX+2, oy+5);
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...teal);
+        doc.text(String(r.val), opsX+opsW-4, oy+5.2, {align:'right'});
+        oy += 7;
+      });
+      // Total row
+      doc.setDrawColor(...teal); doc.setLineWidth(0.4);
+      doc.line(opsX, oy, opsX+opsW, oy);
+      doc.setFillColor(249,249,249); doc.rect(opsX, oy, opsW, 8, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(51,51,51);
+      doc.text('TOTAL', opsX+2, oy+5.5);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...teal);
+      doc.text(String(totalFromDOM), opsX+opsW-4, oy+5.8, {align:'right'});
+
+      y = Math.max(doc.lastAutoTable.finalY, oy+8) + 6;
+
+      // --- Observaciones ---
+      doc.setDrawColor(224,224,224); doc.setLineWidth(0.3);
+      doc.line(mx, y, pw-mx, y);
+      y += 5;
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...teal);
+      doc.text('OBSERVACIONES (DINA / NIVEL)', mx, y);
+      y += 5;
+      const obsEl = document.getElementById('parteObsArea');
+      const obsText = obsEl ? obsEl.textContent.trim() : '';
+      if(obsText){
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(51,51,51);
+        const obsLines = doc.splitTextToSize(obsText, cw);
+        doc.text(obsLines, mx, y);
+        y += obsLines.length * 3.5 + 2;
       }
+      // Empty lines for handwriting
+      doc.setDrawColor(153,153,153); doc.setLineWidth(0.15);
+      for(let i=0; i<5; i++){
+        doc.line(mx, y+6, pw-mx, y+6);
+        y += 8;
+      }
+
+      // --- Footer ---
+      doc.setFontSize(7); doc.setTextColor(153,153,153);
+      doc.setDrawColor(224,224,224); doc.setLineWidth(0.15);
+      doc.line(mx, ph-14, pw-mx, ph-14);
+      const now = new Date();
+      const ts = metaFecha + ' ' + String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+      doc.text('VA&PE | Ecodinamometría Computarizada | Generado: ' + ts, pw/2, ph-10, {align:'center'});
+
+      const fname = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.pdf`;
+      doc.save(fname);
+    });
+
+    // ---- Exportar Excel (diseño v8 template) ----
+    if(xlsBtn) xlsBtn.addEventListener('click', () => {
+      if(!window._parteData){ alert('Generá el parte primero.'); return; }
+      if(typeof XLSX === 'undefined'){ alert('Error: la librería XLSX no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
+
+      // Leer meta editables del DOM
+      const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
+      const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
+
+      const wb = XLSX.utils.book_new();
+      const wsData = [
+        ['VA&PE', '', 'Servicio de Ecodinamometría', '', '', '', 'Nº Parte', metaNum],
+        ['', '', 'Parte Dinamometría', '', '', '', '', ''],
+        [],
+        ['Nº Parte', metaNum, '', 'Fecha', metaFecha, '', 'Operadora', metaOp],
+        ['Yacimiento', metaYac],
+        [],
+        ['Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
+      ];
+
+      // Leer tabla desde DOM editado
+      const tableEl = document.getElementById('parteTableResult');
+      const countsXls = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
+      if(tableEl){
+        tableEl.querySelectorAll('tbody tr').forEach(tr => {
+          const cells = [];
+          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
+          if(cells.length >= 5){
+            const ensayo = cells[3];
+            if(countsXls[ensayo] !== undefined) countsXls[ensayo]++;
+            wsData.push([cells[0], cells[1], cells[2], cells[3], cells[4], '', '', '']);
+          }
+        });
+      }
+      const totalXls = Object.values(countsXls).reduce((a,b)=>a+b, 0);
+
+      // Operaciones en columnas G-H alineadas con filas de datos
+      const opsLabels = ['Nivel', 'Combinada', 'Dina', 'Canceladas', 'TOTAL'];
+      const opsVals = [countsXls.Nivel, countsXls.Combinada, countsXls.Dina, countsXls.Cancelada, totalXls];
+      for(let i=0; i<5; i++){
+        const rowIdx = 7 + i; // fila 8-12 (índice 7-11)
+        if(wsData[rowIdx]){ wsData[rowIdx][6] = opsLabels[i]; wsData[rowIdx][7] = opsVals[i]; }
+        else { const row = ['','','','','','',opsLabels[i], opsVals[i]]; wsData.push(row); }
+      }
+
       // Observaciones
       wsData.push([]);
+      wsData.push(['Observaciones (Dina / Nivel):']);
       const obsEl = document.getElementById('parteObsArea');
-      wsData.push(['Observaciones / Comentarios:   ' + (obsEl ? obsEl.textContent.trim() : '')]);
+      const obsText = obsEl ? obsEl.textContent.trim() : '';
+      if(obsText) wsData.push([obsText]);
       wsData.push([]);
-      wsData.push(['', 'VA&PE - Servicio de Ecodinamometria']);
-      wsData.push(['', 'Comodoro Rivadavia - Chubut']);
+      const now = new Date();
+      const ts = metaFecha + ' ' + String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+      wsData.push(['VA&PE | Ecodinamometría Computarizada | Generado: ' + ts]);
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{wch:3},{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:18},{wch:10}];
-      XLSX.utils.book_append_sheet(wb, ws, window._parteData.fechaFmt.replace(/\//g,'-'));
-      const fname = `Parte_${window._parteData.yacimiento.replace(/\s+/g,'_')}_${window._parteData.fechaFmt.replace(/\//g,'-')}_N_${window._parteData.numParte}.xlsx`;
+      ws['!cols'] = [{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:16},{wch:10}];
+      XLSX.utils.book_append_sheet(wb, ws, metaFecha.replace(/\//g,'-'));
+      const fname = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.xlsx`;
       XLSX.writeFile(wb, fname);
     });
   })();
