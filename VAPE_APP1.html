@@ -2544,6 +2544,10 @@
         <span class="num" id="cn-stat-pozos">0</span>
       </div>
       <div class="cn-stat">
+        <span class="lbl">AIB</span>
+        <span class="num" id="cn-stat-aib">0</span>
+      </div>
+      <div class="cn-stat">
         <span class="lbl">BES</span>
         <span class="num" id="cn-stat-bes">0</span>
       </div>
@@ -5266,8 +5270,9 @@
     const rows = cnBuildRows().filter(cnRowMatches);
     const el = document.getElementById('cn-stat-pozos');
     if(el) el.textContent = rows.length; // conteo de POZOS únicos (cnBuildRows ya es 1 fila por pozo, nunca por registro)
-    const counts = { BES:0, PCP:0, Rotaflex:0, SSE:0 };
+    const counts = { AIB:0, BES:0, PCP:0, Rotaflex:0, SSE:0 };
     rows.forEach(r => { if(counts.hasOwnProperty(r.sistema)) counts[r.sistema]++; });
+    const aibEl = document.getElementById('cn-stat-aib'); if(aibEl) aibEl.textContent = counts.AIB;
     const besEl = document.getElementById('cn-stat-bes'); if(besEl) besEl.textContent = counts.BES;
     const pcpEl = document.getElementById('cn-stat-pcp'); if(pcpEl) pcpEl.textContent = counts.PCP;
     const rotEl = document.getElementById('cn-stat-rotaflex'); if(rotEl) rotEl.textContent = counts.Rotaflex;
