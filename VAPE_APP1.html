@@ -1035,6 +1035,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
 
@@ -6262,10 +6263,10 @@
       doc.save(fname);
     });
 
-    // ---- Exportar Excel (diseño v8 template) ----
-    if(xlsBtn) xlsBtn.addEventListener('click', () => {
+    // ---- Exportar Excel con ExcelJS (diseño idéntico al PDF) ----
+    if(xlsBtn) xlsBtn.addEventListener('click', async () => {
       if(!window._parteData){ alert('Generá el parte primero.'); return; }
-      if(typeof XLSX === 'undefined'){ alert('Error: la librería XLSX no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
+      if(typeof ExcelJS === 'undefined'){ alert('Error: la librería ExcelJS no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
 
       // Leer meta editables del DOM
       const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
@@ -6274,59 +6275,223 @@
       const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
       const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim()) || window._parteData.baterias;
 
-      const wb = XLSX.utils.book_new();
-      const wsData = [
-        ['VA&PE', '', 'Servicio de Ecodinamometría', '', '', '', 'Nº Parte', metaNum],
-        ['', '', 'Parte Dinamometría', '', '', '', '', ''],
-        [],
-        ['Nº Parte', metaNum, '', 'Fecha', metaFecha, '', 'Operadora', metaOp],
-        ['Yacimiento', metaYac, '', '', '', '', '', ''],
-        ['Baterías recorridas', metaBat],
-        [],
-        ['Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
-      ];
-
       // Leer tabla desde DOM editado
       const tableEl = document.getElementById('parteTableResult');
-      const countsXls = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
+      const dataRows = [];
+      const cntXls = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
       if(tableEl){
         tableEl.querySelectorAll('tbody tr').forEach(tr => {
-          const cells = [];
-          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
-          if(cells.length >= 5){
-            const ensayo = cells[3];
-            if(countsXls[ensayo] !== undefined) countsXls[ensayo]++;
-            wsData.push([cells[0], cells[1], cells[2], cells[3], cells[4], '', '', '']);
-          }
+          const c = []; tr.querySelectorAll('td').forEach(td => c.push(td.textContent.trim()));
+          if(c.length >= 5){ if(cntXls[c[3]] !== undefined) cntXls[c[3]]++; dataRows.push(c); }
         });
       }
-      const totalXls = Object.values(countsXls).reduce((a,b)=>a+b, 0);
-
-      // Operaciones en columnas G-H alineadas con filas de datos
-      const opsLabels = ['Nivel', 'Combinada', 'Dina', 'Canceladas', 'TOTAL'];
-      const opsVals = [countsXls.Nivel, countsXls.Combinada, countsXls.Dina, countsXls.Cancelada, totalXls];
-      for(let i=0; i<5; i++){
-        const rowIdx = 7 + i; // fila 8-12 (índice 7-11)
-        if(wsData[rowIdx]){ wsData[rowIdx][6] = opsLabels[i]; wsData[rowIdx][7] = opsVals[i]; }
-        else { const row = ['','','','','','',opsLabels[i], opsVals[i]]; wsData.push(row); }
-      }
-
-      // Observaciones
-      wsData.push([]);
-      wsData.push(['Observaciones (Dina / Nivel):']);
+      const totalXls = Object.values(cntXls).reduce((a,b)=>a+b,0);
       const obsEl = document.getElementById('parteObsArea');
       const obsText = obsEl ? obsEl.textContent.trim() : '';
-      if(obsText) wsData.push([obsText]);
-      wsData.push([]);
       const now = new Date();
-      const ts = metaFecha + ' ' + String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-      wsData.push(['VA&PE | Ecodinamometría Computarizada | Generado: ' + ts]);
+      const ts = metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:16},{wch:10}];
-      XLSX.utils.book_append_sheet(wb, ws, metaFecha.replace(/\//g,'-'));
-      const fname = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.xlsx`;
-      XLSX.writeFile(wb, fname);
+      // --- Estilos base ---
+      const TEAL = {argb:'FF2D5F6F'};
+      const WHITE = {argb:'FFFFFFFF'};
+      const DARK = {argb:'FF333333'};
+      const GRAY = {argb:'FF999999'};
+      const LTGRAY = {argb:'FFF0F0F0'};
+      const ZEBRA = {argb:'FFF9FBFD'};
+      const fontTitle = {name:'Calibri',size:13,bold:true,color:TEAL};
+      const fontSub = {name:'Calibri',size:9,color:{argb:'FF666666'}};
+      const fontMetaLbl = {name:'Calibri',size:8,color:GRAY};
+      const fontMetaVal = {name:'Calibri',size:10,bold:true,color:DARK};
+      const fontTh = {name:'Calibri',size:9,bold:true,color:WHITE};
+      const fontTd = {name:'Calibri',size:9,color:DARK};
+      const fontOpsLbl = {name:'Calibri',size:9,color:DARK};
+      const fontOpsVal = {name:'Calibri',size:12,bold:true,color:TEAL};
+      const thinBorder = {style:'thin',color:LTGRAY};
+      const tealBorder = {style:'thin',color:TEAL};
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'VA&PE App';
+      const ws = wb.addWorksheet('Parte', {
+        pageSetup:{paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0,
+          margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2}}
+      });
+
+      // Anchos de columna: A-E tabla, F separador, G-H ops
+      ws.columns = [
+        {width:12},{width:16},{width:13},{width:14},{width:11},{width:2},{width:16},{width:10}
+      ];
+
+      let r = 1;
+
+      // ===== HEADER: Fila 1-2 (logo + título) =====
+      // Fila 1: Logo teal + Título
+      ws.mergeCells(r,1,r,2); // A1:B1 = logo area
+      const logoCell = ws.getCell(r,1);
+      logoCell.value = 'VA&PE';
+      logoCell.font = {name:'Calibri',size:11,bold:true,color:WHITE};
+      logoCell.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+      logoCell.alignment = {horizontal:'center',vertical:'middle'};
+      ws.mergeCells(r,3,r,5); // C1:E1 = título
+      const titleCell = ws.getCell(r,3);
+      titleCell.value = 'Servicio de Ecodinamometría';
+      titleCell.font = fontTitle;
+      titleCell.alignment = {vertical:'middle'};
+      ws.getRow(r).height = 22;
+      r++;
+
+      // Fila 2: subtítulo
+      ws.mergeCells(r,3,r,5);
+      const subCell = ws.getCell(r,3);
+      subCell.value = 'Parte Dinamometría';
+      subCell.font = fontSub;
+      // Línea teal debajo del header
+      for(let c=1;c<=8;c++) ws.getCell(r,c).border = {bottom:{style:'medium',color:TEAL}};
+      r++;
+
+      // Fila 3: vacía (separador)
+      ws.getRow(r).height = 6;
+      r++;
+
+      // ===== META: Fila 4 (Nº Parte, Fecha, Operadora, Yacimiento) =====
+      const metaLabels = ['Nº Parte','Fecha','Operadora','Yacimiento'];
+      const metaValues = [metaNum, metaFecha, metaOp, metaYac];
+      const metaCols = [[1,2],[3,3],[4,5],[7,8]];
+      // Labels row
+      metaCols.forEach((mc,i) => {
+        if(mc[0]!==mc[1]) ws.mergeCells(r,mc[0],r,mc[1]);
+        const cell = ws.getCell(r,mc[0]);
+        cell.value = metaLabels[i];
+        cell.font = fontMetaLbl;
+      });
+      r++;
+      // Values row
+      metaCols.forEach((mc,i) => {
+        if(mc[0]!==mc[1]) ws.mergeCells(r,mc[0],r,mc[1]);
+        const cell = ws.getCell(r,mc[0]);
+        cell.value = metaValues[i];
+        cell.font = fontMetaVal;
+      });
+      r++;
+
+      // Fila: Baterías recorridas
+      ws.getCell(r,1).value = 'Baterías recorridas';
+      ws.getCell(r,1).font = fontMetaLbl;
+      ws.mergeCells(r,2,r,5);
+      ws.getCell(r,2).value = metaBat;
+      ws.getCell(r,2).font = {name:'Calibri',size:9,bold:true,color:DARK};
+      r++;
+
+      // Fila vacía
+      ws.getRow(r).height = 6;
+      r++;
+
+      // ===== ENCABEZADOS: Tabla + Operaciones =====
+      const hdrRow = r;
+      // Tabla headers A-E
+      const thLabels = ['Fecha','Pozo','Estado','Ensayo','Tipo'];
+      thLabels.forEach((lbl,i) => {
+        const cell = ws.getCell(r,i+1);
+        cell.value = lbl;
+        cell.font = fontTh;
+        cell.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+        cell.alignment = {horizontal:'left',vertical:'middle'};
+        cell.border = {bottom:{style:'thin',color:{argb:'FF1A3A4A'}}};
+      });
+      // Ops header G-H
+      ws.mergeCells(r,7,r,8);
+      const opsHdr = ws.getCell(r,7);
+      opsHdr.value = 'OPERACIONES';
+      opsHdr.font = fontTh;
+      opsHdr.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+      opsHdr.alignment = {horizontal:'center',vertical:'middle'};
+      ws.getRow(r).height = 20;
+      r++;
+
+      // ===== DATA ROWS + OPS PANEL =====
+      const opsLabels = ['Nivel','Combinada','Dina','Canceladas','TOTAL'];
+      const opsVals = [cntXls.Nivel, cntXls.Combinada, cntXls.Dina, cntXls.Cancelada, totalXls];
+
+      const maxRows = Math.max(dataRows.length, 5);
+      for(let i=0; i<maxRows; i++){
+        const isZebra = i % 2 === 1;
+        // Tabla datos A-E
+        if(i < dataRows.length){
+          const dr = dataRows[i];
+          for(let c=0;c<5;c++){
+            const cell = ws.getCell(r,c+1);
+            cell.value = dr[c] || '';
+            cell.font = fontTd;
+            cell.border = {bottom:thinBorder};
+            if(isZebra) cell.fill = {type:'pattern',pattern:'solid',fgColor:ZEBRA};
+          }
+        }
+        // Ops panel G-H (solo primeras 5 filas)
+        if(i < 5){
+          const isTotal = (i === 4);
+          const gCell = ws.getCell(r,7);
+          gCell.value = opsLabels[i];
+          gCell.font = isTotal ? {name:'Calibri',size:9,bold:true,color:DARK} : fontOpsLbl;
+          gCell.border = {bottom: isTotal ? {style:'thin',color:TEAL} : thinBorder, right:thinBorder, left:thinBorder};
+          if(isTotal) gCell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+
+          const hCell = ws.getCell(r,8);
+          hCell.value = opsVals[i];
+          hCell.font = isTotal ? {name:'Calibri',size:13,bold:true,color:TEAL} : fontOpsVal;
+          hCell.alignment = {horizontal:'center',vertical:'middle'};
+          hCell.border = {bottom: isTotal ? {style:'thin',color:TEAL} : thinBorder, right:thinBorder};
+          if(isTotal) hCell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+          // Top border for TOTAL
+          if(isTotal){ gCell.border.top = {style:'medium',color:TEAL}; hCell.border.top = {style:'medium',color:TEAL}; }
+        }
+        ws.getRow(r).height = 17;
+        r++;
+      }
+
+      // Fila vacía
+      r++;
+
+      // ===== OBSERVACIONES =====
+      // Línea separadora
+      for(let c=1;c<=8;c++) ws.getCell(r,c).border = {top:{style:'thin',color:LTGRAY}};
+      ws.mergeCells(r,1,r,8);
+      const obsTitle = ws.getCell(r,1);
+      obsTitle.value = 'OBSERVACIONES (DINA / NIVEL)';
+      obsTitle.font = {name:'Calibri',size:9,bold:true,color:TEAL};
+      r++;
+
+      if(obsText){
+        ws.mergeCells(r,1,r,8);
+        ws.getCell(r,1).value = obsText;
+        ws.getCell(r,1).font = fontTd;
+        r++;
+      }
+
+      // Líneas punteadas para observaciones manuales (imprimir y escribir a mano)
+      for(let i=0;i<4;i++){
+        ws.mergeCells(r,1,r,8);
+        for(let c=1;c<=8;c++) ws.getCell(r,c).border = {bottom:{style:'dotted',color:GRAY}};
+        ws.getRow(r).height = 14;
+        r++;
+      }
+
+      r++;
+      // ===== FOOTER =====
+      ws.mergeCells(r,1,r,8);
+      const footerCell = ws.getCell(r,1);
+      footerCell.value = 'VA&PE | Ecodinamometría Computarizada | Generado: ' + ts;
+      footerCell.font = {name:'Calibri',size:7,color:GRAY};
+      footerCell.alignment = {horizontal:'center'};
+      footerCell.border = {top:{style:'thin',color:LTGRAY}};
+
+      // --- Generar y descargar ---
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.xlsx`;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
     });
   })();
 
