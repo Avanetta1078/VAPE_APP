@@ -6392,19 +6392,29 @@
           }
         }
       });
+      // Agrupar por pozo: cada operación con su estado de cancelación individual
       const byWell = {};
       rows.forEach(r => {
-        if(!byWell[r.well]) byWell[r.well] = { tipos:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, bateria:r.bateria, zona:r.zona, cancelada:r.cancelada };
-        byWell[r.well].tipos.push(r.tipo);
-        if(r.cancelada) byWell[r.well].cancelada = true;
+        if(!byWell[r.well]) byWell[r.well] = { ops:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, bateria:r.bateria, zona:r.zona };
+        byWell[r.well].ops.push({ tipo: r.tipo, cancelada: r.cancelada });
       });
       const parteRows = Object.entries(byWell).map(([well, info]) => {
+        // Separar operaciones válidas de canceladas
+        const validas = info.ops.filter(o => !o.cancelada).map(o => o.tipo);
+        const todas = info.ops.map(o => o.tipo);
         let ensayo;
-        if(info.cancelada) ensayo = 'Cancelada';
-        else if(info.tipos.includes('Dina') && info.tipos.includes('Nivel')) ensayo = 'Combinada';
-        else if(info.tipos.includes('Combinada')) ensayo = 'Combinada';
-        else if(info.tipos.includes('Dina')) ensayo = 'Dina';
-        else ensayo = 'Nivel';
+        if (validas.length === 0) {
+          // TODAS canceladas → Cancelada
+          ensayo = 'Cancelada';
+        } else if (validas.includes('Dina') && validas.includes('Nivel')) {
+          ensayo = 'Combinada';
+        } else if (validas.includes('Combinada')) {
+          ensayo = 'Combinada';
+        } else if (validas.includes('Dina')) {
+          ensayo = 'Dina';
+        } else {
+          ensayo = 'Nivel';
+        }
         return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora, bateria:info.bateria, zona:info.zona };
       });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
