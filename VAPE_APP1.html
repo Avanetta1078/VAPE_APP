@@ -5971,6 +5971,101 @@
 
   // ===================== GENERAR PARTE =====================
   window._parteData = null; // estado compartido entre generar/exportar (global explícito)
+
+  // --- Partes: auto-numeración y persistencia en Supabase ---
+  async function getNextParteNumber(fecha) {
+    try {
+      const year = fecha.split('-')[0];
+      const { data, error } = await supabase
+        .from('partes')
+        .select('nro_parte')
+        .ilike('nro_parte', `${year}-%`)
+        .order('nro_parte', { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const last = data[0].nro_parte; // e.g. "2026-0005"
+        const seq = parseInt(last.split('-').pop(), 10) || 0;
+        return `${year}-${String(seq + 1).padStart(4, '0')}`;
+      }
+      return `${year}-0001`;
+    } catch (e) {
+      console.warn('getNextParteNumber error:', e);
+      return '0-001';
+    }
+  }
+
+  async function loadParteForDate(fecha, operadora) {
+    if (!fecha) return null;
+    try {
+      let q = supabase.from('partes').select('*').eq('fecha', fecha);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { data, error } = await q.maybeSingle();
+      if (error) throw error;
+      return data; // null si no existe
+    } catch (e) {
+      console.warn('loadParteForDate error:', e);
+      return null;
+    }
+  }
+
+  async function saveParteToSupabase(parteData) {
+    try {
+      const record = {
+        fecha: parteData.fecha,
+        operadora: parteData.operadora || 'TODAS',
+        yacimiento: parteData.yacimiento || '',
+        nro_parte: parteData.numParte,
+        baterias: parteData.baterias || '',
+        observaciones: '',
+        total_pozos: parteData.total || 0,
+        pozos_dyn: parteData.counts.Dina || 0,
+        pozos_acu: parteData.counts.Nivel || 0,
+        pozos_ambos: parteData.counts.Combinada || 0,
+        created_by: typeof currentUser !== 'undefined' ? currentUser : 'sistema'
+      };
+      const { data, error } = await supabase
+        .from('partes')
+        .upsert(record, { onConflict: 'fecha,operadora' })
+        .select()
+        .single();
+      if (error) throw error;
+      console.log('Parte guardado en Supabase:', data);
+      return data;
+    } catch (e) {
+      console.warn('saveParteToSupabase error:', e);
+      return null;
+    }
+  }
+
+  // Auto-cargar Nº Parte al cambiar fecha u operadora
+  (function setupParteAutoLoad() {
+    const fechaInput = document.getElementById('parteFecha');
+    const opSelect = document.getElementById('parteOperadora');
+    const numInput = document.getElementById('parteNumero');
+    if (!fechaInput || !numInput) return;
+
+    async function autoLoadParte() {
+      const fecha = fechaInput.value;
+      if (!fecha) return;
+      const op = opSelect ? opSelect.value : '';
+      const existing = await loadParteForDate(fecha, op || null);
+      if (existing) {
+        numInput.value = existing.nro_parte;
+        numInput.style.borderColor = '#2D5F6F';
+        numInput.title = 'Parte existente cargado desde base de datos';
+      } else {
+        const next = await getNextParteNumber(fecha);
+        numInput.value = next;
+        numInput.style.borderColor = '';
+        numInput.title = 'Nuevo número de parte (auto-generado)';
+      }
+    }
+
+    fechaInput.addEventListener('change', autoLoadParte);
+    if (opSelect) opSelect.addEventListener('change', autoLoadParte);
+  })();
+
   (function(){
     const genBtn = document.getElementById('parteGenerateBtn');
     const printBtn = document.getElementById('partePrintBtn');
@@ -6038,6 +6133,13 @@
       const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
+      // Auto-guardar parte en Supabase
+      saveParteToSupabase(data).then(saved => {
+        if(saved) {
+          const numInput = document.getElementById('parteNumero');
+          if(numInput) numInput.value = saved.nro_parte;
+        }
+      });
       const shortDate = fechaFmt.substring(0,5);
       const now = new Date();
       const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
