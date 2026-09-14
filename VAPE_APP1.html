@@ -5148,6 +5148,16 @@
     { key:'sartaTramo4',   label:'Tramo 4',   group:'Datos de Sarta', filterType:'text', get:r=>cnTramoLabel(r,3) },
     { key:'sartaPeso',     label:'Peso Total Sarta', unit:' lb', dec:0, group:'Datos de Sarta', filterType:'numeric', get:r=>r.totalRodWeight },
     { key:'sartaApiBba',   label:'API Bba.',  group:'Datos de Sarta', filterType:'checkbox', get:r=>r.pumpDesignationApi },
+
+    // Contrapesos — datos desagregados desde CONTRAPESOS_CACHE (field_log)
+    { key:'cpPrinc',       label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
+    { key:'cpCantPrinc',   label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
+    { key:'cpDistPrinc',   label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
+    { key:'cpSecu',        label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
+    { key:'cpCantSecu',    label:'Cant. Secund.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantSecu },
+    { key:'cpDistSecu',    label:'Dist. Secund.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistSecu },
+    { key:'cpCBM',         label:'CBM',             unit:' in-lb', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.cbm },
+    { key:'cpWCW',         label:'WCW',             unit:' lb',    dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.wcw },
   ];
   const CN_ALL_DEFS = CN_BASE_DEFS.concat(CN_EXTRA_DEFS);
   const CN_DEFS_BY_KEY = {}; CN_ALL_DEFS.forEach(d => CN_DEFS_BY_KEY[d.key] = d);
@@ -5166,9 +5176,22 @@
     return wellNames.map(n => {
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
+      // Inyectar contrapesos desde CONTRAPESOS_CACHE (field_log, carga async)
+      let _cpPrinc=null,_cpCantPrinc=null,_cpDistPrinc=null,_cpSecu=null,_cpCantSecu=null,_cpDistSecu=null;
+      const cpRow = CONTRAPESOS_CACHE[n];
+      if(cpRow && cpRow.contrapesos){
+        const cp = cpRow.contrapesos;
+        if(cp.tipo != null) _cpPrinc = String(cp.tipo).toUpperCase();
+        if(cp.cant != null) _cpCantPrinc = Number(cp.cant);
+        if(cp.cm != null && cp.cm !== '') _cpDistPrinc = Number(cp.cm);
+        if(cp.secu != null) _cpSecu = String(cp.secu).toUpperCase();
+        if(cp.cant2 != null) _cpCantSecu = Number(cp.cant2);
+        if(cp.cm2 != null && cp.cm2 !== '') _cpDistSecu = Number(cp.cm2);
+      }
       return Object.assign({}, w, {
         name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
+        _cpPrinc, _cpCantPrinc, _cpDistPrinc, _cpSecu, _cpCantSecu, _cpDistSecu,
       });
     });
   }
@@ -5364,7 +5387,16 @@
     });
     document.addEventListener('click', function onDoc(e){ if(!panel.contains(e.target) && e.target !== anchorBtn){ panel.remove(); document.removeEventListener('click', onDoc); } });
   }
-  function cnRenderAll(){ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); }
+  function cnRenderAll(){
+    // Si hay columnas de contrapesos activas, pre-cargar datos bulk
+    const cpKeys = ['cpPrinc','cpCantPrinc','cpDistPrinc','cpSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
+    const needsCp = cnState.extraCols.some(k => cpKeys.includes(k));
+    if(needsCp && !_cpBulkLoaded){
+      loadContrapesosForAllWells().then(()=>{ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); });
+      return; // se re-renderiza cuando termine la carga
+    }
+    cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse();
+  }
 
   // ---- Modal "Armado Consulta" ----
   function cnRenderModal(){
@@ -7496,6 +7528,41 @@
 
   const CONTRAPESOS_CACHE = {};
   const CONTRAPESOS_DETALLE_CACHE = {};
+  let _cpBulkLoaded = false;
+  async function loadContrapesosForAllWells(){
+    if(_cpBulkLoaded || !supabaseClient || !wellNames.length) return;
+    try{
+      // Obtener el contrapeso mas reciente de cada pozo (field_log)
+      const nums = wellNames.map(n => String(n).replace(/\D/g,'')).filter(Boolean);
+      if(!nums.length) return;
+      // Supabase limita a 1000 en una query; usar pagination si hace falta
+      let allData = [];
+      for(let i=0; i<nums.length; i+=500){
+        const batch = nums.slice(i, i+500);
+        const {data, error} = await supabaseClient
+          .from('field_log').select('well_number, fecha, contrapesos')
+          .in('well_number', batch)
+          .not('contrapesos','is',null)
+          .order('fecha',{ascending:false});
+        if(!error && data) allData = allData.concat(data);
+      }
+      // Tomar solo el registro mas reciente por well_number
+      const seen = new Set();
+      allData.forEach(row => {
+        const wn = String(row.well_number);
+        if(seen.has(wn)) return;
+        seen.add(wn);
+        // Buscar el wellName que matchea este well_number
+        const match = wellNames.find(n => String(n).replace(/\D/g,'') === wn);
+        if(match && !(match in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[match] = row;
+        }
+      });
+      // Marcar los que no tienen datos
+      wellNames.forEach(n => { if(!(n in CONTRAPESOS_CACHE)) CONTRAPESOS_CACHE[n] = null; });
+      _cpBulkLoaded = true;
+    } catch(e){ console.error('Error bulk-loading contrapesos:', e); }
+  }
 
   // Desempaqueta "NOMBRE xN" -> {nombre, cant}, igual que Bitácora Online.
   function unpackCantidadReporte(texto){
@@ -7666,11 +7733,13 @@
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
         cardsHtml += `<div class="cp-card">
           <div class="cp-card-title ${crankClass}">Manivela ${manivelaNo}</div>
+          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-bottom:1px;">Principal</div>
           <div class="cp-triplet-row">
             <span class="cp-t-placa">${tipoPrincipal || '—'}</span>
             <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</span></span>
             <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distPrincipal != null ? distPrincipal : '—'}</span></span>
           </div>
+          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-top:3px;margin-bottom:1px;">Secundarios</div>
           <div class="cp-triplet-row">
             <span class="cp-t-placa">${tipoAux || '—'}</span>
             <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</span></span>
