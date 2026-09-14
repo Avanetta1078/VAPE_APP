@@ -6373,49 +6373,37 @@
       if(!fecha){ alert('Seleccioná una campaña del combobox para generar el parte.'); return null; }
       const opFilter = document.getElementById('parteOperadora').value;
       const numParte = document.getElementById('parteNumero').value.trim() || '';
-      const rows = [];
+      // Recolectar pozos para la fecha — Ensayo = columna Operaciones de la grilla Inicio
+      const byWell = {};
       wellNames.forEach(name => {
         const w = WELLS_DB[name];
         if(!w) return;
         if(opFilter && w.operadora !== opFilter) return;
         const hist = w.history || [];
-        hist.forEach(h => {
-          if(h.dt !== fecha) return;
-          const estado = h.wellState ? (h.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
-          rows.push({ well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '', cancelada: isCancelComment(h.comment) });
-        });
-        if(!hist.length && w.dt === fecha){
-          const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
-          if(op){
-            const estado = w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
-            rows.push({ well: name, dt: fecha, tipo: op, sistema: w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '', cancelada: isCancelComment(w.comment) });
-          }
-        }
-      });
-      // Agrupar por pozo: cada operación con su estado de cancelación individual
-      const byWell = {};
-      rows.forEach(r => {
-        if(!byWell[r.well]) byWell[r.well] = { ops:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, bateria:r.bateria, zona:r.zona };
-        byWell[r.well].ops.push({ tipo: r.tipo, cancelada: r.cancelada });
+        const entriesFecha = hist.filter(h => h.dt === fecha);
+        if(entriesFecha.length === 0 && w.dt !== fecha) return;
+
+        // Ensayo = misma lógica que columna Operaciones de la grilla
+        const tiposEnFecha = new Set(entriesFecha.map(h => h.tipo));
+        let ensayo;
+        if(tiposEnFecha.has('Dina') && tiposEnFecha.has('Nivel')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Combinada')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Dina')) ensayo = 'Dina';
+        else if(tiposEnFecha.has('Nivel')) ensayo = 'Nivel';
+        else if(!hist.length && w.dt === fecha) {
+          // Fallback: pozo sin history
+          ensayo = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
+          if(!ensayo) return;
+        } else return;
+
+        const firstEntry = entriesFecha[0] || {};
+        const estado = firstEntry.wellState ? (firstEntry.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico')
+               : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
+        const sistema = firstEntry.sistema || w.sistema || '—';
+        byWell[name] = { ensayo, estado, sistema, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '' };
       });
       const parteRows = Object.entries(byWell).map(([well, info]) => {
-        // Separar operaciones válidas de canceladas
-        const validas = info.ops.filter(o => !o.cancelada).map(o => o.tipo);
-        const todas = info.ops.map(o => o.tipo);
-        let ensayo;
-        if (validas.length === 0) {
-          // TODAS canceladas → Cancelada
-          ensayo = 'Cancelada';
-        } else if (validas.includes('Dina') && validas.includes('Nivel')) {
-          ensayo = 'Combinada';
-        } else if (validas.includes('Combinada')) {
-          ensayo = 'Combinada';
-        } else if (validas.includes('Dina')) {
-          ensayo = 'Dina';
-        } else {
-          ensayo = 'Nivel';
-        }
-        return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora, bateria:info.bateria, zona:info.zona };
+        return { well, ensayo: info.ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora, bateria: info.bateria, zona: info.zona };
       });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
