@@ -2634,11 +2634,15 @@
 
       <div class="cn-field cn-fecharango">
         <label>Rango de fecha</label>
-        <div class="cn-dias">
-          <label style="font-size:10px; color:var(--ink-dim); margin:0;">Desde</label>
-          <input id="cn-f-fecha-desde" type="date" title="Desde">
-          <label style="font-size:10px; color:var(--ink-dim); margin:0;">Hasta</label>
-          <input id="cn-f-fecha-hasta" type="date" title="Hasta">
+        <div class="cn-dias" style="gap:8px;">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="font-size:9px; color:var(--ink-dim); margin-bottom:2px;">Desde</span>
+            <input id="cn-f-fecha-desde" type="date" title="Desde">
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="font-size:9px; color:var(--ink-dim); margin-bottom:2px;">Hasta</span>
+            <input id="cn-f-fecha-hasta" type="date" title="Hasta">
+          </div>
         </div>
       </div>
 
@@ -2710,7 +2714,7 @@
           </div>
         </div>
         <div id="dp-status" style="font-size:11px; color:var(--ink-faint); min-height:14px;"></div>
-        <div id="dp-preview" style="max-height:340px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; display:none;"></div>
+        <div id="dp-preview" style="max-height:460px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; display:none; background:var(--panel);"></div>
       </div>
       <div class="cn-modal-foot">
         <span style="font-size:10.5px; color:var(--ink-faint);">Genera un PDF por cada fecha con campaña.</span>
@@ -10407,38 +10411,56 @@
         previewEl.style.display = 'none';
         return;
       }
-      const { fechaFmt, operadora, baterias, parteRows, counts, total } = data;
+      const { fechaFmt, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       const shortDate = fechaFmt.substring(0,5);
+      const now = new Date();
+      const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
       previewEl.style.display = 'block';
       previewEl.innerHTML = `
-        <div style="padding:14px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="parte-hdr">
+          <div class="parte-hdr-top">
+            <div class="parte-logo">VA&amp;PE</div>
             <div>
-              <div style="font-size:13px; font-weight:700; color:var(--ink);">VA&PE — Parte Dinamometría</div>
-              <div style="font-size:10.5px; color:var(--ink-dim);">${fechaFmt} · ${operadora} · Bat: ${baterias}</div>
-            </div>
-            <div style="display:flex; gap:8px; font-size:10px; color:var(--ink-dim);">
-              <span>Comb: ${counts.Combinada}</span>
-              <span>Dina: ${counts.Dina}</span>
-              <span>Nivel: ${counts.Nivel}</span>
-              <span style="font-weight:700; color:var(--ink);">Total: ${total}</span>
+              <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
+              <div class="parte-hdr-sub">Parte Dinamometría</div>
             </div>
           </div>
-          <table style="width:100%; font-size:10.5px; border-collapse:collapse;">
-            <thead><tr style="background:rgba(45,95,111,.15);">
-              <th style="padding:4px 6px; text-align:left; border-bottom:1px solid var(--border);">Pozo</th>
-              <th style="padding:4px 6px; text-align:left; border-bottom:1px solid var(--border);">Estado</th>
-              <th style="padding:4px 6px; text-align:left; border-bottom:1px solid var(--border);">Ensayo</th>
-              <th style="padding:4px 6px; text-align:left; border-bottom:1px solid var(--border);">Tipo</th>
-            </tr></thead>
-            <tbody>${parteRows.map(r => `<tr style="border-bottom:1px solid rgba(255,255,255,.04);">
-              <td style="padding:3px 6px;">${r.well}</td>
-              <td style="padding:3px 6px;">${r.estado}</td>
-              <td style="padding:3px 6px;">${r.ensayo}</td>
-              <td style="padding:3px 6px;">${r.sistema}</td>
-            </tr>`).join('')}</tbody>
-          </table>
-        </div>`;
+          <div class="parte-meta-grid">
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" style="color:#c62828; font-style:italic;">Sin asignar</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val">${fechaFmt}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val">${operadora}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val">${yacimiento}</span></div>
+          </div>
+          <div style="padding-top:6px;">
+            <span class="parte-meta-lbl">Baterías recorridas</span>
+            <span class="parte-meta-val" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
+          </div>
+        </div>
+        <div class="parte-content">
+          <div>
+            <table class="parte-table">
+              <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
+              <tbody>
+                ${parteRows.map(r => `<tr>
+                  <td>${shortDate}</td>
+                  <td>${r.well}</td>
+                  <td>${r.estado}</td>
+                  <td>${r.ensayo}</td>
+                  <td>${r.sistema}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="parte-ops">
+            <div class="parte-ops-hdr">Operaciones</div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
+            <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
+          </div>
+        </div>
+        <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | Vista previa: ${genTimestamp}</div>`;
     }
 
     btn.addEventListener('click', () => {
