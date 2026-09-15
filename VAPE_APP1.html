@@ -8110,11 +8110,13 @@
     const coordsPip = tog.pip ? pts.map((p,i) => ({ x: xFor(i), y: p.pip!=null?yForPip(p.pip):null, p })) : [];
 
     // grilla horizontal (4 lineas) + eje
+    // yFor mapea: minV→arriba, maxV→abajo (profundidad crece hacia abajo)
+    // Labels deben coincidir: arriba=minV (menos profundo), abajo=maxV (mas profundo)
     let gridSvg = '';
     const gridN = 3;
     for(let g=0; g<=gridN; g++){
       const gy = padT + (g/gridN)*plotH;
-      const gv = maxV - (g/gridN)*(maxV-minV);
+      const gv = minV + (g/gridN)*(maxV-minV);
       gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
       gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)} m</text>`;
       if(tog.pip){
