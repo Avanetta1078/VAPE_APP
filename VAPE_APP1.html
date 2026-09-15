@@ -14,9 +14,9 @@
     --bronze:#c98a3e; --bronze-glow:#e6a95c; --steel:#6a93b8; --steel-glow:#8fb4d6;
   }
   .ensayo-badge{display:inline-block; padding:1px 7px; border-radius:4px; font-size:10.5px; font-weight:600; letter-spacing:.02em;}
-  .ensayo-combinada{background:rgba(91,118,224,.12); color:var(--navy-glow); border:1px solid rgba(91,118,224,.25);}
-  .ensayo-dina{background:rgba(201,138,62,.12); color:var(--bronze-glow); border:1px solid rgba(201,138,62,.25);}
-  .ensayo-nivel{background:rgba(143,180,214,.12); color:var(--steel-glow); border:1px solid rgba(143,180,214,.25);}
+  .ensayo-combinada{background:rgba(91,118,224,.18); color:var(--ink); border:1px solid rgba(91,118,224,.35);}
+  .ensayo-dina{background:rgba(224,91,91,.16); color:var(--ink); border:1px solid rgba(224,91,91,.30);}
+  .ensayo-nivel{background:rgba(143,180,214,.18); color:var(--ink); border:1px solid rgba(143,180,214,.35);}
   .ensayo-sin{color:var(--ink-faint);}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;}
@@ -678,6 +678,7 @@
   .cn-dias input{width:78px; height:30px; font-size:14px; font-weight:700; border-radius:7px;
     border:1.5px solid #5b76e0; background:var(--panel); text-align:center; letter-spacing:.02em;}
   .cn-dias input::placeholder{font-weight:400; font-size:11px;}
+  .cn-fecharango .cn-dias input[type="date"]{width:120px; height:26px; font-size:11px; font-weight:500; color-scheme:dark; padding:2px 6px;}
   .cn-dias input:focus{outline:none; border-color:#7d93ea; box-shadow:0 0 0 3px rgba(91,118,224,.2);}
   .cn-search input{width:150px;}
   .cn-btnrow{display:flex; align-items:center; gap:6px; margin-left:auto; flex-wrap:wrap;}
@@ -4842,7 +4843,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
+          <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
           <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
@@ -10134,6 +10135,20 @@
         <option value="Estático" ${curVal==='Estático'?'selected':''}>Estático</option>
       </select>`;
     }
+    const pkrTd = tr.querySelector('td.ie-cell[data-field="pkr"]');
+    if(pkrTd){
+      const w0 = WELLS_DB[tr.dataset.well];
+      const curPkr = (w0 && w0.packerM != null && w0.packerM > 0) ? String(Math.round(w0.packerM)) : '';
+      pkrTd.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+        <input type="number" class="ie-input" data-orig="${curPkr}" value="${curPkr}" placeholder="m" style="width:60px;color:#e74c3c;" min="0" step="1">
+        ${curPkr ? '<button type="button" class="ie-pkr-clear" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;padding:0 2px;">✕</button>' : ''}
+      </div>`;
+      const clearBtn0 = pkrTd.querySelector('.ie-pkr-clear');
+      if(clearBtn0) clearBtn0.addEventListener('click', ()=>{
+        const inp = pkrTd.querySelector('.ie-input');
+        if(inp) inp.value = '';
+      });
+    }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
       // asociado (data-comment-testid) — una fila "pendiente" (pozo sin
@@ -10261,6 +10276,20 @@
           throw new Error('No se encontró ningún ensayo asociado a esta fila para guardar el estado.');
         }
       }
+      // ---- PKR (Packer) ----
+      const pkrInput = tr.querySelector('td.ie-cell[data-field="pkr"] .ie-input');
+      const newPkr = pkrInput ? pkrInput.value.trim() : null;
+      if(pkrInput && newPkr !== pkrInput.dataset.orig){
+        const pkrVal = newPkr === '' ? null : Number(newPkr);
+        if(newPkr !== '' && (isNaN(pkrVal) || pkrVal < 0)){
+          alert('El valor de PKR debe ser un número positivo o vacío para borrarlo.');
+          if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
+          return;
+        }
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+      }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
         if(error) throw error;
@@ -10285,6 +10314,9 @@
         if(typeof initScopeForUser === 'function') initScopeForUser();
       } else {
         renderInicioGrid();
+        if(pkrInput && newPkr !== pkrInput.dataset.orig && currentWell === wellName){
+          renderWell();
+        }
       }
     } catch(err){
       alert('No se pudo guardar en Supabase: ' + (err.message || err));
@@ -10376,16 +10408,24 @@
     if(closeBtn) closeBtn.addEventListener('click', () => backdrop.classList.remove('active'));
     backdrop.addEventListener('click', (e) => { if(e.target === backdrop) backdrop.classList.remove('active'); });
 
-    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+    // Espera a que _parteData se cargue para la fecha dada (polling robusto)
+    function waitForParteData(fecha, timeoutMs){
+      return new Promise(resolve => {
+        const t0 = Date.now();
+        const check = () => {
+          if(window._parteData && window._parteData.fecha === fecha) return resolve(true);
+          if(Date.now() - t0 > timeoutMs) return resolve(false);
+          setTimeout(check, 100);
+        };
+        check();
+      });
+    }
 
-    // Reutiliza el combo/boton reales del modulo "Generar Parte": setea la
-    // fecha, dispara su logica (verificacion en Supabase + collectParteData +
-    // render de la tabla) y despues clickea el boton real de exportar PDF —
-    // asi no se duplica la logica de armado ni la de generacion del PDF.
-    async function downloadParteForDate(fecha){
+    // Genera el parte para una fecha y clickea PDF
+    async function prepareParteForDate(fecha){
       const campSel = document.getElementById('parteCampanaSelect');
-      const pdfBtn = document.getElementById('parteExportPdfBtn');
-      if(!campSel || !pdfBtn) return false;
+      const genBtn = document.getElementById('parteGenerateBtn');
+      if(!campSel || !genBtn) return false;
       if(![...campSel.options].some(o => o.value === fecha)){
         const opt = document.createElement('option');
         opt.value = fecha; opt.textContent = fmtDate(fecha);
@@ -10393,10 +10433,28 @@
       }
       campSel.value = fecha;
       campSel.dispatchEvent(new Event('change'));
-      await sleep(500); // espera la verificacion async (Supabase) y el armado del parte
-      if(!window._parteData || window._parteData.fecha !== fecha) return false;
+      // Espera que la lógica async arme _parteData (polling c/100ms, max 5s)
+      const ok = await waitForParteData(fecha, 5000);
+      return ok;
+    }
+
+    // Preview al seleccionar una fecha del combo
+    fechaUnica.addEventListener('change', async () => {
+      const f = fechaUnica.value;
+      if(!f){ if(statusEl) statusEl.textContent = ''; return; }
+      if(statusEl) statusEl.textContent = 'Generando vista previa…';
+      const ok = await prepareParteForDate(f);
+      if(statusEl) statusEl.textContent = ok ? 'Vista previa generada. Podés descargar.' : 'No se pudo generar la vista previa.';
+    });
+
+    async function downloadParteForDate(fecha){
+      const pdfBtn = document.getElementById('parteExportPdfBtn');
+      if(!pdfBtn) return false;
+      const ok = await prepareParteForDate(fecha);
+      if(!ok) return false;
       pdfBtn.click();
-      await sleep(250);
+      // Pausa breve para que el navegador procese la descarga
+      await new Promise(r => setTimeout(r, 400));
       return true;
     }
 
@@ -10413,7 +10471,8 @@
       downloadBtn.disabled = true;
       for(let i=0; i<dates.length; i++){
         if(statusEl) statusEl.textContent = `Generando ${i+1}/${dates.length} — ${fmtDate(dates[i])}…`;
-        await downloadParteForDate(dates[i]);
+        const ok = await downloadParteForDate(dates[i]);
+        if(!ok && statusEl) statusEl.textContent = `Error en ${fmtDate(dates[i])}, continuando…`;
       }
       if(statusEl) statusEl.textContent = `Listo: ${dates.length} parte${dates.length===1?'':'s'} descargado${dates.length===1?'':'s'}.`;
       downloadBtn.disabled = false;
