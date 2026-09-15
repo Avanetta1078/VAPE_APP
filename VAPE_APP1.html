@@ -2926,7 +2926,7 @@
       // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
       // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
       const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
-        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m'),
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m, motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos'),
         fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb, pump_designation_api, total_rod_weight_lb'),
         fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
         fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id'),
@@ -2962,7 +2962,14 @@
       const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
 
       wells.forEach(w => {
-        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null };
+        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null,
+          motorMarca: w.motor_marca || null, motorRpm: w.motor_rpm ?? null, motorHp: w.motor_hp ?? null, motorPolea: w.motor_polea || null,
+          contrapesosRaw: w.contrapesos || null,
+        };
+        // Pre-cargar contrapesos desde wells si existen
+        if(w.contrapesos && !(w.well_name in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[w.well_name] = { contrapesos: w.contrapesos, motor_marca: w.motor_marca, motor_rpm: w.motor_rpm, motor_potencia_hp: w.motor_hp, motor_polea: w.motor_polea };
+        }
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
@@ -5266,13 +5273,19 @@
     { key:'sartaPeso',     label:'Peso Total Sarta', unit:' lb', dec:0, group:'Datos de Sarta', filterType:'numeric', get:r=>r.totalRodWeight },
     { key:'sartaApiBba',   label:'API Bba.',  group:'Datos de Sarta', filterType:'checkbox', get:r=>r.pumpDesignationApi },
 
-    // Contrapesos — datos desagregados desde CONTRAPESOS_CACHE (field_log)
-    { key:'cpPrinc',       label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
-    { key:'cpCantPrinc',   label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
-    { key:'cpDistPrinc',   label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
-    { key:'cpSecu',        label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
-    { key:'cpCantSecu',    label:'Cant. Secund.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantSecu },
-    { key:'cpDistSecu',    label:'Dist. Secund.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistSecu },
+    // Motor
+    { key:'motorMarca',    label:'Motor Marca',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorMarca : null; } },
+    { key:'motorRpm',      label:'Motor RPM',     unit:'',    dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorRpm : null; } },
+    { key:'motorHp',       label:'Motor Potencia', unit:' HP', dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorHp : null; } },
+    { key:'motorPolea',    label:'Motor Polea',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorPolea : null; } },
+
+    // Contrapesos
+    { key:'cpTipoPpal',    label:'Placas Ppal.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.tipo : null; } },
+    { key:'cpCantPpal',    label:'Cant. Ppal.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant != null ? Number(cp.cant) : null; } },
+    { key:'cpDistPpal',    label:'Dist. Ppal.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm != null ? Number(cp.cm) : null; } },
+    { key:'cpTipoSecu',    label:'Placas Secu.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.secu : null; } },
+    { key:'cpCantSecu',    label:'Cant. Secu.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant2 != null ? Number(cp.cant2) : null; } },
+    { key:'cpDistSecu',    label:'Dist. Secu.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm2 != null ? Number(cp.cm2) : null; } },
     { key:'cpCBM',         label:'CBM',             unit:' in-lb', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.cbm },
     { key:'cpWCW',         label:'WCW',             unit:' lb',    dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.wcw },
   ];
