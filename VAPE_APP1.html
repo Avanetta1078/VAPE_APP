@@ -1749,13 +1749,13 @@
   .hist-tl-area{ fill:url(#histAreaGrad); }
   .hist-tl-grid{ stroke:var(--border); stroke-width:1; opacity:.45; }
   .hist-tl-axis{ stroke:var(--border); stroke-width:1; opacity:.8; }
-  .hist-tl-pt{ fill:var(--panel); stroke:var(--steel-glow); stroke-width:1.6; cursor:pointer; transition:r .12s ease, fill .12s ease; }
-  .hist-tl-pt:hover, .hist-tl-pt.active{ fill:var(--steel-glow); }
+  .hist-tl-pt{ fill:var(--steel-glow); stroke:var(--steel-glow); stroke-width:1.2; cursor:pointer; transition:r .12s ease; }
+  .hist-tl-pt:hover, .hist-tl-pt.active{ r:4; }
   .hist-tl-line.hist-line-corr{ stroke:var(--bronze-glow); }
   .hist-tl-line.hist-line-pip{ stroke:var(--rust-glow); }
   .hist-tl-line.dashed{ stroke-dasharray:4 3; }
-  .hist-tl-pt.hist-line-corr{ stroke:var(--bronze-glow); }
-  .hist-tl-pt.hist-line-pip{ stroke:var(--rust-glow); }
+  .hist-tl-pt.hist-line-corr{ fill:var(--bronze-glow); stroke:var(--bronze-glow); }
+  .hist-tl-pt.hist-line-pip{ fill:var(--rust-glow); stroke:var(--rust-glow); }
   .hist-tl-axis-r{ fill:var(--rust-glow); opacity:.75; }
   .hist-tl-datelbl{ font-family:'IBM Plex Mono'; font-size:8.5px; fill:var(--ink-faint); letter-spacing:.02em; }
   .hist-tl-vallbl{ font-family:'IBM Plex Mono'; font-size:9px; fill:var(--ink-dim); font-weight:500; }
@@ -8080,10 +8080,17 @@
 
     const tog = histToggleState();
 
-    // ---- geometria (compacta) ----
-    const W = 760, H = 190, padL = 46, padR = tog.pip ? 44 : 18, padT = 18, padB = 34;
-    const plotW = W - padL - padR, plotH = H - padT - padB;
-    // Escala izquierda: Nivel medido + Nivel corregido (mismas unidades, m)
+    // ---- geometria ----
+    const hasPip = tog.pip && pts.some(p=>p.pip!=null);
+    const W = 760, H = hasPip ? 270 : 190, padL = 46, padR = hasPip ? 44 : 18, padT = 18, padB = 34;
+    const plotW = W - padL - padR;
+    const totalPlotH = H - padT - padB;
+    const pipZoneH = hasPip ? totalPlotH * 0.28 : 0;
+    const gapH = hasPip ? 14 : 0;
+    const nivelZoneH = totalPlotH - pipZoneH - gapH;
+    const nivelTop = padT + (hasPip ? pipZoneH + gapH : 0);
+
+    // Escala izquierda: Nivel medido + Nivel corregido (m)
     const leftVals = [];
     pts.forEach(p => { leftVals.push(p.nivel); if(tog.corregido && p.nivelCorr != null) leftVals.push(p.nivelCorr); });
     let minV = Math.min(...leftVals), maxV = Math.max(...leftVals);
@@ -8091,8 +8098,8 @@
     let padV = (maxV - minV) * 0.12;
     minV -= padV; maxV += padV;
 
-    // Escala derecha: PIP (kg/cm2)
-    const pipVals = tog.pip ? pts.map(p=>p.pip).filter(v=>v!=null) : [];
+    // Escala derecha: Presión Csg (kg)
+    const pipVals = hasPip ? pts.map(p=>p.pip).filter(v=>v!=null) : [];
     let minP = 0, maxP = 1;
     if(pipVals.length){
       minP = Math.min(...pipVals); maxP = Math.max(...pipVals);
@@ -8102,27 +8109,29 @@
     }
 
     const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
-    // Nivel medido: valores mas ALTOS (mas profundo) hacia ABAJO del grafico (convencion de nivel de pozo)
-    const yFor = (v) => padT + ((v - minV) / (maxV - minV)) * plotH;
-    const yForPip = (v) => padT + plotH - ((v - minP) / (maxP - minP)) * plotH; // PIP: mas alto = arriba (convencion estandar)
+    const yFor = (v) => nivelTop + ((v - minV) / (maxV - minV)) * nivelZoneH;
+    const yForPip = (v) => padT + pipZoneH - ((v - minP) / (maxP - minP)) * pipZoneH;
 
     const coords = pts.map((p,i) => ({ x: xFor(i), y: yFor(p.nivel), p }));
     const coordsCorr = tog.corregido ? pts.map((p,i) => ({ x: xFor(i), y: p.nivelCorr!=null?yFor(p.nivelCorr):null, p })) : [];
     const coordsPip = tog.pip ? pts.map((p,i) => ({ x: xFor(i), y: p.pip!=null?yForPip(p.pip):null, p })) : [];
 
-    // grilla horizontal (4 lineas) + eje
-    // yFor mapea: minV→arriba, maxV→abajo (profundidad crece hacia abajo)
-    // Labels deben coincidir: arriba=minV (menos profundo), abajo=maxV (mas profundo)
     let gridSvg = '';
     const gridN = 3;
+    // Grilla zona Niveles
     for(let g=0; g<=gridN; g++){
-      const gy = padT + (g/gridN)*plotH;
+      const gy = nivelTop + (g/gridN)*nivelZoneH;
       const gv = minV + (g/gridN)*(maxV-minV);
       gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
       gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)} m</text>`;
-      if(tog.pip){
-        const gpv = maxP - (g/gridN)*(maxP-minP);
-        gridSvg += `<text class="hist-tl-datelbl hist-tl-axis-r" x="${W-padR+6}" y="${gy+3}" text-anchor="start">${gpv.toFixed(1)}</text>`;
+    }
+    // Grilla zona Presión Csg (separada)
+    if(hasPip){
+      for(let g=0; g<=2; g++){
+        const gy = padT + (g/2)*pipZoneH;
+        const gpv = maxP - (g/2)*(maxP-minP);
+        gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke-dasharray="3,3"/>`;
+        gridSvg += `<text class="hist-tl-datelbl hist-tl-axis-r" x="${W-padR+6}" y="${gy+3}" text-anchor="start" fill="var(--rust-glow)">${gpv.toFixed(1)} kg</text>`;
       }
     }
 
@@ -8156,10 +8165,11 @@
     }
 
     // linea + area (Nivel Medido, principal)
+    const nivelBottom = nivelTop + nivelZoneH;
     const linePath = coords.map((c,i) => (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
-    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${padT+plotH} L${coords[0].x.toFixed(1)},${padT+plotH} Z`;
+    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${nivelBottom} L${coords[0].x.toFixed(1)},${nivelBottom} Z`;
 
-    // puntos (delicados, sin etiquetas fijas — el valor aparece en el tooltip al pasar el cursor)
+    // puntos
     let ptsSvg = '';
     coords.forEach((c,i) => {
       const isLast = i === coords.length-1;
@@ -8186,7 +8196,7 @@
           ${ptsSvg}
           ${corrBuild.pts}
           ${pipBuild.pts}
-          <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
+          <line class="hist-tl-axis" x1="${padL}" y1="${nivelBottom}" x2="${W-padR}" y2="${nivelBottom}"/>
           ${dateLabels}
         </svg>
         <div class="hist-tooltip" id="histTooltip"></div>
