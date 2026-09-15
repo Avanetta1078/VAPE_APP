@@ -343,6 +343,11 @@
   .rp-chip-estado{border-radius:7px; padding:3px 9px; font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; letter-spacing:.02em;}
   .rp-chip-estado.dinamico{background:rgba(46,160,90,.16); color:#5fd68a; border:1px solid rgba(46,160,90,.4);}
   .rp-chip-estado.estatico{background:rgba(230,70,70,.16); color:#ff6b6b; border:1px solid rgba(230,70,70,.4);}
+  .rp-chip-nivcorr-alert{animation:nivcorrPulse 1.2s ease-in-out infinite;}
+  @keyframes nivcorrPulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(255,170,0,.6); }
+    50%{ box-shadow:0 0 8px 4px rgba(255,170,0,.35); }
+  }
   .rp-lbl{font-size:8px; letter-spacing:.02em; color:var(--ink-dim); font-weight:600; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-val{font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rp-chart-box{height:404px; border:1px dashed var(--border); border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
@@ -1283,6 +1288,7 @@
           <div class="rp-side-stack">
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Nivel</span><span class="rp-val" id="rp-nivel">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sumerg.</span><span class="rp-val" id="rp-sumerg">—</span></div>
+            <div class="rp-chip rp-chip-acu" id="rp-nivcorr-chip"><span class="rp-lbl">Niv. corr.</span><span class="rp-val" id="rp-nivcorr">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Sum. corr.</span><span class="rp-val" id="rp-sumergc">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">PIP Acu</span><span class="rp-val" id="rp-pipacu">—</span></div>
             <div class="rp-chip rp-chip-acu"><span class="rp-lbl">Prof. bba</span><span class="rp-val" id="rp-profbba">—</span></div>
@@ -3444,8 +3450,9 @@
 
     if(!w){
       ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-fabricante','rp-modeloapi','rp-carrera','rp-pipdyn',
-       'rp-nivel','rp-sumerg','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
+       'rp-nivel','rp-sumerg','rp-nivcorr','rp-sumergc','rp-pipacu','rp-profbba','rp-apibba','rp-wellname','rp-classif','rp-dyn-stamp','rp-acu-stamp']
         .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
+      const ncChip = document.getElementById('rp-nivcorr-chip'); if(ncChip) ncChip.classList.remove('rp-chip-nivcorr-alert');
       const dynImg = document.getElementById('rp-dyn-img'); if(dynImg) dynImg.style.display = 'none';
       const svgEl = document.getElementById('rp-wellsvg'); if(svgEl) svgEl.innerHTML = '';
       const tramosTable = document.getElementById('rp-tramos-table'); if(tramosTable) tramosTable.innerHTML = '<tr><th>T</th><th>Diám</th><th>Long</th></tr>';
@@ -3591,16 +3598,25 @@
     // ---- Chips Nivel ----
     // Si el nivel fue marcado como indefinido, no se muestran valores numéricos
     // de nivel/sumergencia/PIP — se muestra "INDEF." para evitar confusión.
+    // Nivel Corregido = Prof. de bba - Sumergencia Corregida
+    const nivelCorr = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
     if(w.nivelIndefinido){
       setRaw('rp-nivel', 'INDEF.');
       setRaw('rp-sumerg', 'INDEF.');
+      setRaw('rp-nivcorr', 'INDEF.');
       setRaw('rp-sumergc', 'INDEF.');
       setRaw('rp-pipacu', 'INDEF.');
     } else {
       setTxt('rp-nivel', w.nivel, ' m', 0);
       setTxt('rp-sumerg', w.sumerg, ' m', 0);
+      setTxt('rp-nivcorr', nivelCorr, ' m', 0);
       setTxt('rp-sumergc', w.sumergc, ' m', 0);
       setTxt('rp-pipacu', w.pipEco, ' kg', 1);
+    }
+    const nivcorrChip = document.getElementById('rp-nivcorr-chip');
+    if(nivcorrChip){
+      const diffAlert = !w.nivelIndefinido && nivelCorr != null && w.nivel != null && Math.abs(nivelCorr - w.nivel) > 1;
+      nivcorrChip.classList.toggle('rp-chip-nivcorr-alert', diffAlert);
     }
     setTxt('rp-profbba', w.pumpIntakeDepth, ' m', 0);
     setRaw('rp-acu-comment', w.commentAcu || 'Sin comentarios registrados.');
@@ -3844,6 +3860,19 @@
       ${rodSegments}
 
       ${levelLabelSvg}
+
+      ${(function(){
+        // Linea de Nivel Corregido: se dibuja solo si difiere del Nivel Medido.
+        const nivelCorregido = (w.sumergc != null && w.pumpIntakeDepth != null) ? (w.pumpIntakeDepth - w.sumergc) : null;
+        if(nivelCorregido != null && w.pumpIntakeDepth && w.nivel != null && !w.nivelIndefinido && Math.abs(nivelCorregido - w.nivel) > 1){
+          const fracCorr = Math.max(0, Math.min(1, nivelCorregido / w.pumpIntakeDepth));
+          const corrY = pipeTop + fracCorr * pipeH;
+          return `
+            <line x1="${outerX1-5}" y1="${corrY.toFixed(1)}" x2="${outerX2+5}" y2="${corrY.toFixed(1)}" stroke="rgba(255,170,0,.85)" stroke-width="1.5" stroke-dasharray="6 3" style="cursor:pointer;"/>
+            <rect x="${outerX1-5}" y="${(corrY-5).toFixed(1)}" width="${outerX2-outerX1+10}" height="10" fill="transparent" style="cursor:pointer;"><title>Nivel Corregido: ${fmt(nivelCorregido,0)} m</title></rect>`;
+        }
+        return '';
+      })()}
     `;
   }
 
