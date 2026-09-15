@@ -1728,7 +1728,7 @@
           <input type="checkbox" id="histToggleCorregido"> <span style="color:var(--bronze-glow);">● Nivel Corregido</span>
         </label>
         <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-          <input type="checkbox" id="histTogglePIP"> <span style="color:var(--rust-glow);">● Presión (PIP)</span>
+          <input type="checkbox" id="histTogglePIP"> <span style="color:var(--rust-glow);">● Presión Csg</span>
         </label>
       </div>
 
@@ -8059,7 +8059,7 @@
         date: t.test_date,
         time: t.test_time,
         nivel: Number(t.results.liquid_level_tvd_m),
-        pip: t.results.pip_ll_kg != null ? Number(t.results.pip_ll_kg) : null,
+        pip: t.results.acu_casing_pressure_kg != null ? Number(t.results.acu_casing_pressure_kg) : null,
         sumerg: t.results.fluid_above_pump_m != null ? Number(t.results.fluid_above_pump_m) : null,
         nivelCorr: t.results.corrected_liquid_level_tvd_m != null ? Number(t.results.corrected_liquid_level_tvd_m)
           : (t.results.gas_free_above_pump_m != null && wRef && wRef.pumpIntakeDepth != null
@@ -8202,7 +8202,7 @@
         <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
         <div class="htt-row"><span>Nivel medido</span><span>${Math.round(p.nivel)} m</span></div>
         ${tog.corregido ? `<div class="htt-row"><span>Nivel corregido</span><span>${p.nivelCorr != null ? Math.round(p.nivelCorr)+' m' : '—'}</span></div>` : ''}
-        <div class="htt-row"><span>PIP</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
+        <div class="htt-row"><span>Presión Csg</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
         <div class="htt-row"><span>Sumergencia</span><span>${p.sumerg != null ? p.sumerg.toFixed(1)+' m' : '—'}</span></div>
       `;
       let left = clientX - rect.left + 14;
