@@ -708,8 +708,10 @@
   .cn-table td{padding:3px 6px; border-bottom:1px solid var(--border); color:var(--ink); white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis; font-family:'IBM Plex Mono'; font-size:10px; line-height:1.35; max-width:220px;}
   .cn-table td[data-col="commentDyn"], .cn-table td[data-col="commentAcu"]{
-    max-width:380px; width:380px; min-width:260px; white-space:normal; overflow:hidden; text-overflow:ellipsis;
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3;
+    max-width:420px; width:420px; min-width:300px; white-space:normal;
+    overflow:hidden; text-overflow:ellipsis; line-height:1.35;
+    max-height:30px; /* ~2 líneas (10px * 1.35 * 2 + padding) */
+    vertical-align:top; word-break:break-word;
   }
   .cn-table tbody tr:hover{background:var(--panel-2);}
   .cn-table tbody tr:hover td.cn-sticky{background:var(--panel-2) !important;}
@@ -1033,8 +1035,9 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
 
@@ -1947,16 +1950,13 @@
       <div class="tool-card" data-tool="parte">
         <h3><span class="dot2 navy"></span>Generar Parte<span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></h3>
         <div class="tool-body">
-        <p class="tool-desc">Genera un parte de dinamometría a partir de los datos cargados en la grilla de Inicio. Seleccioná la fecha y operadora para generar el detalle con recuentos automáticos. Todos los campos son editables para corrección.</p>
+        <p class="tool-desc">Elegí operadora y fecha de campaña, editá el Nº de Parte y hacé click en Generar para guardar.</p>
 
-        <div class="bit-grid" style="grid-template-columns:1fr 1fr 1fr; margin-top:10px;">
+        <!-- Fila: Operadora + Campaña (fecha) -->
+        <div class="bit-grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
           <div>
-            <label>Fecha del parte</label>
-            <input type="date" id="parteFecha" class="bit-input">
-          </div>
-          <div>
-            <label>Operadora</label>
-            <select id="parteOperadora" class="bit-input">
+            <label style="font-size:11px;">Operadora</label>
+            <select id="parteOperadora" class="bit-input" style="font-weight:600;">
               <option value="">Todas</option>
               <option value="PECOM">PECOM</option>
               <option value="BREST">BREST</option>
@@ -1965,15 +1965,57 @@
             </select>
           </div>
           <div>
-            <label>N° Parte</label>
-            <input type="text" id="parteNumero" class="bit-input" placeholder="0-001" value="">
+            <label style="font-size:11px;">Campaña (fecha)</label>
+            <select id="parteCampanaSelect" class="bit-input" style="font-weight:600;">
+              <option value="">— Seleccionar fecha —</option>
+            </select>
           </div>
         </div>
 
-        <div style="display:flex; gap:8px; margin-top:12px;">
+        <!-- Fila: Partes guardados + Eliminar -->
+        <div style="display:flex; align-items:flex-end; gap:8px; margin-top:8px;">
+          <div style="flex:1;">
+            <label style="font-size:11px;">Partes guardados</label>
+            <select id="parteNumeroSelect" class="bit-input" style="font-weight:700; color:#2D5F6F;">
+              <option value="">— Partes guardados —</option>
+            </select>
+          </div>
+          <button type="button" id="parteDeleteBtn" class="details-btn" style="border-color:#c62828; color:#c62828; padding:5px 10px; display:none;" title="Eliminar este parte de la base de datos">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Eliminar
+          </button>
+        </div>
+
+        <!-- Panel de info + edición de Nº Parte -->
+        <div id="parteCampanaInfo" style="display:none; background:linear-gradient(135deg,#f0f7f8,#e8f0f1); border:1px solid #c5dade; border-radius:8px; padding:10px 14px; margin-top:8px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <span style="font-size:10px; color:#666; text-transform:uppercase; letter-spacing:.4px;">Campaña</span>
+              <div style="font-size:13px; font-weight:700; color:#2D5F6F;" id="parteCampanaLabel">—</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:10px; color:#666;">Pozos:</span>
+              <span style="font-size:14px; font-weight:800; color:#2D5F6F;" id="parteCampanaPozos">0</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label style="font-size:10px; color:#666; white-space:nowrap;">Nº Parte</label>
+              <input type="text" id="parteNumero" class="bit-input" placeholder="Ej: 2026-0001" value="" style="width:130px; font-weight:700; text-align:center; border-color:#2D5F6F;">
+              <span id="parteNumStatus" style="font-size:9px; color:#2D5F6F; white-space:nowrap;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo fecha oculto para compatibilidad -->
+        <input type="hidden" id="parteFecha" value="">
+
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
           <button class="details-btn" id="parteGenerateBtn" type="button" style="border-color:var(--navy-glow);">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Generar Parte
+          </button>
+          <button class="details-btn" id="parteLimpiarBtn" type="button" style="border-color:#999;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Limpiar
           </button>
           <button class="details-btn" id="partePrintBtn" type="button" style="display:none;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2500,6 +2542,10 @@
       <div class="cn-stat cn-stat-main">
         <span class="lbl">Pozos yacimiento</span>
         <span class="num" id="cn-stat-pozos">0</span>
+      </div>
+      <div class="cn-stat">
+        <span class="lbl">AIB</span>
+        <span class="num" id="cn-stat-aib">0</span>
       </div>
       <div class="cn-stat">
         <span class="lbl">BES</span>
@@ -4044,6 +4090,8 @@
     if(overlay) overlay.classList.remove('hidden');
     loadLiveDataFromSupabase().then(() => {
       initScopeForUser();
+      if(typeof populateCampanaCombo === 'function') populateCampanaCombo('');
+      if(typeof populateParteNumCombo === 'function') populateParteNumCombo('');
     }).finally(() => {
       if(overlay) overlay.classList.add('hidden');
     });
@@ -5104,6 +5152,16 @@
     { key:'sartaTramo4',   label:'Tramo 4',   group:'Datos de Sarta', filterType:'text', get:r=>cnTramoLabel(r,3) },
     { key:'sartaPeso',     label:'Peso Total Sarta', unit:' lb', dec:0, group:'Datos de Sarta', filterType:'numeric', get:r=>r.totalRodWeight },
     { key:'sartaApiBba',   label:'API Bba.',  group:'Datos de Sarta', filterType:'checkbox', get:r=>r.pumpDesignationApi },
+
+    // Contrapesos — datos desagregados desde CONTRAPESOS_CACHE (field_log)
+    { key:'cpPrinc',       label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
+    { key:'cpCantPrinc',   label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
+    { key:'cpDistPrinc',   label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
+    { key:'cpSecu',        label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
+    { key:'cpCantSecu',    label:'Cant. Secund.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantSecu },
+    { key:'cpDistSecu',    label:'Dist. Secund.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistSecu },
+    { key:'cpCBM',         label:'CBM',             unit:' in-lb', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.cbm },
+    { key:'cpWCW',         label:'WCW',             unit:' lb',    dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.wcw },
   ];
   const CN_ALL_DEFS = CN_BASE_DEFS.concat(CN_EXTRA_DEFS);
   const CN_DEFS_BY_KEY = {}; CN_ALL_DEFS.forEach(d => CN_DEFS_BY_KEY[d.key] = d);
@@ -5122,9 +5180,22 @@
     return wellNames.map(n => {
       const w = WELLS_DB[n] || {};
       const tipoEnsayo = (w.hasDyn && w.hasAcu) ? 'Combinada' : (w.hasDyn ? 'Dina' : (w.hasAcu ? 'Nivel' : 'Sin ensayo'));
+      // Inyectar contrapesos desde CONTRAPESOS_CACHE (field_log, carga async)
+      let _cpPrinc=null,_cpCantPrinc=null,_cpDistPrinc=null,_cpSecu=null,_cpCantSecu=null,_cpDistSecu=null;
+      const cpRow = CONTRAPESOS_CACHE[n];
+      if(cpRow && cpRow.contrapesos){
+        const cp = cpRow.contrapesos;
+        if(cp.tipo != null) _cpPrinc = String(cp.tipo).toUpperCase();
+        if(cp.cant != null) _cpCantPrinc = Number(cp.cant);
+        if(cp.cm != null && cp.cm !== '') _cpDistPrinc = Number(cp.cm);
+        if(cp.secu != null) _cpSecu = String(cp.secu).toUpperCase();
+        if(cp.cant2 != null) _cpCantSecu = Number(cp.cant2);
+        if(cp.cm2 != null && cp.cm2 !== '') _cpDistSecu = Number(cp.cm2);
+      }
       return Object.assign({}, w, {
         name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
+        _cpPrinc, _cpCantPrinc, _cpDistPrinc, _cpSecu, _cpCantSecu, _cpDistSecu,
       });
     });
   }
@@ -5199,8 +5270,9 @@
     const rows = cnBuildRows().filter(cnRowMatches);
     const el = document.getElementById('cn-stat-pozos');
     if(el) el.textContent = rows.length; // conteo de POZOS únicos (cnBuildRows ya es 1 fila por pozo, nunca por registro)
-    const counts = { BES:0, PCP:0, Rotaflex:0, SSE:0 };
+    const counts = { AIB:0, BES:0, PCP:0, Rotaflex:0, SSE:0 };
     rows.forEach(r => { if(counts.hasOwnProperty(r.sistema)) counts[r.sistema]++; });
+    const aibEl = document.getElementById('cn-stat-aib'); if(aibEl) aibEl.textContent = counts.AIB;
     const besEl = document.getElementById('cn-stat-bes'); if(besEl) besEl.textContent = counts.BES;
     const pcpEl = document.getElementById('cn-stat-pcp'); if(pcpEl) pcpEl.textContent = counts.PCP;
     const rotEl = document.getElementById('cn-stat-rotaflex'); if(rotEl) rotEl.textContent = counts.Rotaflex;
@@ -5320,7 +5392,16 @@
     });
     document.addEventListener('click', function onDoc(e){ if(!panel.contains(e.target) && e.target !== anchorBtn){ panel.remove(); document.removeEventListener('click', onDoc); } });
   }
-  function cnRenderAll(){ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); }
+  function cnRenderAll(){
+    // Si hay columnas de contrapesos activas, pre-cargar datos bulk
+    const cpKeys = ['cpPrinc','cpCantPrinc','cpDistPrinc','cpSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
+    const needsCp = cnState.extraCols.some(k => cpKeys.includes(k));
+    if(needsCp && !_cpBulkLoaded){
+      loadContrapesosForAllWells().then(()=>{ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); });
+      return; // se re-renderiza cuando termine la carga
+    }
+    cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse();
+  }
 
   // ---- Modal "Armado Consulta" ----
   function cnRenderModal(){
@@ -5970,6 +6051,354 @@
 
   // ===================== GENERAR PARTE =====================
   window._parteData = null; // estado compartido entre generar/exportar (global explícito)
+
+  // --- Partes: funciones de Supabase (usan supabaseClient) ---
+  async function getNextParteNumber(fecha) {
+    if (!supabaseClient) return '0-001';
+    try {
+      const year = fecha.split('-')[0];
+      const { data, error } = await supabaseClient
+        .from('partes')
+        .select('nro_parte')
+        .ilike('nro_parte', `${year}-%`)
+        .order('nro_parte', { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const last = data[0].nro_parte;
+        const seq = parseInt(last.split('-').pop(), 10) || 0;
+        return `${year}-${String(seq + 1).padStart(4, '0')}`;
+      }
+      return `${year}-0001`;
+    } catch (e) {
+      console.warn('getNextParteNumber error:', e);
+      return '0-001';
+    }
+  }
+
+  async function loadParteForDate(fecha, operadora) {
+    if (!fecha || !supabaseClient) return null;
+    try {
+      let q = supabaseClient.from('partes').select('*').eq('fecha', fecha);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { data, error } = await q.maybeSingle();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn('loadParteForDate error:', e);
+      return null;
+    }
+  }
+
+  async function loadPartesForOperadora(operadora) {
+    if (!supabaseClient) return [];
+    try {
+      let q = supabaseClient.from('partes').select('*').order('fecha', { ascending: false }).limit(100);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn('loadPartesForOperadora error:', e);
+      return [];
+    }
+  }
+
+  async function saveParteToSupabase(parteData) {
+    if (!supabaseClient) return null;
+    try {
+      const record = {
+        fecha: parteData.fecha,
+        operadora: parteData.operadora || 'TODAS',
+        yacimiento: parteData.yacimiento || '',
+        nro_parte: parteData.numParte,
+        baterias: parteData.baterias || '',
+        observaciones: '',
+        total_pozos: parteData.total || 0,
+        pozos_dyn: parteData.counts.Dina || 0,
+        pozos_acu: parteData.counts.Nivel || 0,
+        pozos_ambos: parteData.counts.Combinada || 0,
+        created_by: typeof currentUser !== 'undefined' ? (currentUser.user || currentUser) : 'sistema'
+      };
+      const { data, error } = await supabaseClient
+        .from('partes')
+        .upsert(record, { onConflict: 'fecha,operadora' })
+        .select()
+        .single();
+      if (error) throw error;
+      console.log('Parte guardado en Supabase:', data);
+      return data;
+    } catch (e) {
+      console.warn('saveParteToSupabase error:', e);
+      return null;
+    }
+  }
+
+  // --- Campañas: contar POZOS ÚNICOS por fecha (no entradas duplicadas) ---
+  function countPozosFecha(fecha, opFilter) {
+    const seen = new Set();
+    if (typeof wellNames === 'undefined' || typeof WELLS_DB === 'undefined') return 0;
+    wellNames.forEach(name => {
+      const w = WELLS_DB[name];
+      if (!w) return;
+      if (opFilter && w.operadora !== opFilter) return;
+      const hist = w.history || [];
+      const hasFecha = hist.some(h => h.dt === fecha);
+      if (hasFecha || (!hist.length && w.dt === fecha)) seen.add(name);
+    });
+    return seen.size;
+  }
+
+  function getCampanasFromData(opFilter) {
+    const fechaSet = {};
+    if (typeof wellNames === 'undefined' || typeof WELLS_DB === 'undefined') return [];
+    wellNames.forEach(name => {
+      const w = WELLS_DB[name];
+      if (!w) return;
+      if (opFilter && w.operadora !== opFilter) return;
+      const hist = w.history || [];
+      const fechas = new Set();
+      hist.forEach(h => fechas.add(h.dt));
+      if (!hist.length && w.dt) fechas.add(w.dt);
+      fechas.forEach(f => {
+        if (!fechaSet[f]) fechaSet[f] = new Set();
+        fechaSet[f].add(name); // pozo único
+      });
+    });
+    return Object.entries(fechaSet)
+      .map(([fecha, wells]) => ({ fecha, count: wells.size }))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  }
+
+  // Poblar combobox de campañas (fechas) filtrado por operadora
+  function populateCampanaCombo(opFilter) {
+    const sel = document.getElementById('parteCampanaSelect');
+    if (!sel) return;
+    const campanas = getCampanasFromData(opFilter);
+    sel.innerHTML = '<option value="">— Seleccionar fecha —</option>';
+    campanas.forEach(c => {
+      const [y, m, d] = c.fecha.split('-');
+      const opt = document.createElement('option');
+      opt.value = c.fecha;
+      opt.textContent = `${d}/${m}/${y}  (${c.count} pozos)`;
+      sel.appendChild(opt);
+    });
+  }
+
+  // Poblar combobox de Nº Parte según operadora (partes guardados en Supabase)
+  async function populateParteNumCombo(operadora) {
+    const sel = document.getElementById('parteNumeroSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Partes guardados —</option>';
+    const partes = await loadPartesForOperadora(operadora || null);
+    partes.forEach(p => {
+      const [y, m, d] = p.fecha.split('-');
+      const opt = document.createElement('option');
+      opt.value = p.nro_parte + '|' + p.fecha;
+      opt.textContent = `${p.nro_parte}  —  ${d}/${m}/${y}  (${p.total_pozos || 0} pozos)`;
+      sel.appendChild(opt);
+    });
+  }
+
+  // --- Eliminar parte de Supabase ---
+  async function deleteParteFromSupabase(fecha, operadora) {
+    if (!supabaseClient || !fecha) return false;
+    try {
+      let q = supabaseClient.from('partes').delete().eq('fecha', fecha);
+      if (operadora) q = q.eq('operadora', operadora);
+      const { error } = await q;
+      if (error) throw error;
+      console.log('Parte eliminado:', fecha, operadora);
+      return true;
+    } catch (e) {
+      console.warn('deleteParteFromSupabase error:', e);
+      alert('Error al eliminar: ' + e.message);
+      return false;
+    }
+  }
+
+  // --- Reset completo del panel de partes ---
+  function resetPartePanel(keepCombos) {
+    const numInput = document.getElementById('parteNumero');
+    const numSelect = document.getElementById('parteNumeroSelect');
+    const campSel = document.getElementById('parteCampanaSelect');
+    const opSelect = document.getElementById('parteOperadora');
+    const infoPanel = document.getElementById('parteCampanaInfo');
+    const statusEl = document.getElementById('parteNumStatus');
+    const fechaInput = document.getElementById('parteFecha');
+    const output = document.getElementById('parteOutputArea');
+    const printBtn = document.getElementById('partePrintBtn');
+    const pdfBtn = document.getElementById('parteExportPdfBtn');
+    const xlsBtn = document.getElementById('parteExportXlsBtn');
+    if (numInput) numInput.value = '';
+    if (!keepCombos) {
+      if (numSelect) numSelect.value = '';
+      if (campSel) campSel.value = '';
+      if (opSelect) opSelect.value = '';
+    }
+    if (infoPanel) infoPanel.style.display = 'none';
+    if (statusEl) statusEl.textContent = '';
+    if (fechaInput) fechaInput.value = '';
+    if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+    [printBtn, pdfBtn, xlsBtn].forEach(b => { if (b) b.style.display = 'none'; });
+    window._parteData = null;
+  }
+
+  // Disparar generación de parte programáticamente
+  function triggerGenerarParte() {
+    const btn = document.getElementById('parteGenerateBtn');
+    if (btn) btn.click();
+  }
+
+  // --- Lógica principal del módulo Generar Parte ---
+  (function setupParteModule() {
+    const opSelect = document.getElementById('parteOperadora');
+    const numSelect = document.getElementById('parteNumeroSelect');
+    const campSel = document.getElementById('parteCampanaSelect');
+    const fechaInput = document.getElementById('parteFecha');
+    const numInput = document.getElementById('parteNumero');
+    const infoPanel = document.getElementById('parteCampanaInfo');
+    const labelEl = document.getElementById('parteCampanaLabel');
+    const pozosEl = document.getElementById('parteCampanaPozos');
+    const statusEl = document.getElementById('parteNumStatus');
+    const limpiarBtn = document.getElementById('parteLimpiarBtn');
+    const deleteBtn = document.getElementById('parteDeleteBtn');
+    if (!opSelect || !campSel) return;
+
+    let _updating = false;
+
+    // ===== BOTÓN LIMPIAR =====
+    if (limpiarBtn) limpiarBtn.addEventListener('click', () => {
+      resetPartePanel(false);
+      if (deleteBtn) deleteBtn.style.display = 'none';
+      populateCampanaCombo(opSelect.value);
+      populateParteNumCombo(opSelect.value);
+    });
+
+    // ===== BOTÓN ELIMINAR → borrar parte seleccionado de Supabase =====
+    if (deleteBtn) deleteBtn.addEventListener('click', async () => {
+      const val = numSelect?.value;
+      if (!val) { alert('Seleccioná un parte guardado para eliminar.'); return; }
+      const [nro, fecha] = val.split('|');
+      const op = opSelect.value || null;
+      if (!confirm(`¿Eliminar parte ${nro} del ${fecha}? Esta acción no se puede deshacer.`)) return;
+      const ok = await deleteParteFromSupabase(fecha, op);
+      if (ok) {
+        // Limpiar y refrescar
+        if (numInput) numInput.value = '';
+        if (numSelect) numSelect.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        deleteBtn.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        await populateParteNumCombo(opSelect.value);
+        if (statusEl) { statusEl.textContent = '🗑️ Parte eliminado'; statusEl.style.color = '#c62828'; }
+      }
+    });
+
+    // ===== 1) OPERADORA → recargar campañas + partes, limpiar output =====
+    opSelect.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
+      const op = opSelect.value;
+      if (numInput) numInput.value = '';
+      if (campSel) campSel.value = '';
+      if (numSelect) numSelect.value = '';
+      if (fechaInput) fechaInput.value = '';
+      if (infoPanel) infoPanel.style.display = 'none';
+      if (deleteBtn) deleteBtn.style.display = 'none';
+      const output = document.getElementById('parteOutputArea');
+      if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+      [document.getElementById('partePrintBtn'), document.getElementById('parteExportPdfBtn'), document.getElementById('parteExportXlsBtn')].forEach(b => { if (b) b.style.display = 'none'; });
+      window._parteData = null;
+      populateCampanaCombo(op);
+      await populateParteNumCombo(op);
+      _updating = false;
+    });
+
+    // ===== 2) Nº PARTE (combo) → cargar parte guardado, mostrar vista =====
+    if (numSelect) numSelect.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
+      const val = numSelect.value;
+      // Mostrar/ocultar botón eliminar según haya selección
+      if (deleteBtn) deleteBtn.style.display = val ? '' : 'none';
+      if (!val) {
+        if (numInput) numInput.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (campSel) campSel.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        _updating = false;
+        return;
+      }
+      const [nro, fecha] = val.split('|');
+      if (numInput) numInput.value = nro;
+      if (fechaInput) fechaInput.value = fecha;
+      if (campSel) campSel.value = fecha;
+      showCampanaInfo(fecha, nro, true);
+      _updating = false;
+      triggerGenerarParte();
+    });
+
+    // ===== 3) CAMPAÑA (fecha) → mostrar pozos, verificar si tiene parte =====
+    campSel.addEventListener('change', async () => {
+      if (_updating) return;
+      _updating = true;
+      const fecha = campSel.value;
+      if (!fecha) {
+        if (numInput) numInput.value = '';
+        if (fechaInput) fechaInput.value = '';
+        if (infoPanel) infoPanel.style.display = 'none';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+        const output = document.getElementById('parteOutputArea');
+        if (output) { output.style.display = 'none'; output.innerHTML = ''; }
+        window._parteData = null;
+        _updating = false;
+        return;
+      }
+      if (fechaInput) fechaInput.value = fecha;
+      if (numInput) numInput.value = '';
+      if (numSelect) numSelect.value = '';
+      if (deleteBtn) deleteBtn.style.display = 'none';
+
+      // Verificar si ya tiene parte en Supabase
+      const op = opSelect.value;
+      const existing = await loadParteForDate(fecha, op || null);
+      if (existing) {
+        if (numInput) numInput.value = existing.nro_parte;
+        if (numSelect) {
+          const optVal = existing.nro_parte + '|' + fecha;
+          const found = [...numSelect.options].some(o => o.value === optVal);
+          if (found) { numSelect.value = optVal; if (deleteBtn) deleteBtn.style.display = ''; }
+        }
+        showCampanaInfo(fecha, existing.nro_parte, true);
+      } else {
+        showCampanaInfo(fecha, '', false);
+      }
+      _updating = false;
+      triggerGenerarParte();
+    });
+
+    function showCampanaInfo(fecha, nro, isExisting) {
+      const op = opSelect.value;
+      const count = countPozosFecha(fecha, op);
+      const [y, m, d] = fecha.split('-');
+      if (labelEl) labelEl.textContent = `${d}/${m}/${y}` + (op ? ` — ${op}` : '');
+      if (pozosEl) pozosEl.textContent = count;
+      if (infoPanel) infoPanel.style.display = 'block';
+      if (isExisting) {
+        if (statusEl) { statusEl.textContent = '✅ Parte: ' + nro; statusEl.style.color = '#2e7d32'; }
+      } else {
+        if (statusEl) { statusEl.textContent = '⚠️ Sin parte — Escribí el Nº y hacé click en Generar'; statusEl.style.color = '#e65100'; }
+      }
+    }
+  })();
+
   (function(){
     const genBtn = document.getElementById('parteGenerateBtn');
     const printBtn = document.getElementById('partePrintBtn');
@@ -5979,57 +6408,81 @@
     if(!genBtn) return;
 
     function collectParteData(){
-      const fecha = document.getElementById('parteFecha').value;
-      if(!fecha){ alert('Seleccioná una fecha para el parte.'); return null; }
+      const fecha = document.getElementById('parteFecha').value || document.getElementById('parteCampanaSelect')?.value || '';
+      if(!fecha){ alert('Seleccioná una campaña del combobox para generar el parte.'); return null; }
       const opFilter = document.getElementById('parteOperadora').value;
-      const numParte = document.getElementById('parteNumero').value.trim() || '0-001';
-      const rows = [];
+      const numParte = document.getElementById('parteNumero').value.trim() || '';
+      // Recolectar pozos para la fecha — Ensayo = columna Operaciones de la grilla Inicio
+      const byWell = {};
       wellNames.forEach(name => {
         const w = WELLS_DB[name];
         if(!w) return;
         if(opFilter && w.operadora !== opFilter) return;
         const hist = w.history || [];
-        hist.forEach(h => {
-          if(h.dt !== fecha) return;
-          const estado = h.wellState ? (h.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
-          rows.push({ well: name, dt: h.dt, tipo: h.tipo, sistema: h.sistema || w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(h.comment) });
-        });
-        if(!hist.length && w.dt === fecha){
-          const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
-          if(op){
-            const estado = w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
-            rows.push({ well: name, dt: fecha, tipo: op, sistema: w.sistema || '—', estado, operadora: w.operadora || opFilter || '—', cancelada: isCancelComment(w.comment) });
-          }
-        }
-      });
-      const byWell = {};
-      rows.forEach(r => {
-        if(!byWell[r.well]) byWell[r.well] = { tipos:[], sistema:r.sistema, estado:r.estado, operadora:r.operadora, cancelada:r.cancelada };
-        byWell[r.well].tipos.push(r.tipo);
-        if(r.cancelada) byWell[r.well].cancelada = true;
+        const entriesFecha = hist.filter(h => h.dt === fecha);
+        if(entriesFecha.length === 0 && w.dt !== fecha) return;
+
+        // Ensayo = misma lógica que columna Operaciones de la grilla
+        const tiposEnFecha = new Set(entriesFecha.map(h => h.tipo));
+        let ensayo;
+        if(tiposEnFecha.has('Dina') && tiposEnFecha.has('Nivel')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Combinada')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Dina')) ensayo = 'Dina';
+        else if(tiposEnFecha.has('Nivel')) ensayo = 'Nivel';
+        else if(!hist.length && w.dt === fecha) {
+          // Fallback: pozo sin history
+          ensayo = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
+          if(!ensayo) return;
+        } else return;
+
+        const firstEntry = entriesFecha[0] || {};
+        const estado = firstEntry.wellState ? (firstEntry.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico')
+               : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
+        const sistema = firstEntry.sistema || w.sistema || '—';
+        byWell[name] = { ensayo, estado, sistema, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '' };
       });
       const parteRows = Object.entries(byWell).map(([well, info]) => {
-        let ensayo;
-        if(info.cancelada) ensayo = 'Cancelada';
-        else if(info.tipos.includes('Dina') && info.tipos.includes('Nivel')) ensayo = 'Combinada';
-        else if(info.tipos.includes('Combinada')) ensayo = 'Combinada';
-        else if(info.tipos.includes('Dina')) ensayo = 'Dina';
-        else ensayo = 'Nivel';
-        return { well, ensayo, estado:info.estado, sistema:info.sistema, operadora:info.operadora };
+        return { well, ensayo: info.ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora, bateria: info.bateria, zona: info.zona };
       });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
+      // Recolectar baterías y zonas únicas automáticamente
+      const bateriasSet = new Set(); const zonasSet = new Set();
+      parteRows.forEach(r => { if(r.bateria) bateriasSet.add(r.bateria); if(r.zona) zonasSet.add(r.zona); });
+      const baterias = [...bateriasSet].sort().join(', ') || '—';
+      const zonaAuto = [...zonasSet].sort().join(', ') || '';
+      const operadora = opFilter || (parteRows.length ? parteRows[0].operadora : '—');
+      const yacimiento = zonaAuto || operadora;
       const [y,m,d] = fecha.split('-');
-      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, yacimiento: opFilter || (parteRows.length ? parteRows[0].operadora : '—'), parteRows, counts, total:parteRows.length };
+      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, operadora, yacimiento, baterias, parteRows, counts, total:parteRows.length };
     }
 
     genBtn.addEventListener('click', () => {
       const data = collectParteData();
       if(!data) return;
       window._parteData = data;
-      const { fechaFmt, numParte, yacimiento, parteRows, counts, total } = data;
+      const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
       output.style.display = 'block';
       [printBtn, pdfBtn, xlsBtn].forEach(b => { if(b) b.style.display = ''; });
+      // Guardar en Supabase SOLO si hay Nº Parte escrito
+      if (numParte) {
+        saveParteToSupabase(data).then(saved => {
+          if(saved) {
+            const numI = document.getElementById('parteNumero');
+            if(numI) numI.value = saved.nro_parte;
+            const statusEl = document.getElementById('parteNumStatus');
+            if(statusEl){ statusEl.textContent = '✅ Guardado'; statusEl.style.color = '#2e7d32'; }
+            const op = document.getElementById('parteOperadora')?.value;
+            if(typeof populateParteNumCombo === 'function') populateParteNumCombo(op);
+            // Mostrar botón eliminar
+            const delBtn = document.getElementById('parteDeleteBtn');
+            if(delBtn) delBtn.style.display = '';
+          }
+        });
+      } else {
+        const statusEl = document.getElementById('parteNumStatus');
+        if(statusEl){ statusEl.textContent = '📋 Vista previa — Escribí el Nº Parte y volvé a Generar'; statusEl.style.color = '#e65100'; }
+      }
       const shortDate = fechaFmt.substring(0,5);
       const now = new Date();
       const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -6043,10 +6496,14 @@
             </div>
           </div>
           <div class="parte-meta-grid">
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum">${numParte}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum" style="${numParte ? '' : 'color:#c62828; font-style:italic;'}">${numParte || 'Sin asignar'}</span></div>
             <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" contenteditable="true" id="parteMetaFecha">${fechaFmt}</span></div>
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${yacimiento}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${operadora}</span></div>
             <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" contenteditable="true" id="parteMetaYac">${yacimiento}</span></div>
+          </div>
+          <div style="padding-top:6px;">
+            <span class="parte-meta-lbl">Baterías recorridas</span>
+            <span class="parte-meta-val" contenteditable="true" id="parteMetaBat" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
           </div>
         </div>
         <div class="parte-content">
@@ -6099,8 +6556,9 @@
       // Leer meta editables del DOM
       const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
       const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
-      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.operadora;
       const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim()) || window._parteData.baterias;
 
       // --- Logo block ---
       doc.setFillColor(...teal);
@@ -6134,6 +6592,14 @@
         doc.text(m.val, bx, y+4.5);
       });
       y += 10;
+
+      // --- Baterías recorridas ---
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(153,153,153);
+      doc.text('Baterías recorridas', mx, y);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(51,51,51);
+      const batLines = doc.splitTextToSize(metaBat, cw);
+      doc.text(batLines, mx, y+4.5);
+      y += 5 + batLines.length * 3.5 + 3;
 
       // --- Section headers ---
       const tableW = cw - 42; // leave 42mm for ops panel
@@ -6242,69 +6708,235 @@
       doc.save(fname);
     });
 
-    // ---- Exportar Excel (diseño v8 template) ----
-    if(xlsBtn) xlsBtn.addEventListener('click', () => {
+    // ---- Exportar Excel con ExcelJS (diseño idéntico al PDF) ----
+    if(xlsBtn) xlsBtn.addEventListener('click', async () => {
       if(!window._parteData){ alert('Generá el parte primero.'); return; }
-      if(typeof XLSX === 'undefined'){ alert('Error: la librería XLSX no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
+      if(typeof ExcelJS === 'undefined'){ alert('Error: la librería ExcelJS no se cargó. Verificá tu conexión a internet y recargá la página.'); return; }
 
       // Leer meta editables del DOM
       const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim()) || window._parteData.numParte;
       const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim()) || window._parteData.fechaFmt;
-      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.yacimiento;
+      const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim()) || window._parteData.operadora;
       const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim()) || window._parteData.yacimiento;
-
-      const wb = XLSX.utils.book_new();
-      const wsData = [
-        ['VA&PE', '', 'Servicio de Ecodinamometría', '', '', '', 'Nº Parte', metaNum],
-        ['', '', 'Parte Dinamometría', '', '', '', '', ''],
-        [],
-        ['Nº Parte', metaNum, '', 'Fecha', metaFecha, '', 'Operadora', metaOp],
-        ['Yacimiento', metaYac],
-        [],
-        ['Fecha', 'Pozo', 'Estado', 'Ensayo', 'Tipo', '', 'Operaciones', 'Cantidad'],
-      ];
+      const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim()) || window._parteData.baterias;
 
       // Leer tabla desde DOM editado
       const tableEl = document.getElementById('parteTableResult');
-      const countsXls = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
+      const dataRows = [];
+      const cntXls = { Nivel:0, Combinada:0, Dina:0, Cancelada:0 };
       if(tableEl){
         tableEl.querySelectorAll('tbody tr').forEach(tr => {
-          const cells = [];
-          tr.querySelectorAll('td').forEach(td => cells.push(td.textContent.trim()));
-          if(cells.length >= 5){
-            const ensayo = cells[3];
-            if(countsXls[ensayo] !== undefined) countsXls[ensayo]++;
-            wsData.push([cells[0], cells[1], cells[2], cells[3], cells[4], '', '', '']);
-          }
+          const c = []; tr.querySelectorAll('td').forEach(td => c.push(td.textContent.trim()));
+          if(c.length >= 5){ if(cntXls[c[3]] !== undefined) cntXls[c[3]]++; dataRows.push(c); }
         });
       }
-      const totalXls = Object.values(countsXls).reduce((a,b)=>a+b, 0);
-
-      // Operaciones en columnas G-H alineadas con filas de datos
-      const opsLabels = ['Nivel', 'Combinada', 'Dina', 'Canceladas', 'TOTAL'];
-      const opsVals = [countsXls.Nivel, countsXls.Combinada, countsXls.Dina, countsXls.Cancelada, totalXls];
-      for(let i=0; i<5; i++){
-        const rowIdx = 7 + i; // fila 8-12 (índice 7-11)
-        if(wsData[rowIdx]){ wsData[rowIdx][6] = opsLabels[i]; wsData[rowIdx][7] = opsVals[i]; }
-        else { const row = ['','','','','','',opsLabels[i], opsVals[i]]; wsData.push(row); }
-      }
-
-      // Observaciones
-      wsData.push([]);
-      wsData.push(['Observaciones (Dina / Nivel):']);
+      const totalXls = Object.values(cntXls).reduce((a,b)=>a+b,0);
       const obsEl = document.getElementById('parteObsArea');
       const obsText = obsEl ? obsEl.textContent.trim() : '';
-      if(obsText) wsData.push([obsText]);
-      wsData.push([]);
       const now = new Date();
-      const ts = metaFecha + ' ' + String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-      wsData.push(['VA&PE | Ecodinamometría Computarizada | Generado: ' + ts]);
+      const ts = metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{wch:12},{wch:14},{wch:12},{wch:14},{wch:10},{wch:3},{wch:16},{wch:10}];
-      XLSX.utils.book_append_sheet(wb, ws, metaFecha.replace(/\//g,'-'));
-      const fname = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.xlsx`;
-      XLSX.writeFile(wb, fname);
+      // --- Estilos base ---
+      const TEAL = {argb:'FF2D5F6F'};
+      const WHITE = {argb:'FFFFFFFF'};
+      const DARK = {argb:'FF333333'};
+      const GRAY = {argb:'FF999999'};
+      const LTGRAY = {argb:'FFF0F0F0'};
+      const ZEBRA = {argb:'FFF9FBFD'};
+      const fontTitle = {name:'Calibri',size:13,bold:true,color:TEAL};
+      const fontSub = {name:'Calibri',size:9,color:{argb:'FF666666'}};
+      const fontMetaLbl = {name:'Calibri',size:8,color:GRAY};
+      const fontMetaVal = {name:'Calibri',size:10,bold:true,color:DARK};
+      const fontTh = {name:'Calibri',size:9,bold:true,color:WHITE};
+      const fontTd = {name:'Calibri',size:9,color:DARK};
+      const fontOpsLbl = {name:'Calibri',size:9,color:DARK};
+      const fontOpsVal = {name:'Calibri',size:12,bold:true,color:TEAL};
+      const thinBorder = {style:'thin',color:LTGRAY};
+      const tealBorder = {style:'thin',color:TEAL};
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'VA&PE App';
+      const ws = wb.addWorksheet('Parte', {
+        pageSetup:{paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0,
+          margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2}}
+      });
+
+      // Anchos de columna: A-E tabla, F separador, G-H ops
+      ws.columns = [
+        {width:12},{width:16},{width:13},{width:14},{width:11},{width:2},{width:16},{width:10}
+      ];
+
+      let r = 1;
+
+      // ===== HEADER: Fila 1-2 (logo + título) =====
+      // Fila 1: Logo teal + Título
+      ws.mergeCells(r,1,r,2); // A1:B1 = logo area
+      const logoCell = ws.getCell(r,1);
+      logoCell.value = 'VA&PE';
+      logoCell.font = {name:'Calibri',size:11,bold:true,color:WHITE};
+      logoCell.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+      logoCell.alignment = {horizontal:'center',vertical:'middle'};
+      ws.mergeCells(r,3,r,5); // C1:E1 = título
+      const titleCell = ws.getCell(r,3);
+      titleCell.value = 'Servicio de Ecodinamometría';
+      titleCell.font = fontTitle;
+      titleCell.alignment = {vertical:'middle'};
+      ws.getRow(r).height = 22;
+      r++;
+
+      // Fila 2: subtítulo
+      ws.mergeCells(r,3,r,5);
+      const subCell = ws.getCell(r,3);
+      subCell.value = 'Parte Dinamometría';
+      subCell.font = fontSub;
+      // Línea teal debajo del header
+      for(let c=1;c<=8;c++) ws.getCell(r,c).border = {bottom:{style:'medium',color:TEAL}};
+      r++;
+
+      // Fila 3: vacía (separador)
+      ws.getRow(r).height = 6;
+      r++;
+
+      // ===== META: Fila 4 (Nº Parte, Fecha, Operadora, Yacimiento) =====
+      const metaLabels = ['Nº Parte','Fecha','Operadora','Yacimiento'];
+      const metaValues = [metaNum, metaFecha, metaOp, metaYac];
+      const metaCols = [[1,2],[3,3],[4,5],[7,8]];
+      // Labels row
+      metaCols.forEach((mc,i) => {
+        if(mc[0]!==mc[1]) ws.mergeCells(r,mc[0],r,mc[1]);
+        const cell = ws.getCell(r,mc[0]);
+        cell.value = metaLabels[i];
+        cell.font = fontMetaLbl;
+      });
+      r++;
+      // Values row
+      metaCols.forEach((mc,i) => {
+        if(mc[0]!==mc[1]) ws.mergeCells(r,mc[0],r,mc[1]);
+        const cell = ws.getCell(r,mc[0]);
+        cell.value = metaValues[i];
+        cell.font = fontMetaVal;
+      });
+      r++;
+
+      // Fila: Baterías recorridas
+      ws.getCell(r,1).value = 'Baterías recorridas';
+      ws.getCell(r,1).font = fontMetaLbl;
+      ws.mergeCells(r,2,r,5);
+      ws.getCell(r,2).value = metaBat;
+      ws.getCell(r,2).font = {name:'Calibri',size:9,bold:true,color:DARK};
+      r++;
+
+      // Fila vacía
+      ws.getRow(r).height = 6;
+      r++;
+
+      // ===== ENCABEZADOS: Tabla + Operaciones =====
+      const hdrRow = r;
+      // Tabla headers A-E
+      const thLabels = ['Fecha','Pozo','Estado','Ensayo','Tipo'];
+      thLabels.forEach((lbl,i) => {
+        const cell = ws.getCell(r,i+1);
+        cell.value = lbl;
+        cell.font = fontTh;
+        cell.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+        cell.alignment = {horizontal:'left',vertical:'middle'};
+        cell.border = {bottom:{style:'thin',color:{argb:'FF1A3A4A'}}};
+      });
+      // Ops header G-H
+      ws.mergeCells(r,7,r,8);
+      const opsHdr = ws.getCell(r,7);
+      opsHdr.value = 'OPERACIONES';
+      opsHdr.font = fontTh;
+      opsHdr.fill = {type:'pattern',pattern:'solid',fgColor:TEAL};
+      opsHdr.alignment = {horizontal:'center',vertical:'middle'};
+      ws.getRow(r).height = 20;
+      r++;
+
+      // ===== DATA ROWS + OPS PANEL =====
+      const opsLabels = ['Nivel','Combinada','Dina','Canceladas','TOTAL'];
+      const opsVals = [cntXls.Nivel, cntXls.Combinada, cntXls.Dina, cntXls.Cancelada, totalXls];
+
+      const maxRows = Math.max(dataRows.length, 5);
+      for(let i=0; i<maxRows; i++){
+        const isZebra = i % 2 === 1;
+        // Tabla datos A-E
+        if(i < dataRows.length){
+          const dr = dataRows[i];
+          for(let c=0;c<5;c++){
+            const cell = ws.getCell(r,c+1);
+            cell.value = dr[c] || '';
+            cell.font = fontTd;
+            cell.border = {bottom:thinBorder};
+            if(isZebra) cell.fill = {type:'pattern',pattern:'solid',fgColor:ZEBRA};
+          }
+        }
+        // Ops panel G-H (solo primeras 5 filas)
+        if(i < 5){
+          const isTotal = (i === 4);
+          const gCell = ws.getCell(r,7);
+          gCell.value = opsLabels[i];
+          gCell.font = isTotal ? {name:'Calibri',size:9,bold:true,color:DARK} : fontOpsLbl;
+          gCell.border = {bottom: isTotal ? {style:'thin',color:TEAL} : thinBorder, right:thinBorder, left:thinBorder};
+          if(isTotal) gCell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+
+          const hCell = ws.getCell(r,8);
+          hCell.value = opsVals[i];
+          hCell.font = isTotal ? {name:'Calibri',size:13,bold:true,color:TEAL} : fontOpsVal;
+          hCell.alignment = {horizontal:'center',vertical:'middle'};
+          hCell.border = {bottom: isTotal ? {style:'thin',color:TEAL} : thinBorder, right:thinBorder};
+          if(isTotal) hCell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+          // Top border for TOTAL
+          if(isTotal){ gCell.border.top = {style:'medium',color:TEAL}; hCell.border.top = {style:'medium',color:TEAL}; }
+        }
+        ws.getRow(r).height = 17;
+        r++;
+      }
+
+      // Fila vacía
+      r++;
+
+      // ===== OBSERVACIONES =====
+      // Línea separadora
+      for(let c=1;c<=8;c++) ws.getCell(r,c).border = {top:{style:'thin',color:LTGRAY}};
+      ws.mergeCells(r,1,r,8);
+      const obsTitle = ws.getCell(r,1);
+      obsTitle.value = 'OBSERVACIONES (DINA / NIVEL)';
+      obsTitle.font = {name:'Calibri',size:9,bold:true,color:TEAL};
+      r++;
+
+      if(obsText){
+        ws.mergeCells(r,1,r,8);
+        ws.getCell(r,1).value = obsText;
+        ws.getCell(r,1).font = fontTd;
+        r++;
+      }
+
+      // Líneas punteadas para observaciones manuales (imprimir y escribir a mano)
+      for(let i=0;i<4;i++){
+        ws.mergeCells(r,1,r,8);
+        for(let c=1;c<=8;c++) ws.getCell(r,c).border = {bottom:{style:'dotted',color:GRAY}};
+        ws.getRow(r).height = 14;
+        r++;
+      }
+
+      r++;
+      // ===== FOOTER =====
+      ws.mergeCells(r,1,r,8);
+      const footerCell = ws.getCell(r,1);
+      footerCell.value = 'VA&PE | Ecodinamometría Computarizada | Generado: ' + ts;
+      footerCell.font = {name:'Calibri',size:7,color:GRAY};
+      footerCell.alignment = {horizontal:'center'};
+      footerCell.border = {top:{style:'thin',color:LTGRAY}};
+
+      // --- Generar y descargar ---
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Parte_${metaOp.replace(/\s+/g,'_')}_${metaFecha.replace(/\//g,'-')}_N_${metaNum}.xlsx`;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
     });
   })();
 
@@ -6901,6 +7533,41 @@
 
   const CONTRAPESOS_CACHE = {};
   const CONTRAPESOS_DETALLE_CACHE = {};
+  let _cpBulkLoaded = false;
+  async function loadContrapesosForAllWells(){
+    if(_cpBulkLoaded || !supabaseClient || !wellNames.length) return;
+    try{
+      // Obtener el contrapeso mas reciente de cada pozo (field_log)
+      const nums = wellNames.map(n => String(n).replace(/\D/g,'')).filter(Boolean);
+      if(!nums.length) return;
+      // Supabase limita a 1000 en una query; usar pagination si hace falta
+      let allData = [];
+      for(let i=0; i<nums.length; i+=500){
+        const batch = nums.slice(i, i+500);
+        const {data, error} = await supabaseClient
+          .from('field_log').select('well_number, fecha, contrapesos')
+          .in('well_number', batch)
+          .not('contrapesos','is',null)
+          .order('fecha',{ascending:false});
+        if(!error && data) allData = allData.concat(data);
+      }
+      // Tomar solo el registro mas reciente por well_number
+      const seen = new Set();
+      allData.forEach(row => {
+        const wn = String(row.well_number);
+        if(seen.has(wn)) return;
+        seen.add(wn);
+        // Buscar el wellName que matchea este well_number
+        const match = wellNames.find(n => String(n).replace(/\D/g,'') === wn);
+        if(match && !(match in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[match] = row;
+        }
+      });
+      // Marcar los que no tienen datos
+      wellNames.forEach(n => { if(!(n in CONTRAPESOS_CACHE)) CONTRAPESOS_CACHE[n] = null; });
+      _cpBulkLoaded = true;
+    } catch(e){ console.error('Error bulk-loading contrapesos:', e); }
+  }
 
   // Desempaqueta "NOMBRE xN" -> {nombre, cant}, igual que Bitácora Online.
   function unpackCantidadReporte(texto){
@@ -7071,11 +7738,13 @@
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
         cardsHtml += `<div class="cp-card">
           <div class="cp-card-title ${crankClass}">Manivela ${manivelaNo}</div>
+          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-bottom:1px;">Principal</div>
           <div class="cp-triplet-row">
             <span class="cp-t-placa">${tipoPrincipal || '—'}</span>
             <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</span></span>
             <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distPrincipal != null ? distPrincipal : '—'}</span></span>
           </div>
+          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-top:3px;margin-bottom:1px;">Secundarios</div>
           <div class="cp-triplet-row">
             <span class="cp-t-placa">${tipoAux || '—'}</span>
             <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</span></span>
