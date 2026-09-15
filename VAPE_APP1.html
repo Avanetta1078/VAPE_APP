@@ -5286,13 +5286,13 @@
     { key:'motorHp',       label:'Motor Potencia', unit:' HP', dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorHp : null; } },
     { key:'motorPolea',    label:'Motor Polea',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorPolea : null; } },
 
-    // Contrapesos
-    { key:'cpTipoPpal',    label:'Placas Ppal.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.tipo : null; } },
-    { key:'cpCantPpal',    label:'Cant. Ppal.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant != null ? Number(cp.cant) : null; } },
-    { key:'cpDistPpal',    label:'Dist. Ppal.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm != null ? Number(cp.cm) : null; } },
-    { key:'cpTipoSecu',    label:'Placas Secu.',   group:'Contrapesos', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp ? cp.secu : null; } },
-    { key:'cpCantSecu',    label:'Cant. Secu.',    unit:'', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cant2 != null ? Number(cp.cant2) : null; } },
-    { key:'cpDistSecu',    label:'Dist. Secu.',    unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; const cp = w && w.contrapesosRaw; return cp && cp.cm2 != null ? Number(cp.cm2) : null; } },
+    // Contrapesos — datos inyectados desde CONTRAPESOS_CACHE en cnBuildRows
+    { key:'cpTipoPpal',    label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
+    { key:'cpCantPpal',    label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
+    { key:'cpDistPpal',    label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
+    { key:'cpTipoSecu',    label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
+    { key:'cpCantSecu',    label:'Cant. Secund.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantSecu },
+    { key:'cpDistSecu',    label:'Dist. Secund.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistSecu },
     { key:'cpCBM',         label:'CBM',             unit:' in-lb', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.cbm },
     { key:'cpWCW',         label:'WCW',             unit:' lb',    dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.wcw },
   ];
@@ -5538,7 +5538,7 @@
   }
   function cnRenderAll(){
     // Si hay columnas de contrapesos activas, pre-cargar datos bulk
-    const cpKeys = ['cpPrinc','cpCantPrinc','cpDistPrinc','cpSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
+    const cpKeys = ['cpTipoPpal','cpCantPpal','cpDistPpal','cpTipoSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
     const needsCp = cnState.extraCols.some(k => cpKeys.includes(k));
     if(needsCp && !_cpBulkLoaded){
       loadContrapesosForAllWells().then(()=>{ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); });
@@ -7883,15 +7883,37 @@
     const table = document.getElementById('d-contrapesos-table');
     if(!table) return;
     if(!(wellName in CONTRAPESOS_CACHE)){
+      // 1) Intentar desde WELLS_DB (cargado de tabla wells)
       const wdb = WELLS_DB[wellName];
-      if(wdb && (wdb.motorMarca || wdb.motorRpm != null || wdb.motorHp != null || wdb.motorPolea || wdb.contrapesosRaw)){
+      if(wdb && wdb.contrapesosRaw){
         CONTRAPESOS_CACHE[wellName] = {
-          contrapesos: wdb.contrapesosRaw || null,
+          contrapesos: wdb.contrapesosRaw,
           motor_marca: wdb.motorMarca, motor_rpm: wdb.motorRpm,
           motor_potencia_hp: wdb.motorHp, motor_polea: wdb.motorPolea
         };
-      } else {
-        CONTRAPESOS_CACHE[wellName] = null;
+      }
+      // 2) Si no hay en wells, buscar en field_log (fuente principal)
+      if(!(wellName in CONTRAPESOS_CACHE) || !CONTRAPESOS_CACHE[wellName]){
+        if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = CONTRAPESOS_CACHE[wellName] || null; }
+        else {
+          try{
+            const wellNumber = String(wellName).replace(/\D/g, '');
+            if(!wellNumber){ if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null; }
+            else {
+              const { data, error } = await supabaseClient
+                .from('field_log').select('well_number, fecha, contrapesos, motor_marca, motor_rpm, motor_potencia_hp, motor_polea')
+                .eq('well_number', wellNumber)
+                .not('contrapesos', 'is', null)
+                .order('fecha', { ascending: false }).limit(1).maybeSingle();
+              if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null; }
+              else if(data){ CONTRAPESOS_CACHE[wellName] = data; }
+              else if(!CONTRAPESOS_CACHE[wellName]){ CONTRAPESOS_CACHE[wellName] = null; }
+            }
+          } catch(e){
+            console.error('Excepción buscando contrapesos:', e);
+            if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null;
+          }
+        }
       }
     }
     const row = CONTRAPESOS_CACHE[wellName];
@@ -7902,23 +7924,20 @@
     const motorRpmEl = document.getElementById('d-motor-rpm');
     const motorHpEl = document.getElementById('d-motor-hp');
     const motorPoleaEl = document.getElementById('d-motor-polea');
-    if(row){
-      if(motorMarcaEl) motorMarcaEl.textContent = row.motor_marca || '—';
-      if(motorRpmEl) motorRpmEl.textContent = row.motor_rpm != null ? row.motor_rpm : '—';
-      if(motorHpEl) motorHpEl.textContent = (row.motor_potencia_hp ?? row.motor_hp) != null ? (row.motor_potencia_hp ?? row.motor_hp) + ' HP' : '—';
-      if(motorPoleaEl) motorPoleaEl.textContent = row.motor_polea || '—';
-      const w = WELLS_DB[wellName];
-      if(w){
-        w.motorMarca = row.motor_marca || null;
-        w.motorRpm = row.motor_rpm ?? null;
-        w.motorHp = (row.motor_potencia_hp ?? row.motor_hp) ?? null;
-        w.motorPolea = row.motor_polea || null;
-      }
-    } else {
-      if(motorMarcaEl) motorMarcaEl.textContent = '—';
-      if(motorRpmEl) motorRpmEl.textContent = '—';
-      if(motorHpEl) motorHpEl.textContent = '—';
-      if(motorPoleaEl) motorPoleaEl.textContent = '—';
+    const wdb2 = WELLS_DB[wellName];
+    const mMarca = (row && row.motor_marca) || (wdb2 && wdb2.motorMarca) || null;
+    const mRpm = (row && row.motor_rpm != null) ? row.motor_rpm : (wdb2 && wdb2.motorRpm != null ? wdb2.motorRpm : null);
+    const mHp = (row && (row.motor_potencia_hp ?? row.motor_hp) != null) ? (row.motor_potencia_hp ?? row.motor_hp) : (wdb2 && wdb2.motorHp != null ? wdb2.motorHp : null);
+    const mPolea = (row && row.motor_polea) || (wdb2 && wdb2.motorPolea) || null;
+    if(motorMarcaEl) motorMarcaEl.textContent = mMarca || '—';
+    if(motorRpmEl) motorRpmEl.textContent = mRpm != null ? mRpm : '—';
+    if(motorHpEl) motorHpEl.textContent = mHp != null ? mHp + ' HP' : '—';
+    if(motorPoleaEl) motorPoleaEl.textContent = mPolea || '—';
+    if(wdb2){
+      if(mMarca) wdb2.motorMarca = mMarca;
+      if(mRpm != null) wdb2.motorRpm = mRpm;
+      if(mHp != null) wdb2.motorHp = mHp;
+      if(mPolea) wdb2.motorPolea = mPolea;
     }
 
     const cp = row && row.contrapesos;
