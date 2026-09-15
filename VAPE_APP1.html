@@ -14,9 +14,9 @@
     --bronze:#c98a3e; --bronze-glow:#e6a95c; --steel:#6a93b8; --steel-glow:#8fb4d6;
   }
   .ensayo-badge{display:inline-block; padding:1px 7px; border-radius:4px; font-size:10.5px; font-weight:600; letter-spacing:.02em;}
-  .ensayo-combinada{background:rgba(91,118,224,.12); color:var(--navy-glow); border:1px solid rgba(91,118,224,.25);}
-  .ensayo-dina{background:rgba(201,138,62,.12); color:var(--bronze-glow); border:1px solid rgba(201,138,62,.25);}
-  .ensayo-nivel{background:rgba(143,180,214,.12); color:var(--steel-glow); border:1px solid rgba(143,180,214,.25);}
+  .ensayo-combinada{background:rgba(91,118,224,.18); color:var(--ink); border:1px solid rgba(91,118,224,.35);}
+  .ensayo-dina{background:rgba(224,91,91,.16); color:var(--ink); border:1px solid rgba(224,91,91,.30);}
+  .ensayo-nivel{background:rgba(143,180,214,.18); color:var(--ink); border:1px solid rgba(143,180,214,.35);}
   .ensayo-sin{color:var(--ink-faint);}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;}
@@ -678,6 +678,7 @@
   .cn-dias input{width:78px; height:30px; font-size:14px; font-weight:700; border-radius:7px;
     border:1.5px solid #5b76e0; background:var(--panel); text-align:center; letter-spacing:.02em;}
   .cn-dias input::placeholder{font-weight:400; font-size:11px;}
+  .cn-fecharango .cn-dias input[type="date"]{width:120px; height:26px; font-size:11px; font-weight:500; color-scheme:dark; padding:2px 6px;}
   .cn-dias input:focus{outline:none; border-color:#7d93ea; box-shadow:0 0 0 3px rgba(91,118,224,.2);}
   .cn-search input{width:150px;}
   .cn-btnrow{display:flex; align-items:center; gap:6px; margin-left:auto; flex-wrap:wrap;}
@@ -1181,6 +1182,7 @@
           </div>
           <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
           <button class="cn-btn primary" id="ifEditBtn" type="button" disabled title="Seleccioná una fila (clic) para habilitar la edición">✎ Editar</button>
+          <button class="cn-btn ghost" id="ifVerParteBtn" type="button">📋 Ver Parte</button>
           <button class="cn-btn ghost" id="ifDescargarParteBtn" type="button">⬇ Descargar Parte</button>
         </div>
       </div>
@@ -2631,16 +2633,17 @@
         </div>
       </div>
 
-      <div class="cn-field cn-search">
-        <label>Buscar en comentarios (Dina/Nivel)</label>
-        <input id="cn-f-comment" type="text" placeholder="texto…">
-      </div>
-
-      <div class="cn-field cn-fecharango">
-        <label>Rango de fecha</label>
-        <div class="cn-dias">
-          <input id="cn-f-fecha-desde" type="date" title="Desde">
-          <input id="cn-f-fecha-hasta" type="date" title="Hasta">
+      <div class="cn-field cn-fecharango" style="text-align:center;">
+        <label style="display:block; text-align:center;">Rango de fecha</label>
+        <div class="cn-dias" style="gap:8px; justify-content:center;">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="font-size:9px; color:var(--ink-dim); margin-bottom:2px;">Desde</span>
+            <input id="cn-f-fecha-desde" type="date" title="Desde">
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="font-size:9px; color:var(--ink-dim); margin-bottom:2px;">Hasta</span>
+            <input id="cn-f-fecha-hasta" type="date" title="Hasta">
+          </div>
         </div>
       </div>
 
@@ -2655,8 +2658,12 @@
 
     <div class="cn-chipsrow" id="cn-chips"></div>
 
-    <div class="cn-resultbar">
+    <div class="cn-resultbar" style="display:flex; align-items:center; gap:12px;">
       <span class="cn-resultcount" id="cn-resultcount">0 pozos</span>
+      <div class="cn-field cn-search" style="margin:0; display:flex; align-items:center; gap:6px;">
+        <label style="font-size:10px; color:var(--ink-dim); white-space:nowrap; margin:0;">Buscar en comentarios (Dina/Nivel)</label>
+        <input id="cn-f-comment" type="text" placeholder="texto…" style="height:24px; font-size:11px; width:140px;">
+      </div>
     </div>
 
     <div class="cn-grillawrap">
@@ -2684,35 +2691,32 @@
   </div>
   </div>
 
-  <!-- Modal: Descargar Parte (desde Inicio) -->
-  <div class="cn-modal-backdrop" id="dp-modal-backdrop">
-    <div class="cn-modal" style="max-width:420px;">
+
+  <!-- Modal: Ver Parte (cliente — vista, búsqueda y descarga) -->
+  <div class="cn-modal-backdrop" id="vp-modal-backdrop">
+    <div class="cn-modal" style="max-width:860px; max-height:92vh; display:flex; flex-direction:column;">
       <div class="cn-modal-head">
-        <h3>Descargar Parte</h3>
-        <button class="cn-modal-close" id="dp-modal-close" type="button">✕</button>
+        <h3>Ver Parte</h3>
+        <button class="cn-modal-close" id="vp-modal-close" type="button">✕</button>
       </div>
-      <div class="cn-modal-body" style="display:grid; gap:14px; padding:16px;">
+      <div style="padding:12px 16px; display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; border-bottom:1px solid var(--border);">
         <div class="ifilter">
-          <label>Fecha de campaña (única)</label>
-          <select id="dp-fecha-unica"><option value="">— Seleccionar fecha —</option></select>
+          <label>Fecha de campaña</label>
+          <select id="vp-fecha-unica" style="min-width:160px; height:30px; font-size:12px; border-radius:7px; font-weight:600;"><option value="">— Seleccionar fecha —</option></select>
         </div>
-        <div style="text-align:center; color:var(--ink-faint); font-size:10.5px;">— o un rango de fechas —</div>
-        <div style="display:flex; gap:10px;">
-          <div class="ifilter" style="flex:1;">
-            <label>Desde</label>
-            <input type="date" id="dp-fecha-desde">
-          </div>
-          <div class="ifilter" style="flex:1;">
-            <label>Hasta</label>
-            <input type="date" id="dp-fecha-hasta">
-          </div>
+        <div style="font-size:10px; color:var(--ink-faint); padding-bottom:6px;">ó descargar rango</div>
+        <div class="ifilter" style="text-align:center;">
+          <label style="display:block; text-align:center; font-size:10px;">Desde</label>
+          <input type="date" id="vp-fecha-desde" style="color-scheme:dark; font-size:11px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--ink); padding:2px 6px;">
         </div>
-        <div id="dp-status" style="font-size:11px; color:var(--ink-faint); min-height:14px;"></div>
+        <div class="ifilter" style="text-align:center;">
+          <label style="display:block; text-align:center; font-size:10px;">Hasta</label>
+          <input type="date" id="vp-fecha-hasta" style="color-scheme:dark; font-size:11px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--ink); padding:2px 6px;">
+        </div>
+        <button class="cn-btn primary" id="vp-btn-download" type="button" style="margin-left:auto;">⬇ Descargar PDF</button>
       </div>
-      <div class="cn-modal-foot">
-        <span style="font-size:10.5px; color:var(--ink-faint);">Genera un PDF por cada fecha con campaña.</span>
-        <button class="cn-btn primary" id="dp-btn-download" type="button">⬇ Descargar PDF</button>
-      </div>
+      <div id="vp-status" style="font-size:11px; color:var(--ink-faint); padding:6px 16px; min-height:18px;"></div>
+      <div id="vp-preview" style="flex:1; overflow-y:auto; padding:12px 16px; background:#fff; border-radius:0 0 12px 12px;"></div>
     </div>
   </div>
 
@@ -4842,7 +4846,7 @@
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
-          <td style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
+          <td class="ie-cell" data-field="pkr" style="color:#e74c3c; font-weight:600;">${r.pkr != null && r.pkr > 0 ? fmtN(r.pkr,0) + ' m' : '—'}</td>
           <td class="cmt-cell ie-cell" data-field="comment" title="${(r.comment||'').replace(/"/g,'&quot;')}">${r.comment || '—'}</td>
         </tr>`;
       }).join('');
@@ -6540,12 +6544,52 @@
     const output = document.getElementById('parteOutputArea');
     if(!genBtn) return;
 
+    window.collectParteDataForFecha = function(fechaArg, numParteArg){
+      const fecha = fechaArg;
+      if(!fecha) return null;
+      const opFilter = document.getElementById('parteOperadora')?.value || '';
+      const numParte = numParteArg || '';
+      const byWell = {};
+      wellNames.forEach(name => {
+        const w = WELLS_DB[name]; if(!w) return;
+        if(opFilter && w.operadora !== opFilter) return;
+        const hist = w.history || [];
+        const entriesFecha = hist.filter(h => h.dt === fecha);
+        if(entriesFecha.length === 0 && w.dt !== fecha) return;
+        const tiposEnFecha = new Set(entriesFecha.map(h => h.tipo));
+        let ensayo;
+        if(tiposEnFecha.has('Dina') && tiposEnFecha.has('Nivel')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Combinada')) ensayo = 'Combinada';
+        else if(tiposEnFecha.has('Dina')) ensayo = 'Dina';
+        else if(tiposEnFecha.has('Nivel')) ensayo = 'Nivel';
+        else if(!hist.length && w.dt === fecha){
+          ensayo = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
+          if(!ensayo) return;
+        } else return;
+        const firstEntry = entriesFecha[0] || {};
+        const estado = firstEntry.wellState ? (firstEntry.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico')
+               : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
+        const sistema = firstEntry.sistema || w.sistema || '—';
+        byWell[name] = { ensayo, estado, sistema, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '' };
+      });
+      const parteRows = Object.entries(byWell).map(([well, info]) => ({ well, ensayo: info.ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora, bateria: info.bateria, zona: info.zona }));
+      const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
+      parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
+      const bateriasSet = new Set(); const zonasSet = new Set();
+      parteRows.forEach(r => { if(r.bateria) bateriasSet.add(r.bateria); if(r.zona) zonasSet.add(r.zona); });
+      const baterias = [...bateriasSet].sort().join(', ') || '—';
+      const zonaAuto = [...zonasSet].sort().join(', ') || '';
+      const operadora = opFilter || (parteRows.length ? parteRows[0].operadora : '—');
+      const yacimiento = zonaAuto || operadora;
+      const [y,m,d] = fecha.split('-');
+      return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, operadora, yacimiento, baterias, parteRows, counts, total:parteRows.length };
+    };
+
     function collectParteData(){
       const fecha = document.getElementById('parteFecha').value || document.getElementById('parteCampanaSelect')?.value || '';
       if(!fecha){ alert('Seleccioná una campaña del combobox para generar el parte.'); return null; }
       const opFilter = document.getElementById('parteOperadora').value;
       const numParte = document.getElementById('parteNumero').value.trim() || '';
-      // Recolectar pozos para la fecha — Ensayo = columna Operaciones de la grilla Inicio
       const byWell = {};
       wellNames.forEach(name => {
         const w = WELLS_DB[name];
@@ -6554,8 +6598,6 @@
         const hist = w.history || [];
         const entriesFecha = hist.filter(h => h.dt === fecha);
         if(entriesFecha.length === 0 && w.dt !== fecha) return;
-
-        // Ensayo = misma lógica que columna Operaciones de la grilla
         const tiposEnFecha = new Set(entriesFecha.map(h => h.tipo));
         let ensayo;
         if(tiposEnFecha.has('Dina') && tiposEnFecha.has('Nivel')) ensayo = 'Combinada';
@@ -6563,11 +6605,9 @@
         else if(tiposEnFecha.has('Dina')) ensayo = 'Dina';
         else if(tiposEnFecha.has('Nivel')) ensayo = 'Nivel';
         else if(!hist.length && w.dt === fecha) {
-          // Fallback: pozo sin history
           ensayo = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
           if(!ensayo) return;
         } else return;
-
         const firstEntry = entriesFecha[0] || {};
         const estado = firstEntry.wellState ? (firstEntry.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico')
                : (w.wellState ? (w.wellState.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico');
@@ -6579,7 +6619,6 @@
       });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
-      // Recolectar baterías y zonas únicas automáticamente
       const bateriasSet = new Set(); const zonasSet = new Set();
       parteRows.forEach(r => { if(r.bateria) bateriasSet.add(r.bateria); if(r.zona) zonasSet.add(r.zona); });
       const baterias = [...bateriasSet].sort().join(', ') || '—';
@@ -6589,6 +6628,25 @@
       const [y,m,d] = fecha.split('-');
       return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, operadora, yacimiento, baterias, parteRows, counts, total:parteRows.length };
     }
+
+    // Exponer función global para armar parte de cualquier fecha (usado por Descargar Parte modal)
+    window._buildParteForFecha = function(fecha){
+      if(!fecha) return null;
+      // Guardar valores actuales de los inputs del módulo
+      const origFecha = document.getElementById('parteFecha')?.value;
+      const origCamp = document.getElementById('parteCampanaSelect')?.value;
+      // Setear la fecha temporalmente
+      const fechaInput = document.getElementById('parteFecha');
+      if(fechaInput) fechaInput.value = fecha;
+      const campSel = document.getElementById('parteCampanaSelect');
+      if(campSel) campSel.value = fecha;
+      // Recolectar datos
+      const data = collectParteData();
+      // Restaurar valores originales
+      if(fechaInput) fechaInput.value = origFecha || '';
+      if(campSel) campSel.value = origCamp || '';
+      return data;
+    };
 
     genBtn.addEventListener('click', () => {
       const data = collectParteData();
@@ -10134,6 +10192,20 @@
         <option value="Estático" ${curVal==='Estático'?'selected':''}>Estático</option>
       </select>`;
     }
+    const pkrTd = tr.querySelector('td.ie-cell[data-field="pkr"]');
+    if(pkrTd){
+      const w0 = WELLS_DB[tr.dataset.well];
+      const curPkr = (w0 && w0.packerM != null && w0.packerM > 0) ? String(Math.round(w0.packerM)) : '';
+      pkrTd.innerHTML = `<div style="display:flex;align-items:center;gap:3px;">
+        <input type="number" class="ie-input" data-orig="${curPkr}" value="${curPkr}" placeholder="m" style="width:60px;color:#e74c3c;" min="0" step="1">
+        ${curPkr ? '<button type="button" class="ie-pkr-clear" title="Borrar PKR" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;padding:0 2px;">✕</button>' : ''}
+      </div>`;
+      const clearBtn0 = pkrTd.querySelector('.ie-pkr-clear');
+      if(clearBtn0) clearBtn0.addEventListener('click', ()=>{
+        const inp = pkrTd.querySelector('.ie-input');
+        if(inp) inp.value = '';
+      });
+    }
     if(commentTd){
       // El comentario solo es editable si esta fila tiene un ensayo real
       // asociado (data-comment-testid) — una fila "pendiente" (pozo sin
@@ -10261,6 +10333,20 @@
           throw new Error('No se encontró ningún ensayo asociado a esta fila para guardar el estado.');
         }
       }
+      // ---- PKR (Packer) ----
+      const pkrInput = tr.querySelector('td.ie-cell[data-field="pkr"] .ie-input');
+      const newPkr = pkrInput ? pkrInput.value.trim() : null;
+      if(pkrInput && newPkr !== pkrInput.dataset.orig){
+        const pkrVal = newPkr === '' ? null : Number(newPkr);
+        if(newPkr !== '' && (isNaN(pkrVal) || pkrVal < 0)){
+          alert('El valor de PKR debe ser un número positivo o vacío para borrarlo.');
+          if(editBtn){ editBtn.disabled = false; editBtn.textContent = '💾 Guardar'; }
+          return;
+        }
+        const { error } = await supabaseClient.from('wells').update({ packer_m: pkrVal }).eq('well_id', w.well_id);
+        if(error) throw error;
+        w.packerM = pkrVal;
+      }
       if(commentInput && commentTestId != null && newComment !== commentInput.dataset.orig){
         const { error } = await supabaseClient.from('tests').update({ test_comments: newComment || null }).eq('test_id', commentTestId);
         if(error) throw error;
@@ -10285,6 +10371,9 @@
         if(typeof initScopeForUser === 'function') initScopeForUser();
       } else {
         renderInicioGrid();
+        if(pkrInput && newPkr !== pkrInput.dataset.orig && currentWell === wellName){
+          renderWell();
+        }
       }
     } catch(err){
       alert('No se pudo guardar en Supabase: ' + (err.message || err));
@@ -10347,17 +10436,18 @@
     });
   })();
 
-  // ---- Modal "Descargar Parte" desde Inicio: reusa collectParteData()/PDF del módulo Partes ----
-  (function setupDescargarParteModal(){
-    const btn = document.getElementById('ifDescargarParteBtn');
-    const backdrop = document.getElementById('dp-modal-backdrop');
-    const closeBtn = document.getElementById('dp-modal-close');
-    const fechaUnica = document.getElementById('dp-fecha-unica');
-    const fechaDesde = document.getElementById('dp-fecha-desde');
-    const fechaHasta = document.getElementById('dp-fecha-hasta');
-    const statusEl = document.getElementById('dp-status');
-    const downloadBtn = document.getElementById('dp-btn-download');
-    if(!btn || !backdrop) return;
+  // ---- Modal "Ver Parte" desde Inicio (cliente) ----
+  (function(){
+    const vpBtn = document.getElementById('ifVerParteBtn');
+    const backdrop = document.getElementById('vp-modal-backdrop');
+    const closeBtn = document.getElementById('vp-modal-close');
+    const fechaUnica = document.getElementById('vp-fecha-unica');
+    const fechaDesde = document.getElementById('vp-fecha-desde');
+    const fechaHasta = document.getElementById('vp-fecha-hasta');
+    const statusEl = document.getElementById('vp-status');
+    const downloadBtn = document.getElementById('vp-btn-download');
+    const previewEl = document.getElementById('vp-preview');
+    if(!vpBtn || !backdrop) return;
 
     function availableDates(){
       const ifFechaSel = document.getElementById('ifFecha');
@@ -10365,55 +10455,134 @@
       return [...ifFechaSel.options].map(o => o.value).filter(v => v);
     }
 
-    btn.addEventListener('click', () => {
+    function renderPartePreview(data){
+      if(!previewEl || !data) return;
+      const { fechaFmt, numParte, operadora, yacimiento, baterias, parteRows, counts, total } = data;
+      const shortDate = fechaFmt.substring(0,5);
+      const now = new Date();
+      const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      previewEl.innerHTML = `
+        <div class="parte-hdr">
+          <div class="parte-hdr-top">
+            <div class="parte-logo">VA&amp;PE</div>
+            <div>
+              <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
+              <div class="parte-hdr-sub">Parte Dinamometría</div>
+            </div>
+          </div>
+          <div class="parte-meta-grid">
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" style="${numParte ? '' : 'color:#c62828; font-style:italic;'}">${numParte || 'Sin asignar'}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val">${fechaFmt}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val">${operadora}</span></div>
+            <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val">${yacimiento}</span></div>
+          </div>
+          <div style="padding-top:6px;">
+            <span class="parte-meta-lbl">Baterías recorridas</span>
+            <span class="parte-meta-val" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
+          </div>
+        </div>
+        <div class="parte-content">
+          <div>
+            <table class="parte-table">
+              <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
+              <tbody>
+                ${parteRows.map(r => `<tr>
+                  <td>${shortDate}</td>
+                  <td>${r.well}</td>
+                  <td>${r.estado}</td>
+                  <td>${r.ensayo}</td>
+                  <td>${r.sistema}</td>
+                </tr>`).join('')}
+                ${parteRows.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No se encontraron ensayos para esta fecha.</td></tr>' : ''}
+              </tbody>
+            </table>
+          </div>
+          <div class="parte-ops">
+            <div class="parte-ops-hdr">Operaciones</div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
+            <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
+            <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
+          </div>
+        </div>
+        <div class="parte-obs-section">
+          <div class="parte-obs-title">Observaciones (Dina / Nivel)</div>
+          <div class="parte-obs-area"></div>
+        </div>
+        <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | ${genTimestamp}</div>`;
+    }
+
+    // Abrir modal
+    vpBtn.addEventListener('click', () => {
       const dates = availableDates().sort().reverse();
       fechaUnica.innerHTML = '<option value="">— Seleccionar fecha —</option>' +
         dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
       fechaDesde.value = ''; fechaHasta.value = '';
       if(statusEl) statusEl.textContent = '';
+      if(previewEl) previewEl.innerHTML = '';
       backdrop.classList.add('active');
     });
     if(closeBtn) closeBtn.addEventListener('click', () => backdrop.classList.remove('active'));
     backdrop.addEventListener('click', (e) => { if(e.target === backdrop) backdrop.classList.remove('active'); });
 
-    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-
-    // Reutiliza el combo/boton reales del modulo "Generar Parte": setea la
-    // fecha, dispara su logica (verificacion en Supabase + collectParteData +
-    // render de la tabla) y despues clickea el boton real de exportar PDF —
-    // asi no se duplica la logica de armado ni la de generacion del PDF.
-    async function downloadParteForDate(fecha){
-      const campSel = document.getElementById('parteCampanaSelect');
-      const pdfBtn = document.getElementById('parteExportPdfBtn');
-      if(!campSel || !pdfBtn) return false;
-      if(![...campSel.options].some(o => o.value === fecha)){
-        const opt = document.createElement('option');
-        opt.value = fecha; opt.textContent = fmtDate(fecha);
-        campSel.appendChild(opt);
+    // Al seleccionar fecha → cargar nro_parte de Supabase y mostrar parte
+    fechaUnica.addEventListener('change', async () => {
+      const f = fechaUnica.value;
+      if(!f){ if(previewEl) previewEl.innerHTML = ''; if(statusEl) statusEl.textContent = ''; return; }
+      if(statusEl) statusEl.textContent = 'Cargando parte…';
+      const op = document.getElementById('parteOperadora')?.value || '';
+      const parteDB = await loadParteForDate(f, op);
+      const nroParte = parteDB ? parteDB.nro_parte : '';
+      const data = window.collectParteDataForFecha(f, nroParte);
+      if(data && data.parteRows.length > 0){
+        renderPartePreview(data);
+        if(statusEl) statusEl.textContent = `${data.total} pozos — Nº Parte: ${nroParte || 'Sin asignar'}`;
+      } else {
+        if(previewEl) previewEl.innerHTML = '<p style="text-align:center;color:#999;padding:30px;">No se encontraron ensayos para esta fecha.</p>';
+        if(statusEl) statusEl.textContent = '';
       }
-      campSel.value = fecha;
-      campSel.dispatchEvent(new Event('change'));
-      await sleep(500); // espera la verificacion async (Supabase) y el armado del parte
-      if(!window._parteData || window._parteData.fecha !== fecha) return false;
-      pdfBtn.click();
-      await sleep(250);
-      return true;
-    }
+    });
 
+    // Descargar PDF — usa el módulo Partes real
     if(downloadBtn) downloadBtn.addEventListener('click', async () => {
       const unica = fechaUnica.value;
       const desde = fechaDesde.value, hasta = fechaHasta.value;
       let dates = [];
-      if(unica){ dates = [unica]; }
-      else if(desde || hasta){
+      if(desde && hasta){
         const all = availableDates();
-        dates = all.filter(d => (!desde || d >= desde) && (!hasta || d <= hasta)).sort();
+        dates = all.filter(d => d >= desde && d <= hasta).sort();
+      } else if(desde){
+        dates = availableDates().filter(d => d >= desde).sort();
+      } else if(hasta){
+        dates = availableDates().filter(d => d <= hasta).sort();
+      } else if(unica){
+        dates = [unica];
       }
-      if(!dates.length){ if(statusEl) statusEl.textContent = 'Elegí una fecha o un rango con campañas.'; return; }
+      if(!dates.length){ if(statusEl) statusEl.textContent = 'Elegí una fecha o un rango.'; return; }
       downloadBtn.disabled = true;
+      const campSel = document.getElementById('parteCampanaSelect');
+      const fechaInput = document.getElementById('parteFecha');
+      const parteNumInput = document.getElementById('parteNumero');
+      const genBtn = document.getElementById('parteGenerateBtn');
+      const pdfBtn = document.getElementById('parteExportPdfBtn');
+      const op = document.getElementById('parteOperadora')?.value || '';
       for(let i=0; i<dates.length; i++){
-        if(statusEl) statusEl.textContent = `Generando ${i+1}/${dates.length} — ${fmtDate(dates[i])}…`;
-        await downloadParteForDate(dates[i]);
+        if(statusEl) statusEl.textContent = `Generando PDF ${i+1}/${dates.length} — ${fmtDate(dates[i])}…`;
+        const parteDB = await loadParteForDate(dates[i], op);
+        const nroParte = parteDB ? parteDB.nro_parte : '';
+        if(campSel){
+          if(![...campSel.options].some(o => o.value === dates[i])){
+            const opt = document.createElement('option'); opt.value = dates[i]; opt.textContent = fmtDate(dates[i]); campSel.appendChild(opt);
+          }
+          campSel.value = dates[i];
+        }
+        if(fechaInput) fechaInput.value = dates[i];
+        if(parteNumInput) parteNumInput.value = nroParte;
+        if(genBtn) genBtn.click();
+        await new Promise(r => setTimeout(r, 300));
+        if(pdfBtn && window._parteData && window._parteData.fecha === dates[i]) pdfBtn.click();
+        await new Promise(r => setTimeout(r, 500));
       }
       if(statusEl) statusEl.textContent = `Listo: ${dates.length} parte${dates.length===1?'':'s'} descargado${dates.length===1?'':'s'}.`;
       downloadBtn.disabled = false;
