@@ -8062,7 +8062,8 @@
         pip: t.results.pip_ll_kg != null ? Number(t.results.pip_ll_kg) : null,
         sumerg: t.results.fluid_above_pump_m != null ? Number(t.results.fluid_above_pump_m) : null,
         nivelCorr: t.results.corrected_liquid_level_tvd_m != null ? Number(t.results.corrected_liquid_level_tvd_m)
-          : (t.results.gas_free_above_pump_m != null ? Number(t.results.gas_free_above_pump_m) : null),
+          : (t.results.gas_free_above_pump_m != null && wRef && wRef.pumpIntakeDepth != null
+             ? wRef.pumpIntakeDepth - Number(t.results.gas_free_above_pump_m) : null),
       }));
 
     const pts = histDedupByDate(ptsRaw);
