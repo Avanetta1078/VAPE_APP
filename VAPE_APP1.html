@@ -13,6 +13,11 @@
     --navy:#3a54b8; --navy-glow:#5b76e0; --rust:#c8492c; --rust-glow:#e8663f;
     --bronze:#c98a3e; --bronze-glow:#e6a95c; --steel:#6a93b8; --steel-glow:#8fb4d6;
   }
+  .ensayo-badge{display:inline-block; padding:1px 7px; border-radius:4px; font-size:10.5px; font-weight:600; letter-spacing:.02em;}
+  .ensayo-combinada{background:rgba(91,118,224,.12); color:var(--navy-glow); border:1px solid rgba(91,118,224,.25);}
+  .ensayo-dina{background:rgba(201,138,62,.12); color:var(--bronze-glow); border:1px solid rgba(201,138,62,.25);}
+  .ensayo-nivel{background:rgba(143,180,214,.12); color:var(--steel-glow); border:1px solid rgba(143,180,214,.25);}
+  .ensayo-sin{color:var(--ink-faint);}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;}
   body{
@@ -1171,6 +1176,7 @@
           </div>
           <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
           <button class="cn-btn primary" id="ifEditBtn" type="button" disabled title="Seleccioná una fila (clic) para habilitar la edición">✎ Editar</button>
+          <button class="cn-btn ghost" id="ifDescargarParteBtn" type="button">⬇ Descargar Parte</button>
         </div>
       </div>
 
@@ -1401,11 +1407,11 @@
             <table class="gtab">
               <tr><th>Gear Box Rating</th><td id="d-gb-rating">—</td></tr>
               <tr><th>Upstroke Peak, Existing</th><td id="d-gb-up">—</td></tr>
-              <tr><th>Torque existente (in-lb)</th><td id="d-gb-down">—</td></tr>
+              <tr><th>Torque existente (in-lb)</th><td id="d-gb-down" class="hl-pulse" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
               <tr><th>% Torque Existente</th><td id="d-gb-pctdown">—</td></tr>
               <tr><th>Out of Balance</th><td id="d-gb-oob">—</td></tr>
               <tr><th>Move</th><td id="d-gb-move">—</td></tr>
-              <tr><th>Torque en Balance In-lb</th><td id="d-gb-balanced">—</td></tr>
+              <tr><th>Torque en Balance In-lb</th><td id="d-gb-balanced" class="hl-pulse" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
               <tr><th>% Torque en Balance</th><td id="d-gb-pctbal">—</td></tr>
             </table>
           </div>
@@ -1681,12 +1687,35 @@
         <span class="stamp" id="histStamp">—</span>
       </div>
 
-      <div class="hist-toolbar" style="display:flex; align-items:center; gap:10px; margin:2px 0 16px;">
+      <div class="hist-toolbar" style="display:flex; align-items:center; gap:14px; margin:2px 0 10px; flex-wrap:wrap;">
         <div class="well-search" style="width:220px;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8a919d" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="#8a919d" stroke-width="1.8" stroke-linecap="round"/></svg>
           <input type="text" id="histWellSearch" placeholder="Buscar pozo… (ej. 966)">
         </div>
         <span id="histWellMatches" class="tool-desc" style="margin:0; display:none;"></span>
+        <div class="ifilter" style="min-width:180px;">
+          <label style="font-size:10.5px; color:var(--ink-faint); display:block; margin-bottom:2px;">Elegir Historial</label>
+          <select id="histTypeSelect" style="width:100%; background:var(--panel-2); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:12px;">
+            <option value="nivel">Nivel Acústico</option>
+            <option value="sumergencia">Sumergencia</option>
+            <option value="presiones">Presiones de Tbg</option>
+            <option value="cartas">Cartas Dinas</option>
+            <option value="torques">Torques (Existente vs Balance)</option>
+            <option value="cargas">Cargas Máximas</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="hist-line-toggles" id="histLineToggles" style="display:flex; gap:14px; align-items:center; font-size:11px; margin:0 0 10px;">
+        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" id="histToggleNivel" checked> <span style="color:var(--steel-glow);">● Nivel Medido</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" id="histToggleCorregido"> <span style="color:var(--bronze-glow);">● Nivel Corregido</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+          <input type="checkbox" id="histTogglePIP"> <span style="color:var(--rust-glow);">● Presión (PIP)</span>
+        </label>
       </div>
 
       <div class="hist-chart" id="histChart">
@@ -1708,6 +1737,12 @@
   .hist-tl-axis{ stroke:var(--border); stroke-width:1; opacity:.8; }
   .hist-tl-pt{ fill:var(--panel); stroke:var(--steel-glow); stroke-width:1.6; cursor:pointer; transition:r .12s ease, fill .12s ease; }
   .hist-tl-pt:hover, .hist-tl-pt.active{ fill:var(--steel-glow); }
+  .hist-tl-line.hist-line-corr{ stroke:var(--bronze-glow); }
+  .hist-tl-line.hist-line-pip{ stroke:var(--rust-glow); }
+  .hist-tl-line.dashed{ stroke-dasharray:4 3; }
+  .hist-tl-pt.hist-line-corr{ stroke:var(--bronze-glow); }
+  .hist-tl-pt.hist-line-pip{ stroke:var(--rust-glow); }
+  .hist-tl-axis-r{ fill:var(--rust-glow); opacity:.75; }
   .hist-tl-datelbl{ font-family:'IBM Plex Mono'; font-size:8.5px; fill:var(--ink-faint); letter-spacing:.02em; }
   .hist-tl-vallbl{ font-family:'IBM Plex Mono'; font-size:9px; fill:var(--ink-dim); font-weight:500; }
   .hist-tooltip{
@@ -2595,6 +2630,14 @@
         <input id="cn-f-comment" type="text" placeholder="texto…">
       </div>
 
+      <div class="cn-field cn-fecharango">
+        <label>Rango de fecha</label>
+        <div class="cn-dias">
+          <input id="cn-f-fecha-desde" type="date" title="Desde">
+          <input id="cn-f-fecha-hasta" type="date" title="Hasta">
+        </div>
+      </div>
+
       <div class="cn-btnrow">
         <button id="cn-btn-clear" class="cn-btn" type="button">Limpiar Filtros</button>
         <button id="cn-btn-armado" class="cn-btn" type="button">Armado Consulta</button>
@@ -2633,6 +2676,38 @@
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- Modal: Descargar Parte (desde Inicio) -->
+  <div class="cn-modal-backdrop" id="dp-modal-backdrop">
+    <div class="cn-modal" style="max-width:420px;">
+      <div class="cn-modal-head">
+        <h3>Descargar Parte</h3>
+        <button class="cn-modal-close" id="dp-modal-close" type="button">✕</button>
+      </div>
+      <div class="cn-modal-body" style="display:grid; gap:14px; padding:16px;">
+        <div class="ifilter">
+          <label>Fecha de campaña (única)</label>
+          <select id="dp-fecha-unica"><option value="">— Seleccionar fecha —</option></select>
+        </div>
+        <div style="text-align:center; color:var(--ink-faint); font-size:10.5px;">— o un rango de fechas —</div>
+        <div style="display:flex; gap:10px;">
+          <div class="ifilter" style="flex:1;">
+            <label>Desde</label>
+            <input type="date" id="dp-fecha-desde">
+          </div>
+          <div class="ifilter" style="flex:1;">
+            <label>Hasta</label>
+            <input type="date" id="dp-fecha-hasta">
+          </div>
+        </div>
+        <div id="dp-status" style="font-size:11px; color:var(--ink-faint); min-height:14px;"></div>
+      </div>
+      <div class="cn-modal-foot">
+        <span style="font-size:10.5px; color:var(--ink-faint);">Genera un PDF por cada fecha con campaña.</span>
+        <button class="cn-btn primary" id="dp-btn-download" type="button">⬇ Descargar PDF</button>
+      </div>
+    </div>
   </div>
 
   <!-- ===================== MODAL: ADMINISTRACIÓN DE USUARIOS ===================== -->
@@ -3271,6 +3346,12 @@
     return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'});
   }
 
+  function ensayoBadgeHtml(tipo){
+    if(!tipo || tipo === 'Sin ensayo') return `<span class="ensayo-badge ensayo-sin">${tipo || '—'}</span>`;
+    const cls = tipo === 'Combinada' ? 'ensayo-combinada' : tipo === 'Dina' ? 'ensayo-dina' : tipo === 'Nivel' ? 'ensayo-nivel' : '';
+    return `<span class="ensayo-badge ${cls}">${tipo}</span>`;
+  }
+
   // Setea texto de un campo del panel Dina con formato numerico + unidad,
   // o "—" si el valor no vino (null/undefined). Usado para todos los campos
   // de Bomba/Controles/Unidad de Bombeo/GearBox/Contrapesos.
@@ -3840,7 +3921,7 @@
     const histWellSearchEl = document.getElementById('histWellSearch');
     if(histWellSearchEl) histWellSearchEl.value = '';
     const historialViewEl = document.getElementById('view-historial');
-    if(historialViewEl && historialViewEl.classList.contains('active')){ renderHistorialTimeline(); }
+    if(historialViewEl && historialViewEl.classList.contains('active')){ renderHistorialByType(); }
 
     // Tarea 2: Operadora (asignada) · Zona (Group, si aplica) · Batería (Sub Group)
     const fieldTagEl = document.getElementById('fieldTag');
@@ -4725,7 +4806,7 @@
           <td class="ie-cell well-name" data-field="well" onclick="inicioWellCellClick('${n.replace(/'/g,"\\'")}')">${n}</td>
           <td>${fmtDate(r.dt)}${tipoTag}</td>
           <td class="ie-cell" data-field="bateria">${r.bateria || '—'}</td>
-          <td class="ie-cell" data-field="operacion">${r.operacion || '—'}</td>
+          <td class="ie-cell" data-field="operacion">${ensayoBadgeHtml(r.operacion)}</td>
           <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
           <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
@@ -5172,6 +5253,8 @@
     sistema: '',             // '' = todos
     dias: null,              // {op, value}
     commentSearch: '',       // busca en commentDyn y commentAcu
+    fechaDesde: '',
+    fechaHasta: '',
     colFilters: {},          // key -> Set(valores), via flechitas de columna
   };
 
@@ -5243,6 +5326,8 @@
       const blob = `${row.commentDyn || ''} ${row.commentAcu || ''}`.toLowerCase();
       if(!blob.includes(q)) return false;
     }
+    if(cnState.fechaDesde && row.fecha && row.fecha < cnState.fechaDesde) return false;
+    if(cnState.fechaHasta && row.fecha && row.fecha > cnState.fechaHasta) return false;
     for(const key in cnState.colFilters){
       const sel = cnState.colFilters[key]; if(!sel || !sel.size) continue;
       const def = CN_DEFS_BY_KEY[key]; if(!def) continue;
@@ -5253,10 +5338,12 @@
   }
   function cnHasActiveFilters(){
     return !!cnState.sistema || !!(cnState.dias && cnState.dias.value !== '' && cnState.dias.value != null) ||
-      !!cnState.commentSearch || Object.values(cnState.colFilters).some(s => s && s.size);
+      !!cnState.commentSearch || !!cnState.fechaDesde || !!cnState.fechaHasta ||
+      Object.values(cnState.colFilters).some(s => s && s.size);
   }
   function cnColumns(){ return CN_BASE_KEYS.concat(cnState.extraCols); }
   function cnFmtVal(def, val){
+    if((def.key === 'tipoEnsayo' || def.key === 'operacion')) return ensayoBadgeHtml(val);
     if(val == null || val === '') return '—';
     if(def.filterType === 'numeric' && typeof val === 'number'){
       return val.toFixed(def.dec != null ? def.dec : 1) + (def.unit || '');
@@ -5289,6 +5376,11 @@
       chips.push({ label:`Días s/dinas ${cnOpLabel(cnState.dias.op).toLowerCase()} ${cnState.dias.value}`, remove:()=>{ cnState.dias=null; document.getElementById('cn-f-dias-val').value=''; } });
     }
     if(cnState.commentSearch) chips.push({ label:`Comentario contiene "${cnState.commentSearch}"`, remove:()=>{ cnState.commentSearch=''; document.getElementById('cn-f-comment').value=''; } });
+    if(cnState.fechaDesde || cnState.fechaHasta){
+      const lbl = cnState.fechaDesde && cnState.fechaHasta ? `Fecha: ${fmtDate(cnState.fechaDesde)} a ${fmtDate(cnState.fechaHasta)}`
+        : cnState.fechaDesde ? `Fecha desde ${fmtDate(cnState.fechaDesde)}` : `Fecha hasta ${fmtDate(cnState.fechaHasta)}`;
+      chips.push({ label: lbl, remove:()=>{ cnState.fechaDesde=''; cnState.fechaHasta=''; document.getElementById('cn-f-fecha-desde').value=''; document.getElementById('cn-f-fecha-hasta').value=''; } });
+    }
     Object.keys(cnState.colFilters).forEach(key => {
       const sel = cnState.colFilters[key]; if(!sel || !sel.size) return;
       const def = CN_DEFS_BY_KEY[key]; if(!def) return;
@@ -5437,6 +5529,7 @@
   function cnSaveConfig(){
     const cfg = {
       extraCols: cnState.extraCols, sistema: cnState.sistema, dias: cnState.dias, commentSearch: cnState.commentSearch,
+      fechaDesde: cnState.fechaDesde, fechaHasta: cnState.fechaHasta,
       colFilters: Object.fromEntries(Object.entries(cnState.colFilters).map(([k,v])=>[k, Array.from(v)])),
     };
     try{ localStorage.setItem(CN_LS_KEY, JSON.stringify(cfg)); alert('Configuración de la grilla guardada en este navegador.'); }
@@ -5450,11 +5543,15 @@
       cnState.sistema = cfg.sistema || '';
       cnState.dias = cfg.dias || null;
       cnState.commentSearch = cfg.commentSearch || '';
+      cnState.fechaDesde = cfg.fechaDesde || '';
+      cnState.fechaHasta = cfg.fechaHasta || '';
       cnState.colFilters = Object.fromEntries(Object.entries(cfg.colFilters || {}).map(([k,v])=>[k, new Set(v)]));
       const selSistema = document.getElementById('cn-f-sistema'); if(selSistema) selSistema.value = cnState.sistema;
       const selDiasOp = document.getElementById('cn-f-dias-op'); if(selDiasOp && cnState.dias) selDiasOp.value = cnState.dias.op;
       const inpDiasVal = document.getElementById('cn-f-dias-val'); if(inpDiasVal && cnState.dias) inpDiasVal.value = cnState.dias.value;
       const inpComment = document.getElementById('cn-f-comment'); if(inpComment) inpComment.value = cnState.commentSearch;
+      const inpFechaDesde = document.getElementById('cn-f-fecha-desde'); if(inpFechaDesde) inpFechaDesde.value = cnState.fechaDesde;
+      const inpFechaHasta = document.getElementById('cn-f-fecha-hasta'); if(inpFechaHasta) inpFechaHasta.value = cnState.fechaHasta;
     } catch(e){ console.warn('Consulta: no se pudo cargar configuración guardada', e.message || e); }
   }
 
@@ -5506,6 +5603,10 @@
     const commentInp = document.getElementById('cn-f-comment');
     if(commentInp) commentInp.addEventListener('input', ()=>{ cnState.commentSearch = commentInp.value.trim(); cnRenderAll(); });
 
+    const fechaDesdeInp = document.getElementById('cn-f-fecha-desde'), fechaHastaInp = document.getElementById('cn-f-fecha-hasta');
+    if(fechaDesdeInp) fechaDesdeInp.addEventListener('change', ()=>{ cnState.fechaDesde = fechaDesdeInp.value; cnRenderAll(); });
+    if(fechaHastaInp) fechaHastaInp.addEventListener('change', ()=>{ cnState.fechaHasta = fechaHastaInp.value; cnRenderAll(); });
+
     const clearBtn = document.getElementById('cn-btn-clear');
     if(clearBtn) clearBtn.addEventListener('click', ()=>{
       cnState.sistema = ''; cnState.dias = null; cnState.commentSearch = ''; cnState.colFilters = {};
@@ -5514,6 +5615,9 @@
       if(diasOp) diasOp.value = '>';
       if(diasVal) diasVal.value = '';
       if(commentInp) commentInp.value = '';
+      cnState.fechaDesde = ''; cnState.fechaHasta = '';
+      if(fechaDesdeInp) fechaDesdeInp.value = '';
+      if(fechaHastaInp) fechaHastaInp.value = '';
       document.querySelectorAll('.th-filter-panel').forEach(p=>p.remove()); // cierra cualquier panel de filtro de columna abierto
       if(document.getElementById('cn-modal-backdrop').classList.contains('active')) cnRenderModal(); // si el modal esta abierto, refresca sus checkboxes tambien
       cnRenderAll();
@@ -7759,6 +7863,29 @@
   // ===================== HISTORIAL ECO: linea de tiempo (Nivel Medido) =====================
   let histSelectedWell = null; // null = usa currentWell (pozo de la grilla/topbar)
 
+  // Dedup: la grilla principal (Inicio) muestra, por pozo, el ultimo dato
+  // captado (columna "Nivel medido"). Historial Eco debe usar ese mismo
+  // criterio: si hubiera mas de un registro ACU para la misma fecha, se
+  // queda con el que tiene nivel valido y, entre esos, el mas tardio (por
+  // hora de ensayo). Asi la linea de tiempo coincide con la grilla y no
+  // duplica puntos el mismo dia.
+  function histDedupByDate(pts){
+    const byDate = {};
+    pts.forEach(p => {
+      if(!byDate[p.date] || (p.time||'') > (byDate[p.date].time||'')) byDate[p.date] = p;
+    });
+    return Object.values(byDate).sort((a,b) => new Date(a.date+'T'+(a.time||'00:00:00')) - new Date(b.date+'T'+(b.time||'00:00:00')));
+  }
+
+  function histToggleState(){
+    const g = (id, def) => { const el = document.getElementById(id); return el ? el.checked : def; };
+    return {
+      nivel: g('histToggleNivel', true),
+      corregido: g('histToggleCorregido', false),
+      pip: g('histTogglePIP', false),
+    };
+  }
+
   async function renderHistorialTimeline(){
     const chartEl = document.getElementById('histChart');
     const stampEl = document.getElementById('histStamp');
@@ -7772,42 +7899,74 @@
     chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Cargando historial…</p>';
     if(stampEl) stampEl.textContent = wellName + ' · cargando…';
 
+    // Un pozo marcado como "nivel indefinido" no tiene medicion valida:
+    // sin linea de tiempo (mismo criterio que la grilla principal).
+    const wRef = WELLS_DB[wellName];
+    if(wRef && wRef.nivelIndefinido){
+      if(stampEl) stampEl.textContent = wellName + ' · nivel indefinido';
+      chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Nivel indefinido / cancelado — sin línea de tiempo disponible.</p>';
+      return;
+    }
+
     const list = await loadWellHistory(wellName, 'ACU');
     // el usuario puede haber cambiado el pozo mientras esperabamos la respuesta
     if((histSelectedWell || currentWell) !== wellName) return;
 
-    const pts = (list || [])
-      .filter(t => t.results && t.results.liquid_level_tvd_m != null && t.test_date)
+    const ptsRaw = (list || [])
+      .filter(t => t.results && t.results.liquid_level_tvd_m != null && t.test_date && !isNivelIndefinido(t.test_comments))
       .map(t => ({
         date: t.test_date,
         time: t.test_time,
         nivel: Number(t.results.liquid_level_tvd_m),
         pip: t.results.pip_ll_kg != null ? Number(t.results.pip_ll_kg) : null,
         sumerg: t.results.fluid_above_pump_m != null ? Number(t.results.fluid_above_pump_m) : null,
-      }))
-      .sort((a,b) => new Date(a.date+'T'+(a.time||'00:00:00')) - new Date(b.date+'T'+(b.time||'00:00:00')));
+        nivelCorr: t.results.corrected_liquid_level_tvd_m != null ? Number(t.results.corrected_liquid_level_tvd_m)
+          : (t.results.gas_free_above_pump_m != null ? Number(t.results.gas_free_above_pump_m) : null),
+      }));
+
+    const pts = histDedupByDate(ptsRaw);
 
     if(stampEl) stampEl.textContent = wellName + (pts.length ? ` · ${pts.length} medición${pts.length===1?'':'es'}` : ' · sin mediciones');
+
+    const togglesWrap = document.getElementById('histLineToggles');
+    if(togglesWrap) togglesWrap.hidden = false;
 
     if(!pts.length){
       chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Sin mediciones de Nivel Acústico cargadas para este pozo.</p>';
       return;
     }
 
+    const tog = histToggleState();
+
     // ---- geometria (compacta) ----
-    const W = 760, H = 190, padL = 46, padR = 18, padT = 18, padB = 34;
+    const W = 760, H = 190, padL = 46, padR = tog.pip ? 44 : 18, padT = 18, padB = 34;
     const plotW = W - padL - padR, plotH = H - padT - padB;
-    const niveles = pts.map(p => p.nivel);
-    let minV = Math.min(...niveles), maxV = Math.max(...niveles);
+    // Escala izquierda: Nivel medido + Nivel corregido (mismas unidades, m)
+    const leftVals = [];
+    pts.forEach(p => { leftVals.push(p.nivel); if(tog.corregido && p.nivelCorr != null) leftVals.push(p.nivelCorr); });
+    let minV = Math.min(...leftVals), maxV = Math.max(...leftVals);
     if(minV === maxV){ minV -= 10; maxV += 10; }
-    const pad = (maxV - minV) * 0.12;
-    minV -= pad; maxV += pad;
+    let padV = (maxV - minV) * 0.12;
+    minV -= padV; maxV += padV;
+
+    // Escala derecha: PIP (kg/cm2)
+    const pipVals = tog.pip ? pts.map(p=>p.pip).filter(v=>v!=null) : [];
+    let minP = 0, maxP = 1;
+    if(pipVals.length){
+      minP = Math.min(...pipVals); maxP = Math.max(...pipVals);
+      if(minP === maxP){ minP -= 1; maxP += 1; }
+      const padP = (maxP - minP) * 0.12;
+      minP -= padP; maxP += padP;
+    }
 
     const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
     // Nivel medido: valores mas ALTOS (mas profundo) hacia ABAJO del grafico (convencion de nivel de pozo)
     const yFor = (v) => padT + ((v - minV) / (maxV - minV)) * plotH;
+    const yForPip = (v) => padT + plotH - ((v - minP) / (maxP - minP)) * plotH; // PIP: mas alto = arriba (convencion estandar)
 
     const coords = pts.map((p,i) => ({ x: xFor(i), y: yFor(p.nivel), p }));
+    const coordsCorr = tog.corregido ? pts.map((p,i) => ({ x: xFor(i), y: p.nivelCorr!=null?yFor(p.nivelCorr):null, p })) : [];
+    const coordsPip = tog.pip ? pts.map((p,i) => ({ x: xFor(i), y: p.pip!=null?yForPip(p.pip):null, p })) : [];
 
     // grilla horizontal (4 lineas) + eje
     let gridSvg = '';
@@ -7817,6 +7976,10 @@
       const gv = maxV - (g/gridN)*(maxV-minV);
       gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
       gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)} m</text>`;
+      if(tog.pip){
+        const gpv = maxP - (g/gridN)*(maxP-minP);
+        gridSvg += `<text class="hist-tl-datelbl hist-tl-axis-r" x="${W-padR+6}" y="${gy+3}" text-anchor="start">${gpv.toFixed(1)}</text>`;
+      }
     }
 
     // etiquetas de fecha en eje X (evita amontonar: max ~8 labels)
@@ -7830,7 +7993,25 @@
       }
     });
 
-    // linea + area
+    function buildPathAndPts(cs, colorCls, dashed){
+      const valid = cs.filter(c => c.y != null);
+      if(!valid.length) return { line:'', pts:'' };
+      let path = '', started = false;
+      cs.forEach(c => {
+        if(c.y == null){ started = false; return; }
+        path += (started ? 'L' : 'M') + c.x.toFixed(1) + ',' + c.y.toFixed(1) + ' ';
+        started = true;
+      });
+      let ptsSvg = '';
+      cs.forEach((c,i) => {
+        if(c.y == null) return;
+        const isLast = i === cs.length-1 || (i===cs.length-1);
+        ptsSvg += `<circle class="hist-tl-pt ${colorCls}${isLast?' active':''}" cx="${c.x}" cy="${c.y}" r="${isLast?4:2.6}" data-idx="${i}"/>`;
+      });
+      return { line: `<path class="hist-tl-line ${colorCls}${dashed?' dashed':''}" d="${path.trim()}"/>`, pts: ptsSvg };
+    }
+
+    // linea + area (Nivel Medido, principal)
     const linePath = coords.map((c,i) => (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
     const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${padT+plotH} L${coords[0].x.toFixed(1)},${padT+plotH} Z`;
 
@@ -7838,8 +8019,11 @@
     let ptsSvg = '';
     coords.forEach((c,i) => {
       const isLast = i === coords.length-1;
-      ptsSvg += `<circle class="hist-tl-pt${isLast?' active':''}" cx="${c.x}" cy="${c.y}" r="${isLast?4:2.6}" data-idx="${i}"/>`;
+      ptsSvg += `<circle class="hist-tl-pt" cx="${c.x}" cy="${c.y}" r="${isLast?4:2.6}" data-idx="${i}"/>`;
     });
+
+    const corrBuild = tog.corregido ? buildPathAndPts(coordsCorr, 'hist-line-corr', true) : { line:'', pts:'' };
+    const pipBuild = tog.pip ? buildPathAndPts(coordsPip, 'hist-line-pip', true) : { line:'', pts:'' };
 
     chartEl.innerHTML = `
       <div style="position:relative;">
@@ -7853,14 +8037,17 @@
           ${gridSvg}
           <path class="hist-tl-area" d="${areaPath}"/>
           <path class="hist-tl-line" d="${linePath}"/>
+          ${corrBuild.line}
+          ${pipBuild.line}
           ${ptsSvg}
+          ${corrBuild.pts}
+          ${pipBuild.pts}
           <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
           ${dateLabels}
         </svg>
         <div class="hist-tooltip" id="histTooltip"></div>
       </div>`;
 
-    const svgEl = chartEl.querySelector('svg');
     const tooltip = document.getElementById('histTooltip');
     const wrap = chartEl.querySelector('div');
 
@@ -7870,6 +8057,7 @@
       tooltip.innerHTML = `
         <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
         <div class="htt-row"><span>Nivel medido</span><span>${Math.round(p.nivel)} m</span></div>
+        ${tog.corregido ? `<div class="htt-row"><span>Nivel corregido</span><span>${p.nivelCorr != null ? Math.round(p.nivelCorr)+' m' : '—'}</span></div>` : ''}
         <div class="htt-row"><span>PIP</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
         <div class="htt-row"><span>Sumergencia</span><span>${p.sumerg != null ? p.sumerg.toFixed(1)+' m' : '—'}</span></div>
       `;
@@ -7879,20 +8067,256 @@
       tooltip.style.top = top + 'px';
       tooltip.style.opacity = '1';
       chartEl.querySelectorAll('.hist-tl-pt').forEach(el => el.classList.remove('active'));
-      chartEl.querySelector(`.hist-tl-pt[data-idx="${idx}"]`).classList.add('active');
     }
     function hideTooltip(){
       tooltip.style.opacity = '0';
-      chartEl.querySelectorAll('.hist-tl-pt').forEach((el,i) => {
-        el.classList.toggle('active', i === coords.length-1);
-      });
     }
 
-    chartEl.querySelectorAll('.hist-tl-pt, .hist-tl-ptgroup').forEach(el => {
+    chartEl.querySelectorAll('.hist-tl-pt').forEach(el => {
       el.addEventListener('mouseenter', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
       el.addEventListener('mousemove', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
       el.addEventListener('mouseleave', hideTooltip);
     });
+  }
+
+  // ---- Selector "Elegir Historial": otros tipos de historial sobre el mismo grafico ----
+  function histGenericLineChart(chartEl, stampEl, wellName, pts, opts){
+    // pts: [{date, time, val}], opts:{unit,label,color,invert}
+    if(stampEl) stampEl.textContent = wellName + (pts.length ? ` · ${pts.length} medición${pts.length===1?'':'es'}` : ' · sin mediciones');
+    const togglesWrap = document.getElementById('histLineToggles');
+    if(togglesWrap) togglesWrap.hidden = true;
+    if(!pts.length){
+      chartEl.innerHTML = `<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Sin mediciones de ${opts.label} cargadas para este pozo.</p>`;
+      return;
+    }
+    const W = 760, H = 190, padL = 46, padR = 18, padT = 18, padB = 34;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const vals = pts.map(p=>p.val);
+    let minV = Math.min(...vals), maxV = Math.max(...vals);
+    if(minV === maxV){ minV -= 10; maxV += 10; }
+    const pad = (maxV - minV) * 0.12;
+    minV -= pad; maxV += pad;
+    const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
+    const yFor = (v) => opts.invert
+      ? padT + ((v - minV) / (maxV - minV)) * plotH
+      : padT + plotH - ((v - minV) / (maxV - minV)) * plotH;
+    const coords = pts.map((p,i) => ({ x: xFor(i), y: yFor(p.val), p }));
+    let gridSvg = '';
+    const gridN = 3;
+    for(let g=0; g<=gridN; g++){
+      const gy = padT + (g/gridN)*plotH;
+      const gv = opts.invert ? (minV + (g/gridN)*(maxV-minV)) : (maxV - (g/gridN)*(maxV-minV));
+      gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
+      gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)}</text>`;
+    }
+    const maxLabels = 6;
+    const step = Math.max(1, Math.ceil(pts.length / maxLabels));
+    let dateLabels = '';
+    coords.forEach((c,i) => {
+      if(i % step === 0 || i === coords.length-1){
+        const dd = fmtDate ? fmtDate(c.p.date) : c.p.date;
+        dateLabels += `<text class="hist-tl-datelbl" x="${c.x}" y="${H-padB+18}" text-anchor="middle">${dd}</text>`;
+      }
+    });
+    const linePath = coords.map((c,i) => (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
+    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${padT+plotH} L${coords[0].x.toFixed(1)},${padT+plotH} Z`;
+    let ptsSvg = '';
+    coords.forEach((c,i) => {
+      const isLast = i === coords.length-1;
+      ptsSvg += `<circle class="hist-tl-pt" cx="${c.x}" cy="${c.y}" r="${isLast?4:2.6}" data-idx="${i}" style="stroke:${opts.color};"/>`;
+    });
+    chartEl.innerHTML = `
+      <div style="position:relative;">
+        <svg class="hist-timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="histAreaGrad2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${opts.color}" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="${opts.color}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${gridSvg}
+          <path class="hist-tl-area" d="${areaPath}" fill="url(#histAreaGrad2)"/>
+          <path class="hist-tl-line" d="${linePath}" style="stroke:${opts.color};"/>
+          ${ptsSvg}
+          <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
+          ${dateLabels}
+        </svg>
+        <div class="hist-tooltip" id="histTooltip"></div>
+      </div>`;
+    const tooltip = document.getElementById('histTooltip');
+    const wrap = chartEl.querySelector('div');
+    function showTooltip(idx, clientX, clientY){
+      const p = coords[idx].p;
+      const rect = wrap.getBoundingClientRect();
+      tooltip.innerHTML = `
+        <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
+        <div class="htt-row"><span>${opts.label}</span><span>${p.val.toFixed(opts.dec != null ? opts.dec : 1)}${opts.unit||''}</span></div>
+      `;
+      tooltip.style.left = (clientX - rect.left + 14) + 'px';
+      tooltip.style.top = (clientY - rect.top - 10) + 'px';
+      tooltip.style.opacity = '1';
+    }
+    function hideTooltip(){ tooltip.style.opacity = '0'; }
+    chartEl.querySelectorAll('.hist-tl-pt').forEach(el => {
+      el.addEventListener('mouseenter', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mousemove', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  function histGenericDualChart(chartEl, stampEl, wellName, pts, opts){
+    // pts: [{date,time,val1,val2}], opts:{label1,label2,color1,color2,unit}
+    if(stampEl) stampEl.textContent = wellName + (pts.length ? ` · ${pts.length} medición${pts.length===1?'':'es'}` : ' · sin mediciones');
+    const togglesWrap = document.getElementById('histLineToggles');
+    if(togglesWrap) togglesWrap.hidden = true;
+    if(!pts.length){
+      chartEl.innerHTML = `<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Sin mediciones cargadas para este pozo.</p>`;
+      return;
+    }
+    const W = 760, H = 190, padL = 46, padR = 18, padT = 18, padB = 34;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const allVals = pts.flatMap(p=>[p.val1,p.val2]).filter(v=>v!=null);
+    let minV = Math.min(...allVals), maxV = Math.max(...allVals);
+    if(minV === maxV){ minV -= 10; maxV += 10; }
+    const pad = (maxV - minV) * 0.12;
+    minV -= pad; maxV += pad;
+    const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
+    const yFor = (v) => padT + plotH - ((v - minV) / (maxV - minV)) * plotH;
+    let gridSvg = '';
+    const gridN = 3;
+    for(let g=0; g<=gridN; g++){
+      const gy = padT + (g/gridN)*plotH;
+      const gv = maxV - (g/gridN)*(maxV-minV);
+      gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
+      gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)}</text>`;
+    }
+    const maxLabels = 6;
+    const step = Math.max(1, Math.ceil(pts.length / maxLabels));
+    let dateLabels = '';
+    pts.forEach((p,i) => {
+      if(i % step === 0 || i === pts.length-1){
+        const dd = fmtDate ? fmtDate(p.date) : p.date;
+        dateLabels += `<text class="hist-tl-datelbl" x="${xFor(i)}" y="${H-padB+18}" text-anchor="middle">${dd}</text>`;
+      }
+    });
+    function buildLine(field, color){
+      let path = '', started = false, ptsSvg = '';
+      pts.forEach((p,i) => {
+        const v = p[field];
+        if(v == null){ started = false; return; }
+        const x = xFor(i), y = yFor(v);
+        path += (started?'L':'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+        started = true;
+        const isLast = i === pts.length-1;
+        ptsSvg += `<circle class="hist-tl-pt" cx="${x}" cy="${y}" r="${isLast?4:2.6}" data-idx="${i}" data-field="${field}" style="stroke:${color};"/>`;
+      });
+      return { line: `<path class="hist-tl-line" d="${path.trim()}" style="stroke:${color};"/>`, pts: ptsSvg };
+    }
+    const b1 = buildLine('val1', opts.color1), b2 = buildLine('val2', opts.color2);
+    chartEl.innerHTML = `
+      <div style="position:relative;">
+        <div style="display:flex; gap:14px; font-size:10.5px; margin-bottom:4px;">
+          <span style="color:${opts.color1};">● ${opts.label1}</span>
+          <span style="color:${opts.color2};">● ${opts.label2}</span>
+        </div>
+        <svg class="hist-timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+          ${gridSvg}
+          ${b1.line}${b2.line}
+          ${b1.pts}${b2.pts}
+          <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
+          ${dateLabels}
+        </svg>
+        <div class="hist-tooltip" id="histTooltip"></div>
+      </div>`;
+    const tooltip = document.getElementById('histTooltip');
+    const wrap = chartEl.querySelector('div');
+    function showTooltip(idx, clientX, clientY){
+      const p = pts[idx];
+      const rect = wrap.getBoundingClientRect();
+      tooltip.innerHTML = `
+        <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
+        <div class="htt-row"><span>${opts.label1}</span><span>${p.val1 != null ? p.val1.toFixed(0)+(opts.unit||'') : '—'}</span></div>
+        <div class="htt-row"><span>${opts.label2}</span><span>${p.val2 != null ? p.val2.toFixed(0)+(opts.unit||'') : '—'}</span></div>
+      `;
+      tooltip.style.left = (clientX - rect.left + 14) + 'px';
+      tooltip.style.top = (clientY - rect.top - 10) + 'px';
+      tooltip.style.opacity = '1';
+    }
+    function hideTooltip(){ tooltip.style.opacity = '0'; }
+    chartEl.querySelectorAll('.hist-tl-pt').forEach(el => {
+      el.addEventListener('mouseenter', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mousemove', (ev) => showTooltip(Number(el.dataset.idx), ev.clientX, ev.clientY));
+      el.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  // Dispatcher del selector "Elegir Historial"
+  async function renderHistorialByType(){
+    const sel = document.getElementById('histTypeSelect');
+    const type = sel ? sel.value : 'nivel';
+    const chartEl = document.getElementById('histChart');
+    const stampEl = document.getElementById('histStamp');
+    if(!chartEl) return;
+    const wellName = histSelectedWell || currentWell;
+    if(!wellName){
+      chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Elegí un pozo para ver su historial.</p>';
+      if(stampEl) stampEl.textContent = '—';
+      return;
+    }
+
+    if(type === 'nivel'){ await renderHistorialTimeline(); return; }
+
+    chartEl.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:40px; font-size:12px;">Cargando historial…</p>';
+    if(stampEl) stampEl.textContent = wellName + ' · cargando…';
+
+    if(type === 'sumergencia'){
+      const list = await loadWellHistory(wellName, 'ACU');
+      if((histSelectedWell || currentWell) !== wellName) return;
+      const pts = histDedupByDate((list||[]).filter(t=>t.results && t.results.fluid_above_pump_m!=null && t.test_date)
+        .map(t=>({date:t.test_date, time:t.test_time, val:Number(t.results.fluid_above_pump_m)})));
+      histGenericLineChart(chartEl, stampEl, wellName, pts, {label:'Sumergencia', unit:' m', color:'var(--bronze-glow)', dec:1});
+      return;
+    }
+    if(type === 'presiones'){
+      const list = await loadWellHistory(wellName, 'DYN');
+      if((histSelectedWell || currentWell) !== wellName) return;
+      const pts = histDedupByDate((list||[]).filter(t=>t.results && t.results.dyn_tubing_pressure_kg!=null && t.test_date)
+        .map(t=>({date:t.test_date, time:t.test_time, val:Number(t.results.dyn_tubing_pressure_kg)})));
+      histGenericLineChart(chartEl, stampEl, wellName, pts, {label:'Presión de Tbg', unit:' kg', color:'var(--steel-glow)', dec:1});
+      return;
+    }
+    if(type === 'torques'){
+      const list = await loadWellHistory(wellName, 'DYN');
+      if((histSelectedWell || currentWell) !== wellName) return;
+      const pts = histDedupByDate((list||[]).filter(t=>t.results && t.test_date &&
+        (t.results.existing_max_torque_downstroke_inlb!=null || t.results.in_balance_max_torque_downstroke_inlb!=null))
+        .map(t=>({date:t.test_date, time:t.test_time,
+          val1: t.results.existing_max_torque_downstroke_inlb!=null ? Number(t.results.existing_max_torque_downstroke_inlb) : null,
+          val2: t.results.in_balance_max_torque_downstroke_inlb!=null ? Number(t.results.in_balance_max_torque_downstroke_inlb) : null,
+        })));
+      histGenericDualChart(chartEl, stampEl, wellName, pts, {
+        label1:'Torque Existente', label2:'Torque en Balance', color1:'var(--rust-glow)', color2:'#4caf6f', unit:' in-lb'
+      });
+      return;
+    }
+    if(type === 'cargas'){
+      const list = await loadWellHistory(wellName, 'DYN');
+      if((histSelectedWell || currentWell) !== wellName) return;
+      const pts = histDedupByDate((list||[]).filter(t=>t.results && t.results.peak_polished_rod_load_lb!=null && t.test_date)
+        .map(t=>({date:t.test_date, time:t.test_time, val:Number(t.results.peak_polished_rod_load_lb)})));
+      histGenericLineChart(chartEl, stampEl, wellName, pts, {label:'Carga Máxima', unit:' lb', color:'var(--navy-glow)', dec:0});
+      return;
+    }
+    if(type === 'cartas'){
+      const list = await loadWellHistory(wellName, 'DYN');
+      if((histSelectedWell || currentWell) !== wellName) return;
+      const pts = histDedupByDate((list||[]).filter(t=>t.results && t.results.peak_polished_rod_load_lb!=null && t.test_date)
+        .map(t=>({date:t.test_date, time:t.test_time, val:Number(t.results.peak_polished_rod_load_lb)})));
+      // Sin datos de carta punto a punto en el historial: se muestra la carga
+      // maxima por ensayo como referencia rapida de evolucion de cartas.
+      histGenericLineChart(chartEl, stampEl, wellName, pts, {label:'Carga Máxima (ref. Cartas Dina)', unit:' lb', color:'var(--navy-glow)', dec:0});
+      return;
+    }
   }
 
   function setupHistWellSearch(){
@@ -7918,7 +8342,7 @@
           histSelectedWell = el.dataset.well;
           input.value = histSelectedWell;
           closeDropdown();
-          renderHistorialTimeline();
+          renderHistorialByType();
         });
       });
     }
@@ -9873,7 +10297,7 @@
     const viewEl = document.getElementById('view-'+viewName);
     if(viewEl) viewEl.classList.add('active');
     if(viewName === 'bitacora'){ bitLoadForWell(currentWell); }
-    if(viewName === 'historial'){ renderHistorialTimeline(); }
+    if(viewName === 'historial'){ renderHistorialByType(); }
     if(viewName === 'consultas'){ cnRenderAll(); }
   }
 
@@ -9884,6 +10308,88 @@
   if(bitGuardarBtnEl) bitGuardarBtnEl.addEventListener('click', bitGuardar);
   setupHistWellSearch();
   setupThFilters();
+
+  (function setupHistToolbar(){
+    const typeSel = document.getElementById('histTypeSelect');
+    if(typeSel) typeSel.addEventListener('change', () => renderHistorialByType());
+    ['histToggleNivel','histToggleCorregido','histTogglePIP'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('change', () => renderHistorialByType());
+    });
+  })();
+
+  // ---- Modal "Descargar Parte" desde Inicio: reusa collectParteData()/PDF del módulo Partes ----
+  (function setupDescargarParteModal(){
+    const btn = document.getElementById('ifDescargarParteBtn');
+    const backdrop = document.getElementById('dp-modal-backdrop');
+    const closeBtn = document.getElementById('dp-modal-close');
+    const fechaUnica = document.getElementById('dp-fecha-unica');
+    const fechaDesde = document.getElementById('dp-fecha-desde');
+    const fechaHasta = document.getElementById('dp-fecha-hasta');
+    const statusEl = document.getElementById('dp-status');
+    const downloadBtn = document.getElementById('dp-btn-download');
+    if(!btn || !backdrop) return;
+
+    function availableDates(){
+      const ifFechaSel = document.getElementById('ifFecha');
+      if(!ifFechaSel) return [];
+      return [...ifFechaSel.options].map(o => o.value).filter(v => v);
+    }
+
+    btn.addEventListener('click', () => {
+      const dates = availableDates().sort().reverse();
+      fechaUnica.innerHTML = '<option value="">— Seleccionar fecha —</option>' +
+        dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
+      fechaDesde.value = ''; fechaHasta.value = '';
+      if(statusEl) statusEl.textContent = '';
+      backdrop.classList.add('active');
+    });
+    if(closeBtn) closeBtn.addEventListener('click', () => backdrop.classList.remove('active'));
+    backdrop.addEventListener('click', (e) => { if(e.target === backdrop) backdrop.classList.remove('active'); });
+
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    // Reutiliza el combo/boton reales del modulo "Generar Parte": setea la
+    // fecha, dispara su logica (verificacion en Supabase + collectParteData +
+    // render de la tabla) y despues clickea el boton real de exportar PDF —
+    // asi no se duplica la logica de armado ni la de generacion del PDF.
+    async function downloadParteForDate(fecha){
+      const campSel = document.getElementById('parteCampanaSelect');
+      const pdfBtn = document.getElementById('parteExportPdfBtn');
+      if(!campSel || !pdfBtn) return false;
+      if(![...campSel.options].some(o => o.value === fecha)){
+        const opt = document.createElement('option');
+        opt.value = fecha; opt.textContent = fmtDate(fecha);
+        campSel.appendChild(opt);
+      }
+      campSel.value = fecha;
+      campSel.dispatchEvent(new Event('change'));
+      await sleep(500); // espera la verificacion async (Supabase) y el armado del parte
+      if(!window._parteData || window._parteData.fecha !== fecha) return false;
+      pdfBtn.click();
+      await sleep(250);
+      return true;
+    }
+
+    if(downloadBtn) downloadBtn.addEventListener('click', async () => {
+      const unica = fechaUnica.value;
+      const desde = fechaDesde.value, hasta = fechaHasta.value;
+      let dates = [];
+      if(unica){ dates = [unica]; }
+      else if(desde || hasta){
+        const all = availableDates();
+        dates = all.filter(d => (!desde || d >= desde) && (!hasta || d <= hasta)).sort();
+      }
+      if(!dates.length){ if(statusEl) statusEl.textContent = 'Elegí una fecha o un rango con campañas.'; return; }
+      downloadBtn.disabled = true;
+      for(let i=0; i<dates.length; i++){
+        if(statusEl) statusEl.textContent = `Generando ${i+1}/${dates.length} — ${fmtDate(dates[i])}…`;
+        await downloadParteForDate(dates[i]);
+      }
+      if(statusEl) statusEl.textContent = `Listo: ${dates.length} parte${dates.length===1?'':'s'} descargado${dates.length===1?'':'s'}.`;
+      downloadBtn.disabled = false;
+    });
+  })();
 
 </script>
 
