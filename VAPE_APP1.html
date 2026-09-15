@@ -2632,9 +2632,9 @@
         </div>
       </div>
 
-      <div class="cn-field cn-fecharango">
-        <label>Rango de fecha</label>
-        <div class="cn-dias" style="gap:8px;">
+      <div class="cn-field cn-fecharango" style="text-align:center;">
+        <label style="display:block; text-align:center;">Rango de fecha</label>
+        <div class="cn-dias" style="gap:8px; justify-content:center;">
           <div style="display:flex; flex-direction:column; align-items:center;">
             <span style="font-size:9px; color:var(--ink-dim); margin-bottom:2px;">Desde</span>
             <input id="cn-f-fecha-desde" type="date" title="Desde">
@@ -2690,38 +2690,6 @@
   </div>
   </div>
 
-  <!-- Modal: Descargar Parte (desde Inicio) -->
-  <div class="cn-modal-backdrop" id="dp-modal-backdrop">
-    <div class="cn-modal" style="max-width:720px;">
-      <div class="cn-modal-head">
-        <h3>Descargar Parte</h3>
-        <button class="cn-modal-close" id="dp-modal-close" type="button">✕</button>
-      </div>
-      <div class="cn-modal-body" style="display:grid; gap:14px; padding:16px;">
-        <div class="ifilter">
-          <label>Fecha de campaña (única)</label>
-          <select id="dp-fecha-unica"><option value="">— Seleccionar fecha —</option></select>
-        </div>
-        <div style="text-align:center; color:var(--ink-faint); font-size:10.5px;">— o un rango de fechas —</div>
-        <div style="display:flex; gap:10px;">
-          <div class="ifilter" style="flex:1;">
-            <label>Desde</label>
-            <input type="date" id="dp-fecha-desde" style="color-scheme:dark;">
-          </div>
-          <div class="ifilter" style="flex:1;">
-            <label>Hasta</label>
-            <input type="date" id="dp-fecha-hasta" style="color-scheme:dark;">
-          </div>
-        </div>
-        <div id="dp-status" style="font-size:11px; color:var(--ink-faint); min-height:14px;"></div>
-        <div id="dp-preview" style="max-height:460px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; display:none; background:var(--panel);"></div>
-      </div>
-      <div class="cn-modal-foot">
-        <span style="font-size:10.5px; color:var(--ink-faint);">Genera un PDF por cada fecha con campaña.</span>
-        <button class="cn-btn primary" id="dp-btn-download" type="button">⬇ Descargar PDF</button>
-      </div>
-    </div>
-  </div>
 
   <!-- ===================== MODAL: ADMINISTRACIÓN DE USUARIOS ===================== -->
   <div class="modal-overlay" id="userAdminModal">
@@ -6547,14 +6515,15 @@
     const output = document.getElementById('parteOutputArea');
     if(!genBtn) return;
 
-    window.collectParteDataForFecha = collectParteDataForFecha;
-    function collectParteDataForFecha(fecha){
-      if(!fecha) return null;
-      const opFilter = document.getElementById('parteOperadora')?.value || '';
-      const numParte = '';
+    function collectParteData(){
+      const fecha = document.getElementById('parteFecha').value || document.getElementById('parteCampanaSelect')?.value || '';
+      if(!fecha){ alert('Seleccioná una campaña del combobox para generar el parte.'); return null; }
+      const opFilter = document.getElementById('parteOperadora').value;
+      const numParte = document.getElementById('parteNumero').value.trim() || '';
       const byWell = {};
       wellNames.forEach(name => {
-        const w = WELLS_DB[name]; if(!w) return;
+        const w = WELLS_DB[name];
+        if(!w) return;
         if(opFilter && w.operadora !== opFilter) return;
         const hist = w.history || [];
         const entriesFecha = hist.filter(h => h.dt === fecha);
@@ -6565,7 +6534,7 @@
         else if(tiposEnFecha.has('Combinada')) ensayo = 'Combinada';
         else if(tiposEnFecha.has('Dina')) ensayo = 'Dina';
         else if(tiposEnFecha.has('Nivel')) ensayo = 'Nivel';
-        else if(!hist.length && w.dt === fecha){
+        else if(!hist.length && w.dt === fecha) {
           ensayo = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : null;
           if(!ensayo) return;
         } else return;
@@ -6575,7 +6544,9 @@
         const sistema = firstEntry.sistema || w.sistema || '—';
         byWell[name] = { ensayo, estado, sistema, operadora: w.operadora || opFilter || '—', bateria: w.bateria || '', zona: w.zona || '' };
       });
-      const parteRows = Object.entries(byWell).map(([well, info]) => ({ well, ensayo: info.ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora, bateria: info.bateria, zona: info.zona }));
+      const parteRows = Object.entries(byWell).map(([well, info]) => {
+        return { well, ensayo: info.ensayo, estado: info.estado, sistema: info.sistema, operadora: info.operadora, bateria: info.bateria, zona: info.zona };
+      });
       const counts = { Combinada:0, Dina:0, Nivel:0, Cancelada:0 };
       parteRows.forEach(r => { if(counts[r.ensayo] !== undefined) counts[r.ensayo]++; });
       const bateriasSet = new Set(); const zonasSet = new Set();
@@ -6586,16 +6557,6 @@
       const yacimiento = zonaAuto || operadora;
       const [y,m,d] = fecha.split('-');
       return { fecha, fechaFmt:`${d}/${m}/${y}`, numParte, opFilter, operadora, yacimiento, baterias, parteRows, counts, total:parteRows.length };
-    }
-
-    function collectParteData(){
-      const fecha = document.getElementById('parteFecha').value || document.getElementById('parteCampanaSelect')?.value || '';
-      if(!fecha){ alert('Seleccioná una campaña del combobox para generar el parte.'); return null; }
-      const data = collectParteDataForFecha(fecha);
-      if(!data) return null;
-      // Override numParte from the UI input
-      data.numParte = document.getElementById('parteNumero').value.trim() || '';
-      return data;
     }
 
     genBtn.addEventListener('click', () => {
@@ -10386,153 +10347,22 @@
     });
   })();
 
-  // ---- Modal "Descargar Parte" desde Inicio: usa collectParteDataForFecha() global ----
-  (function setupDescargarParteModal(){
+  // ---- Botón "Descargar Parte" en Inicio: abre directamente el módulo Generar Parte ----
+  (function(){
     const btn = document.getElementById('ifDescargarParteBtn');
-    const backdrop = document.getElementById('dp-modal-backdrop');
-    const closeBtn = document.getElementById('dp-modal-close');
-    const fechaUnica = document.getElementById('dp-fecha-unica');
-    const fechaDesde = document.getElementById('dp-fecha-desde');
-    const fechaHasta = document.getElementById('dp-fecha-hasta');
-    const statusEl = document.getElementById('dp-status');
-    const downloadBtn = document.getElementById('dp-btn-download');
-    const previewEl = document.getElementById('dp-preview');
-    if(!btn || !backdrop) return;
-
-    function availableDates(){
-      const ifFechaSel = document.getElementById('ifFecha');
-      if(!ifFechaSel) return [];
-      return [...ifFechaSel.options].map(o => o.value).filter(v => v);
-    }
-
-    function renderPreview(data){
-      if(!previewEl) return;
-      if(!data || !data.parteRows.length){
-        previewEl.style.display = 'none';
-        return;
-      }
-      const { fechaFmt, operadora, yacimiento, baterias, parteRows, counts, total } = data;
-      const shortDate = fechaFmt.substring(0,5);
-      const now = new Date();
-      const genTimestamp = fechaFmt + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-      previewEl.style.display = 'block';
-      previewEl.innerHTML = `
-        <div class="parte-hdr">
-          <div class="parte-hdr-top">
-            <div class="parte-logo">VA&amp;PE</div>
-            <div>
-              <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
-              <div class="parte-hdr-sub">Parte Dinamometría</div>
-            </div>
-          </div>
-          <div class="parte-meta-grid">
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" style="color:#c62828; font-style:italic;">Sin asignar</span></div>
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val">${fechaFmt}</span></div>
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val">${operadora}</span></div>
-            <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val">${yacimiento}</span></div>
-          </div>
-          <div style="padding-top:6px;">
-            <span class="parte-meta-lbl">Baterías recorridas</span>
-            <span class="parte-meta-val" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
-          </div>
-        </div>
-        <div class="parte-content">
-          <div>
-            <table class="parte-table">
-              <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
-              <tbody>
-                ${parteRows.map(r => `<tr>
-                  <td>${shortDate}</td>
-                  <td>${r.well}</td>
-                  <td>${r.estado}</td>
-                  <td>${r.ensayo}</td>
-                  <td>${r.sistema}</td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>
-          <div class="parte-ops">
-            <div class="parte-ops-hdr">Operaciones</div>
-            <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
-            <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
-            <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
-            <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
-            <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
-          </div>
-        </div>
-        <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | Vista previa: ${genTimestamp}</div>`;
-    }
-
+    if(!btn) return;
     btn.addEventListener('click', () => {
-      const dates = availableDates().sort().reverse();
-      fechaUnica.innerHTML = '<option value="">— Seleccionar fecha —</option>' +
-        dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
-      fechaDesde.value = ''; fechaHasta.value = '';
-      if(statusEl) statusEl.textContent = '';
-      if(previewEl){ previewEl.style.display = 'none'; previewEl.innerHTML = ''; }
-      backdrop.classList.add('active');
-    });
-    if(closeBtn) closeBtn.addEventListener('click', () => backdrop.classList.remove('active'));
-    backdrop.addEventListener('click', (e) => { if(e.target === backdrop) backdrop.classList.remove('active'); });
-
-    // Preview al seleccionar fecha
-    fechaUnica.addEventListener('change', () => {
-      const f = fechaUnica.value;
-      if(!f){ if(previewEl) previewEl.style.display = 'none'; if(statusEl) statusEl.textContent = ''; return; }
-      if(typeof collectParteDataForFecha !== 'function') return;
-      const data = collectParteDataForFecha(f);
-      if(data && data.parteRows.length > 0){
-        renderPreview(data);
-        if(statusEl) statusEl.textContent = `${data.total} pozos encontrados. Listo para descargar.`;
-      } else {
-        if(previewEl) previewEl.style.display = 'none';
-        if(statusEl) statusEl.textContent = 'No se encontraron ensayos para esta fecha.';
+      // Navegar a Herramientas
+      goToView('herramientas');
+      // Abrir la card "Generar Parte" (data-tool="parte")
+      const parteCard = document.querySelector('.tool-card[data-tool="parte"]');
+      if(parteCard){
+        // Cerrar cualquier otra card abierta
+        document.querySelectorAll('#view-herramientas .tool-card.open').forEach(c => c.classList.remove('open'));
+        parteCard.classList.add('open');
+        // Scroll hasta la card
+        parteCard.scrollIntoView({ behavior:'smooth', block:'start' });
       }
-    });
-
-    // Genera PDF para una fecha usando el módulo Partes oculto
-    async function downloadParteForDate(fecha){
-      const campSel = document.getElementById('parteCampanaSelect');
-      const genBtn = document.getElementById('parteGenerateBtn');
-      const pdfBtn = document.getElementById('parteExportPdfBtn');
-      if(!campSel || !genBtn || !pdfBtn) return false;
-      // Asegurar que la opción exista en el combo
-      if(![...campSel.options].some(o => o.value === fecha)){
-        const opt = document.createElement('option');
-        opt.value = fecha; opt.textContent = fmtDate(fecha);
-        campSel.appendChild(opt);
-      }
-      // Setear fecha en los controles del módulo Partes
-      campSel.value = fecha;
-      const fechaInput = document.getElementById('parteFecha');
-      if(fechaInput) fechaInput.value = fecha;
-      // Generar el parte (click sincrónico, collectParteData es sync)
-      genBtn.click();
-      // Esperar a que _parteData esté listo
-      await new Promise(r => setTimeout(r, 150));
-      if(!window._parteData || window._parteData.fecha !== fecha) return false;
-      pdfBtn.click();
-      await new Promise(r => setTimeout(r, 350));
-      return true;
-    }
-
-    if(downloadBtn) downloadBtn.addEventListener('click', async () => {
-      const unica = fechaUnica.value;
-      const desde = fechaDesde.value, hasta = fechaHasta.value;
-      let dates = [];
-      if(unica){ dates = [unica]; }
-      else if(desde || hasta){
-        const all = availableDates();
-        dates = all.filter(d => (!desde || d >= desde) && (!hasta || d <= hasta)).sort();
-      }
-      if(!dates.length){ if(statusEl) statusEl.textContent = 'Elegí una fecha o un rango con campañas.'; return; }
-      downloadBtn.disabled = true;
-      for(let i=0; i<dates.length; i++){
-        if(statusEl) statusEl.textContent = `Generando ${i+1}/${dates.length} — ${fmtDate(dates[i])}…`;
-        await downloadParteForDate(dates[i]);
-      }
-      if(statusEl) statusEl.textContent = `Listo: ${dates.length} parte${dates.length===1?'':'s'} descargado${dates.length===1?'':'s'}.`;
-      downloadBtn.disabled = false;
     });
   })();
 
