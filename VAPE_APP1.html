@@ -1425,6 +1425,13 @@
         </div>
         <div class="dina-side-col">
           <div class="mini-grid">
+            <h4><i></i>Motor</h4>
+            <table class="gtab" style="margin-bottom:10px;">
+              <tr><th>Marca</th><td id="d-motor-marca">—</td></tr>
+              <tr><th>RPM</th><td id="d-motor-rpm">—</td></tr>
+              <tr><th>Potencia</th><td id="d-motor-hp">—</td></tr>
+              <tr><th>Polea</th><td id="d-motor-polea">—</td></tr>
+            </table>
             <h4><i></i>Contrapesos</h4>
             <div id="d-contrapesos-table" class="cp-cards">
               <p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>
@@ -7876,28 +7883,44 @@
     const table = document.getElementById('d-contrapesos-table');
     if(!table) return;
     if(!(wellName in CONTRAPESOS_CACHE)){
-      if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = null; }
-      else {
-        try{
-          const wellNumber = String(wellName).replace(/\D/g, '');
-          if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
-          else {
-            const { data, error } = await supabaseClient
-              .from('field_log').select('fecha, contrapesos')
-              .eq('well_number', wellNumber)
-              .not('contrapesos', 'is', null)
-              .order('fecha', { ascending: false }).limit(1).maybeSingle();
-            if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
-            else { CONTRAPESOS_CACHE[wellName] = data || null; }
-          }
-        } catch(e){
-          console.error('Excepción buscando contrapesos:', e);
-          CONTRAPESOS_CACHE[wellName] = null;
-        }
+      const wdb = WELLS_DB[wellName];
+      if(wdb && (wdb.motorMarca || wdb.motorRpm != null || wdb.motorHp != null || wdb.motorPolea || wdb.contrapesosRaw)){
+        CONTRAPESOS_CACHE[wellName] = {
+          contrapesos: wdb.contrapesosRaw || null,
+          motor_marca: wdb.motorMarca, motor_rpm: wdb.motorRpm,
+          motor_potencia_hp: wdb.motorHp, motor_polea: wdb.motorPolea
+        };
+      } else {
+        CONTRAPESOS_CACHE[wellName] = null;
       }
     }
     const row = CONTRAPESOS_CACHE[wellName];
-    if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
+    if(currentWell !== wellName) return;
+
+    // ---- Motor ----
+    const motorMarcaEl = document.getElementById('d-motor-marca');
+    const motorRpmEl = document.getElementById('d-motor-rpm');
+    const motorHpEl = document.getElementById('d-motor-hp');
+    const motorPoleaEl = document.getElementById('d-motor-polea');
+    if(row){
+      if(motorMarcaEl) motorMarcaEl.textContent = row.motor_marca || '—';
+      if(motorRpmEl) motorRpmEl.textContent = row.motor_rpm != null ? row.motor_rpm : '—';
+      if(motorHpEl) motorHpEl.textContent = (row.motor_potencia_hp ?? row.motor_hp) != null ? (row.motor_potencia_hp ?? row.motor_hp) + ' HP' : '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = row.motor_polea || '—';
+      const w = WELLS_DB[wellName];
+      if(w){
+        w.motorMarca = row.motor_marca || null;
+        w.motorRpm = row.motor_rpm ?? null;
+        w.motorHp = (row.motor_potencia_hp ?? row.motor_hp) ?? null;
+        w.motorPolea = row.motor_polea || null;
+      }
+    } else {
+      if(motorMarcaEl) motorMarcaEl.textContent = '—';
+      if(motorRpmEl) motorRpmEl.textContent = '—';
+      if(motorHpEl) motorHpEl.textContent = '—';
+      if(motorPoleaEl) motorPoleaEl.textContent = '—';
+    }
+
     const cp = row && row.contrapesos;
     // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
     // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
