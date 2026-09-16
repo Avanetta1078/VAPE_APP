@@ -1068,7 +1068,6 @@
       </svg>
       <div class="topbar-app-title-mini">
         <div class="t1">Sistema de Gestión de Pozos</div>
-        <div class="t2" style="font-size:8.5px; color:var(--ink-faint); letter-spacing:.05em; margin-top:1px;">build 2026-08-09 10:00</div>
       </div>
     </div>
     <div class="pozo-group">
@@ -1183,7 +1182,6 @@
           <button class="ifilter-clear" id="ifClear" type="button">Limpiar filtros</button>
           <button class="cn-btn primary" id="ifEditBtn" type="button" disabled title="Seleccioná una fila (clic) para habilitar la edición">✎ Editar</button>
           <button class="cn-btn ghost" id="ifVerParteBtn" type="button">📋 Ver Parte</button>
-          <button class="cn-btn ghost" id="ifDescargarParteBtn" type="button">⬇ Descargar Parte</button>
         </div>
       </div>
 
@@ -1416,16 +1414,23 @@
               <tr><th>Gear Box Rating</th><td id="d-gb-rating">—</td></tr>
               <tr><th>Upstroke Peak, Existing</th><td id="d-gb-up">—</td></tr>
               <tr><th>Torque existente (in-lb)</th><td id="d-gb-down" class="hl-pulse" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
-              <tr><th>% Torque Existente</th><td id="d-gb-pctdown">—</td></tr>
+              <tr><th>% Torque Existente</th><td id="d-gb-pctdown" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
               <tr><th>Out of Balance</th><td id="d-gb-oob">—</td></tr>
               <tr><th>Move</th><td id="d-gb-move">—</td></tr>
               <tr><th>Torque en Balance In-lb</th><td id="d-gb-balanced" class="hl-pulse" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
-              <tr><th>% Torque en Balance</th><td id="d-gb-pctbal">—</td></tr>
+              <tr><th>% Torque en Balance</th><td id="d-gb-pctbal" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
             </table>
           </div>
         </div>
         <div class="dina-side-col">
           <div class="mini-grid">
+            <h4><i></i>Motor</h4>
+            <table class="gtab" style="margin-bottom:10px;">
+              <tr><th>Marca</th><td id="d-motor-marca">—</td></tr>
+              <tr><th>RPM</th><td id="d-motor-rpm">—</td></tr>
+              <tr><th>Potencia</th><td id="d-motor-hp">—</td></tr>
+              <tr><th>Polea</th><td id="d-motor-polea">—</td></tr>
+            </table>
             <h4><i></i>Contrapesos</h4>
             <div id="d-contrapesos-table" class="cp-cards">
               <p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo.</p>
@@ -1722,7 +1727,7 @@
           <input type="checkbox" id="histToggleCorregido"> <span style="color:var(--bronze-glow);">● Nivel Corregido</span>
         </label>
         <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-          <input type="checkbox" id="histTogglePIP"> <span style="color:var(--rust-glow);">● Presión (PIP)</span>
+          <input type="checkbox" id="histTogglePIP"> <span style="color:var(--rust-glow);">● Presión Csg</span>
         </label>
       </div>
 
@@ -1743,13 +1748,13 @@
   .hist-tl-area{ fill:url(#histAreaGrad); }
   .hist-tl-grid{ stroke:var(--border); stroke-width:1; opacity:.45; }
   .hist-tl-axis{ stroke:var(--border); stroke-width:1; opacity:.8; }
-  .hist-tl-pt{ fill:var(--panel); stroke:var(--steel-glow); stroke-width:1.6; cursor:pointer; transition:r .12s ease, fill .12s ease; }
-  .hist-tl-pt:hover, .hist-tl-pt.active{ fill:var(--steel-glow); }
+  .hist-tl-pt{ fill:var(--steel-glow); stroke:var(--steel-glow); stroke-width:1.2; cursor:pointer; transition:r .12s ease; }
+  .hist-tl-pt:hover, .hist-tl-pt.active{ r:4; }
   .hist-tl-line.hist-line-corr{ stroke:var(--bronze-glow); }
   .hist-tl-line.hist-line-pip{ stroke:var(--rust-glow); }
   .hist-tl-line.dashed{ stroke-dasharray:4 3; }
-  .hist-tl-pt.hist-line-corr{ stroke:var(--bronze-glow); }
-  .hist-tl-pt.hist-line-pip{ stroke:var(--rust-glow); }
+  .hist-tl-pt.hist-line-corr{ fill:var(--bronze-glow); stroke:var(--bronze-glow); }
+  .hist-tl-pt.hist-line-pip{ fill:var(--rust-glow); stroke:var(--rust-glow); }
   .hist-tl-axis-r{ fill:var(--rust-glow); opacity:.75; }
   .hist-tl-datelbl{ font-family:'IBM Plex Mono'; font-size:8.5px; fill:var(--ink-faint); letter-spacing:.02em; }
   .hist-tl-vallbl{ font-family:'IBM Plex Mono'; font-size:9px; fill:var(--ink-dim); font-weight:500; }
@@ -2658,12 +2663,9 @@
 
     <div class="cn-chipsrow" id="cn-chips"></div>
 
-    <div class="cn-resultbar" style="display:flex; align-items:center; gap:12px;">
+    <div class="cn-resultbar" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
       <span class="cn-resultcount" id="cn-resultcount">0 pozos</span>
-      <div class="cn-field cn-search" style="margin:0; display:flex; align-items:center; gap:6px;">
-        <label style="font-size:10px; color:var(--ink-dim); white-space:nowrap; margin:0;">Buscar en comentarios (Dina/Nivel)</label>
-        <input id="cn-f-comment" type="text" placeholder="texto…" style="height:24px; font-size:11px; width:140px;">
-      </div>
+      <input id="cn-f-comment" type="text" placeholder="Buscar en comentarios (Dina/Nivel)…" style="height:26px; font-size:11px; width:240px; border-radius:6px; border:1px solid var(--border); background:var(--panel-2); color:var(--ink); padding:0 8px;">
     </div>
 
     <div class="cn-grillawrap">
@@ -2927,7 +2929,7 @@
       // relaciones en Supabase; el cruce entre tablas se hace aca en JS.
       // Todas paginadas de a 1000 filas, para soportar volumen grande sin cortarse.
       const [wellsRes, cfgRes, taperRes, testsRes, dynRes, acuRes] = await Promise.all([
-        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m'),
+        fetchAllRows('wells', 'well_id, well_name, operadora, zona, bateria, oculto, packer_m, motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos'),
         fetchAllRows('well_configurations', 'well_config_id, well_id, effective_date, surface_unit_api, surface_unit_class, surface_unit_manufacturer, surface_unit_model, gearbox_rating_inlb, stroke_length_in, pump_intake_depth_m, plunger_diameter_in, counter_balance_moment_inlb, weight_of_counterweights_lb, pump_designation_api, total_rod_weight_lb'),
         fetchAllRows('rod_tapers', 'well_config_id, taper_number, diameter_in, grade, length_m'),
         fetchAllRows('tests', 'test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id'),
@@ -2963,7 +2965,14 @@
       const testsByWell = {}; (tests||[]).forEach(t => { (testsByWell[t.well_id] = testsByWell[t.well_id]||[]).push(t); });
 
       wells.forEach(w => {
-        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null };
+        const entry = { well_id: w.well_id, operadora: w.operadora, zona: w.zona, bateria: w.bateria, oculto: !!w.oculto, packerM: w.packer_m != null ? Number(w.packer_m) : null,
+          motorMarca: w.motor_marca || null, motorRpm: w.motor_rpm ?? null, motorHp: w.motor_hp ?? null, motorPolea: w.motor_polea || null,
+          contrapesosRaw: w.contrapesos || null,
+        };
+        // Pre-cargar contrapesos desde wells si existen
+        if(w.contrapesos && !(w.well_name in CONTRAPESOS_CACHE)){
+          CONTRAPESOS_CACHE[w.well_name] = { contrapesos: w.contrapesos, motor_marca: w.motor_marca, motor_rpm: w.motor_rpm, motor_potencia_hp: w.motor_hp, motor_polea: w.motor_polea };
+        }
 
         const myTests = testsByWell[w.well_id] || [];
         const byRecency = (a, b) => (a.test_date + (a.test_time||'')) < (b.test_date + (b.test_time||'')) ? 1 : -1;
@@ -5267,11 +5276,17 @@
     { key:'sartaPeso',     label:'Peso Total Sarta', unit:' lb', dec:0, group:'Datos de Sarta', filterType:'numeric', get:r=>r.totalRodWeight },
     { key:'sartaApiBba',   label:'API Bba.',  group:'Datos de Sarta', filterType:'checkbox', get:r=>r.pumpDesignationApi },
 
-    // Contrapesos — datos desagregados desde CONTRAPESOS_CACHE (field_log)
-    { key:'cpPrinc',       label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
-    { key:'cpCantPrinc',   label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
-    { key:'cpDistPrinc',   label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
-    { key:'cpSecu',        label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
+    // Motor
+    { key:'motorMarca',    label:'Motor Marca',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorMarca : null; } },
+    { key:'motorRpm',      label:'Motor RPM',     unit:'',    dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorRpm : null; } },
+    { key:'motorHp',       label:'Motor Potencia', unit:' HP', dec:0, group:'Motor', filterType:'numeric', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorHp : null; } },
+    { key:'motorPolea',    label:'Motor Polea',   group:'Motor', filterType:'checkbox', get:r=>{ const w=WELLS_DB[r.name||r.well]; return w ? w.motorPolea : null; } },
+
+    // Contrapesos — datos inyectados desde CONTRAPESOS_CACHE en cnBuildRows
+    { key:'cpTipoPpal',    label:'Princ.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpPrinc },
+    { key:'cpCantPpal',    label:'Cant. Princ.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantPrinc },
+    { key:'cpDistPpal',    label:'Dist. Princ.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistPrinc },
+    { key:'cpTipoSecu',    label:'Secund.',         group:'Contrapesos', filterType:'checkbox', get:r=>r._cpSecu },
     { key:'cpCantSecu',    label:'Cant. Secund.',   unit:'',  dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpCantSecu },
     { key:'cpDistSecu',    label:'Dist. Secund.',   unit:' cm', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r._cpDistSecu },
     { key:'cpCBM',         label:'CBM',             unit:' in-lb', dec:0, group:'Contrapesos', filterType:'numeric', get:r=>r.cbm },
@@ -5519,7 +5534,7 @@
   }
   function cnRenderAll(){
     // Si hay columnas de contrapesos activas, pre-cargar datos bulk
-    const cpKeys = ['cpPrinc','cpCantPrinc','cpDistPrinc','cpSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
+    const cpKeys = ['cpTipoPpal','cpCantPpal','cpDistPpal','cpTipoSecu','cpCantSecu','cpDistSecu','cpCBM','cpWCW'];
     const needsCp = cnState.extraCols.some(k => cpKeys.includes(k));
     if(needsCp && !_cpBulkLoaded){
       loadContrapesosForAllWells().then(()=>{ cnRenderStat(); cnRenderChips(); cnRenderTable(); cnRenderPulse(); });
@@ -7864,28 +7879,63 @@
     const table = document.getElementById('d-contrapesos-table');
     if(!table) return;
     if(!(wellName in CONTRAPESOS_CACHE)){
-      if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = null; }
-      else {
-        try{
-          const wellNumber = String(wellName).replace(/\D/g, '');
-          if(!wellNumber){ CONTRAPESOS_CACHE[wellName] = null; }
-          else {
-            const { data, error } = await supabaseClient
-              .from('field_log').select('fecha, contrapesos')
-              .eq('well_number', wellNumber)
-              .not('contrapesos', 'is', null)
-              .order('fecha', { ascending: false }).limit(1).maybeSingle();
-            if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); CONTRAPESOS_CACHE[wellName] = null; }
-            else { CONTRAPESOS_CACHE[wellName] = data || null; }
+      // 1) Intentar desde WELLS_DB (cargado de tabla wells)
+      const wdb = WELLS_DB[wellName];
+      if(wdb && wdb.contrapesosRaw){
+        CONTRAPESOS_CACHE[wellName] = {
+          contrapesos: wdb.contrapesosRaw,
+          motor_marca: wdb.motorMarca, motor_rpm: wdb.motorRpm,
+          motor_potencia_hp: wdb.motorHp, motor_polea: wdb.motorPolea
+        };
+      }
+      // 2) Si no hay en wells, buscar en field_log (fuente principal)
+      if(!(wellName in CONTRAPESOS_CACHE) || !CONTRAPESOS_CACHE[wellName]){
+        if(!supabaseClient){ CONTRAPESOS_CACHE[wellName] = CONTRAPESOS_CACHE[wellName] || null; }
+        else {
+          try{
+            const wellNumber = String(wellName).replace(/\D/g, '');
+            if(!wellNumber){ if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null; }
+            else {
+              const { data, error } = await supabaseClient
+                .from('field_log').select('well_number, fecha, contrapesos, motor_marca, motor_rpm, motor_potencia_hp, motor_polea')
+                .eq('well_number', wellNumber)
+                .not('contrapesos', 'is', null)
+                .order('fecha', { ascending: false }).limit(1).maybeSingle();
+              if(error){ console.error('Error buscando contrapesos:', JSON.stringify(error)); if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null; }
+              else if(data){ CONTRAPESOS_CACHE[wellName] = data; }
+              else if(!CONTRAPESOS_CACHE[wellName]){ CONTRAPESOS_CACHE[wellName] = null; }
+            }
+          } catch(e){
+            console.error('Excepción buscando contrapesos:', e);
+            if(!CONTRAPESOS_CACHE[wellName]) CONTRAPESOS_CACHE[wellName] = null;
           }
-        } catch(e){
-          console.error('Excepción buscando contrapesos:', e);
-          CONTRAPESOS_CACHE[wellName] = null;
         }
       }
     }
     const row = CONTRAPESOS_CACHE[wellName];
-    if(currentWell !== wellName) return; // el usuario ya cambio de pozo mientras se esperaba la respuesta
+    if(currentWell !== wellName) return;
+
+    // ---- Motor ----
+    const motorMarcaEl = document.getElementById('d-motor-marca');
+    const motorRpmEl = document.getElementById('d-motor-rpm');
+    const motorHpEl = document.getElementById('d-motor-hp');
+    const motorPoleaEl = document.getElementById('d-motor-polea');
+    const wdb2 = WELLS_DB[wellName];
+    const mMarca = (row && row.motor_marca) || (wdb2 && wdb2.motorMarca) || null;
+    const mRpm = (row && row.motor_rpm != null) ? row.motor_rpm : (wdb2 && wdb2.motorRpm != null ? wdb2.motorRpm : null);
+    const mHp = (row && (row.motor_potencia_hp ?? row.motor_hp) != null) ? (row.motor_potencia_hp ?? row.motor_hp) : (wdb2 && wdb2.motorHp != null ? wdb2.motorHp : null);
+    const mPolea = (row && row.motor_polea) || (wdb2 && wdb2.motorPolea) || null;
+    if(motorMarcaEl) motorMarcaEl.textContent = mMarca || '—';
+    if(motorRpmEl) motorRpmEl.textContent = mRpm != null ? mRpm : '—';
+    if(motorHpEl) motorHpEl.textContent = mHp != null ? mHp + ' HP' : '—';
+    if(motorPoleaEl) motorPoleaEl.textContent = mPolea || '—';
+    if(wdb2){
+      if(mMarca) wdb2.motorMarca = mMarca;
+      if(mRpm != null) wdb2.motorRpm = mRpm;
+      if(mHp != null) wdb2.motorHp = mHp;
+      if(mPolea) wdb2.motorPolea = mPolea;
+    }
+
     const cp = row && row.contrapesos;
     // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
     // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
@@ -8005,10 +8055,11 @@
         date: t.test_date,
         time: t.test_time,
         nivel: Number(t.results.liquid_level_tvd_m),
-        pip: t.results.pip_ll_kg != null ? Number(t.results.pip_ll_kg) : null,
+        pip: t.results.acu_casing_pressure_kg != null ? Number(t.results.acu_casing_pressure_kg) : null,
         sumerg: t.results.fluid_above_pump_m != null ? Number(t.results.fluid_above_pump_m) : null,
         nivelCorr: t.results.corrected_liquid_level_tvd_m != null ? Number(t.results.corrected_liquid_level_tvd_m)
-          : (t.results.gas_free_above_pump_m != null ? Number(t.results.gas_free_above_pump_m) : null),
+          : (t.results.gas_free_above_pump_m != null && wRef && wRef.pumpIntakeDepth != null
+             ? wRef.pumpIntakeDepth - Number(t.results.gas_free_above_pump_m) : null),
       }));
 
     const pts = histDedupByDate(ptsRaw);
@@ -8025,10 +8076,17 @@
 
     const tog = histToggleState();
 
-    // ---- geometria (compacta) ----
-    const W = 760, H = 190, padL = 46, padR = tog.pip ? 44 : 18, padT = 18, padB = 34;
-    const plotW = W - padL - padR, plotH = H - padT - padB;
-    // Escala izquierda: Nivel medido + Nivel corregido (mismas unidades, m)
+    // ---- geometria ----
+    const hasPip = tog.pip && pts.some(p=>p.pip!=null);
+    const W = 760, H = hasPip ? 270 : 190, padL = 46, padR = hasPip ? 44 : 18, padT = 18, padB = 34;
+    const plotW = W - padL - padR;
+    const totalPlotH = H - padT - padB;
+    const pipZoneH = hasPip ? totalPlotH * 0.28 : 0;
+    const gapH = hasPip ? 14 : 0;
+    const nivelZoneH = totalPlotH - pipZoneH - gapH;
+    const nivelTop = padT + (hasPip ? pipZoneH + gapH : 0);
+
+    // Escala izquierda: Nivel medido + Nivel corregido (m)
     const leftVals = [];
     pts.forEach(p => { leftVals.push(p.nivel); if(tog.corregido && p.nivelCorr != null) leftVals.push(p.nivelCorr); });
     let minV = Math.min(...leftVals), maxV = Math.max(...leftVals);
@@ -8036,8 +8094,8 @@
     let padV = (maxV - minV) * 0.12;
     minV -= padV; maxV += padV;
 
-    // Escala derecha: PIP (kg/cm2)
-    const pipVals = tog.pip ? pts.map(p=>p.pip).filter(v=>v!=null) : [];
+    // Escala derecha: Presión Csg (kg)
+    const pipVals = hasPip ? pts.map(p=>p.pip).filter(v=>v!=null) : [];
     let minP = 0, maxP = 1;
     if(pipVals.length){
       minP = Math.min(...pipVals); maxP = Math.max(...pipVals);
@@ -8047,25 +8105,29 @@
     }
 
     const xFor = (i) => pts.length === 1 ? padL + plotW/2 : padL + (i/(pts.length-1)) * plotW;
-    // Nivel medido: valores mas ALTOS (mas profundo) hacia ABAJO del grafico (convencion de nivel de pozo)
-    const yFor = (v) => padT + ((v - minV) / (maxV - minV)) * plotH;
-    const yForPip = (v) => padT + plotH - ((v - minP) / (maxP - minP)) * plotH; // PIP: mas alto = arriba (convencion estandar)
+    const yFor = (v) => nivelTop + ((v - minV) / (maxV - minV)) * nivelZoneH;
+    const yForPip = (v) => padT + pipZoneH - ((v - minP) / (maxP - minP)) * pipZoneH;
 
     const coords = pts.map((p,i) => ({ x: xFor(i), y: yFor(p.nivel), p }));
     const coordsCorr = tog.corregido ? pts.map((p,i) => ({ x: xFor(i), y: p.nivelCorr!=null?yFor(p.nivelCorr):null, p })) : [];
     const coordsPip = tog.pip ? pts.map((p,i) => ({ x: xFor(i), y: p.pip!=null?yForPip(p.pip):null, p })) : [];
 
-    // grilla horizontal (4 lineas) + eje
     let gridSvg = '';
     const gridN = 3;
+    // Grilla zona Niveles
     for(let g=0; g<=gridN; g++){
-      const gy = padT + (g/gridN)*plotH;
-      const gv = maxV - (g/gridN)*(maxV-minV);
+      const gy = nivelTop + (g/gridN)*nivelZoneH;
+      const gv = minV + (g/gridN)*(maxV-minV);
       gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
       gridSvg += `<text class="hist-tl-datelbl" x="${padL-8}" y="${gy+3}" text-anchor="end">${Math.round(gv)} m</text>`;
-      if(tog.pip){
-        const gpv = maxP - (g/gridN)*(maxP-minP);
-        gridSvg += `<text class="hist-tl-datelbl hist-tl-axis-r" x="${W-padR+6}" y="${gy+3}" text-anchor="start">${gpv.toFixed(1)}</text>`;
+    }
+    // Grilla zona Presión Csg (separada)
+    if(hasPip){
+      for(let g=0; g<=2; g++){
+        const gy = padT + (g/2)*pipZoneH;
+        const gpv = maxP - (g/2)*(maxP-minP);
+        gridSvg += `<line class="hist-tl-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke-dasharray="3,3"/>`;
+        gridSvg += `<text class="hist-tl-datelbl hist-tl-axis-r" x="${W-padR+6}" y="${gy+3}" text-anchor="start" fill="var(--rust-glow)">${gpv.toFixed(1)} kg</text>`;
       }
     }
 
@@ -8099,10 +8161,11 @@
     }
 
     // linea + area (Nivel Medido, principal)
+    const nivelBottom = nivelTop + nivelZoneH;
     const linePath = coords.map((c,i) => (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
-    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${padT+plotH} L${coords[0].x.toFixed(1)},${padT+plotH} Z`;
+    const areaPath = linePath + ` L${coords[coords.length-1].x.toFixed(1)},${nivelBottom} L${coords[0].x.toFixed(1)},${nivelBottom} Z`;
 
-    // puntos (delicados, sin etiquetas fijas — el valor aparece en el tooltip al pasar el cursor)
+    // puntos
     let ptsSvg = '';
     coords.forEach((c,i) => {
       const isLast = i === coords.length-1;
@@ -8129,7 +8192,7 @@
           ${ptsSvg}
           ${corrBuild.pts}
           ${pipBuild.pts}
-          <line class="hist-tl-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>
+          <line class="hist-tl-axis" x1="${padL}" y1="${nivelBottom}" x2="${W-padR}" y2="${nivelBottom}"/>
           ${dateLabels}
         </svg>
         <div class="hist-tooltip" id="histTooltip"></div>
@@ -8145,7 +8208,7 @@
         <div class="htt-date">${fmtDate ? fmtDate(p.date) : p.date}${p.time ? ' · '+String(p.time).slice(0,5) : ''}</div>
         <div class="htt-row"><span>Nivel medido</span><span>${Math.round(p.nivel)} m</span></div>
         ${tog.corregido ? `<div class="htt-row"><span>Nivel corregido</span><span>${p.nivelCorr != null ? Math.round(p.nivelCorr)+' m' : '—'}</span></div>` : ''}
-        <div class="htt-row"><span>PIP</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
+        <div class="htt-row"><span>Presión Csg</span><span>${p.pip != null ? p.pip.toFixed(1)+' kg' : '—'}</span></div>
         <div class="htt-row"><span>Sumergencia</span><span>${p.sumerg != null ? p.sumerg.toFixed(1)+' m' : '—'}</span></div>
       `;
       let left = clientX - rect.left + 14;
@@ -8446,19 +8509,16 @@
     if(WELL_HISTORY_CACHE[cacheKey] && WELL_HISTORY_CACHE[cacheKey][type]) return WELL_HISTORY_CACHE[cacheKey][type];
     if(!supabaseClient) return [];
     try{
-      const { data: wellRow } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).maybeSingle();
-      if(!wellRow) return [];
+      const wdb = WELLS_DB[wellName];
+      const wellId = wdb ? wdb.well_id : null;
+      if(!wellId) return [];
       const { data: tests, error } = await supabaseClient
         .from('tests').select('test_id, test_date, test_time, test_comments, well_config_id')
-        .eq('well_id', wellRow.well_id).eq('test_type', type)
+        .eq('well_id', wellId).eq('test_type', type)
         .order('test_date', { ascending: false }).order('test_time', { ascending: false });
       if(error){ console.error('Error trayendo historial:', JSON.stringify(error)); return []; }
       const testIds = (tests || []).map(t => t.test_id);
       const cfgIds = [...new Set((tests || []).map(t => t.well_config_id).filter(Boolean))];
-      // Resultados (dyn/acu) y config+sarta no dependen entre si, solo de la
-      // lista de tests — se piden en PARALELO en vez de uno atras del otro,
-      // para no acumular 3-4 viajes de ida y vuelta seguidos a Supabase cada
-      // vez que se cambia de pozo (eso era lo que se sentia como demora).
       const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
       const [resultsRes, cfgsRes, tapersRes] = await Promise.all([
         testIds.length ? supabaseClient.from(table).select('*').in('test_id', testIds) : Promise.resolve({ data: [] }),
