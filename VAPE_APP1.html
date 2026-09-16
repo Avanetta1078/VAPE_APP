@@ -8509,19 +8509,16 @@
     if(WELL_HISTORY_CACHE[cacheKey] && WELL_HISTORY_CACHE[cacheKey][type]) return WELL_HISTORY_CACHE[cacheKey][type];
     if(!supabaseClient) return [];
     try{
-      const { data: wellRow } = await supabaseClient.from('wells').select('well_id').eq('well_name', wellName).maybeSingle();
-      if(!wellRow) return [];
+      const wdb = WELLS_DB[wellName];
+      const wellId = wdb ? wdb.well_id : null;
+      if(!wellId) return [];
       const { data: tests, error } = await supabaseClient
         .from('tests').select('test_id, test_date, test_time, test_comments, well_config_id')
-        .eq('well_id', wellRow.well_id).eq('test_type', type)
+        .eq('well_id', wellId).eq('test_type', type)
         .order('test_date', { ascending: false }).order('test_time', { ascending: false });
       if(error){ console.error('Error trayendo historial:', JSON.stringify(error)); return []; }
       const testIds = (tests || []).map(t => t.test_id);
       const cfgIds = [...new Set((tests || []).map(t => t.well_config_id).filter(Boolean))];
-      // Resultados (dyn/acu) y config+sarta no dependen entre si, solo de la
-      // lista de tests — se piden en PARALELO en vez de uno atras del otro,
-      // para no acumular 3-4 viajes de ida y vuelta seguidos a Supabase cada
-      // vez que se cambia de pozo (eso era lo que se sentia como demora).
       const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
       const [resultsRes, cfgsRes, tapersRes] = await Promise.all([
         testIds.length ? supabaseClient.from(table).select('*').in('test_id', testIds) : Promise.resolve({ data: [] }),
