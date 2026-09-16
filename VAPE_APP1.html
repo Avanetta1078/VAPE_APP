@@ -513,11 +513,11 @@
   .dina-side table.gtab{font-size:10.5px;}
   .dina-side table.gtab th{padding:4px 5px 4px 0;}
   .dina-side table.gtab td{padding:4px 5px 4px 0;}
-  .cp-cards .cp-card{border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:8px;}
-  .cp-cards .cp-card:last-child{margin-bottom:0;}
+  .cp-cards .cp-card{padding:7px 11px 5px; border-bottom:1px dashed var(--border);}
+  .cp-cards .cp-card:last-child{border-bottom:none;}
   .cp-cards .cp-card-title{font-size:10.5px; font-weight:700; margin-bottom:5px;}
   .cp-cards .cp-card-title.crank-1{color:var(--steel-glow);}
-  .cp-cards .cp-card-title.crank-2{color:var(--rust,#c0603a);}
+  .cp-cards .cp-card-title.crank-2{color:var(--steel-glow);}
   .cp-cards .cp-grid{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-family:'IBM Plex Mono'; font-size:10.5px;}
   .cp-cards .cp-grid .cp-lbl{color:var(--ink-faint);}
   .cp-cards .cp-grid .cp-val{color:var(--ink); text-align:right;}
@@ -7921,10 +7921,11 @@
     const motorHpEl = document.getElementById('d-motor-hp');
     const motorPoleaEl = document.getElementById('d-motor-polea');
     const wdb2 = WELLS_DB[wellName];
-    const mMarca = (row && row.motor_marca) || (wdb2 && wdb2.motorMarca) || null;
-    const mRpm = (row && row.motor_rpm != null) ? row.motor_rpm : (wdb2 && wdb2.motorRpm != null ? wdb2.motorRpm : null);
+    const isClean = (v) => v && String(v).length < 20 && !/lateral|cerrado|abierto|entrecaño|ventean|normal/i.test(String(v));
+    const mMarca = isClean(row && row.motor_marca) ? row.motor_marca : ((wdb2 && wdb2.motorMarca) || null);
+    const mRpm = (row && row.motor_rpm != null && isClean(row.motor_rpm)) ? row.motor_rpm : (wdb2 && wdb2.motorRpm != null ? wdb2.motorRpm : null);
     const mHp = (row && (row.motor_potencia_hp ?? row.motor_hp) != null) ? (row.motor_potencia_hp ?? row.motor_hp) : (wdb2 && wdb2.motorHp != null ? wdb2.motorHp : null);
-    const mPolea = (row && row.motor_polea) || (wdb2 && wdb2.motorPolea) || null;
+    const mPolea = isClean(row && row.motor_polea) ? row.motor_polea : ((wdb2 && wdb2.motorPolea) || null);
     if(motorMarcaEl) motorMarcaEl.textContent = mMarca || '—';
     if(motorRpmEl) motorRpmEl.textContent = mRpm != null ? mRpm : '—';
     if(motorHpEl) motorHpEl.textContent = mHp != null ? mHp + ' HP' : '—';
@@ -7968,12 +7969,12 @@
       // en la misma tarjeta de cada Manivela junto con las cantidades.
       const tipoPrincipal = cp.tipo ? String(cp.tipo).toUpperCase() : null;
       const tipoAux = cp.secu ? String(cp.secu).toUpperCase() : null;
-      const cantPrincipalTotal = cp.cant != null ? Number(cp.cant) : null;
-      const cantAuxTotal = cp.cant2 != null ? Number(cp.cant2) : null;
+      const cantPrincipalTotal = cp.cant != null && !isNaN(Number(cp.cant)) ? Number(cp.cant) : null;
+      const cantAuxTotal = cp.cant2 != null && !isNaN(Number(cp.cant2)) ? Number(cp.cant2) : null;
       const cantPrincipalMitad = cantPrincipalTotal != null ? cantPrincipalTotal / 2 : null;
       const cantAuxMitad = cantAuxTotal != null ? cantAuxTotal / 2 : null;
-      const distPrincipal = cp.cm != null && cp.cm !== '' ? Number(cp.cm) : null;
-      const distAux = cp.cm2 != null && cp.cm2 !== '' ? Number(cp.cm2) : null;
+      const distPrincipal = cp.cm != null && cp.cm !== '' && !isNaN(Number(cp.cm)) ? Number(cp.cm) : null;
+      const distAux = cp.cm2 != null && cp.cm2 !== '' && !isNaN(Number(cp.cm2)) ? Number(cp.cm2) : null;
 
       [1, 2].forEach(manivelaNo => {
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
