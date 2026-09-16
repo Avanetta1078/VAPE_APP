@@ -9441,14 +9441,14 @@
           sistema_extraccion_tipo: sistemaExtraccionTipo,
           unidad_descripcion: unidadDescripcion,
           contrapesos: {
-            tipo: get(13), placas: get(14), cant: get(15), cm: get(16),
-            secu: get(17), cant2: get(18), cm2: get(19)
-          }, // N-S
-          motor_marca: get(19+1) ? String(get(20)).trim() : null, // T
-          motor_rpm: numOrNull(get(21)), // U
-          motor_potencia_hp: numOrNull(get(22)), // V
-          motor_polea: get(23) ? String(get(23)).trim() : null, // W
-          observaciones: get(23+1) ? String(get(24)).trim() : null, // X
+            tipo: get(12), placas: get(13), cant: get(14), cm: get(15),
+            secu: get(16), cant2: get(17), cm2: get(18)
+          }, // M-S
+          motor_marca: get(19) ? String(get(19)).trim() : null, // T
+          motor_rpm: numOrNull(get(20)), // U
+          motor_potencia_hp: numOrNull(get(21)), // V
+          motor_polea: get(22) ? String(get(22)).trim() : null, // W
+          observaciones: get(23) ? String(get(23)).trim() : null, // X
           extra_fields: { pulg_pip_torque: get(5) } // F, campo multiuso, sin tipar todavía
         });
       }
