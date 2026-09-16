@@ -8515,15 +8515,19 @@
       const { data: tests, error } = await supabaseClient
         .from('tests').select('test_id, test_date, test_time, test_comments, well_config_id')
         .eq('well_id', wellId).eq('test_type', type)
-        .order('test_date', { ascending: false }).order('test_time', { ascending: false });
+        .order('test_date', { ascending: false }).order('test_time', { ascending: false })
+        .limit(80);
       if(error){ console.error('Error trayendo historial:', JSON.stringify(error)); return []; }
       const testIds = (tests || []).map(t => t.test_id);
       const cfgIds = [...new Set((tests || []).map(t => t.well_config_id).filter(Boolean))];
+      const resCols = type === 'ACU'
+        ? 'test_id, liquid_level_tvd_m, corrected_liquid_level_tvd_m, fluid_above_pump_m, gas_free_above_pump_m, pip_ll_kg, acu_casing_pressure_kg'
+        : 'test_id, dyn_tubing_pressure_kg, existing_max_torque_downstroke_inlb, in_balance_max_torque_downstroke_inlb, peak_polished_rod_load_lb';
       const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
       const [resultsRes, cfgsRes, tapersRes] = await Promise.all([
-        testIds.length ? supabaseClient.from(table).select('*').in('test_id', testIds) : Promise.resolve({ data: [] }),
-        cfgIds.length ? supabaseClient.from('well_configurations').select('*').in('well_config_id', cfgIds) : Promise.resolve({ data: [] }),
-        cfgIds.length ? supabaseClient.from('rod_tapers').select('*').in('well_config_id', cfgIds) : Promise.resolve({ data: [] }),
+        testIds.length ? supabaseClient.from(table).select(resCols).in('test_id', testIds) : Promise.resolve({ data: [] }),
+        cfgIds.length ? supabaseClient.from('well_configurations').select('well_config_id, pump_intake_depth_m, stroke_length_in, plunger_diameter_in').in('well_config_id', cfgIds) : Promise.resolve({ data: [] }),
+        cfgIds.length ? supabaseClient.from('rod_tapers').select('well_config_id, taper_number, diameter_in, grade, length_m').in('well_config_id', cfgIds) : Promise.resolve({ data: [] }),
       ]);
       let resultsById = {};
       (resultsRes.data || []).forEach(r => { resultsById[r.test_id] = r; });
