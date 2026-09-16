@@ -3335,9 +3335,9 @@
           note = document.createElement('div');
           note.className = 'no-chart-note';
           note.style.cssText = 'padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:12px;';
-          note.textContent = 'Carta no disponible para ' + currentWell + ' (este tipo de ensayo no se realizó).';
           img.parentElement.appendChild(note);
         }
+        note.textContent = 'Carta no disponible para ' + currentWell + ' (este tipo de ensayo no se realizó).';
       }
     });
   }
