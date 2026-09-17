@@ -450,21 +450,42 @@ function confirmCardUpload(){
   reader.readAsDataURL(f);
 }
 
+// ─── UTILS EXCEL ───
+function removeBlackBg(imgSrc){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=>{
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0);
+      resolve(c.toDataURL('image/png').split(',')[1]);
+    };
+    img.onerror = ()=> resolve(null);
+    img.src = imgSrc;
+  });
+}
+
 // ─── DOWNLOAD EXCEL ───
 async function downloadExcel(){
   showLoading('Generando Excel...');
 
   const wb = new ExcelJS.Workbook();
   wb.creator = 'VA&PE Eco Dinamometría';
-  const ws = wb.addWorksheet('Resumen Dinas');
+  const ws = wb.addWorksheet('Resumen Dinas', {
+    properties: {defaultColWidth: 40.78}
+  });
 
-  // Column widths: match reference Excel exactly (default ~8.43, Comments 60.89, CARD 45.33)
-  const cols = COLS.map(c=>({header:c.label, key:c.key, width:8.43}));
+  // Columns: all use defaultColWidth (40.78) except Comments and CARD
+  const cols = COLS.map(c=>({header:c.label, key:c.key}));
   cols.push({header:'CARD', key:'_card', width:45.33});
   ws.columns = cols;
-  ws.getColumn(22).width = 60.89; // Test Comments
+  ws.getColumn(22).width = 60.89;
 
-  // Header row: height 22.35
+  // Header row
   const hdrRow = ws.getRow(1);
   hdrRow.height = 22.35;
   hdrRow.eachCell(cell=>{
@@ -474,23 +495,16 @@ async function downloadExcel(){
     cell.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
   });
 
-  // Fetch all card images in parallel
+  // Fetch card images and remove black background
   showLoading('Descargando cartas para Excel...');
   const imgBuffers = {};
   const fetchPromises = currentRows.map(async (row)=>{
     const url = cardImages[row.well_name];
     if(!url) return;
     try {
-      let b64;
-      if(url.startsWith('data:')){
-        b64 = url.split(',')[1];
-      } else {
-        const resp = await fetch(url);
-        const blob = await resp.blob();
-        b64 = await new Promise(r=>{const rd=new FileReader();rd.onloadend=()=>r(rd.result.split(',')[1]);rd.readAsDataURL(blob);});
-      }
-      imgBuffers[row.well_name] = b64;
-    } catch(e){ console.warn('Card fetch fail:', row.well_name, e); }
+      const b64 = await removeBlackBg(url);
+      if(b64) imgBuffers[row.well_name] = b64;
+    } catch(e){ console.warn('Card fail:', row.well_name, e); }
   });
   await Promise.all(fetchPromises);
 
@@ -511,32 +525,23 @@ async function downloadExcel(){
     });
     rd._card = '';
     const dataRow = ws.addRow(rd);
+    dataRow.height = 143.4;
 
-    const excelRow = i + 2;
-    dataRow.height = 143.4; // match reference exactly
-
-    // Style each cell
     dataRow.eachCell({includeEmpty:true}, (cell, colNum)=>{
       cell.font = {name:'Calibri',size:10};
       cell.border = borders;
-      // Even rows (0-indexed i even = Excel rows 2,4,6...) get light blue fill
-      if(i%2===0){
-        cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F6F8'}};
-      }
-      // Comments column: wrapText
-      if(colNum===22){
-        cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
-      } else {
-        cell.alignment = {horizontal:'center',vertical:'middle'};
-      }
+      if(i%2===0) cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F6F8'}};
+      cell.alignment = colNum===22
+        ? {horizontal:'center',vertical:'middle',wrapText:true}
+        : {horizontal:'center',vertical:'middle'};
     });
 
-    // Embed card image — match reference positioning
     if(imgBuffers[row.well_name]){
+      const excelRow = i + 1; // 0-based row index for tl/br (row 0 = header)
       const imgId = wb.addImage({base64:imgBuffers[row.well_name], extension:'png'});
       ws.addImage(imgId,{
-        tl:{col:22.08, row:(excelRow-1)+0.036},
-        br:{col:23.0,  row:(excelRow-1)+1.0},
+        tl:{col:22, row:excelRow, nativeCol:22, nativeRow:excelRow, nativeColOff:48641, nativeRowOff:51900},
+        br:{col:22, row:excelRow, nativeCol:22, nativeRow:excelRow, nativeColOff:3086040, nativeRowOff:1790700},
         editAs:'oneCell'
       });
     }
