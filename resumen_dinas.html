@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen Diario Dinas | VA&PE</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0e1116;--panel:#181d25;--panel-2:#1d232c;--border:#2a313b;
+  --ink:#eeece4;--ink-dim:#8a919d;--ink-faint:#565d68;
+  --navy:#3a54b8;--navy-glow:#5b76e0;
+  --rust:#c8492c;--rust-glow:#e8663f;
+  --bronze:#c98a3e;--steel:#6a93b8;--green:#2ea05a;
+  --excel-header:#2D5F6F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;min-height:100vh}
+
+/* ─── TOPBAR ─── */
+.topbar{background:linear-gradient(180deg,var(--panel-2),var(--panel));border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.topbar-brand{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(135deg,var(--navy-glow),var(--rust-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.topbar-sep{width:1px;height:24px;background:var(--border)}
+.topbar-title{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim)}
+
+/* ─── CONTROLS ─── */
+.controls{padding:20px 24px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.control-group{display:flex;flex-direction:column;gap:6px}
+.control-label{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint)}
+.control-select{background:var(--panel);border:1px solid var(--border);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 32px 8px 12px;border-radius:6px;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a919d'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.control-select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 2px rgba(58,84,184,.25)}
+
+.upload-zone{background:var(--panel);border:2px dashed var(--border);border-radius:8px;padding:12px 20px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s;min-width:240px;position:relative}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--navy)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-icon{font-size:20px;color:var(--navy-glow)}
+.upload-text{font-size:13px;color:var(--ink-dim)}
+.upload-text strong{color:var(--ink);display:block;font-size:12px;font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.upload-filename{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);margin-top:2px}
+
+/* ─── STATS BAR ─── */
+.stats-bar{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:12px}
+.stat-chip{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:8px}
+.stat-chip .sv{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:16px;color:var(--ink)}
+.stat-chip .sl{font-size:11px;color:var(--ink-dim);font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.stat-chip.hi{border-color:var(--navy);background:rgba(58,84,184,.08)}.stat-chip.hi .sv{color:var(--navy-glow)}
+.stat-chip.warn{border-color:var(--rust);background:rgba(200,73,44,.08)}.stat-chip.warn .sv{color:var(--rust-glow)}
+.stat-chip.ok{border-color:var(--green);background:rgba(46,160,90,.08)}.stat-chip.ok .sv{color:var(--green)}
+
+/* ─── EXCEL PREVIEW ─── */
+.preview-wrapper{padding:0 24px 24px}
+.preview-frame{background:#fff;border-radius:8px;overflow:hidden;border:1px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.excel-header-bar{background:var(--excel-header);color:#fff;padding:10px 16px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.03em;display:flex;justify-content:space-between;align-items:center}
+.excel-header-bar .badge{background:rgba(255,255,255,.15);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500}
+.table-scroll{overflow-x:auto;max-height:560px;overflow-y:auto}
+.excel-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:11px;font-family:Calibri,'IBM Plex Sans',sans-serif}
+.excel-table thead{position:sticky;top:0;z-index:2}
+.excel-table th{background:#d9e8f0;border:1px solid #bbb;padding:7px 6px;text-align:center;font-weight:600;color:#1a1a1a;white-space:nowrap;font-size:10px}
+.excel-table td{border:1px solid #ccc;padding:5px 6px;text-align:center;color:#222;white-space:nowrap;font-variant-numeric:tabular-nums}
+.excel-table tbody tr:nth-child(even){background:#f0f6f8}
+.excel-table tbody tr:hover{background:#e3eef5}
+.excel-table .col-card{background:#f5f5f5;padding:4px;min-width:190px}
+.excel-table .col-card.missing{background:#fff3f0}
+.card-mini{display:block;margin:0 auto}
+.card-missing-btn{display:flex;align-items:center;justify-content:center;gap:4px;color:#c8492c;font-size:10px;font-weight:600;cursor:pointer;padding:6px;border-radius:4px;border:1px dashed #c8492c;min-height:50px;background:rgba(200,73,44,.05)}
+.card-missing-btn:hover{background:rgba(200,73,44,.1)}
+.excel-footer{background:#f5f5f5;padding:8px 16px;font-size:11px;color:#666;border-top:1px solid #ddd;display:flex;flex-wrap:wrap;gap:6px}
+.excel-footer strong{color:#333}
+
+/* ─── ACTION BAR ─── */
+.action-bar{padding:16px 24px 24px;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
+.btn{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;padding:10px 24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;background:transparent;color:var(--ink-dim)}
+.btn:hover{background:var(--panel);color:var(--ink)}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy-glow)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;background:var(--navy)}
+
+/* ─── LOADING ─── */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:absolute;inset:0;background:rgba(14,17,22,.85);display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ink);font-size:14px;border-radius:8px;z-index:5}
+
+/* ─── MODAL UPLOAD CARTA ─── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:420px;width:90%}
+.modal-box h3{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;color:var(--ink)}
+.modal-box p{font-size:13px;color:var(--ink-dim);margin-bottom:16px}
+.modal-box .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+@media(max-width:600px){
+  .topbar{flex-wrap:wrap;padding:12px 16px}
+  .controls{padding:16px}
+  .preview-wrapper{padding:0 8px 16px}
+  .stats-bar{padding:0 16px 12px}
+  .action-bar{padding:12px 16px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="topbar-brand">VA&amp;PE</div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-title">Resumen Diario de Dinas</div>
+</div>
+
+<!-- ═══ CONTROLS ═══ -->
+<div class="controls">
+  <div class="control-group">
+    <span class="control-label">Fecha disponible</span>
+    <select class="control-select" id="dateSelect" disabled>
+      <option value="">Cargando fechas...</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">O subir CSV</span>
+    <div class="upload-zone" id="uploadZone">
+      <span class="upload-icon">&#9776;</span>
+      <span class="upload-text">
+        <strong>Seleccionar CSV</strong>
+        <span id="fileNameLabel">Arrastrar o click</span>
+      </span>
+      <input type="file" id="csvInput" accept=".csv,.txt">
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATS ═══ -->
+<div class="stats-bar" id="statsBar" hidden></div>
+
+<!-- ═══ EXCEL PREVIEW ═══ -->
+<div class="preview-wrapper" id="previewWrapper" hidden>
+  <div class="preview-frame" style="position:relative">
+    <div class="excel-header-bar">
+      <span id="excelTitle">Resumen Dinamometra</span>
+      <span class="badge">PREVIEW</span>
+    </div>
+    <div class="table-scroll" id="tableScroll"></div>
+    <div class="excel-footer" id="excelFooter"></div>
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="spinner"></div>
+      <span id="loadingText">Cargando datos...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ACTIONS ═══ -->
+<div class="action-bar" id="actionBar" hidden>
+  <button class="btn" id="btnClear" onclick="clearAll()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.3 4V2.7a.7.7 0 01.7-.7h4a.7.7 0 01.7.7V4M6.7 7v4.7M9.3 7v4.7M3.3 4l.8 9.3a1.3 1.3 0 001.3 1.2h5.2a1.3 1.3 0 001.3-1.2L12.7 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Limpiar
+  </button>
+  <button class="btn btn-primary" id="btnDownload" onclick="downloadExcel()" disabled>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 11v3h12v-3M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Descargar Excel
+  </button>
+</div>
+
+<!-- ═══ MODAL (carta manual) ═══ -->
+<div class="modal-bg" id="modalBg" hidden>
+  <div class="modal-box">
+    <h3 id="modalTitle">Cargar carta</h3>
+    <p id="modalDesc">Seleccione la imagen de la carta dinamomtrica.</p>
+    <input type="file" id="modalFileInput" accept="image/*" style="font-size:13px;color:var(--ink)">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modalConfirm" onclick="confirmCardUpload()">Cargar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://fkfrhboiugnfmrfsbvjm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrZnJoYm9pdWduZm1yZnNidmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NjYwMjAsImV4cCI6MjEwMTQ0MjAyMH0.CIOj3J6QzYS3toUXATIS5yUN5U03alrfNKEj1aAPlxo';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const COLS = [
+  {key:'well_name',        label:'Well Name'},
+  {key:'test_date',        label:'Date'},
+  {key:'test_time',        label:'Time'},
+  {key:'surface_unit_api', label:'Surface Unit API'},
+  {key:'surface_unit_manufacturer', label:'Surface Unit Manufacturer'},
+  {key:'computed_stroke_length_in', label:'Stroke Length (in)'},
+  {key:'spm',              label:'Strokes Per Minute (SPM)'},
+  {key:'peak_polished_rod_load_lb', label:'Peak Polished Rod Load (lb)'},
+  {key:'beam_loading_pct', label:'Beam Loading (%)'},
+  {key:'existing_max_torque_upstroke_inlb', label:'Existing Max Gearbox Torque. Upstroke (in-lb)'},
+  {key:'existing_max_torque_downstroke_inlb', label:'Existing Max Gearbox Torque. DownStroke (in-lb)'},
+  {key:'maximum_rod_loading_goodman_pct', label:'Rod Taper % Goodman'},
+  {key:'adjusted_fillage_pct', label:'Adjusted Fillage (%)'},
+  {key:'dyn_casing_pressure_kg', label:'DYN Casing Pressure (kilo (g))'},
+  {key:'dyn_tubing_pressure_kg', label:'DYN Tubing Pressure (kilo (g))'},
+  {key:'pip_dyn_kg',       label:'PIP DYN (kilo (g))'},
+  {key:'pip_ll_kg',        label:'PIP LL (kilo (g))'},
+  {key:'fluid_above_pump_m', label:'Fluid Above Pump (m)'},
+  {key:'gas_free_above_pump_m', label:'Gas Free Above Pump (m)'},
+  {key:'damping_factor_down', label:'Damping Factor Down Stroke'},
+  {key:'damping_factor_up', label:'Damping Factor Up Stroke'},
+  {key:'test_comments',    label:'Test Comments'},
+];
+
+let currentRows = [];
+let cardImages = {};
+let pendingModalWell = null;
+let currentDateLabel = '';
+
+function safePathName(name){ return String(name).replace(/[^\w\-]/g, '_'); }
+function chartHistPath(wellName, testDate, testTime){
+  const safeTime = (testTime || '00-00-00').replace(/:/g, '-');
+  return `${safePathName(wellName)}_DYN_${testDate}_${safeTime}.png`;
+}
+function fmtNum(v, dec){
+  if(v == null || v === '' || v === undefined) return '—';
+  const n = Number(v);
+  if(isNaN(n)) return String(v);
+  return n.toLocaleString('en-US', {minimumFractionDigits:dec||0, maximumFractionDigits:dec||2});
+}
+function fmtDate(d){
+  if(!d) return '';
+  const p = d.split('-');
+  return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+}
+function fmtTime(t){
+  if(!t) return '';
+  return t.substring(0,5);
+}
+
+// ─── INIT: load available dates ───
+async function init(){
+  const {data, error} = await sb.rpc('', undefined).catch(()=>({data:null, error:true}));
+
+  const res = await sb.from('tests')
+    .select('test_date, test_type')
+    .eq('test_type','DYN')
+    .order('test_date', {ascending:false});
+
+  if(res.error){ console.error(res.error); return; }
+
+  const dateMap = {};
+  res.data.forEach(r => {
+    dateMap[r.test_date] = (dateMap[r.test_date]||0) + 1;
+  });
+
+  const sel = document.getElementById('dateSelect');
+  sel.innerHTML = '<option value="">-- Elegir fecha --</option>';
+  Object.entries(dateMap).sort((a,b)=> b[0].localeCompare(a[0])).forEach(([d, cnt]) => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = `${fmtDate(d)} — ${cnt} dinas`;
+    sel.appendChild(opt);
+  });
+  sel.disabled = false;
+}
+
+document.getElementById('dateSelect').addEventListener('change', async function(){
+  if(!this.value) return;
+  document.getElementById('fileNameLabel').textContent = 'Arrastrar o click';
+  await loadFromSupabase(this.value);
+});
+
+// ─── CSV UPLOAD ───
+document.getElementById('csvInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('fileNameLabel').textContent = file.name;
+  document.getElementById('dateSelect').value = '';
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const text = ev.target.result;
+    await parseCSVAndLoad(text);
+  };
+  reader.readAsText(file);
+});
+
+// drag & drop
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('dragover'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('dragover'));
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file){
+    document.getElementById('fileNameLabel').textContent = file.name;
+    document.getElementById('dateSelect').value = '';
+    const reader = new FileReader();
+    reader.onload = async (ev) => await parseCSVAndLoad(ev.target.result);
+    reader.readAsText(file);
+  }
+});
+
+// ─── PARSE CSV ───
+async function parseCSVAndLoad(text){
+  showLoading('Parseando CSV...');
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2){ hideLoading(); alert('CSV vaco o sin datos'); return; }
+
+  const headers = parseCSVLine(lines[0]);
+  const spmIdx = headers.findIndex(h => /strokes?\s*per\s*minute|spm/i.test(h));
+  if(spmIdx < 0){ hideLoading(); alert('No se encontr columna SPM en el CSV'); return; }
+
+  const wellIdx = headers.findIndex(h => /well\s*name/i.test(h));
+  const dateIdx = headers.findIndex(h => /^date$/i.test(h));
+  const timeIdx = headers.findIndex(h => /^time$/i.test(h));
+
+  const allRows = [];
+  const dynRows = [];
+  for(let i = 1; i < lines.length; i++){
+    const vals = parseCSVLine(lines[i]);
+    if(vals.length < 3) continue;
+    allRows.push(vals);
+    const spmVal = parseFloat(vals[spmIdx]);
+    if(!isNaN(spmVal) && spmVal > 0) dynRows.push(vals);
+  }
+
+  if(dynRows.length === 0){ hideLoading(); alert('No se encontraron Dinas (SPM > 0) en el CSV'); return; }
+
+  const csvDate = dynRows[0][dateIdx] || '';
+  const testDate = normalizeDate(csvDate);
+  currentDateLabel = fmtDate(testDate);
+
+  showLoading('Buscando datos en Supabase...');
+  const supaData = await fetchSupabaseData(testDate);
+  const supaMap = {};
+  supaData.forEach(r => { supaMap[r.well_name] = r; });
+
+  currentRows = dynRows.map(vals => {
+    const wn = vals[wellIdx] || '';
+    const supa = supaMap[wn] || {};
+    const row = {};
+    COLS.forEach(col => {
+      const csvI = headers.findIndex(h => h.trim().toLowerCase() === col.label.toLowerCase());
+      if(csvI >= 0 && vals[csvI] !== undefined && vals[csvI] !== ''){
+        row[col.key] = vals[csvI];
+      } else if(supa[col.key] !== undefined){
+        row[col.key] = supa[col.key];
+      } else {
+        row[col.key] = null;
+      }
+    });
+    row._test_id = supa.test_id || null;
+    row._test_date = supa.test_date || testDate;
+    row._test_time = supa.test_time || vals[timeIdx] || '';
+    return row;
+  });
+
+  await loadCards(currentRows);
+  renderStats(allRows.length, dynRows.length, allRows.length - dynRows.length);
+  renderTable();
+  hideLoading();
+}
+
+function parseCSVLine(line){
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"' && line[i+1] === '"'){ current += '"'; i++; }
+      else if(ch === '"') inQuotes = false;
+      else current += ch;
+    } else {
+      if(ch === '"') inQuotes = true;
+      else if(ch === ','){ result.push(current.trim()); current = ''; }
+      else current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+function normalizeDate(d){
+  if(!d) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const m = d.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  return d;
+}
+
+// ─── LOAD FROM SUPABASE ONLY ───
+async function loadFromSupabase(testDate){
+  showLoading('Cargando datos de Supabase...');
+  currentDateLabel = fmtDate(testDate);
+  const supaData = await fetchSupabaseData(testDate);
+
+  currentRows = supaData.map(r => {
+    const row = {};
+    COLS.forEach(col => { row[col.key] = r[col.key] !== undefined ? r[col.key] : null; });
+    row._test_id = r.test_id;
+    row._test_date = r.test_date;
+    row._test_time = r.test_time;
+    return row;
+  });
+
+  await loadCards(currentRows);
+  renderStats(currentRows.length, currentRows.length, 0);
+  renderTable();
+  hideLoading();
+}
+
+async function fetchSupabaseData(testDate){
+  const {data, error} = await sb.rpc('get_dyn_summary', {p_date: testDate}).catch(()=>({data:null,error:true}));
+  if(data && !error) return data;
+
+  const res = await sb.from('tests')
+    .select(`
+      test_id, test_date, test_time, test_comments,
+      wells!inner(well_name),
+      well_configurations(surface_unit_api, surface_unit_manufacturer),
+      dyn_results!inner(
+        spm, computed_stroke_length_in, peak_polished_rod_load_lb,
+        beam_loading_pct, existing_max_torque_upstroke_inlb, existing_max_torque_downstroke_inlb,
+        maximum_rod_loading_goodman_pct, adjusted_fillage_pct,
+        dyn_casing_pressure_kg, dyn_tubing_pressure_kg, pip_dyn_kg,
+        damping_factor_down, damping_factor_up
+      )
+    `)
+    .eq('test_type','DYN')
+    .eq('test_date', testDate)
+    .not('dyn_results.spm','is',null)
+    .gt('dyn_results.spm', 0)
+    .order('test_time', {ascending:true});
+
+  if(res.error){ console.error(res.error); return []; }
+
+  const acuRes = await sb.from('tests')
+    .select(`
+      wells!inner(well_name),
+      acu_results!inner(pip_ll_kg, fluid_above_pump_m, gas_free_above_pump_m)
+    `)
+    .eq('test_type','ACU')
+    .eq('test_date', testDate);
+
+  const acuMap = {};
+  if(acuRes.data){
+    acuRes.data.forEach(a => {
+      const wn = a.wells?.well_name;
+      if(wn && a.acu_results) acuMap[wn] = a.acu_results;
+    });
+  }
+
+  return res.data.map(t => {
+    const wn = t.wells?.well_name || '';
+    const dr = t.dyn_results || {};
+    const wc = t.well_configurations || {};
+    const acu = acuMap[wn] || {};
+    return {
+      test_id: t.test_id,
+      test_date: t.test_date,
+      test_time: t.test_time,
+      test_comments: t.test_comments,
+      well_name: wn,
+      surface_unit_api: wc.surface_unit_api,
+      surface_unit_manufacturer: wc.surface_unit_manufacturer,
+      computed_stroke_length_in: dr.computed_stroke_length_in,
+      spm: dr.spm,
+      peak_polished_rod_load_lb: dr.peak_polished_rod_load_lb,
+      beam_loading_pct: dr.beam_loading_pct,
+      existing_max_torque_upstroke_inlb: dr.existing_max_torque_upstroke_inlb,
+      existing_max_torque_downstroke_inlb: dr.existing_max_torque_downstroke_inlb,
+      maximum_rod_loading_goodman_pct: dr.maximum_rod_loading_goodman_pct,
+      adjusted_fillage_pct: dr.adjusted_fillage_pct,
+      dyn_casing_pressure_kg: dr.dyn_casing_pressure_kg,
+      dyn_tubing_pressure_kg: dr.dyn_tubing_pressure_kg,
+      pip_dyn_kg: dr.pip_dyn_kg,
+      pip_ll_kg: acu.pip_ll_kg,
+      fluid_above_pump_m: acu.fluid_above_pump_m,
+      gas_free_above_pump_m: acu.gas_free_above_pump_m,
+      damping_factor_down: dr.damping_factor_down,
+      damping_factor_up: dr.damping_factor_up,
+    };
+  });
+}
+
+// ─── CARDS ───
+async function loadCards(rows){
+  cardImages = {};
+  const promises = rows.map(async (row) => {
+    const wn = row.well_name;
+    const path = chartHistPath(wn, row._test_date, row._test_time);
+    const {data} = sb.storage.from('cartas').getPublicUrl(path);
+    if(data && data.publicUrl){
+      try {
+        const resp = await fetch(data.publicUrl, {method:'HEAD'});
+        if(resp.ok) cardImages[wn] = data.publicUrl;
+      } catch(e){}
+    }
+  });
+  await Promise.all(promises);
+}
+
+// ─── RENDER ───
+function renderStats(total, dinas, niveles){
+  const cardsFound = Object.keys(cardImages).length;
+  const cardsMissing = currentRows.length - cardsFound;
+  const bar = document.getElementById('statsBar');
+  bar.innerHTML = `
+    <div class="stat-chip hi"><span class="sv">${dinas}</span><span class="sl">Dinas (SPM &gt; 0)</span></div>
+    ${total !== dinas ? `<div class="stat-chip"><span class="sv">${total}</span><span class="sl">Filas en CSV</span></div>` : ''}
+    ${niveles > 0 ? `<div class="stat-chip"><span class="sv">${niveles}</span><span class="sl">Niveles descartados</span></div>` : ''}
+    <div class="stat-chip ${cardsMissing===0?'ok':''}"><span class="sv">${cardsFound}</span><span class="sl">Cartas encontradas</span></div>
+    ${cardsMissing > 0 ? `<div class="stat-chip warn"><span class="sv">${cardsMissing}</span><span class="sl">Cartas faltantes</span></div>` : ''}
+  `;
+  bar.hidden = false;
+}
+
+function renderTable(){
+  document.getElementById('excelTitle').textContent = `Resumen Dinamometra — ${currentDateLabel} | VA&PE Eco Dinamometra Computarizada`;
+
+  let html = '<table class="excel-table"><thead><tr>';
+  COLS.forEach(c => { html += `<th>${c.label}</th>`; });
+  html += '<th>CARD</th></tr></thead><tbody>';
+
+  currentRows.forEach((row, i) => {
+    html += '<tr>';
+    COLS.forEach(col => {
+      let v = row[col.key];
+      if(col.key === 'well_name') html += `<td><strong>${v||''}</strong></td>`;
+      else if(col.key === 'test_date') html += `<td>${fmtDate(v)}</td>`;
+      else if(col.key === 'test_time') html += `<td>${fmtTime(v)}</td>`;
+      else if(col.key === 'test_comments') html += `<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${v||''}</td>`;
+      else if(col.key === 'surface_unit_api' || col.key === 'surface_unit_manufacturer') html += `<td>${v||'—'}</td>`;
+      else html += `<td>${fmtNum(v,2)}</td>`;
+    });
+
+    const wn = row.well_name;
+    if(cardImages[wn]){
+      html += `<td class="col-card"><img class="card-mini" src="${cardImages[wn]}" width="170" height="55" style="object-fit:contain" onerror="this.parentElement.innerHTML='<div class=\\'card-missing-btn\\' onclick=\\'openModal(${i})\\'>Sin carta</div>'"></td>`;
+    } else {
+      html += `<td class="col-card missing"><div class="card-missing-btn" onclick="openModal(${i})">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#c8492c" stroke-width="1.5"/><line x1="7" y1="4" x2="7" y2="8" stroke="#c8492c" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="10.5" r=".8" fill="#c8492c"/></svg>
+        Sin carta — Click para cargar</div></td>`;
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('tableScroll').innerHTML = html;
+
+  const cardsFound = Object.keys(cardImages).length;
+  document.getElementById('excelFooter').innerHTML = `
+    <span><strong>Total Registros:</strong> ${currentRows.length}</span><span>|</span>
+    <span><strong>Solo Dinas (SPM &gt; 0):</strong> ${currentRows.length}</span><span>|</span>
+    <span><strong>Cartas:</strong> ${cardsFound}/${currentRows.length}</span><span>|</span>
+    <span>VA&amp;PE Eco Dinamometra Computarizada</span>
+  `;
+
+  document.getElementById('previewWrapper').hidden = false;
+  document.getElementById('actionBar').hidden = false;
+  document.getElementById('btnDownload').disabled = false;
+}
+
+// ─── MODAL ───
+function openModal(idx){
+  pendingModalWell = idx;
+  const row = currentRows[idx];
+  document.getElementById('modalTitle').textContent = `Cargar carta: ${row.well_name}`;
+  document.getElementById('modalDesc').textContent = `Seleccione la imagen PNG de la carta dinamomtrica para ${row.well_name} del ${fmtDate(row._test_date)}.`;
+  document.getElementById('modalFileInput').value = '';
+  document.getElementById('modalBg').hidden = false;
+}
+function closeModal(){
+  document.getElementById('modalBg').hidden = true;
+  pendingModalWell = null;
+}
+async function confirmCardUpload(){
+  const file = document.getElementById('modalFileInput').files[0];
+  if(!file){ alert('Seleccione una imagen'); return; }
+  const row = currentRows[pendingModalWell];
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const dataUrl = ev.target.result;
+    cardImages[row.well_name] = dataUrl;
+    closeModal();
+    renderStats(currentRows.length, currentRows.length, 0);
+    renderTable();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── DOWNLOAD EXCEL ───
+async function downloadExcel(){
+  showLoading('Generando Excel...');
+
+  const wb = XLSX.utils.book_new();
+  const wsData = [];
+
+  wsData.push(COLS.map(c => c.label).concat(['CARD']));
+
+  const cardImagesForExcel = [];
+
+  for(let i = 0; i < currentRows.length; i++){
+    const row = currentRows[i];
+    const rowData = COLS.map(col => {
+      let v = row[col.key];
+      if(v == null) return '';
+      if(col.key === 'test_date') return fmtDate(v);
+      if(col.key === 'test_time') return fmtTime(v);
+      return isNaN(Number(v)) ? v : Number(v);
+    });
+    rowData.push('');
+    wsData.push(rowData);
+
+    if(cardImages[row.well_name]){
+      try {
+        let imgData = cardImages[row.well_name];
+        if(imgData.startsWith('http')){
+          const resp = await fetch(imgData);
+          const blob = await resp.blob();
+          imgData = await blobToBase64(blob);
+        }
+        const base64 = imgData.replace(/^data:image\/\w+;base64,/, '');
+        cardImagesForExcel.push({row: i+1, base64: base64});
+      } catch(e){ console.warn('No se pudo obtener carta para', row.well_name, e); }
+    }
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  const colWidths = COLS.map(c => {
+    if(c.key === 'well_name') return {wch:12};
+    if(c.key === 'test_date') return {wch:12};
+    if(c.key === 'test_time') return {wch:8};
+    if(c.key === 'test_comments') return {wch:20};
+    if(c.key === 'surface_unit_api') return {wch:18};
+    if(c.key === 'surface_unit_manufacturer') return {wch:16};
+    if(c.label.length > 20) return {wch:16};
+    return {wch:14};
+  });
+  colWidths.push({wch:30});
+  ws['!cols'] = colWidths;
+
+  const rowHeights = [{hpt:30}];
+  for(let i = 0; i < currentRows.length; i++){
+    rowHeights.push({hpt: cardImages[currentRows[i].well_name] ? 120 : 25});
+  }
+  ws['!rows'] = rowHeights;
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Resumen Dinas');
+
+  if(cardImagesForExcel.length > 0){
+    if(!ws['!images']) ws['!images'] = [];
+    cardImagesForExcel.forEach(ci => {
+      ws['!images'].push({
+        '!pos': {r: ci.row, c: COLS.length, x: 5, y: 5, w: 250, h: 110},
+        '!data': ci.base64,
+        '!datatype': 'base64',
+      });
+    });
+  }
+
+  const dateStr = currentRows[0]?._test_date || 'sin_fecha';
+  const fileName = `Resumen_Dinas_VAPE_${dateStr.replace(/-/g,'_')}.xlsx`;
+
+  XLSX.writeFile(wb, fileName);
+  hideLoading();
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ─── CLEAR ───
+function clearAll(){
+  currentRows = [];
+  cardImages = {};
+  document.getElementById('statsBar').hidden = true;
+  document.getElementById('previewWrapper').hidden = true;
+  document.getElementById('actionBar').hidden = true;
+  document.getElementById('dateSelect').value = '';
+  document.getElementById('csvInput').value = '';
+  document.getElementById('fileNameLabel').textContent = 'Arrastrar o click';
+}
+
+// ─── LOADING ───
+function showLoading(msg){
+  document.getElementById('previewWrapper').hidden = false;
+  document.getElementById('loadingOverlay').hidden = false;
+  document.getElementById('loadingText').textContent = msg || 'Cargando...';
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').hidden = true;
+}
+
+init();
+</script>
+</body>
+</html>
