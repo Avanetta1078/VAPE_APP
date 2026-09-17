@@ -458,16 +458,16 @@ async function downloadExcel(){
   wb.creator = 'VA&PE Eco Dinamometría';
   const ws = wb.addWorksheet('Resumen Dinas');
 
-  // Column widths
-  const colWidths = {well_name:14, test_date:12, test_time:8, test_comments:22,
-    surface_unit_api:18, surface_unit_manufacturer:16};
-  const cols = COLS.map(c=>({header:c.label, key:c.key, width:colWidths[c.key]||(c.label.length>20?17:14)}));
-  cols.push({header:'CARD', key:'_card', width:35});
+  // Column widths: match reference Excel exactly (default ~8.43, Comments 60.89, CARD 45.33)
+  const cols = COLS.map(c=>({header:c.label, key:c.key, width:8.43}));
+  cols.push({header:'CARD', key:'_card', width:45.33});
   ws.columns = cols;
+  ws.getColumn(22).width = 60.89; // Test Comments
 
-  // Header style
-  ws.getRow(1).height = 28;
-  ws.getRow(1).eachCell(cell=>{
+  // Header row: height 22.35
+  const hdrRow = ws.getRow(1);
+  hdrRow.height = 22.35;
+  hdrRow.eachCell(cell=>{
     cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FF2D5F6F'}};
     cell.font = {name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
     cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
@@ -496,7 +496,9 @@ async function downloadExcel(){
 
   showLoading('Armando filas...');
 
-  // Data rows
+  const thinBorder = {style:'thin',color:{argb:'FFCCCCCC'}};
+  const borders = {top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder};
+
   for(let i=0;i<currentRows.length;i++){
     const row = currentRows[i];
     const rd = {};
@@ -508,26 +510,33 @@ async function downloadExcel(){
       rd[col.key] = v!=null ? v : '';
     });
     rd._card = '';
-    ws.addRow(rd);
+    const dataRow = ws.addRow(rd);
 
     const excelRow = i + 2;
-    const hasCard = !!imgBuffers[row.well_name];
-    ws.getRow(excelRow).height = hasCard ? 90 : 20;
+    dataRow.height = 143.4; // match reference exactly
 
-    // Style data cells
-    ws.getRow(excelRow).eachCell(cell=>{
+    // Style each cell
+    dataRow.eachCell({includeEmpty:true}, (cell, colNum)=>{
       cell.font = {name:'Calibri',size:10};
-      cell.alignment = {horizontal:'center',vertical:'middle'};
-      cell.border = {top:{style:'thin',color:{argb:'FFCCCCCC'}},bottom:{style:'thin',color:{argb:'FFCCCCCC'}},left:{style:'thin',color:{argb:'FFCCCCCC'}},right:{style:'thin',color:{argb:'FFCCCCCC'}}};
-      if(i%2===0) cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F6F8'}};
+      cell.border = borders;
+      // Even rows (0-indexed i even = Excel rows 2,4,6...) get light blue fill
+      if(i%2===0){
+        cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F6F8'}};
+      }
+      // Comments column: wrapText
+      if(colNum===22){
+        cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
+      } else {
+        cell.alignment = {horizontal:'center',vertical:'middle'};
+      }
     });
 
-    // Embed card image
-    if(hasCard){
+    // Embed card image — match reference positioning
+    if(imgBuffers[row.well_name]){
       const imgId = wb.addImage({base64:imgBuffers[row.well_name], extension:'png'});
       ws.addImage(imgId,{
-        tl:{col:COLS.length, row:excelRow-1+0.1},
-        br:{col:COLS.length+1, row:excelRow-1+0.95},
+        tl:{col:22.08, row:(excelRow-1)+0.036},
+        br:{col:23.0,  row:(excelRow-1)+1.0},
         editAs:'oneCell'
       });
     }
