@@ -6,7 +6,8 @@
 <title>Resumen Diario Dinas | VA&PE</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
 :root{
   --bg:#0e1116;--panel:#181d25;--panel-2:#1d232c;--border:#2a313b;
@@ -453,60 +454,89 @@ function confirmCardUpload(){
 async function downloadExcel(){
   showLoading('Generando Excel...');
 
-  const wb=XLSX.utils.book_new();
-  const wsData=[COLS.map(c=>c.label).concat(['CARD'])];
-  const imgList=[];
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'VA&PE Eco Dinamometría';
+  const ws = wb.addWorksheet('Resumen Dinas');
 
+  // Column widths
+  const colWidths = {well_name:14, test_date:12, test_time:8, test_comments:22,
+    surface_unit_api:18, surface_unit_manufacturer:16};
+  const cols = COLS.map(c=>({header:c.label, key:c.key, width:colWidths[c.key]||(c.label.length>20?17:14)}));
+  cols.push({header:'CARD', key:'_card', width:35});
+  ws.columns = cols;
+
+  // Header style
+  ws.getRow(1).height = 28;
+  ws.getRow(1).eachCell(cell=>{
+    cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FF2D5F6F'}};
+    cell.font = {name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+    cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
+  });
+
+  // Fetch all card images in parallel
+  showLoading('Descargando cartas para Excel...');
+  const imgBuffers = {};
+  const fetchPromises = currentRows.map(async (row)=>{
+    const url = cardImages[row.well_name];
+    if(!url) return;
+    try {
+      let b64;
+      if(url.startsWith('data:')){
+        b64 = url.split(',')[1];
+      } else {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        b64 = await new Promise(r=>{const rd=new FileReader();rd.onloadend=()=>r(rd.result.split(',')[1]);rd.readAsDataURL(blob);});
+      }
+      imgBuffers[row.well_name] = b64;
+    } catch(e){ console.warn('Card fetch fail:', row.well_name, e); }
+  });
+  await Promise.all(fetchPromises);
+
+  showLoading('Armando filas...');
+
+  // Data rows
   for(let i=0;i<currentRows.length;i++){
-    const row=currentRows[i];
-    const rd=COLS.map(col=>{
-      const v=row[col.key];
-      if(v==null) return '';
-      if(col.key==='test_date') return fmtDate(v);
-      if(col.key==='test_time') return fmtTime(v);
-      return isNaN(Number(v))?v:Number(v);
+    const row = currentRows[i];
+    const rd = {};
+    COLS.forEach(col=>{
+      let v = row[col.key];
+      if(col.key==='test_date') v = fmtDate(v);
+      else if(col.key==='test_time') v = fmtTime(v);
+      else if(v!=null && !isNaN(Number(v)) && col.key!=='surface_unit_api' && col.key!=='surface_unit_manufacturer' && col.key!=='test_comments' && col.key!=='well_name') v = Number(v);
+      rd[col.key] = v!=null ? v : '';
     });
-    rd.push('');
-    wsData.push(rd);
+    rd._card = '';
+    ws.addRow(rd);
 
-    if(cardImages[row.well_name]){
-      try{
-        let img=cardImages[row.well_name];
-        if(img.startsWith('http')){
-          const resp=await fetch(img); const blob=await resp.blob();
-          img=await new Promise(r=>{const rd=new FileReader();rd.onloadend=()=>r(rd.result);rd.readAsDataURL(blob);});
-        }
-        imgList.push({row:i+1, b64:img.replace(/^data:image\/\w+;base64,/,'')});
-      }catch(e){console.warn(e);}
+    const excelRow = i + 2;
+    const hasCard = !!imgBuffers[row.well_name];
+    ws.getRow(excelRow).height = hasCard ? 90 : 20;
+
+    // Style data cells
+    ws.getRow(excelRow).eachCell(cell=>{
+      cell.font = {name:'Calibri',size:10};
+      cell.alignment = {horizontal:'center',vertical:'middle'};
+      cell.border = {top:{style:'thin',color:{argb:'FFCCCCCC'}},bottom:{style:'thin',color:{argb:'FFCCCCCC'}},left:{style:'thin',color:{argb:'FFCCCCCC'}},right:{style:'thin',color:{argb:'FFCCCCCC'}}};
+      if(i%2===0) cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F6F8'}};
+    });
+
+    // Embed card image
+    if(hasCard){
+      const imgId = wb.addImage({base64:imgBuffers[row.well_name], extension:'png'});
+      ws.addImage(imgId,{
+        tl:{col:COLS.length, row:excelRow-1+0.1},
+        br:{col:COLS.length+1, row:excelRow-1+0.95},
+        editAs:'oneCell'
+      });
     }
   }
 
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=COLS.map(c=>{
-    if(c.key==='well_name')return{wch:12};
-    if(c.key==='test_date')return{wch:12};
-    if(c.key==='test_time')return{wch:8};
-    if(c.key==='test_comments')return{wch:20};
-    if(c.key==='surface_unit_api')return{wch:18};
-    if(c.key==='surface_unit_manufacturer')return{wch:16};
-    if(c.label.length>20)return{wch:16};
-    return{wch:14};
-  }).concat([{wch:30}]);
-
-  ws['!rows']=[{hpt:30}];
-  for(let i=0;i<currentRows.length;i++) ws['!rows'].push({hpt:cardImages[currentRows[i].well_name]?120:25});
-
-  XLSX.utils.book_append_sheet(wb,ws,'Resumen Dinas');
-
-  if(imgList.length){
-    ws['!images']=imgList.map(ci=>({
-      '!pos':{r:ci.row,c:COLS.length,x:5,y:5,w:250,h:110},
-      '!data':ci.b64,'!datatype':'base64'
-    }));
-  }
-
-  const fn='Resumen_Dinas_VAPE_'+(currentRows[0]?._test_date||'').replace(/-/g,'_')+'.xlsx';
-  XLSX.writeFile(wb,fn);
+  showLoading('Guardando archivo...');
+  const buf = await wb.xlsx.writeBuffer();
+  const fn = 'Resumen_Dinas_VAPE_'+(currentRows[0]?._test_date||'').replace(/-/g,'_')+'.xlsx';
+  saveAs(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), fn);
   hideLoading();
 }
 
