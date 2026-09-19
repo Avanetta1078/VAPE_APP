@@ -1377,8 +1377,8 @@
                 <td id="d-pctagua">100 %</td>
                 <td id="d-gas">155.1 m³/D</td>
               </tr>
-              <tr><th colspan="5">Efi Volumétrica</th></tr>
-              <tr><td colspan="5" id="d-voleff">—</td></tr>
+              <tr><th colspan="3">EFI VOL</th><th colspan="2">Prod Calculada m3/d</th></tr>
+              <tr><td colspan="3" id="d-voleff">—</td><td colspan="2" id="d-adjdisp" style="text-align:center; font-weight:700; font-size:12px;">—</td></tr>
             </table>
           </div>
           <div class="mini-grid">
@@ -1584,7 +1584,8 @@
                 <div class="qr-kv-row"><span class="qr-kv-lbl">Bruta</span><span class="qr-kv-val" id="fr-bruta">—</span></div>
                 <div class="qr-kv-row"><span class="qr-kv-lbl">% Agua</span><span class="qr-kv-val" id="fr-pctagua">—</span></div>
                 <div class="qr-kv-row"><span class="qr-kv-lbl">Gas</span><span class="qr-kv-val" id="fr-gas">—</span></div>
-                <div class="qr-kv-row"><span class="qr-kv-lbl">Efi Volumétrica</span><span class="qr-kv-val" id="fr-voleff">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">EFI VOL</span><span class="qr-kv-val" id="fr-voleff">—</span></div>
+                <div class="qr-kv-row"><span class="qr-kv-lbl">Prod Calc m3/d</span><span class="qr-kv-val" id="fr-adjdisp">—</span></div>
               </div>
             </div>
             <div class="qr-minicard">
@@ -3044,6 +3045,7 @@
           entry.fillage = d.adjusted_fillage_pct; entry.tubpres = d.dyn_tubing_pressure_kg; entry.pipdyn = d.pip_dyn_kg;
           entry.rodpower = d.polished_rod_power_hp; entry.spm = d.spm; entry.dt = t.test_date;
           entry.volEff = d.volumetric_efficiency_pct;
+          entry.adjDisplacement = d.adjusted_displacement_m3d;
           entry.torqueUp = d.existing_max_torque_upstroke_inlb;
           entry.torqueDown = d.existing_max_torque_downstroke_inlb;
           entry.cbExisting = d.existing_counterbalance_inlb;
@@ -3436,8 +3438,19 @@
     if(diff >= 10) el.classList.add('bal-pulse-strong');
   }
 
-  // "24976.0 weights IN 11.38" (formato crudo del TAM: peso en lb + sentido +
-  // distancia en pulgadas) -> "24976.0 lb hacia ADENTRO 28.9 cm"
+  function setProdCalcSemaforo(id, val){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('bal-verde','bal-amarillo','bal-naranja','bal-rojo');
+    if(val == null){ el.textContent = '—'; return; }
+    el.textContent = fmt(val, 1) + ' m³/d';
+    let clase = 'bal-rojo';
+    if(val >= 8) clase = 'bal-verde';
+    else if(val >= 5) clase = 'bal-amarillo';
+    else if(val >= 2) clase = 'bal-naranja';
+    el.classList.add(clase);
+  }
+
   function formatGbMove(raw){
     if(!raw) return null;
     const m = String(raw).trim().match(/^([\d.,]+)\s*weights\s*(IN|OUT)\s*([\d.,]+)/i);
@@ -3911,7 +3924,7 @@
       // No hay pozos (base vacia u operadora sin datos): blanquea todos los
       // campos en vez de dejar los valores viejos que traia el HTML de fabrica.
       ['v-nivel','v-sumerg','v-sumergc','v-fomax','v-tvsv','v-wrf',
-       'd-fillage','d-tubpres','d-spm','d-oil','d-water','d-bruta','d-pctagua','d-gas','d-voleff',
+       'd-fillage','d-tubpres','d-spm','d-oil','d-water','d-bruta','d-pctagua','d-gas','d-voleff','d-adjdisp',
        's-nivel','s-sumerg','s-sumergc','s-vel','s-jts','s-rttt','s-pcsg','s-pctliq',
        'dd-wrf','dd-fomax','dd-tv','dd-sv','dd-mpt','dd-ept','dd-pipdyn','dd-rodpower',
        'd-beam','d-carrera','d-spm2','d-cargamax','d-cargamin','d-unit-api','d-unit-class','d-unit-mfr',
@@ -4097,6 +4110,7 @@
     setDinaField('d-pctagua', w.pctagua, ' %', 1);
     setDinaField('d-gas', w.gas, ' m³/D', 1);
     setDinaField('d-voleff', w.volEff, ' %', 1);
+    setProdCalcSemaforo('d-adjdisp', w.adjDisplacement);
 
     // Unidad de Bombeo: Carrera/Carga Máx/Mín vienen del ensayo Dina actual;
     // Fabricante/Unidad/Descripción API son de la configuración fija del pozo.
@@ -5072,6 +5086,7 @@
       document.getElementById('fr-pctagua').textContent = txt('d-pctagua');
       document.getElementById('fr-gas').textContent = txt('d-gas');
       document.getElementById('fr-voleff').textContent = txt('d-voleff');
+      document.getElementById('fr-adjdisp').textContent = txt('d-adjdisp');
       // Unidad de bombeo
       document.getElementById('fr-beam').textContent = txt('d-beam');
       document.getElementById('fr-carrera').textContent = txt('d-carrera');
@@ -5233,6 +5248,7 @@
     { key:'diampiston',   label:'Diám. Pistón', unit:' in', dec:3, group:'Dina', filterType:'numeric', get:r=>r.plungerDiameter },
     { key:'profbba',      label:'Prof. de Bba', unit:' m',  dec:0, group:'Dina', filterType:'numeric', get:r=>r.pumpIntakeDepth },
     { key:'volEff',        label:'Eficiencia Volumétrica', unit:' %', dec:1, group:'Dina', filterType:'numeric', get:r=>r.volEff },
+    { key:'adjDisp',       label:'Prod Calculada m3/d',    unit:' m³/d', dec:1, group:'Dina', filterType:'numeric', get:r=>r.adjDisplacement },
     { key:'commentDyn',   label:'Comentario Dina', group:'Dina', filterType:'text', get:r=>r.commentDyn },
 
     { key:'nivel',        label:'Nivel',        unit:' m',  dec:0, group:'Nivel', filterType:'numeric', get:r=>r.nivel },
@@ -5828,6 +5844,7 @@
     average_fillage_pct: 'Average Fillage (%)',
     adjusted_fillage_pct: 'Adjusted Fillage (%)',
     pump_displacement_m3d: 'Pump Displacement (m^3/D)',
+    adjusted_displacement_m3d: 'Adjusted Displacement (m^3/D)',
     volumetric_efficiency_pct: 'Volumetric Efficiency (%)',
     polished_rod_to_pump_efficiency_pct: 'Polished Rod to Pump Efficiency (%)',
     pump_hp: 'Pump HP (HP)',
@@ -8689,6 +8706,7 @@
       setDinaField('d-sarta-peso', c.total_rod_weight_lb, ' lb', 0);
       const apiBbaEl2 = document.getElementById('d-sarta-apibba');
       if(apiBbaEl2) apiBbaEl2.textContent = c.pump_designation_api || '—';
+      setProdCalcSemaforo('d-adjdisp', r.adjusted_displacement_m3d);
       const commentEl = document.getElementById('d-comment');
       const commentBox = document.getElementById('dinaCommentBox');
       if(commentEl && commentBox){
