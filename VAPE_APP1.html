@@ -513,21 +513,22 @@
   .dina-side table.gtab{font-size:10.5px;}
   .dina-side table.gtab th{padding:4px 5px 4px 0;}
   .dina-side table.gtab td{padding:4px 5px 4px 0;}
-  .cp-cards .cp-card{border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:8px;}
-  .cp-cards .cp-card:last-child{margin-bottom:0;}
-  .cp-cards .cp-card-title{font-size:10.5px; font-weight:700; margin-bottom:5px;}
+  .cp-cards{background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+  .cp-cards .cp-card{padding:7px 11px 5px; border-bottom:1px dashed var(--border);}
+  .cp-cards .cp-card:last-child{border-bottom:none;}
+  .cp-cards .cp-card-title{font-size:10px; font-weight:700; margin-bottom:3px;}
   .cp-cards .cp-card-title.crank-1{color:var(--steel-glow);}
-  .cp-cards .cp-card-title.crank-2{color:var(--rust,#c0603a);}
+  .cp-cards .cp-card-title.crank-2{color:var(--steel-glow);}
   .cp-cards .cp-grid{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-family:'IBM Plex Mono'; font-size:10.5px;}
   .cp-cards .cp-grid .cp-lbl{color:var(--ink-faint);}
   .cp-cards .cp-grid .cp-val{color:var(--ink); text-align:right;}
-  /* Fila "Plac. Prin: OORO  Cant: 4  cm: xxx" / "Plac. Sec: OOS  Cant: 8  cm: xxx" */
-  .cp-cards .cp-triplet-row{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono'; font-size:10.5px; padding:3px 0;}
-  .cp-cards .cp-triplet-row + .cp-triplet-row{border-top:1px dashed var(--border); margin-top:2px;}
-  .cp-cards .cp-triplet-row .cp-t-placa{color:var(--ink); font-weight:700; flex:1 1 auto; min-width:0;}
-  .cp-cards .cp-triplet-row .cp-t-item{display:flex; align-items:center; gap:4px; flex:0 0 auto;}
-  .cp-cards .cp-triplet-row .cp-t-item .cp-lbl{color:var(--ink-faint);}
-  .cp-cards .cp-triplet-row .cp-t-item .cp-val{color:var(--ink);}
+  .cp-cards .cp-group{margin-bottom:6px;}
+  .cp-cards .cp-group:last-child{margin-bottom:0;}
+  .cp-cards .cp-hdr-row{display:grid; grid-template-columns:1fr 1fr 1fr; font-size:8px; font-weight:600; color:var(--ink-dim); letter-spacing:.04em; text-transform:uppercase; padding:2px 0; border-bottom:1px dashed var(--border);}
+  .cp-cards .cp-hdr-row span:not(:first-child){text-align:center;}
+  .cp-cards .cp-val-row{display:grid; grid-template-columns:1fr 1fr 1fr; font-family:'IBM Plex Mono'; font-size:11px; padding:5px 0 4px;}
+  .cp-cards .cp-val-row .cp-placa{color:var(--ink); font-weight:700;}
+  .cp-cards .cp-val-row .cp-num{color:var(--ink); text-align:center; font-variant-numeric:tabular-nums;}
   .sarta-img{display:block; width:auto; max-width:100%; max-height:210px; object-fit:contain; margin:0 auto 6px; border-radius:6px; background:var(--panel); border:1px solid var(--border);}
 
   .prom-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 6px;}
@@ -3324,19 +3325,17 @@
       const entry = CHART_MAP[currentWell];
       const b64 = entry ? entry[type] : null;
       let note = img.parentElement.querySelector('.no-chart-note');
+      if(note) note.remove();
       if(b64){
         img.src = chartSrc(b64);
         img.style.display = 'block';
-        if(note) note.remove();
       } else {
         img.style.display = 'none';
-        if(!note){
-          note = document.createElement('div');
-          note.className = 'no-chart-note';
-          note.style.cssText = 'padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:12px;';
-          note.textContent = 'Carta no disponible para ' + currentWell + ' (este tipo de ensayo no se realizó).';
-          img.parentElement.appendChild(note);
-        }
+        note = document.createElement('div');
+        note.className = 'no-chart-note';
+        note.style.cssText = 'padding:40px 16px; text-align:center; color:var(--ink-faint); font-size:12px;';
+        note.textContent = 'Carta no disponible para ' + currentWell + ' (este tipo de ensayo no se realizó).';
+        img.parentElement.appendChild(note);
       }
     });
   }
@@ -7937,9 +7936,9 @@
     }
 
     const cp = row && row.contrapesos;
-    // El planillero guarda un objeto plano { tipo, cant, cant2, secu, placas, cm, cm2 } —
+    // El planillero guarda un objeto plano { tipo, cant, cant2, secu, cm, cm2 } —
     // no la estructura "cranks[]" que se usó como diseño original. Se soportan ambos formatos.
-    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.placas == null && cp.cm == null && cp.cm2 == null)){
+    if(!cp || (!cp.cranks && cp.tipo == null && cp.cant == null && cp.cant2 == null && cp.secu == null && cp.cm == null && cp.cm2 == null)){
       table.innerHTML = '<p style="text-align:center; color:var(--ink-faint); padding:10px; font-size:11px;">Sin datos de contrapesos para este pozo (no hay bitácora cargada, o no trae este dato).</p>';
       return;
     }
@@ -7979,17 +7978,13 @@
         const crankClass = manivelaNo === 2 ? 'crank-2' : 'crank-1';
         cardsHtml += `<div class="cp-card">
           <div class="cp-card-title ${crankClass}">Manivela ${manivelaNo}</div>
-          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-bottom:1px;">Principal</div>
-          <div class="cp-triplet-row">
-            <span class="cp-t-placa">${tipoPrincipal || '—'}</span>
-            <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantPrincipalMitad != null ? cantPrincipalMitad : '—'}</span></span>
-            <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distPrincipal != null ? distPrincipal : '—'}</span></span>
+          <div class="cp-group">
+            <div class="cp-hdr-row"><span>Principal</span><span>Cantidad</span><span>cm</span></div>
+            <div class="cp-val-row"><span class="cp-placa">${tipoPrincipal || '—'}</span><span class="cp-num">${cantPrincipalMitad != null && !isNaN(cantPrincipalMitad) ? cantPrincipalMitad : '—'}</span><span class="cp-num">${distPrincipal != null && !isNaN(distPrincipal) ? distPrincipal : '—'}</span></div>
           </div>
-          <div class="cp-plate-lbl" style="font-size:8.5px;color:var(--ink-dim);font-weight:600;letter-spacing:.04em;margin-top:3px;margin-bottom:1px;">Secundarios</div>
-          <div class="cp-triplet-row">
-            <span class="cp-t-placa">${tipoAux || '—'}</span>
-            <span class="cp-t-item"><span class="cp-lbl">Cant.</span><span class="cp-val">${cantAuxMitad != null ? cantAuxMitad : '—'}</span></span>
-            <span class="cp-t-item"><span class="cp-lbl">cm</span><span class="cp-val">${distAux != null ? distAux : '—'}</span></span>
+          <div class="cp-group">
+            <div class="cp-hdr-row"><span>Secundarios</span><span>Cantidad</span><span>cm</span></div>
+            <div class="cp-val-row"><span class="cp-placa">${tipoAux || '—'}</span><span class="cp-num">${cantAuxMitad != null && !isNaN(cantAuxMitad) ? cantAuxMitad : '—'}</span><span class="cp-num">${distAux != null && !isNaN(distAux) ? distAux : '—'}</span></div>
           </div>
         </div>`;
       });
@@ -9436,14 +9431,14 @@
           sistema_extraccion_tipo: sistemaExtraccionTipo,
           unidad_descripcion: unidadDescripcion,
           contrapesos: {
-            tipo: get(13), placas: get(14), cant: get(15), cm: get(16),
-            secu: get(17), cant2: get(18), cm2: get(19)
+            tipo: get(13), cant: get(14), cm: get(15),
+            secu: get(16), cant2: get(17), cm2: get(18)
           }, // N-S
-          motor_marca: get(19+1) ? String(get(20)).trim() : null, // T
-          motor_rpm: numOrNull(get(21)), // U
-          motor_potencia_hp: numOrNull(get(22)), // V
-          motor_polea: get(23) ? String(get(23)).trim() : null, // W
-          observaciones: get(23+1) ? String(get(24)).trim() : null, // X
+          motor_marca: get(19) ? String(get(19)).trim() : null, // T
+          motor_rpm: numOrNull(get(20)), // U
+          motor_potencia_hp: numOrNull(get(21)), // V
+          motor_polea: get(22) ? String(get(22)).trim() : null, // W
+          observaciones: get(23) ? String(get(23)).trim() : null, // X
           extra_fields: { pulg_pip_torque: get(5) } // F, campo multiuso, sin tipar todavía
         });
       }
