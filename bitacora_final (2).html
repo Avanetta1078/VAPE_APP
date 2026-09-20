@@ -2065,6 +2065,25 @@
       return;
     }
 
+    // Resolver well_id desde la tabla wells para que VAPE_APP encuentre esta visita.
+    const nombre = payload.well_name_raw;
+    const digits = nombre.replace(/[^0-9]/g, '');
+    const sinGuion = nombre.replace(/-/g, '');
+    const intentos = [
+      { col: 'well_name', val: nombre },
+      { col: 'well_name', val: sinGuion },
+      { col: 'well_name', val: digits },
+      { col: 'well_number', val: nombre },
+      { col: 'well_number', val: digits },
+    ];
+    for(const it of intentos){
+      if(!it.val) continue;
+      try {
+        const { data: wRows } = await supabaseClient.from('wells').select('well_id').ilike(it.col, it.val).limit(1);
+        if(wRows && wRows.length){ payload.well_id = wRows[0].well_id; break; }
+      } catch(e){ /* sigue intentando */ }
+    }
+
     setStatus(isNewVisit ? 'Guardando nuevo registro...' : 'Guardando cambios...');
     try {
       let visitaId = currentVisitaId;
