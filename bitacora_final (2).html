@@ -1617,6 +1617,32 @@
     input.addEventListener('blur', () => setTimeout(closeDropdown, 150));
   }
 
+  async function _fallbackSearchWells(term){
+    if(!supabaseClient) return null;
+    const digits = term.replace(/[^0-9]/g, '');
+    const sinGuion = term.replace(/-/g, '');
+    const intentos = [
+      { col: 'well_name', val: term },
+      { col: 'well_name', val: sinGuion },
+      { col: 'well_number', val: term },
+      { col: 'well_name', val: digits },
+      { col: 'well_number', val: digits },
+      { col: 'external_well_id', val: term },
+    ];
+    for(const it of intentos){
+      if(!it.val) continue;
+      try {
+        const { data } = await supabaseClient
+          .from('wells')
+          .select('well_id,well_name,operadora,zona,bateria,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos')
+          .ilike(it.col, `%${it.val}%`)
+          .limit(1);
+        if(data && data.length) return data[0];
+      } catch(e){ /* sigue intentando */ }
+    }
+    return null;
+  }
+
   async function searchWell(term){
     if(!supabaseClient){ setStatus('Sin conexión a Supabase.', true); return { found:false }; }
     term = (term || '').trim();
@@ -1650,6 +1676,32 @@
       }
 
       if(!data || !data.length){
+        // Sin visitas previas: buscar en la tabla wells para armar una ficha base.
+        const wellRow = await _fallbackSearchWells(term);
+        if(wellRow){
+          const synth = {
+            visita_id: null,
+            well_name_raw: wellRow.well_name || term,
+            well_id: wellRow.well_id,
+            operadora: wellRow.operadora || '',
+            bateria: wellRow.bateria || '',
+            zona: wellRow.zona || '',
+            motor_marca: wellRow.motor_marca || '',
+            motor_rpm: wellRow.motor_rpm || '',
+            motor_hp: wellRow.motor_hp || '',
+            motor_polea: wellRow.motor_polea || '',
+            contrapesos: wellRow.contrapesos || '',
+            fecha: new Date().toISOString().slice(0,10),
+          };
+          currentVisits = [synth];
+          currentIndex = 0;
+          isNewVisit = true;
+          populateVisitSelect();
+          updateNavButtons();
+          renderVisit(synth);
+          setStatus(`Pozo "${wellRow.well_name}" encontrado en la base. Primer relevamiento — completá los datos y guardá.`);
+          return { found:true };
+        }
         currentVisits = []; currentIndex = -1;
         updateNavButtons();
         renderVisit(null);
@@ -2063,6 +2115,25 @@
     if(!payload.operadora){
       setStatus('No se pudo determinar la operadora del pozo (sin registro previo). Usá "Relevar" sobre un pozo existente, o cargá la operadora manualmente.', true);
       return;
+    }
+
+    // Resolver well_id desde la tabla wells para que VAPE_APP encuentre esta visita.
+    const nombre = payload.well_name_raw;
+    const digits = nombre.replace(/[^0-9]/g, '');
+    const sinGuion = nombre.replace(/-/g, '');
+    const intentos = [
+      { col: 'well_name', val: nombre },
+      { col: 'well_name', val: sinGuion },
+      { col: 'well_name', val: digits },
+      { col: 'well_number', val: nombre },
+      { col: 'well_number', val: digits },
+    ];
+    for(const it of intentos){
+      if(!it.val) continue;
+      try {
+        const { data: wRows } = await supabaseClient.from('wells').select('well_id').ilike(it.col, it.val).limit(1);
+        if(wRows && wRows.length){ payload.well_id = wRows[0].well_id; break; }
+      } catch(e){ /* sigue intentando */ }
     }
 
     setStatus(isNewVisit ? 'Guardando nuevo registro...' : 'Guardando cambios...');
