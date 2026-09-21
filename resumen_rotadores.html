@@ -696,10 +696,11 @@ function exportXlsx() {
     let fechaType = 's';
     let fechaFmt = undefined;
     if (fechaParts.length === 3) {
-      const dt = new Date(+fechaParts[2], +fechaParts[1]-1, +fechaParts[0]);
-      if (!isNaN(dt)) {
-        fechaVal = dt;
-        fechaType = 'd';
+      const d = +fechaParts[0], mo = +fechaParts[1], y = +fechaParts[2];
+      if (d && mo && y) {
+        const epoch = Date.UTC(y, mo-1, d);
+        fechaVal = Math.round(epoch / 86400000) + 25569;
+        fechaType = 'n';
         fechaFmt = 'dd/mm/yyyy';
       }
     }
