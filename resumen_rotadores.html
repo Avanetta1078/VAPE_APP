@@ -636,43 +636,41 @@ function exportXlsx() {
   const nota = document.getElementById('txtNotaPedido').value;
   const itemContrato = document.getElementById('txtItemContrato').value;
 
-  const thinBorder = {style:'thin', color:{rgb:'000000'}};
-  const allBorders = {top:thinBorder, bottom:thinBorder, left:thinBorder, right:thinBorder};
+  const thinBrd = {style:'thin', color:{rgb:'000000'}};
+  const borders = {top:thinBrd, bottom:thinBrd, left:thinBrd, right:thinBrd};
   const grayFill = {fgColor:{rgb:'C8C8C8'}, type:'pattern', patternType:'solid'};
-  const greenFill = {fgColor:{rgb:'B4DCB4'}, type:'pattern', patternType:'solid'};
-  const centerAlign = {horizontal:'center', vertical:'center'};
+  const ctr = {horizontal:'center', vertical:'center'};
+  const ctrV = {vertical:'center'};
 
   const ws = {};
 
-  // Row 2: J2 = cliente
-  ws['J2'] = {v:cliente, t:'s', s:{font:{sz:11}}};
+  // Row 2: J2 = cliente (sz 14, como el modelo)
+  ws['J2'] = {v:cliente, t:'s', s:{font:{sz:14}}};
 
-  // Row 3: D3 = titulo (merged D3:G3 visually)
-  ws['D3'] = {v:titulo, t:'s', s:{font:{bold:true, sz:11}, alignment:centerAlign}};
+  // Row 3: D3 = titulo bold center (merged D3:G3)
+  ws['D3'] = {v:titulo, t:'s', s:{font:{bold:true}, alignment:ctr}};
 
-  // Row 5: D5 = periodo (merged D5:G5 visually)
-  ws['D5'] = {v:periodo, t:'s', s:{alignment:centerAlign}};
+  // Row 5: D5 = periodo center (merged D5:G5)
+  ws['D5'] = {v:periodo, t:'s', s:{alignment:ctr}};
 
-  // Row 6: A6 = nota
-  ws['A6'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left'}}};
+  // Row 6: A6 = nota bold left, format text
+  ws['A6'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left', vertical:'center'}, numFmt:'@'}};
 
-  // Row 7: headers
-  const hdrs = [
-    {col:'A', val:'Fecha'},
-    {col:'B', val:'Día'},
-    {col:'C', val:'Nro de Parte'},
-    {col:'D', val:'Item'},
-    {col:'E', val:'Cantidades'},
-    {col:'F', val:'Detalle ITEMS'}
-  ];
-  hdrs.forEach(h => {
-    ws[h.col+'7'] = {v:h.val, t:'s', s:{
-      font:{bold:true, sz:10}, alignment:centerAlign, fill:grayFill, border:allBorders
-    }};
-  });
+  // Row 7: headers bold center, gray fill, borders
+  const hdrStyle = {font:{bold:true}, alignment:ctr, fill:grayFill};
+  ws['A7'] = {v:'Fecha', t:'s', s:{...hdrStyle, border:borders}};
+  ws['B7'] = {v:'Día', t:'s', s:{font:{bold:true}, alignment:ctrV, fill:grayFill, border:borders}};
+  ws['C7'] = {v:'Nro de Parte', t:'s', s:{...hdrStyle, border:borders}};
+  ws['D7'] = {v:'Item', t:'s', s:{...hdrStyle, border:borders}};
+  ws['E7'] = {v:'Cantidades', t:'s', s:{...hdrStyle, border:borders}};
+  ws['F7'] = {v:'Detalle ITEMS', t:'s', s:{...hdrStyle, border:borders}};
+  // G7-I7 vacíos pero con estilo (parte del merge F7:I7)
+  ws['G7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+  ws['H7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+  ws['I7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
 
-  // Merge F7:I7 for detalle header
-  ws['!merges'] = [
+  // Merges idénticos al modelo
+  const merges = [
     {s:{r:2,c:3}, e:{r:2,c:6}},  // D3:G3
     {s:{r:4,c:3}, e:{r:4,c:6}},  // D5:G5
     {s:{r:6,c:5}, e:{r:6,c:8}}   // F7:I7
@@ -681,54 +679,100 @@ function exportXlsx() {
   // Data rows starting at row 8
   const trs = document.querySelectorAll('#resumenBody tr');
   let r = 8;
-  const firstDataRow = 8;
   let totalPozos = 0;
+  const rowHeights = {};
 
-  trs.forEach(tr => {
+  // Row heights del modelo
+  rowHeights[2] = 18;
+  rowHeights[7] = 18.6;
+
+  trs.forEach((tr, idx) => {
     const tds = tr.querySelectorAll('td');
     const vals = Array.from(tds).map(td => td.textContent.trim());
 
-    ws['A'+r] = {v:vals[0], t:'s', s:{alignment:centerAlign, border:allBorders}};
-    ws['B'+r] = {v:vals[1], t:'s', s:{alignment:centerAlign, border:allBorders}};
-    ws['C'+r] = {v:vals[2], t:'s', s:{alignment:centerAlign, border:allBorders}};
-    ws['D'+r] = {v:vals[3], t:'s', s:{alignment:centerAlign, border:allBorders}};
-    const cant = parseInt(vals[4]) || 0;
-    ws['E'+r] = {v:cant, t:'n', s:{alignment:centerAlign, border:allBorders}};
-    ws['F'+r] = {v:vals[5], t:'s', s:{border:allBorders}};
-    ws['G'+r] = {v:'', t:'s', s:{border:allBorders}};
-    ws['H'+r] = {v:'', t:'s', s:{border:allBorders}};
-    ws['I'+r] = {v:'', t:'s', s:{border:allBorders}};
+    // Fecha como Date con formato mm-dd-yy (igual al modelo)
+    const fechaParts = vals[0].split('/');
+    let fechaVal = vals[0];
+    let fechaType = 's';
+    let fechaFmt = undefined;
+    if (fechaParts.length === 3) {
+      const dt = new Date(+fechaParts[2], +fechaParts[1]-1, +fechaParts[0]);
+      if (!isNaN(dt)) {
+        fechaVal = dt;
+        fechaType = 'd';
+        fechaFmt = 'dd/mm/yyyy';
+      }
+    }
 
+    ws['A'+r] = {v:fechaVal, t:fechaType, s:{alignment:ctr, border:borders, numFmt:fechaFmt}};
+    ws['B'+r] = {v:vals[1], t:'s', s:{alignment:ctr, border:borders}};
+    ws['C'+r] = {v:vals[2], t:'s', s:{alignment:ctr, border:borders}};
+    ws['D'+r] = {v:vals[3], t:'s', s:{alignment:ctr, border:borders}};
+    const cant = parseInt(vals[4]) || 0;
+    ws['E'+r] = {v:cant, t:'n', s:{alignment:ctr, border:borders}};
+    // Detalle en F, G-I vacíos con bordes (parte del merge visual F:I)
+    ws['F'+r] = {v:vals[5], t:'s', s:{border:borders}};
+    ws['G'+r] = {v:'', t:'s', s:{border:borders}};
+    ws['H'+r] = {v:'', t:'s', s:{border:borders}};
+    ws['I'+r] = {v:'', t:'s', s:{border:borders}};
+
+    // Merge F:I para cada fila de datos (detalle ocupa 4 columnas)
+    merges.push({s:{r:r-1, c:5}, e:{r:r-1, c:8}});
+
+    rowHeights[r] = 20.4;
     totalPozos += cant;
     r++;
   });
 
-  // Summary block (right side, a few rows below)
-  const sumRow = r + 3;
+  const lastDataRow = r - 1;
+
+  // Cuadro Resumen a la derecha, 4 filas debajo de datos
+  const sumRow = lastDataRow + 4;
   ws['H'+sumRow] = {v:'Resumen', t:'s', s:{font:{bold:true}, fill:grayFill}};
   ws['I'+sumRow] = {v:'Cantidad', t:'s', s:{font:{bold:true}, fill:grayFill}};
-  ws['H'+(sumRow+1)] = {v:`Total ${itemContrato}`, t:'s'};
+  ws['H'+(sumRow+1)] = {v:'Total '+itemContrato, t:'s'};
   ws['I'+(sumRow+1)] = {v:totalPozos, t:'n'};
+  ws['H'+(sumRow+2)] = {v:'', t:'s', s:{border:{top:thinBrd}}};
+  ws['I'+(sumRow+2)] = {v:0, t:'n', s:{border:{top:thinBrd}}};
 
-  // Firma rows
-  const firmaRow = sumRow + 10;
-  ws['B'+firmaRow] = {v:'Firma VA&PE', t:'s', s:{alignment:centerAlign}};
+  // Firmas (fila 26 del modelo, o proporcional)
+  const firmaRow = Math.max(sumRow + 8, lastDataRow + 14);
+  ws['B'+firmaRow] = {v:'Firma VA&PE', t:'s'};
   ws['G'+firmaRow] = {v:'Firma Cliente', t:'s'};
 
-  // Column widths
+  // Anchos de columna (ajustados para caber en A4 landscape)
+  // A4 landscape ~277mm util. Con margins 0.7in = ~17.8mm cada lado -> ~241mm útil
+  // Anchos calibrados al modelo original
   ws['!cols'] = [
-    {wch:12},  // A - Fecha
-    {wch:12},  // B - Día
-    {wch:12},  // C - Nro Parte
-    {wch:10},  // D - Item
-    {wch:13},  // E - Cantidades
-    {wch:45},  // F - Detalle
-    {wch:5},   // G
-    {wch:13},  // H - Resumen
-    {wch:18}   // I - Cantidad
+    {wch:11.5},  // A - Fecha
+    {wch:10.5},  // B - Día
+    {wch:11},    // C - Nro Parte
+    {wch:9},     // D - Item
+    {wch:12.7},  // E - Cantidades
+    {wch:18},    // F - Detalle (parte 1)
+    {wch:12},    // G - Detalle (parte 2)
+    {wch:12.7},  // H - Resumen
+    {wch:18}     // I - Cantidad
   ];
 
-  ws['!ref'] = `A1:J${firmaRow}`;
+  // Row heights
+  ws['!rows'] = [];
+  for (let i = 1; i <= firmaRow; i++) {
+    ws['!rows'][i-1] = rowHeights[i] ? {hpt:rowHeights[i]} : {};
+  }
+
+  ws['!ref'] = 'A1:J' + firmaRow;
+  ws['!merges'] = merges;
+
+  // Page setup: landscape A4
+  ws['!pageSetup'] = {
+    orientation: 'landscape',
+    paperSize: 9,
+    fitToWidth: 1,
+    fitToHeight: 1
+  };
+  ws['!margins'] = {left:0.7, right:0.7, top:0.75, bottom:0.75, header:0.3, footer:0.3};
+  ws['!print'] = {area: 'A1:I' + firmaRow};
 
   XLSX.utils.book_append_sheet(wb, ws, 'Parte_Operaciones_ROTADORES');
 
