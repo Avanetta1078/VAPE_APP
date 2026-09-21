@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Resumen de Operaciones - ECO-DINAMOMETRÍA</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 :root {
   --bg: #0f1117;
@@ -593,36 +593,131 @@ function exportXlsx() {
   const nota = document.getElementById('txtNotaPedido').value;
   const leyenda = document.getElementById('resLeyenda').textContent;
 
-  const rows = [];
-  rows.push(['', '', titulo, '', '', cliente]);
-  rows.push([]);
-  rows.push(['', '', periodo]);
-  rows.push([nota]);
-  rows.push(['Fecha', 'Día', 'Nro de Parte', 'Combinada Item3', 'Dinamometro Item 1', 'Nivel Item 2', 'Frustrada Item 4']);
+  const thinBorder = {style:'thin', color:{rgb:'000000'}};
+  const allBorders = {top:thinBorder, bottom:thinBorder, left:thinBorder, right:thinBorder};
+  const grayFill = {fgColor:{rgb:'C8C8C8'}, type:'pattern', patternType:'solid'};
+  const greenFill = {fgColor:{rgb:'B4DCB4'}, type:'pattern', patternType:'solid'};
+  const centerAlign = {horizontal:'center', vertical:'center'};
 
+  const ws = {};
+  const dataRows = [];
+
+  // Row 1: C1=titulo bold center, F1=cliente sz14
+  ws['C1'] = {v:titulo, t:'s', s:{font:{bold:true, sz:11}, alignment:centerAlign}};
+  ws['F1'] = {v:cliente, t:'s', s:{font:{sz:14}}};
+
+  // Row 3: C3=periodo
+  ws['C3'] = {v:periodo, t:'s', s:{font:{sz:11}}};
+
+  // Row 4: A4=nota bold left
+  ws['A4'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left'}}};
+
+  // Row 5: headers
+  const headers = [
+    {col:'A', val:'Fecha', sz:11},
+    {col:'B', val:'Día', sz:11},
+    {col:'C', val:'Nro de Parte', sz:10},
+    {col:'D', val:'Combinada Item3', sz:9},
+    {col:'E', val:'Dinamometro Item 1', sz:9},
+    {col:'F', val:'Nivel                Item 2', sz:9},
+    {col:'G', val:'Frustrada Item 4', sz:9}
+  ];
+  headers.forEach(h => {
+    ws[h.col+'5'] = {v:h.val, t:'s', s:{
+      font:{bold:true, sz:h.sz},
+      alignment:centerAlign,
+      fill:grayFill,
+      border:allBorders
+    }};
+  });
+
+  // Data rows starting at row 6
   const trs = document.querySelectorAll('#resumenBody tr');
+  let r = 6;
+  const firstDataRow = 6;
+  let lastDataRow = 6;
+  let totalRow = -1;
+
   trs.forEach(tr => {
     const tds = tr.querySelectorAll('td');
-    const vals = Array.from(tds).map(td => {
-      const n = parseFloat(td.textContent);
-      return (!isNaN(n) && td.cellIndex >= 3) ? n : td.textContent;
-    });
-    rows.push(vals);
-  });
-  rows.push([]);
-  rows.push([leyenda]);
-  rows.push([]);
-  rows.push([]);
-  rows.push(['', '______________', '', '', '___________']);
-  rows.push(['', 'Firma VA&PE', '', '', 'Firma Cliente']);
+    const isWeekend = tr.classList.contains('row-weekend');
+    const isTotal = tr.classList.contains('row-total');
+    const vals = Array.from(tds).map(td => td.textContent.trim());
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+    if (isTotal) {
+      totalRow = r;
+      // A empty, B=totales text, C empty, D-G = SUM formulas
+      ws['A'+r] = {v:'', t:'s', s:{border:allBorders}};
+      ws['B'+r] = {v:vals[1], t:'s', s:{font:{bold:true}, alignment:centerAlign, fill:greenFill, border:allBorders}};
+      ws['C'+r] = {v:'', t:'s', s:{font:{bold:true}, alignment:centerAlign, fill:greenFill, border:allBorders}};
+      ['D','E','F','G'].forEach((col,i) => {
+        ws[col+r] = {
+          v:undefined, t:'n',
+          f:`SUM(${col}${firstDataRow}:${col}${r-1})`,
+          s:{font:{bold:true}, alignment:centerAlign, fill:greenFill, border:allBorders}
+        };
+      });
+    } else if (isWeekend) {
+      ws['A'+r] = {v:vals[0], t:'s', s:{fill:grayFill, border:allBorders}};
+      ws['B'+r] = {v:vals[1], t:'s', s:{alignment:centerAlign, fill:grayFill, border:allBorders}};
+      ['C','D','E','F','G'].forEach((col,i) => {
+        ws[col+r] = {v:'', t:'s', s:{alignment:centerAlign, fill:grayFill, border:allBorders}};
+      });
+    } else {
+      ws['A'+r] = {v:vals[0], t:'s', s:{border:allBorders}};
+      ws['B'+r] = {v:vals[1], t:'s', s:{alignment:centerAlign, border:allBorders}};
+      ws['C'+r] = {v:vals[2] || '', t:vals[2]?'n':'s', s:{alignment:centerAlign, border:allBorders}};
+      if (vals[2] && !isNaN(+vals[2])) ws['C'+r].v = +vals[2];
+      ['D','E','F','G'].forEach((col,i) => {
+        const v = vals[3+i];
+        const n = v !== '' ? parseInt(v) : '';
+        ws[col+r] = {
+          v: n !== '' && !isNaN(n) ? n : '',
+          t: n !== '' && !isNaN(n) ? 'n' : 's',
+          s:{alignment:centerAlign, border:allBorders}
+        };
+      });
+    }
+    lastDataRow = r;
+    r++;
+  });
+
+  // Leyenda row (2 rows after total)
+  const leyendaRow = totalRow > 0 ? totalRow + 2 : r + 1;
+  ws['A'+leyendaRow] = {v:leyenda, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left'}}};
+
+  // Firma rows
+  const firmaLineRow = leyendaRow + 13;
+  const firmaLabelRow = firmaLineRow + 1;
+  ws['B'+firmaLineRow] = {v:'______________', t:'s', s:{alignment:centerAlign}};
+  ws['E'+firmaLineRow] = {v:'___________', t:'s'};
+  ws['B'+firmaLabelRow] = {v:'Firma VA&PE', t:'s', s:{alignment:centerAlign}};
+  ws['E'+firmaLabelRow] = {v:'Firma Cliente', t:'s'};
+
+  // Column widths matching original
   ws['!cols'] = [
-    {wch:12},{wch:12},{wch:14},{wch:16},{wch:18},{wch:16},{wch:14}
+    {wch:11},   // A - Fecha
+    {wch:21},   // B - Día
+    {wch:11},   // C - Nro Parte
+    {wch:9},    // D - Combinada
+    {wch:11},   // E - Dinamometro
+    {wch:6},    // F - Nivel
+    {wch:8},    // G - Frustrada
+    {wch:12}    // H
   ];
+
+  // Set range
+  ws['!ref'] = `A1:H${firmaLabelRow}`;
+
   const sheetName = 'Resumen_Operaciones Dinas';
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  XLSX.writeFile(wb, `Resumen_Dinas_${formatDate(new Date()).replace(/\//g,'-')}.xlsx`);
+
+  const idxDesde = parseInt(document.getElementById('selDesde').value);
+  const idxHasta = parseInt(document.getElementById('selHasta').value);
+  const fInicio = sheetData[idxDesde].fecha;
+  const fFin = sheetData[idxHasta].fecha;
+  const fname = `Resumen_Dinas_del_${formatDate(fInicio).replace(/\//g,'-')}_al_${formatDate(fFin).replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb, fname);
 }
 
 // === EVENT HANDLERS ===
