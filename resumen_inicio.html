@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Certificación CROWN POINT</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 :root {
   --bg: #0f1117;
@@ -13,201 +14,706 @@
   --text: #e8eaf0;
   --text-muted: #8b90a5;
   --accent: #4f8cff;
+  --accent-hover: #6ba0ff;
+  --green: #34d399;
+  --green-bg: #0d2e22;
+  --header-bg: #1e2235;
+  --total-bg: #132e1f;
+  --total-border: #34d399;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-.header {
-  background: linear-gradient(135deg, #1a1d27 0%, #1e2540 100%);
-  border-bottom: 1px solid var(--border);
-  padding: 28px 32px;
-  text-align: center;
-}
-.header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: .03em;
-  margin-bottom: 4px;
-}
-.header p {
-  color: var(--text-muted);
-  font-size: .9rem;
-}
-.main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
-  max-width: 960px;
-  width: 100%;
-}
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 28px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .25s ease;
-  position: relative;
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-.card:hover {
-  transform: translateY(-4px);
-  border-color: var(--card-accent);
-  box-shadow: 0 12px 40px rgba(0,0,0,.4), 0 0 0 1px var(--card-accent);
-}
-.card:hover::before {
-  opacity: 1;
-}
-.card:active {
-  transform: translateY(-1px);
-}
+body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-.card-dinas { --card-accent: #4f8cff; }
-.card-dinas::before { background: linear-gradient(135deg, rgba(79,140,255,.08) 0%, transparent 60%); }
-.card-sam { --card-accent: #3b82f6; }
-.card-sam::before { background: linear-gradient(135deg, rgba(59,130,246,.08) 0%, transparent 60%); }
-.card-rotadores { --card-accent: #f59e0b; }
-.card-rotadores::before { background: linear-gradient(135deg, rgba(245,158,11,.08) 0%, transparent 60%); }
+/* === HOME === */
+.home-header { background:linear-gradient(135deg,#1a1d27 0%,#1e2540 100%); border-bottom:1px solid var(--border); padding:28px 32px; text-align:center; }
+.home-header h1 { font-size:1.5rem; font-weight:700; letter-spacing:.03em; margin-bottom:4px; }
+.home-header p { color:var(--text-muted); font-size:.9rem; }
+.home-main { display:flex; align-items:center; justify-content:center; padding:60px 24px; min-height:calc(100vh - 120px); }
+.home-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; max-width:960px; width:100%; }
+.home-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:36px 28px; text-align:center; cursor:pointer; transition:all .25s; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; gap:20px; }
+.home-card::before { content:''; position:absolute; inset:0; border-radius:16px; opacity:0; transition:opacity .25s; }
+.home-card:hover { transform:translateY(-4px); border-color:var(--card-accent); box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px var(--card-accent); }
+.home-card:hover::before { opacity:1; }
+.hc-dinas { --card-accent:#4f8cff; }
+.hc-dinas::before { background:linear-gradient(135deg,rgba(79,140,255,.08) 0%,transparent 60%); }
+.hc-sam { --card-accent:#3b82f6; }
+.hc-sam::before { background:linear-gradient(135deg,rgba(59,130,246,.08) 0%,transparent 60%); }
+.hc-rot { --card-accent:#f59e0b; }
+.hc-rot::before { background:linear-gradient(135deg,rgba(245,158,11,.08) 0%,transparent 60%); }
+.hc-icon { width:72px; height:72px; border-radius:16px; display:flex; align-items:center; justify-content:center; transition:transform .25s; }
+.home-card:hover .hc-icon { transform:scale(1.08); }
+.hc-dinas .hc-icon { background:rgba(79,140,255,.12); }
+.hc-sam .hc-icon { background:rgba(59,130,246,.12); }
+.hc-rot .hc-icon { background:rgba(245,158,11,.12); }
+.hc-icon svg { width:36px; height:36px; }
+.hc-dinas svg { color:#4f8cff; }
+.hc-sam svg { color:#3b82f6; }
+.hc-rot svg { color:#f59e0b; }
+.home-card h2 { font-size:1.15rem; font-weight:600; }
+.home-card p { font-size:.82rem; color:var(--text-muted); line-height:1.5; }
+.hc-badge { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:4px 12px; border-radius:20px; }
+.hc-dinas .hc-badge { background:rgba(79,140,255,.15); color:#4f8cff; }
+.hc-sam .hc-badge { background:rgba(59,130,246,.15); color:#60a5fa; }
+.hc-rot .hc-badge { background:rgba(245,158,11,.15); color:#f59e0b; }
+.home-footer { text-align:center; padding:20px; color:var(--text-muted); font-size:.75rem; border-top:1px solid var(--border); }
+@media(max-width:768px) { .home-grid { grid-template-columns:1fr; max-width:400px; gap:16px; } }
 
-.icon-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform .25s ease;
-}
-.card:hover .icon-wrap { transform: scale(1.08); }
-.card-dinas .icon-wrap { background: rgba(79,140,255,.12); }
-.card-sam .icon-wrap { background: rgba(59,130,246,.12); }
-.card-rotadores .icon-wrap { background: rgba(245,158,11,.12); }
+/* === MODULE COMMON === */
+.mod-section { display:none; }
+.app-header { border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; gap:16px; }
+.app-header svg.hdr-icon { width:36px; height:36px; flex-shrink:0; }
+.app-header h1 { font-size:1.3rem; font-weight:600; letter-spacing:.02em; }
+.app-header span { color:var(--text-muted); font-size:.85rem; }
+.btn-inicio { margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:8px; background:var(--surface2); color:var(--text); border:1px solid var(--border); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; }
+.btn-inicio:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+.container { max-width:1400px; margin:0 auto; padding:24px 16px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px; }
+.card-title { font-size:.95rem; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-title svg { width:18px; height:18px; color:var(--accent); }
+.upload-zone { border:2px dashed var(--border); border-radius:10px; padding:40px 24px; text-align:center; cursor:pointer; transition:all .2s; position:relative; }
+.upload-zone:hover,.upload-zone.dragover { border-color:var(--accent); background:rgba(79,140,255,.05); }
+.upload-zone svg { width:40px; height:40px; color:var(--text-muted); margin-bottom:12px; }
+.upload-zone p { color:var(--text-muted); font-size:.9rem; }
+.upload-zone .filename { color:var(--green); font-weight:500; margin-top:8px; }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.controls { display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
+.field { display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
+.field label { font-size:.8rem; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
+.field select,.field input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:.9rem; outline:none; transition:border-color .2s; }
+.field select:focus,.field input:focus { border-color:var(--accent); }
+.btn { padding:10px 24px; border:none; border-radius:8px; font-size:.9rem; font-weight:600; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+.btn svg { width:16px; height:16px; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-hover); transform:translateY(-1px); }
+.btn-success { background:var(--green); color:#0a0a0a; }
+.btn-success:hover { background:#4ade80; }
+.btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.stats-row { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+.stat-chip { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:.82rem; }
+.stat-chip strong { color:var(--accent); }
+.config-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.config-row .field { min-width:180px; }
+.resumen-header { text-align:center; margin-bottom:16px; padding:16px; background:var(--header-bg); border-radius:10px; border:1px solid var(--border); }
+.resumen-header h2 { font-size:1.1rem; font-weight:700; color:var(--accent); margin-bottom:4px; }
+.resumen-header h3 { font-size:.95rem; font-weight:500; margin-bottom:4px; }
+.resumen-header .subtitle { font-size:.82rem; color:var(--text-muted); }
+.resumen-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+.resumen-table th { background:var(--header-bg); color:var(--accent); padding:10px 6px; text-align:center; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--border); position:sticky; top:0; }
+.resumen-table td { padding:7px 6px; text-align:center; border:1px solid var(--border); }
+.resumen-table tbody tr:hover { background:rgba(79,140,255,.04); }
+.td-obs,.td-detalle { text-align:left !important; font-size:.82rem; }
+.row-weekend { background:#2a2235 !important; }
+.row-weekend td { color:#a78bfa; font-style:italic; }
+.row-total { background:var(--total-bg) !important; font-weight:700; }
+.row-total td { color:var(--green); border-top:2px solid var(--total-border); }
+.summary-box { display:inline-block; margin-top:20px; border:1px solid var(--border); border-radius:8px; overflow:hidden; float:right; }
+.summary-box table { border-collapse:collapse; font-size:.82rem; }
+.summary-box th { background:var(--header-bg); padding:6px 12px; font-weight:600; border:1px solid var(--border); }
+.summary-box td { padding:6px 12px; border:1px solid var(--border); text-align:center; }
+.summary-box td:first-child { text-align:left; }
+.summary-box td strong { color:var(--accent); }
+.leyenda { margin-top:16px; padding:12px 16px; font-size:.85rem; font-weight:600; background:var(--surface2); border-radius:8px; border-left:3px solid var(--accent); clear:both; }
+.firmas { display:flex; justify-content:space-around; margin-top:40px; padding:0 60px; }
+.firma-block { text-align:center; }
+.firma-line { width:180px; border-bottom:1px solid var(--text-muted); margin-bottom:6px; }
+.firma-label { font-size:.8rem; color:var(--text-muted); }
 
-.icon-wrap svg { width: 36px; height: 36px; }
-.card-dinas svg { color: #4f8cff; }
-.card-sam svg { color: #3b82f6; }
-.card-rotadores svg { color: #f59e0b; }
-
-.card h2 {
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: .01em;
-}
-.card p {
-  font-size: .82rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-.badge {
-  font-size: .7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin-top: 4px;
-}
-.card-dinas .badge { background: rgba(79,140,255,.15); color: #4f8cff; }
-.card-sam .badge { background: rgba(59,130,246,.15); color: #60a5fa; }
-.card-rotadores .badge { background: rgba(245,158,11,.15); color: #f59e0b; }
-
-.footer {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-muted);
-  font-size: .75rem;
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-    max-width: 400px;
-    gap: 16px;
-  }
-  .card { padding: 28px 20px; }
+@media print {
+  :root { --bg:#fff; --surface:#fff; --surface2:#f5f5f5; --border:#ccc; --text:#111; --text-muted:#666; --accent:#1a3a6e; --header-bg:#e8ecf4; --total-bg:#e6f4ea; --total-border:#2e7d32; --green:#2e7d32; }
+  body { background:#fff; }
+  #homeScreen,.app-header,.card:has(.upload-zone),.card:has(.controls),.no-print { display:none !important; }
+  .mod-section[style*="block"] .card:has(.resumen-header) { display:block !important; border:none; padding:0; margin:0; }
+  .resumen-header { border:none; background:none; }
+  .resumen-table { font-size:9pt; }
+  .resumen-table th { background:#dde3ef !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-weekend { background:#ece8f3 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total { background:#e0f2e1 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total td { color:#1b5e20; }
+  @page { size:A4 landscape; margin:12mm; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Certificación CROWN POINT</h1>
-  <p>Seleccioná el cierre que necesitás generar</p>
+<!-- ========== HOME SCREEN ========== -->
+<div id="homeScreen">
+  <div class="home-header">
+    <h1>Certificación CROWN POINT</h1>
+    <p>Seleccioná el cierre que necesitás generar</p>
+  </div>
+  <div class="home-main">
+    <div class="home-grid">
+      <div class="home-card hc-dinas" onclick="showModule('dinas')">
+        <div class="hc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 5-9"/></svg></div>
+        <h2>ECO-Dinamometría</h2>
+        <p>Montaje/desmontaje de equipos, reparaciones y calibraciones</p>
+        <span class="hc-badge">Dinas</span>
+      </div>
+      <div class="home-card hc-sam" onclick="showModule('sam')">
+        <div class="hc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7v10M12 7v10M16 7v10"/><path d="M2 12h20"/></svg></div>
+        <h2>SAM</h2>
+        <p>Montaje/desmontaje y reparación de sistemas SAM</p>
+        <span class="hc-badge">SAM</span>
+      </div>
+      <div class="home-card hc-rot" onclick="showModule('rot')">
+        <div class="hc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+        <h2>Rotadores</h2>
+        <p>Control de rotadores de varillas, montaje y reparaciones</p>
+        <span class="hc-badge">Rotadores</span>
+      </div>
+    </div>
+  </div>
+  <div class="home-footer">VA&PE — Mediciones Físicas</div>
 </div>
 
-<div class="main">
-  <div class="grid">
-
-    <a class="card card-dinas" href="./resumen_operaciones.html">
-      <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 3v18h18"/>
-          <path d="M7 16l4-8 4 4 5-9"/>
-        </svg>
-      </div>
-      <h2>ECO-Dinamometría</h2>
-      <p>Montaje/desmontaje de equipos, reparaciones y calibraciones de dinamómetros</p>
-      <span class="badge">Dinas</span>
-    </a>
-
-    <a class="card card-sam" href="./resumen_sam.html">
-      <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="18" rx="2"/>
-          <path d="M8 7v10M12 7v10M16 7v10"/>
-          <path d="M2 12h20"/>
-        </svg>
-      </div>
-      <h2>SAM</h2>
-      <p>Montaje/desmontaje y reparación de sistemas SAM en pozos</p>
-      <span class="badge">SAM</span>
-    </a>
-
-    <a class="card card-rotadores" href="./resumen_rotadores.html">
-      <div class="icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-        </svg>
-      </div>
-      <h2>Rotadores</h2>
-      <p>Control de rotadores de varillas, montaje, desmontaje y reparaciones</p>
-      <span class="badge">Rotadores</span>
-    </a>
-
+<!-- ========== DINAS MODULE ========== -->
+<section id="mod_dinas" class="mod-section">
+<div class="app-header" style="background:linear-gradient(135deg,#1a1d27 0%,#1e2540 100%)">
+  <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="#4f8cff" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+  <div><h1>Resumen de Operaciones</h1><span>CONTRATO ECO-DINAMOMETRÍA</span></div>
+  <button class="btn-inicio" onclick="showHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</button>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Parte Diario (.xlsx)</div>
+    <div class="upload-zone" id="din_dropZone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg><p>Arrastrá o hacé clic para cargar el archivo Excel del Parte Diario</p><div class="filename" id="din_fileName"></div><input type="file" id="din_fileInput" accept=".xlsx,.xls,.xlsm"></div>
+    <div class="stats-row" id="din_statsRow" style="display:none"></div>
+  </div>
+  <div class="card" id="din_controlsCard" style="display:none">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Configuración del Resumen</div>
+    <div class="config-row">
+      <div class="field"><label>Contrato / Título</label><input type="text" id="din_txtContrato" value="CONTRATO ECO-DINAMOMETRÍA"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="din_txtCliente" value="CrowPoint"></div>
+      <div class="field"><label>Nota de Pedido</label><input type="text" id="din_txtNotaPedido" value="Nota de Pedido - N°4620001791"></div>
+    </div>
+    <div class="controls">
+      <div class="field"><label>Desde</label><select id="din_selDesde"></select></div>
+      <div class="field"><label>Hasta</label><select id="din_selHasta"></select></div>
+      <button class="btn btn-primary" onclick="DINAS.generar()">Generar Resumen</button>
+      <button class="btn btn-success" id="din_btnPDF" style="display:none" onclick="window.print()">Exportar PDF</button>
+      <button class="btn btn-outline" id="din_btnExport" style="display:none" onclick="DINAS.exportXlsx()">Exportar XLSX</button>
+    </div>
+  </div>
+  <div class="card" id="din_resumenContainer" style="display:none">
+    <div class="resumen-header">
+      <h2 id="din_resTitle"></h2>
+      <div id="din_resCliente" class="subtitle" style="text-align:right;margin-top:-20px;font-weight:600"></div>
+      <h3 id="din_resPeriodo"></h3>
+      <div id="din_resNota" class="subtitle"></div>
+    </div>
+    <table class="resumen-table"><thead><tr>
+      <th style="width:110px">Fecha</th><th style="width:100px">Día</th><th style="width:100px">Nro de Parte</th>
+      <th>Combinada<br><small>Item 3</small></th><th>Dinamómetro<br><small>Item 1</small></th>
+      <th>Nivel<br><small>Item 2</small></th><th>Frustrada<br><small>Item 4</small></th>
+    </tr></thead><tbody id="din_resumenBody"></tbody></table>
+    <div class="leyenda" id="din_resLeyenda"></div>
+    <div class="firmas"><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma VA&PE</div></div><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma Cliente</div></div></div>
   </div>
 </div>
+</section>
 
-<div class="footer">VA&PE — Mediciones Físicas</div>
+<!-- ========== SAM MODULE ========== -->
+<section id="mod_sam" class="mod-section">
+<div class="app-header" style="background:linear-gradient(135deg,#1a1d27 0%,#0f1a2e 100%)">
+  <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+  <div><h1>Resumen de Operaciones - SAM</h1><span>CONTRATO MANTENIMIENTO DE SAM</span></div>
+  <button class="btn-inicio" onclick="showHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</button>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Parte Diario SAM (.xlsx)</div>
+    <div class="upload-zone" id="sam_dropZone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg><p>Arrastrá o hacé clic para cargar el archivo Excel del Parte SAM</p><div class="filename" id="sam_fileName"></div><input type="file" id="sam_fileInput" accept=".xlsx,.xls,.xlsm"></div>
+    <div class="stats-row" id="sam_statsRow" style="display:none"></div>
+  </div>
+  <div class="card" id="sam_controlsCard" style="display:none">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Configuración del Resumen</div>
+    <div class="config-row">
+      <div class="field"><label>Contrato / Título</label><input type="text" id="sam_txtContrato" value="CONTRATO MANTENIMIENTO DE SAM"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="sam_txtCliente" value="CrowPoint"></div>
+      <div class="field"><label>Nota de Pedido</label><input type="text" id="sam_txtNotaPedido" value="Nota de Pedido - N°4620001791"></div>
+    </div>
+    <div class="config-row">
+      <div class="field" style="max-width:140px"><label>Prefijo Parte</label><input type="text" id="sam_txtPrefijo" value="000"></div>
+      <div class="field"><label>Observaciones (defecto)</label><input type="text" id="sam_txtObs" value="Opera Normal"></div>
+    </div>
+    <div class="controls">
+      <div class="field"><label>Desde</label><select id="sam_selDesde"></select></div>
+      <div class="field"><label>Hasta</label><select id="sam_selHasta"></select></div>
+      <button class="btn btn-primary" onclick="SAM.generar()">Generar Resumen</button>
+      <button class="btn btn-success" id="sam_btnPDF" style="display:none" onclick="window.print()">Exportar PDF</button>
+      <button class="btn btn-outline" id="sam_btnExport" style="display:none" onclick="SAM.exportXlsx()">Exportar XLSX</button>
+    </div>
+  </div>
+  <div class="card" id="sam_resumenContainer" style="display:none">
+    <div class="resumen-header">
+      <div id="sam_resCliente" class="subtitle" style="text-align:right;font-weight:600;margin-bottom:8px"></div>
+      <h2 id="sam_resTitle"></h2>
+      <h3 id="sam_resPeriodo"></h3>
+      <div id="sam_resNota" class="subtitle"></div>
+    </div>
+    <table class="resumen-table"><thead><tr>
+      <th style="width:90px">Fecha</th><th style="width:80px">Día</th><th style="width:65px">Parte</th>
+      <th style="width:70px">Montaje SAM<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 8</span></th>
+      <th style="width:75px">Desmontaje SAM<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 9</span></th>
+      <th style="width:75px">Reparacion SAM1<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 10</span></th>
+      <th style="width:75px">Reparacion SAM2<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 11</span></th>
+      <th style="width:75px">Reparacion SAM3<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 12</span></th>
+      <th style="width:75px">Cantidad<br>Operaciones</th>
+      <th style="width:70px">Hs Hombre<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 7</span></th>
+      <th style="width:70px">Fuerza Mayor<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 5</span></th>
+      <th>Observaciones</th>
+    </tr></thead><tbody id="sam_resumenBody"></tbody></table>
+    <div id="sam_summaryArea"></div>
+    <div class="firmas"><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma VA&PE</div></div><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma Cliente</div></div></div>
+  </div>
+</div>
+</section>
 
+<!-- ========== ROTADORES MODULE ========== -->
+<section id="mod_rot" class="mod-section">
+<div class="app-header" style="background:linear-gradient(135deg,#1a1d27 0%,#2a1e10 100%)">
+  <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+  <div><h1>Resumen de Operaciones - Rotadores</h1><span>CONTRATO ROTADORES DE VARILLAS DE BOMBEO</span></div>
+  <button class="btn-inicio" onclick="showHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</button>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Parte Diario Rotadores (.xlsx)</div>
+    <div class="upload-zone" id="rot_dropZone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg><p>Arrastrá o hacé clic para cargar el archivo Excel del Parte Rotadores</p><div class="filename" id="rot_fileName"></div><input type="file" id="rot_fileInput" accept=".xlsx,.xls,.xlsm"></div>
+    <div class="stats-row" id="rot_statsRow" style="display:none"></div>
+  </div>
+  <div class="card" id="rot_controlsCard" style="display:none">
+    <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Configuración del Resumen</div>
+    <div class="config-row">
+      <div class="field"><label>Contrato / Título</label><input type="text" id="rot_txtContrato" value="CONTRATO ROTADORES DE VARILLAS"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="rot_txtCliente" value="CrowPoint"></div>
+      <div class="field"><label>Nota de Pedido</label><input type="text" id="rot_txtNotaPedido" value="Nota de Pedido - N°4620001791"></div>
+    </div>
+    <div class="config-row">
+      <div class="field" style="max-width:140px"><label>Item Contrato</label><input type="text" id="rot_txtItem" value="Items 15"></div>
+      <div class="field"><label>Detalle Items</label><input type="text" id="rot_txtDetalle" value="Reemplazo/mantenimiento/Reparacion de Accionamiento"></div>
+      <div class="field" style="max-width:140px"><label>Prefijo Parte</label><input type="text" id="rot_txtPrefijo" value="000"></div>
+    </div>
+    <div class="controls">
+      <div class="field"><label>Desde</label><select id="rot_selDesde"></select></div>
+      <div class="field"><label>Hasta</label><select id="rot_selHasta"></select></div>
+      <button class="btn btn-primary" onclick="ROT.generar()">Generar Resumen</button>
+      <button class="btn btn-success" id="rot_btnPDF" style="display:none" onclick="window.print()">Exportar PDF</button>
+      <button class="btn btn-outline" id="rot_btnExport" style="display:none" onclick="ROT.exportXlsx()">Exportar XLSX</button>
+    </div>
+  </div>
+  <div class="card" id="rot_resumenContainer" style="display:none">
+    <div class="resumen-header">
+      <div id="rot_resCliente" class="subtitle" style="text-align:right;font-weight:600;margin-bottom:8px"></div>
+      <h2 id="rot_resTitle"></h2>
+      <h3 id="rot_resPeriodo"></h3>
+      <div id="rot_resNota" class="subtitle"></div>
+    </div>
+    <table class="resumen-table"><thead><tr>
+      <th style="width:110px">Fecha</th><th style="width:100px">Día</th><th style="width:100px">Nro de Parte</th>
+      <th style="width:90px">Item</th><th style="width:90px">Cantidades</th><th>Detalle ITEMS</th>
+    </tr></thead><tbody id="rot_resumenBody"></tbody></table>
+    <div id="rot_summaryArea"></div>
+    <div class="firmas"><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma VA&PE</div></div><div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma Cliente</div></div></div>
+  </div>
+</div>
+</section>
+
+<script>
+// ========== NAVIGATION ==========
+function showModule(mod) {
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('mod_dinas').style.display = mod==='dinas' ? 'block' : 'none';
+  document.getElementById('mod_sam').style.display = mod==='sam' ? 'block' : 'none';
+  document.getElementById('mod_rot').style.display = mod==='rot' ? 'block' : 'none';
+  window.scrollTo(0,0);
+}
+function showHome() {
+  document.getElementById('homeScreen').style.display = '';
+  document.getElementById('mod_dinas').style.display = 'none';
+  document.getElementById('mod_sam').style.display = 'none';
+  document.getElementById('mod_rot').style.display = 'none';
+  window.scrollTo(0,0);
+}
+
+// ========== SHARED UTILS ==========
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function parseDate(val) {
+  if (!val) return null;
+  if (val instanceof Date && !isNaN(val)) return val;
+  const s = String(val).trim();
+  if (!s) return null;
+  let m;
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { let y=+m[3]; if(y<100) y+=2000; return new Date(y,+m[2]-1,+m[1]); }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) return new Date(new Date().getFullYear(),+m[2]-1,+m[1]);
+  const d = new Date(s);
+  return isNaN(d)?null:d;
+}
+function formatDate(d) { return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
+function getCellVal(ws,addr) { const c=ws[addr]; return c?c.v:null; }
+function extractNumber(v) { if(v==null) return 0; if(typeof v==='number') return v; const m=String(v).match(/(\d+)\s*$/); return m?parseInt(m[1]):0; }
+function addDays(d,n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function dateSerial(d,mo,y) { return Math.round(Date.UTC(y,mo-1,d)/86400000)+25569; }
+function setupDZ(dropId, inputId, handler) {
+  const dz=document.getElementById(dropId), fi=document.getElementById(inputId);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)handler(e.dataTransfer.files[0]);});
+  fi.addEventListener('change',()=>{if(fi.files.length)handler(fi.files[0]);});
+}
+function populateSelects(data, selD, selH, labelFn) {
+  selD.innerHTML=''; selH.innerHTML='';
+  data.forEach((d,i)=>{const t=labelFn(d);selD.appendChild(new Option(t,i));selH.appendChild(new Option(t,i));});
+  if(data.length>0){
+    selH.value=data.length-1;
+    const last=data[data.length-1].fecha,lm=last.getMonth(),ly=last.getFullYear();
+    let first=0;
+    for(let i=0;i<data.length;i++){const f=data[i].fecha;if(f.getMonth()===lm&&f.getFullYear()===ly){first=i;break;}}
+    selD.value=first;
+  }
+}
+function periodoText(fi,ff){
+  const mi=MESES_ES[fi.getMonth()],mf=MESES_ES[ff.getMonth()],y=ff.getFullYear();
+  return mi===mf?`Resumen de Operaciones Periodo ${mf.toUpperCase()} ${y}`:`Resumen de Operaciones Periodo ${mi.toUpperCase()} - ${mf.toUpperCase()} ${y}`;
+}
+
+// ========== DINAS ==========
+const DINAS = (function(){
+  let data=[];
+  function process(wb){
+    data=[];
+    const excl=['resumen_operaciones','resumen_operaciones dinas','informe_dinamometria'];
+    wb.SheetNames.forEach(name=>{
+      if(excl.includes(name.trim().toLowerCase())) return;
+      if(/^hoja\d*$/i.test(name.trim())) return;
+      const ws=wb.Sheets[name];
+      const fecha=parseDate(getCellVal(ws,'F2'));
+      if(!fecha) return;
+      const g13=getCellVal(ws,'G13'),f13=getCellVal(ws,'F13');
+      const g19=getCellVal(ws,'G19'),f19=getCellVal(ws,'F19');
+      const g26=getCellVal(ws,'G26'),f26=getCellVal(ws,'F26');
+      const g32=getCellVal(ws,'G32'),f32=getCellVal(ws,'F32');
+      data.push({
+        sheetName:name.trim(), fecha,
+        numParte:getCellVal(ws,'B2')!=null?String(getCellVal(ws,'B2')).trim():'',
+        combinadas:(g13!=null&&typeof g13==='number')?g13:extractNumber(f13),
+        dina:(g19!=null&&typeof g19==='number')?g19:extractNumber(f19),
+        niveles:(g26!=null&&typeof g26==='number')?g26:extractNumber(f26),
+        canceladas:(g32!=null&&typeof g32==='number')?g32:extractNumber(f32)
+      });
+    });
+    data.sort((a,b)=>a.fecha-b.fecha);
+    return data;
+  }
+  function handleFile(file){
+    document.getElementById('din_fileName').textContent=file.name;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      process(wb);
+      populateSelects(data,document.getElementById('din_selDesde'),document.getElementById('din_selHasta'),d=>formatDate(d.fecha)+(d.numParte?` (Parte ${d.numParte})`:''));
+      document.getElementById('din_controlsCard').style.display='';
+      const sr=document.getElementById('din_statsRow');
+      sr.style.display='flex';
+      sr.innerHTML=`<div class="stat-chip">Hojas: <strong>${data.length}</strong></div><div class="stat-chip">Desde: <strong>${data.length?formatDate(data[0].fecha):'-'}</strong></div><div class="stat-chip">Hasta: <strong>${data.length?formatDate(data[data.length-1].fecha):'-'}</strong></div>`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function generar(){
+    const iD=+document.getElementById('din_selDesde').value, iH=+document.getElementById('din_selHasta').value;
+    if(isNaN(iD)||isNaN(iH)) return alert('Seleccioná rango.');
+    if(iD>iH) return alert('"Desde" debe ser anterior.');
+    const fi=new Date(data[iD].fecha), ff=new Date(data[iH].fecha);
+    const lookup=new Map(); data.forEach(d=>lookup.set(d.fecha.toISOString().slice(0,10),d));
+    const tbody=document.getElementById('din_resumenBody'); tbody.innerHTML='';
+    let dh=0,tC=0,tD=0,tN=0,tF=0,cur=new Date(fi);
+    while(cur<=ff){
+      const dow=cur.getDay(),isW=dow===0||dow===6,key=cur.toISOString().slice(0,10),m=lookup.get(key);
+      const tr=document.createElement('tr');
+      if(isW)tr.className='row-weekend';
+      const tds=[formatDate(cur),DIAS_ES[dow],'','','','',''];
+      if(!isW&&m){tds[2]=m.numParte||'';tds[3]=m.combinadas||'';tds[4]=m.dina||'';tds[5]=m.niveles||'';tds[6]=m.canceladas||'';tC+=m.combinadas||0;tD+=m.dina||0;tN+=m.niveles||0;tF+=m.canceladas||0;dh++;}
+      tds.forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;if(i===0)td.style.textAlign='left';tr.appendChild(td);});
+      tbody.appendChild(tr);
+      cur=addDays(cur,1);
+    }
+    const trT=document.createElement('tr');trT.className='row-total';
+    trT.innerHTML=`<td></td><td>Totales (${dh} días hábiles)</td><td></td><td>${tC}</td><td>${tD}</td><td>${tN}</td><td>${tF}</td>`;
+    tbody.appendChild(trT);
+    document.getElementById('din_resTitle').textContent=document.getElementById('din_txtContrato').value;
+    document.getElementById('din_resCliente').textContent=document.getElementById('din_txtCliente').value;
+    document.getElementById('din_resPeriodo').textContent=periodoText(fi,ff);
+    document.getElementById('din_resNota').textContent=document.getElementById('din_txtNotaPedido').value;
+    document.getElementById('din_resLeyenda').textContent=`Se factura Periodo desde ${formatDate(fi)} hasta ${formatDate(ff)}`;
+    document.getElementById('din_resumenContainer').style.display='block';
+    document.getElementById('din_btnPDF').style.display='';
+    document.getElementById('din_btnExport').style.display='';
+  }
+  function exportXlsx(){
+    const wb=XLSX.utils.book_new(),titulo=document.getElementById('din_txtContrato').value,cliente=document.getElementById('din_txtCliente').value,periodo=document.getElementById('din_resPeriodo').textContent,nota=document.getElementById('din_txtNotaPedido').value,leyenda=document.getElementById('din_resLeyenda').textContent;
+    const tb={style:'thin',color:{rgb:'000000'}},brd={top:tb,bottom:tb,left:tb,right:tb},gf={fgColor:{rgb:'C8C8C8'},type:'pattern',patternType:'solid'},grf={fgColor:{rgb:'B4DCB4'},type:'pattern',patternType:'solid'},ctr={horizontal:'center',vertical:'center'};
+    const ws={};
+    ws['C1']={v:titulo,t:'s',s:{font:{bold:true,sz:11},alignment:ctr}};ws['F1']={v:cliente,t:'s',s:{font:{sz:14}}};
+    ws['C3']={v:periodo,t:'s',s:{font:{sz:11}}};ws['A4']={v:nota,t:'s',s:{font:{bold:true},alignment:{horizontal:'left'}}};
+    ['A','B','C','D','E','F','G'].forEach((c,i)=>{const hdr=['Fecha','Día','Nro de Parte','Combinada Item3','Dinamometro Item 1','Nivel                Item 2','Frustrada Item 4'];
+      ws[c+'5']={v:hdr[i],t:'s',s:{font:{bold:true,sz:i>2?9:11},alignment:ctr,fill:gf,border:brd}};});
+    const trs=document.querySelectorAll('#din_resumenBody tr');let r=6,fr=6,tr2=-1;
+    trs.forEach(tr=>{const tds=tr.querySelectorAll('td'),isW=tr.classList.contains('row-weekend'),isT=tr.classList.contains('row-total'),vals=Array.from(tds).map(td=>td.textContent.trim());
+      if(isT){tr2=r;ws['A'+r]={v:'',t:'s',s:{border:brd}};ws['B'+r]={v:vals[1],t:'s',s:{font:{bold:true},alignment:ctr,fill:grf,border:brd}};ws['C'+r]={v:'',t:'s',s:{font:{bold:true},fill:grf,border:brd}};
+        ['D','E','F','G'].forEach(c=>{ws[c+r]={v:undefined,t:'n',f:`SUM(${c}${fr}:${c}${r-1})`,s:{font:{bold:true},alignment:ctr,fill:grf,border:brd}};});}
+      else if(isW){ws['A'+r]={v:vals[0],t:'s',s:{fill:gf,border:brd}};ws['B'+r]={v:vals[1],t:'s',s:{alignment:ctr,fill:gf,border:brd}};['C','D','E','F','G'].forEach(c=>{ws[c+r]={v:'',t:'s',s:{alignment:ctr,fill:gf,border:brd}};});}
+      else{ws['A'+r]={v:vals[0],t:'s',s:{border:brd}};ws['B'+r]={v:vals[1],t:'s',s:{alignment:ctr,border:brd}};ws['C'+r]={v:vals[2]||'',t:vals[2]&&!isNaN(+vals[2])?'n':'s',s:{alignment:ctr,border:brd}};if(vals[2]&&!isNaN(+vals[2]))ws['C'+r].v=+vals[2];
+        ['D','E','F','G'].forEach((c,i)=>{const v=vals[3+i],n=v!==''?parseInt(v):'';ws[c+r]={v:n!==''&&!isNaN(n)?n:'',t:n!==''&&!isNaN(n)?'n':'s',s:{alignment:ctr,border:brd}};});}
+      r++;});
+    const lr=tr2>0?tr2+2:r+1;ws['A'+lr]={v:leyenda,t:'s',s:{font:{bold:true}}};
+    const fR=lr+13;ws['B'+fR]={v:'______________',t:'s',s:{alignment:ctr}};ws['E'+fR]={v:'___________',t:'s'};ws['B'+(fR+1)]={v:'Firma VA&PE',t:'s',s:{alignment:ctr}};ws['E'+(fR+1)]={v:'Firma Cliente',t:'s'};
+    ws['!cols']=[{wch:11},{wch:21},{wch:11},{wch:9},{wch:11},{wch:6},{wch:8},{wch:12}];
+    ws['!ref']=`A1:H${fR+1}`;
+    XLSX.utils.book_append_sheet(wb,ws,'Resumen_Operaciones Dinas');
+    const fI=data[+document.getElementById('din_selDesde').value].fecha,fF=data[+document.getElementById('din_selHasta').value].fecha;
+    XLSX.writeFile(wb,`Resumen_Dinas_del_${formatDate(fI).replace(/\//g,'-')}_al_${formatDate(fF).replace(/\//g,'-')}.xlsx`);
+  }
+  setupDZ('din_dropZone','din_fileInput',handleFile);
+  return {generar,exportXlsx};
+})();
+
+// ========== SAM ==========
+const SAM = (function(){
+  let data=[];
+  const ITEM_MAP={1:8,2:9,3:10,4:11,5:12};
+  function isDateValue(v){if(!v)return false;if(v instanceof Date&&!isNaN(v))return true;const s=String(v).trim();return!!(s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)||s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/));}
+  function findDateInSheet(ws){
+    for(let r=1;r<=6;r++)for(let c=1;c<=8;c++){const cl=String.fromCharCode(64+c),v=getCellVal(ws,cl+r);if(v&&typeof v==='string'&&v.trim().toUpperCase()==='FECHA'){const nc=String.fromCharCode(65+c),dv=getCellVal(ws,nc+r);if(dv){const d=parseDate(dv);if(d&&d.getFullYear()>=2000&&d.getFullYear()<=2030)return d;}}}
+    for(let r=1;r<=6;r++)for(const col of['E','D','F']){const v=getCellVal(ws,col+r);if(v&&isDateValue(v)){const d=parseDate(v);if(d&&d.getFullYear()>=2000&&d.getFullYear()<=2030)return d;}}
+    return null;
+  }
+  function findTotalRow(ws){for(let r=10;r<=40;r++){const v=getCellVal(ws,'A'+r);if(v&&typeof v==='string'&&v.toUpperCase().includes('TOTAL'))return r;}return -1;}
+  function findHeaderRow(ws){for(let r=1;r<=6;r++){const v=getCellVal(ws,'A'+r);if(v&&typeof v==='string'&&v.trim().toLowerCase()==='pozo')return r;}return 3;}
+  function process(wb){
+    data=[];
+    wb.SheetNames.forEach(name=>{
+      const nl=name.trim().toLowerCase();
+      if(/^hoja\d*$/.test(nl)||nl.startsWith('parte_operaciones')||nl.startsWith('resumen'))return;
+      const ws=wb.Sheets[name],fecha=findDateInSheet(ws);if(!fecha)return;
+      const hr=findHeaderRow(ws),ds=hr+1,tr=findTotalRow(ws),mx=tr>0?tr-1:35;
+      let pozos=[],ic={1:0,2:0,3:0,4:0,5:0};
+      for(let r=ds;r<=mx;r++){const a=getCellVal(ws,'A'+r),b=getCellVal(ws,'B'+r);if(a&&typeof a==='string'&&/^s[-\s]?\d+/i.test(a.trim())){const p=a.trim().toUpperCase().replace(/\s+/g,'');if(!pozos.includes(p))pozos.push(p);}if(b!==null&&typeof b==='number'&&b>=1&&b<=5)ic[b]++;}
+      let ti=Object.values(ic).reduce((s,v)=>s+v,0);if(tr>0)for(const c of['G','F']){const v=getCellVal(ws,c+tr);if(typeof v==='number'&&v>0){ti=v;break;}}
+      let tp=pozos.length;if(tr>0){const cv=getCellVal(ws,'C'+tr);if(typeof cv==='number'&&cv>tp)tp=cv;}
+      if(tp===0&&ti===0)return;
+      let obs='';for(let r=tr+1;r<=tr+5;r++){if(r<=0)continue;const v=getCellVal(ws,'A'+r);if(v&&typeof v==='string'&&/observ/i.test(v)){const ot=getCellVal(ws,'C'+r)||getCellVal(ws,'D'+r)||getCellVal(ws,'B'+r);if(ot)obs=String(ot).trim().substring(0,80);break;}}
+      data.push({sheetName:name.trim(),fecha,pozos:tp,itemCounts:ic,totalItems:ti,obs});
+    });
+    data.sort((a,b)=>a.fecha-b.fecha);
+  }
+  function handleFile(file){
+    document.getElementById('sam_fileName').textContent=file.name;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      process(wb);
+      populateSelects(data,document.getElementById('sam_selDesde'),document.getElementById('sam_selHasta'),d=>formatDate(d.fecha)+` (${d.pozos} pozos, ${d.totalItems} items)`);
+      document.getElementById('sam_controlsCard').style.display='';
+      const sr=document.getElementById('sam_statsRow');sr.style.display='flex';
+      let gi={1:0,2:0,3:0,4:0,5:0};data.forEach(d=>{for(let i=1;i<=5;i++)gi[i]+=d.itemCounts[i];});
+      sr.innerHTML=`<div class="stat-chip">Sesiones: <strong>${data.length}</strong></div><div class="stat-chip">Desde: <strong>${data.length?formatDate(data[0].fecha):'-'}</strong></div><div class="stat-chip">Hasta: <strong>${data.length?formatDate(data[data.length-1].fecha):'-'}</strong></div>`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function generar(){
+    const iD=+document.getElementById('sam_selDesde').value,iH=+document.getElementById('sam_selHasta').value;
+    if(isNaN(iD)||isNaN(iH))return alert('Seleccioná rango.');if(iD>iH)return alert('"Desde" anterior.');
+    const pref=document.getElementById('sam_txtPrefijo').value,defObs=document.getElementById('sam_txtObs').value;
+    const filtered=data.slice(iD,iH+1),fi=filtered[0].fecha,ff=filtered[filtered.length-1].fecha;
+    const tbody=document.getElementById('sam_resumenBody');tbody.innerHTML='';
+    let tots={8:0,9:0,10:0,11:0,12:0},pn=1;
+    filtered.forEach(d=>{
+      const tr=document.createElement('tr');
+      [formatDate(d.fecha),DIAS_ES[d.fecha.getDay()],pref+'-'+pn].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});
+      let rs=0;for(let pi=1;pi<=5;pi++){const ri=ITEM_MAP[pi],c=d.itemCounts[pi]||0;const td=document.createElement('td');td.textContent=c||'';tr.appendChild(td);tots[ri]+=c;rs+=c;}
+      const tdC=document.createElement('td');tdC.textContent=rs;tr.appendChild(tdC);
+      const tdH=document.createElement('td');tr.appendChild(tdH);const tdF=document.createElement('td');tr.appendChild(tdF);
+      const tdO=document.createElement('td');tdO.textContent=d.obs||defObs;tdO.className='td-obs';tr.appendChild(tdO);
+      tbody.appendChild(tr);pn++;
+    });
+    document.getElementById('sam_resTitle').textContent=document.getElementById('sam_txtContrato').value;
+    document.getElementById('sam_resCliente').textContent=document.getElementById('sam_txtCliente').value;
+    document.getElementById('sam_resPeriodo').textContent=periodoText(fi,ff);
+    document.getElementById('sam_resNota').textContent=document.getElementById('sam_txtNotaPedido').value;
+    let sh='<div class="summary-box"><table><tr><th colspan="2">Resumen Operaciones</th></tr>';
+    sh+=`<tr><td>Fuerza Mayor Item5</td><td><strong>0</strong></td></tr>`;
+    sh+=`<tr><td>Montaje Item8</td><td><strong>${tots[8]}</strong></td></tr>`;
+    sh+=`<tr><td>Desmontaje Item9</td><td><strong>${tots[9]}</strong></td></tr>`;
+    sh+=`<tr><td>Rep SAM Item10</td><td><strong>${tots[10]}</strong></td></tr>`;
+    sh+=`<tr><td>Rep SAM Item 11</td><td><strong>${tots[11]}</strong></td></tr>`;
+    sh+=`<tr><td>Rep SAM Item 12</td><td><strong>${tots[12]}</strong></td></tr>`;
+    sh+=`</table></div><div class="leyenda" style="margin-top:70px">Se factura Periodo desde ${formatDate(fi)} hasta ${formatDate(ff)}</div>`;
+    document.getElementById('sam_summaryArea').innerHTML=sh;
+    document.getElementById('sam_resumenContainer').style.display='block';
+    document.getElementById('sam_btnPDF').style.display='';
+    document.getElementById('sam_btnExport').style.display='';
+  }
+  function exportXlsx(){
+    const wb=XLSX.utils.book_new(),titulo=document.getElementById('sam_txtContrato').value,cliente=document.getElementById('sam_txtCliente').value,periodo=document.getElementById('sam_resPeriodo').textContent,nota=document.getElementById('sam_txtNotaPedido').value;
+    const tb={style:'thin',color:{rgb:'000000'}},brd={top:tb,bottom:tb,left:tb,right:tb},bt={top:tb},gf={fgColor:{rgb:'C8C8C8'},type:'pattern',patternType:'solid'},yf={fgColor:{rgb:'FFFF00'},type:'pattern',patternType:'solid'},ctr={horizontal:'center',vertical:'center',wrapText:true};
+    const ws={},merges=[];
+    ws['D2']={v:titulo,t:'s',s:{font:{bold:true},alignment:{horizontal:'center',vertical:'center'}}};ws['L2']={v:cliente,t:'s',s:{font:{bold:true,sz:14}}};
+    ws['D4']={v:periodo,t:'s',s:{alignment:{horizontal:'center',vertical:'center'}}};ws['A5']={v:nota,t:'s',s:{font:{bold:true},alignment:{horizontal:'left'},numFmt:'@'}};
+    merges.push({s:{r:1,c:3},e:{r:1,c:7}},{s:{r:3,c:3},e:{r:3,c:7}});
+    const hs={font:{bold:true,sz:9},alignment:ctr,fill:gf,border:brd};
+    ws['A6']={v:'Fecha',t:'s',s:{font:{bold:true},alignment:{horizontal:'center',vertical:'center'},fill:gf,border:brd}};
+    ws['B6']={v:'Día',t:'s',s:{font:{bold:true},alignment:{horizontal:'center',vertical:'center'},fill:gf,border:brd}};
+    ws['C6']={v:'Parte',t:'s',s:{font:{bold:true},alignment:{horizontal:'center',vertical:'center'},fill:gf,border:brd}};
+    ws['D6']={v:'Montaje SAM Item 8',t:'s',s:hs};ws['E6']={v:'Desmontaje SAM Item 9',t:'s',s:hs};
+    ws['F6']={v:'Reparacion SAM1          Item 10',t:'s',s:hs};ws['G6']={v:'Reparacion SAM2 Item11',t:'s',s:hs};
+    ws['H6']={v:'Reparacion SAM3          Item12',t:'s',s:hs};ws['I6']={v:'Cantidad Operaciones',t:'s',s:hs};
+    ws['J6']={v:'Hs Hombre Item 7',t:'s',s:hs};ws['K6']={v:'Fuerza Mayor Item5',t:'s',s:hs};ws['L6']={v:'Observaciones',t:'s',s:hs};
+    const trs=document.querySelectorAll('#sam_resumenBody tr');let r=7;const rh={2:18,6:36};
+    let s8=0,s9=0,s10=0,s11=0,s12=0;
+    trs.forEach(tr=>{
+      const vals=Array.from(tr.querySelectorAll('td')).map(td=>td.textContent.trim());
+      const fp=vals[0].split('/');let fv=vals[0],ft='s',ff;
+      if(fp.length===3){const d=+fp[0],mo=+fp[1],y=+fp[2];if(d&&mo&&y){fv=dateSerial(d,mo,y);ft='n';ff='dd/mm/yyyy';}}
+      ws['A'+r]={v:fv,t:ft,s:{alignment:{horizontal:'left'},border:bt,numFmt:ff}};
+      ws['B'+r]={v:vals[1],t:'s',s:{border:bt}};ws['C'+r]={v:vals[2],t:'s',s:{border:bt}};
+      const i8=parseInt(vals[3])||0,i9=parseInt(vals[4])||0,i10=parseInt(vals[5])||0,i11=parseInt(vals[6])||0,i12=parseInt(vals[7])||0;
+      ws['D'+r]={v:i8||'',t:i8?'n':'s',s:{alignment:{horizontal:'center'},border:bt}};
+      ws['E'+r]={v:i9||'',t:i9?'n':'s',s:{alignment:{horizontal:'center'},border:bt}};
+      ws['F'+r]={v:i10||'',t:i10?'n':'s',s:{alignment:{horizontal:'center'},border:bt}};
+      ws['G'+r]={v:i11||'',t:i11?'n':'s',s:{alignment:{horizontal:'center'},border:bt}};
+      ws['H'+r]={v:i12||'',t:i12?'n':'s',s:{alignment:{horizontal:'center'},border:bt}};
+      ws['I'+r]={v:i8+i9+i10+i11+i12,t:'n',f:`SUM(D${r}:H${r})`,s:{font:{bold:true},alignment:{horizontal:'center'},border:bt}};
+      ws['J'+r]={v:'',t:'s',s:{border:bt}};ws['K'+r]={v:'',t:'s',s:{border:bt}};
+      ws['L'+r]={v:vals[11]||'',t:'s',s:{font:{bold:true,sz:9},fill:yf,alignment:{horizontal:'center',vertical:'center'},border:bt}};
+      s8+=i8;s9+=i9;s10+=i10;s11+=i11;s12+=i12;rh[r]=22.8;r++;
+    });
+    const ldr=r-1,ssr=ldr+5;
+    ws['I'+ssr]={v:'Resumen Operaciones',t:'s',s:{font:{bold:true},fill:gf,alignment:{horizontal:'left'}}};ws['J'+ssr]={v:'',t:'s',s:{fill:gf}};ws['K'+ssr]={v:'',t:'s',s:{fill:gf}};
+    merges.push({s:{r:ssr-1,c:8},e:{r:ssr-1,c:10}});
+    [{l:'Fuerza Mayor Item5',v:0},{l:'Montaje Item8',v:s8},{l:'Desmontaje Item9',v:s9},{l:'Rep SAM Item10',v:s10},{l:'Rep SAM Item 11',v:s11},{l:'Rep SAM Item 12',v:s12}].forEach((it,idx)=>{
+      const rr=ssr+1+idx;ws['I'+rr]={v:it.l,t:'s',s:{alignment:{horizontal:'left'}}};ws['J'+rr]={v:'',t:'s'};ws['K'+rr]={v:it.v,t:'n',s:{alignment:{horizontal:'right'}}};merges.push({s:{r:rr-1,c:8},e:{r:rr-1,c:9}});
+    });
+    const fR=Math.max(ssr+12,ldr+16);
+    ws['A'+fR]={v:'Firma VA&PE',t:'s',s:{alignment:{horizontal:'center',vertical:'center'},border:bt}};ws['B'+fR]={v:'',t:'s',s:{border:bt}};
+    ws['E'+fR]={v:'Firma Cliente',t:'s',s:{alignment:{horizontal:'center',vertical:'center'},border:bt}};ws['F'+fR]={v:'',t:'s',s:{border:bt}};
+    merges.push({s:{r:fR-1,c:0},e:{r:fR-1,c:1}},{s:{r:fR-1,c:4},e:{r:fR-1,c:5}});
+    ws['!cols']=[{wch:11.2},{wch:10.1},{wch:7.9},{wch:11.2},{wch:12.2},{wch:9.3},{wch:8.4},{wch:10.4},{wch:10.6},{wch:12.1},{wch:8.4},{wch:13.6}];
+    ws['!rows']=[];for(let i=1;i<=fR;i++)ws['!rows'][i-1]=rh[i]?{hpt:rh[i]}:{};
+    ws['!ref']='A1:L'+fR;ws['!merges']=merges;
+    ws['!pageSetup']={orientation:'landscape',paperSize:9};ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
+    XLSX.utils.book_append_sheet(wb,ws,'Parte_Operaciones_SAM');
+    const fI=data[+document.getElementById('sam_selDesde').value].fecha,fF=data[+document.getElementById('sam_selHasta').value].fecha;
+    XLSX.writeFile(wb,`Resumen_SAM_del_${formatDate(fI).replace(/\//g,'-')}_al_${formatDate(fF).replace(/\//g,'-')}.xlsx`);
+  }
+  setupDZ('sam_dropZone','sam_fileInput',handleFile);
+  return {generar,exportXlsx};
+})();
+
+// ========== ROTADORES ==========
+const ROT = (function(){
+  let data=[];
+  function process(wb){
+    data=[];
+    const excl=['parte_operaciones_rotadores','resumen','hoja1','hoja2','hoja3'];
+    wb.SheetNames.forEach(name=>{
+      const nl=name.trim().toLowerCase();if(excl.some(e=>nl.startsWith(e)))return;
+      const ws=wb.Sheets[name];let fecha=null;
+      const k4=getCellVal(ws,'K4');if(k4)fecha=parseDate(k4);
+      if(!fecha)for(let r=8;r<=12;r++){const cv=getCellVal(ws,'C'+r);if(cv){const d=parseDate(cv);if(d){fecha=d;break;}}}
+      if(!fecha)return;
+      let pozos=0,items={};
+      for(let r=8;r<=25;r++){const pozo=getCellVal(ws,'A'+r);if(!pozo)continue;const ps=String(pozo).trim().toLowerCase();
+        if(ps.match(/^s[-\s]?\d+/)||ps.match(/^\d{3,}/)){pozos++;let item=getCellVal(ws,'B'+r);if(!item||typeof item!=='number')item=getCellVal(ws,'D'+r);if(item){const k=String(item);items[k]=(items[k]||0)+1;}}}
+      let tft=0;for(let r=20;r<=30;r++){const av=getCellVal(ws,'A'+r);if(av&&String(av).includes('TOTAL DE POZOS RECORRIDOS')){tft=extractNumber(av);break;}}
+      if(tft>pozos)pozos=tft;if(pozos===0)return;
+      let np='';for(const addr of['A2','A3']){const v=getCellVal(ws,addr);if(v&&String(v).includes('Parte')){const m=String(v).match(/(\d+)/);if(m)np=m[1];break;}}
+      data.push({sheetName:name.trim(),fecha,pozos,items,numParte:np});
+    });
+    data.sort((a,b)=>a.fecha-b.fecha);
+  }
+  function handleFile(file){
+    document.getElementById('rot_fileName').textContent=file.name;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      process(wb);
+      populateSelects(data,document.getElementById('rot_selDesde'),document.getElementById('rot_selHasta'),d=>formatDate(d.fecha)+` (${d.pozos} pozos)`);
+      document.getElementById('rot_controlsCard').style.display='';
+      const sr=document.getElementById('rot_statsRow');sr.style.display='flex';
+      sr.innerHTML=`<div class="stat-chip">Sesiones: <strong>${data.length}</strong></div><div class="stat-chip">Desde: <strong>${data.length?formatDate(data[0].fecha):'-'}</strong></div><div class="stat-chip">Hasta: <strong>${data.length?formatDate(data[data.length-1].fecha):'-'}</strong></div><div class="stat-chip">Total pozos: <strong>${data.reduce((s,d)=>s+d.pozos,0)}</strong></div>`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function generar(){
+    const iD=+document.getElementById('rot_selDesde').value,iH=+document.getElementById('rot_selHasta').value;
+    if(isNaN(iD)||isNaN(iH))return alert('Seleccioná rango.');if(iD>iH)return alert('"Desde" anterior.');
+    const ic=document.getElementById('rot_txtItem').value,det=document.getElementById('rot_txtDetalle').value,pref=document.getElementById('rot_txtPrefijo').value;
+    const filtered=data.slice(iD,iH+1),fi=filtered[0].fecha,ff=filtered[filtered.length-1].fecha;
+    const tbody=document.getElementById('rot_resumenBody');tbody.innerHTML='';
+    let tp=0,pn=1;
+    filtered.forEach(d=>{
+      const tr=document.createElement('tr');
+      [formatDate(d.fecha),DIAS_ES[d.fecha.getDay()],pref+'-'+pn,ic,d.pozos].forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});
+      const tdD=document.createElement('td');tdD.textContent=det;tdD.className='td-detalle';tr.appendChild(tdD);
+      tbody.appendChild(tr);tp+=d.pozos;pn++;
+    });
+    document.getElementById('rot_resTitle').textContent=document.getElementById('rot_txtContrato').value;
+    document.getElementById('rot_resCliente').textContent=document.getElementById('rot_txtCliente').value;
+    document.getElementById('rot_resPeriodo').textContent=periodoText(fi,ff);
+    document.getElementById('rot_resNota').textContent=document.getElementById('rot_txtNotaPedido').value;
+    document.getElementById('rot_summaryArea').innerHTML=`<div class="summary-box"><table><tr><th>Resumen</th><th>Cantidad</th></tr><tr><td>Total ${ic}</td><td><strong>${tp}</strong></td></tr></table></div><div class="leyenda" style="margin-top:70px">Se factura Periodo desde ${formatDate(fi)} hasta ${formatDate(ff)}</div>`;
+    document.getElementById('rot_resumenContainer').style.display='block';
+    document.getElementById('rot_btnPDF').style.display='';
+    document.getElementById('rot_btnExport').style.display='';
+  }
+  function exportXlsx(){
+    const wb=XLSX.utils.book_new(),titulo=document.getElementById('rot_txtContrato').value,cliente=document.getElementById('rot_txtCliente').value,periodo=document.getElementById('rot_resPeriodo').textContent,nota=document.getElementById('rot_txtNotaPedido').value,ic=document.getElementById('rot_txtItem').value;
+    const tb={style:'thin',color:{rgb:'000000'}},brd={top:tb,bottom:tb,left:tb,right:tb},gf={fgColor:{rgb:'C8C8C8'},type:'pattern',patternType:'solid'},ctr={horizontal:'center',vertical:'center'};
+    const ws={},merges=[];
+    ws['J2']={v:cliente,t:'s',s:{font:{sz:14}}};ws['D3']={v:titulo,t:'s',s:{font:{bold:true},alignment:ctr}};
+    ws['D5']={v:periodo,t:'s',s:{alignment:ctr}};ws['A6']={v:nota,t:'s',s:{font:{bold:true},alignment:{horizontal:'left',vertical:'center'},numFmt:'@'}};
+    merges.push({s:{r:2,c:3},e:{r:2,c:6}},{s:{r:4,c:3},e:{r:4,c:6}});
+    const hst={font:{bold:true},alignment:ctr,fill:gf};
+    ws['A7']={v:'Fecha',t:'s',s:{...hst,border:brd}};ws['B7']={v:'Día',t:'s',s:{font:{bold:true},alignment:{vertical:'center'},fill:gf,border:brd}};
+    ws['C7']={v:'Nro de Parte',t:'s',s:{...hst,border:brd}};ws['D7']={v:'Item',t:'s',s:{...hst,border:brd}};
+    ws['E7']={v:'Cantidades',t:'s',s:{...hst,border:brd}};ws['F7']={v:'Detalle ITEMS',t:'s',s:{...hst,border:brd}};
+    ws['G7']={v:'',t:'s',s:{fill:gf,border:brd}};ws['H7']={v:'',t:'s',s:{fill:gf,border:brd}};ws['I7']={v:'',t:'s',s:{fill:gf,border:brd}};
+    merges.push({s:{r:6,c:5},e:{r:6,c:8}});
+    const trs=document.querySelectorAll('#rot_resumenBody tr');let r=8,tp=0;const rh={2:18,7:18.6};
+    trs.forEach(tr=>{
+      const vals=Array.from(tr.querySelectorAll('td')).map(td=>td.textContent.trim());
+      const fp=vals[0].split('/');let fv=vals[0],ft='s',ff;
+      if(fp.length===3){const d=+fp[0],mo=+fp[1],y=+fp[2];if(d&&mo&&y){fv=dateSerial(d,mo,y);ft='n';ff='dd/mm/yyyy';}}
+      ws['A'+r]={v:fv,t:ft,s:{alignment:ctr,border:brd,numFmt:ff}};
+      ws['B'+r]={v:vals[1],t:'s',s:{alignment:ctr,border:brd}};ws['C'+r]={v:vals[2],t:'s',s:{alignment:ctr,border:brd}};
+      ws['D'+r]={v:vals[3],t:'s',s:{alignment:ctr,border:brd}};
+      const cant=parseInt(vals[4])||0;ws['E'+r]={v:cant,t:'n',s:{alignment:ctr,border:brd}};
+      ws['F'+r]={v:vals[5],t:'s',s:{border:brd}};ws['G'+r]={v:'',t:'s',s:{border:brd}};ws['H'+r]={v:'',t:'s',s:{border:brd}};ws['I'+r]={v:'',t:'s',s:{border:brd}};
+      merges.push({s:{r:r-1,c:5},e:{r:r-1,c:8}});rh[r]=20.4;tp+=cant;r++;
+    });
+    const ldr=r-1,sr=ldr+4;
+    ws['H'+sr]={v:'Resumen',t:'s',s:{font:{bold:true},fill:gf}};ws['I'+sr]={v:'Cantidad',t:'s',s:{font:{bold:true},fill:gf}};
+    ws['H'+(sr+1)]={v:'Total '+ic,t:'s'};ws['I'+(sr+1)]={v:tp,t:'n'};
+    ws['H'+(sr+2)]={v:'',t:'s',s:{border:{top:tb}}};ws['I'+(sr+2)]={v:0,t:'n',s:{border:{top:tb}}};
+    const fR=Math.max(sr+8,ldr+14);ws['B'+fR]={v:'Firma VA&PE',t:'s'};ws['G'+fR]={v:'Firma Cliente',t:'s'};
+    ws['!cols']=[{wch:11.5},{wch:10.5},{wch:11},{wch:9},{wch:12.7},{wch:18},{wch:12},{wch:12.7},{wch:18}];
+    ws['!rows']=[];for(let i=1;i<=fR;i++)ws['!rows'][i-1]=rh[i]?{hpt:rh[i]}:{};
+    ws['!ref']='A1:J'+fR;ws['!merges']=merges;
+    ws['!pageSetup']={orientation:'landscape',paperSize:9,fitToWidth:1,fitToHeight:1};ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
+    XLSX.utils.book_append_sheet(wb,ws,'Parte_Operaciones_ROTADORES');
+    const fI=data[+document.getElementById('rot_selDesde').value].fecha,fF=data[+document.getElementById('rot_selHasta').value].fecha;
+    XLSX.writeFile(wb,`Resumen_Rotador_del_${formatDate(fI).replace(/\//g,'-')}_al_${formatDate(fF).replace(/\//g,'-')}.xlsx`);
+  }
+  setupDZ('rot_dropZone','rot_fileInput',handleFile);
+  return {generar,exportXlsx};
+})();
+</script>
 </body>
 </html>
