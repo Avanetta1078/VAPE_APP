@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de Operaciones - VA&PE</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3347;
+  --text: #e8eaf0;
+  --text-muted: #8b90a5;
+  --accent: #4f8cff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: linear-gradient(135deg, #1a1d27 0%, #1e2540 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 32px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  margin-bottom: 4px;
+}
+.header p {
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  max-width: 960px;
+  width: 100%;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-accent);
+  box-shadow: 0 12px 40px rgba(0,0,0,.4), 0 0 0 1px var(--card-accent);
+}
+.card:hover::before {
+  opacity: 1;
+}
+.card:active {
+  transform: translateY(-1px);
+}
+
+.card-dinas { --card-accent: #4f8cff; }
+.card-dinas::before { background: linear-gradient(135deg, rgba(79,140,255,.08) 0%, transparent 60%); }
+.card-sam { --card-accent: #3b82f6; }
+.card-sam::before { background: linear-gradient(135deg, rgba(59,130,246,.08) 0%, transparent 60%); }
+.card-rotadores { --card-accent: #f59e0b; }
+.card-rotadores::before { background: linear-gradient(135deg, rgba(245,158,11,.08) 0%, transparent 60%); }
+
+.icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .25s ease;
+}
+.card:hover .icon-wrap { transform: scale(1.08); }
+.card-dinas .icon-wrap { background: rgba(79,140,255,.12); }
+.card-sam .icon-wrap { background: rgba(59,130,246,.12); }
+.card-rotadores .icon-wrap { background: rgba(245,158,11,.12); }
+
+.icon-wrap svg { width: 36px; height: 36px; }
+.card-dinas svg { color: #4f8cff; }
+.card-sam svg { color: #3b82f6; }
+.card-rotadores svg { color: #f59e0b; }
+
+.card h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.card p {
+  font-size: .82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.badge {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+.card-dinas .badge { background: rgba(79,140,255,.15); color: #4f8cff; }
+.card-sam .badge { background: rgba(59,130,246,.15); color: #60a5fa; }
+.card-rotadores .badge { background: rgba(245,158,11,.15); color: #f59e0b; }
+
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: .75rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    gap: 16px;
+  }
+  .card { padding: 28px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Resumen de Operaciones</h1>
+  <p>Seleccioná el cierre que necesitás generar</p>
+</div>
+
+<div class="main">
+  <div class="grid">
+
+    <a class="card card-dinas" href="resumen_operaciones.html">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"/>
+          <path d="M7 16l4-8 4 4 5-9"/>
+        </svg>
+      </div>
+      <h2>ECO-Dinamometría</h2>
+      <p>Montaje/desmontaje de equipos, reparaciones y calibraciones de dinamómetros</p>
+      <span class="badge">Dinas</span>
+    </a>
+
+    <a class="card card-sam" href="resumen_sam.html">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="18" rx="2"/>
+          <path d="M8 7v10M12 7v10M16 7v10"/>
+          <path d="M2 12h20"/>
+        </svg>
+      </div>
+      <h2>SAM</h2>
+      <p>Montaje/desmontaje y reparación de sistemas SAM en pozos</p>
+      <span class="badge">SAM</span>
+    </a>
+
+    <a class="card card-rotadores" href="resumen_rotadores.html">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+      </div>
+      <h2>Rotadores</h2>
+      <p>Control de rotadores de varillas, montaje, desmontaje y reparaciones</p>
+      <span class="badge">Rotadores</span>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer">VA&PE — Mediciones Físicas</div>
+
+</body>
+</html>
