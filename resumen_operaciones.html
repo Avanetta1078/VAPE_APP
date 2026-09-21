@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de Operaciones - ECO-DINAMOMETRÍA</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3347;
+  --text: #e8eaf0;
+  --text-muted: #8b90a5;
+  --accent: #4f8cff;
+  --accent-hover: #6ba0ff;
+  --green: #34d399;
+  --green-bg: #0d2e22;
+  --red: #f87171;
+  --weekend-bg: #2a2235;
+  --weekend-text: #a78bfa;
+  --header-bg: #1e2235;
+  --total-bg: #132e1f;
+  --total-border: #34d399;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.app-header {
+  background: linear-gradient(135deg, #1a1d27 0%, #1e2540 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.app-header svg { width:36px; height:36px; color: var(--accent); flex-shrink:0; }
+.app-header h1 { font-size:1.3rem; font-weight:600; letter-spacing:.02em; }
+.app-header span { color: var(--text-muted); font-size:.85rem; }
+
+.container { max-width:1100px; margin:0 auto; padding:24px 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title svg { width:18px; height:18px; color: var(--accent); }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(79,140,255,.05);
+}
+.upload-zone svg { width:40px; height:40px; color: var(--text-muted); margin-bottom:12px; }
+.upload-zone p { color: var(--text-muted); font-size:.9rem; }
+.upload-zone .filename { color: var(--green); font-weight:500; margin-top:8px; }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+.controls {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.field { display:flex; flex-direction:column; gap:6px; flex:1; min-width:180px; }
+.field label { font-size:.8rem; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
+.field select, .field input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.field select:focus, .field input:focus { border-color: var(--accent); }
+
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.btn svg { width:16px; height:16px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-hover); transform:translateY(-1px); }
+.btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.btn-success { background: var(--green); color:#0a0a0a; }
+.btn-success:hover { background: #4ade80; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: .82rem;
+}
+.stat-chip strong { color: var(--accent); }
+
+.config-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.config-row .field { min-width:200px; }
+
+/* === RESUMEN TABLE === */
+#resumenContainer { display:none; }
+
+.resumen-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--header-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.resumen-header h2 { font-size:1.1rem; font-weight:700; color: var(--accent); margin-bottom:4px; }
+.resumen-header h3 { font-size:.95rem; font-weight:500; color: var(--text); margin-bottom:4px; }
+.resumen-header .subtitle { font-size:.82rem; color: var(--text-muted); }
+
+.resumen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+.resumen-table th {
+  background: var(--header-bg);
+  color: var(--accent);
+  padding: 10px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+.resumen-table td {
+  padding: 7px 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: background .15s;
+}
+.resumen-table tbody tr:hover { background: rgba(79,140,255,.04); }
+
+.row-weekend {
+  background: var(--weekend-bg) !important;
+  color: var(--weekend-text);
+}
+.row-weekend td { color: var(--weekend-text); font-style:italic; }
+
+.row-nolabor {
+  background: rgba(251,191,36,.06) !important;
+}
+.row-nolabor td { color: #fbbf24; }
+
+.row-total {
+  background: var(--total-bg) !important;
+  font-weight: 700;
+}
+.row-total td { color: var(--green); border-top: 2px solid var(--total-border); }
+
+.leyenda {
+  margin-top: 16px;
+  padding: 12px 16px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+.firmas {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 40px;
+  padding: 0 60px;
+}
+.firma-block { text-align:center; }
+.firma-line { width:180px; border-bottom:1px solid var(--text-muted); margin-bottom:6px; }
+.firma-label { font-size:.8rem; color:var(--text-muted); }
+
+/* === PRINT === */
+@media print {
+  :root {
+    --bg:#fff; --surface:#fff; --surface2:#f5f5f5;
+    --border:#ccc; --text:#111; --text-muted:#666;
+    --accent:#1a3a6e; --header-bg:#e8ecf4; --weekend-bg:#f0edf5;
+    --weekend-text:#6b5b95; --total-bg:#e6f4ea; --total-border:#2e7d32;
+    --green:#2e7d32;
+  }
+  body { background:#fff; }
+  .app-header, .card:has(.upload-zone), .card:has(.controls),
+  #btnGenerar, #btnPDF, #btnExportXlsx, .no-print { display:none !important; }
+  .card { border:none; padding:0; margin:0; }
+  #resumenContainer { display:block !important; }
+  .resumen-header { border:none; background:none; }
+  .resumen-header h2 { color:#1a3a6e; }
+  .resumen-table { font-size:10pt; }
+  .resumen-table th { background:#dde3ef !important; color:#1a3a6e; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-weekend { background:#ece8f3 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total { background:#e0f2e1 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total td { color:#1b5e20; }
+  @page { size:A4 landscape; margin:15mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+  <div>
+    <h1>Resumen de Operaciones</h1>
+    <span>CONTRATO ECO-DINAMOMETRÍA</span>
+  </div>
+</div>
+
+<div class="container">
+  <!-- UPLOAD -->
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar Parte Diario (.xlsx)
+    </div>
+    <div class="upload-zone" id="dropZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <p>Arrastrá o hacé clic para cargar el archivo Excel del Parte Diario</p>
+      <div class="filename" id="fileName"></div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm">
+    </div>
+    <div class="stats-row" id="statsRow" style="display:none"></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="card" id="controlsCard" style="display:none">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Configuración del Resumen
+    </div>
+    <div class="config-row">
+      <div class="field">
+        <label>Contrato / Título</label>
+        <input type="text" id="txtContrato" value="CONTRATO ECO-DINAMOMETRÍA">
+      </div>
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="txtCliente" value="CrowPoint">
+      </div>
+      <div class="field">
+        <label>Nota de Pedido</label>
+        <input type="text" id="txtNotaPedido" value="Nota de Pedido - N°4620001791">
+      </div>
+    </div>
+    <div class="controls">
+      <div class="field">
+        <label>Desde (fecha)</label>
+        <select id="selDesde"></select>
+      </div>
+      <div class="field">
+        <label>Hasta (fecha)</label>
+        <select id="selHasta"></select>
+      </div>
+      <button class="btn btn-primary" id="btnGenerar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Generar Resumen
+      </button>
+      <button class="btn btn-success" id="btnPDF" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportar PDF
+      </button>
+      <button class="btn btn-outline" id="btnExportXlsx" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6a2 2 0 00-2 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportar XLSX
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN OUTPUT -->
+  <div class="card" id="resumenContainer">
+    <div class="resumen-header">
+      <h2 id="resTitle">CONTRATO ECO-DINAMOMETRÍA</h2>
+      <div id="resCliente" class="subtitle" style="text-align:right;margin-top:-20px;font-weight:600"></div>
+      <h3 id="resPeriodo"></h3>
+      <div id="resNota" class="subtitle"></div>
+    </div>
+    <table class="resumen-table" id="resumenTable">
+      <thead>
+        <tr>
+          <th style="width:110px">Fecha</th>
+          <th style="width:100px">Día</th>
+          <th style="width:100px">Nro de Parte</th>
+          <th>Combinada<br><small>Item 3</small></th>
+          <th>Dinamómetro<br><small>Item 1</small></th>
+          <th>Nivel<br><small>Item 2</small></th>
+          <th>Frustrada<br><small>Item 4</small></th>
+        </tr>
+      </thead>
+      <tbody id="resumenBody"></tbody>
+    </table>
+    <div class="leyenda" id="resLeyenda"></div>
+    <div class="firmas">
+      <div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma VA&PE</div></div>
+      <div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma Cliente</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+let sheetData = [];
+
+function parseDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) return val;
+  const s = String(val).trim();
+  if (!s) return null;
+  let m;
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) {
+    let y = +m[3];
+    if (y < 100) y += 2000;
+    return new Date(y, +m[2]-1, +m[1]);
+  }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) return new Date(new Date().getFullYear(), +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function extractNumber(val) {
+  if (val == null) return 0;
+  if (typeof val === 'number') return val;
+  const s = String(val).trim();
+  const m = s.match(/(\d+)\s*$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function getCellVal(ws, addr) {
+  const cell = ws[addr];
+  return cell ? cell.v : null;
+}
+
+function processWorkbook(wb) {
+  sheetData = [];
+  const excluded = ['resumen_operaciones', 'resumen_operaciones dinas', 'informe_dinamometria'];
+
+  wb.SheetNames.forEach(name => {
+    if (excluded.includes(name.trim().toLowerCase())) return;
+    if (/^hoja\d*$/i.test(name.trim())) return;
+
+    const ws = wb.Sheets[name];
+    const f2 = getCellVal(ws, 'F2');
+    const fecha = parseDate(f2);
+    if (!fecha) return;
+
+    const b2 = getCellVal(ws, 'B2');
+    const g13 = getCellVal(ws, 'G13');
+    const f13 = getCellVal(ws, 'F13');
+    const g19 = getCellVal(ws, 'G19');
+    const f19 = getCellVal(ws, 'F19');
+    const g26 = getCellVal(ws, 'G26');
+    const f26 = getCellVal(ws, 'F26');
+    const g32 = getCellVal(ws, 'G32');
+    const f32 = getCellVal(ws, 'F32');
+
+    const combinadas = (g13 != null && typeof g13 === 'number') ? g13 : extractNumber(f13);
+    const dina = (g19 != null && typeof g19 === 'number') ? g19 : extractNumber(f19);
+    const niveles = (g26 != null && typeof g26 === 'number') ? g26 : extractNumber(f26);
+    const canceladas = (g32 != null && typeof g32 === 'number') ? g32 : extractNumber(f32);
+
+    sheetData.push({
+      sheetName: name.trim(),
+      fecha,
+      numParte: b2 != null ? String(b2).trim() : '',
+      combinadas,
+      dina,
+      niveles,
+      canceladas
+    });
+  });
+
+  sheetData.sort((a, b) => a.fecha - b.fecha);
+  return sheetData;
+}
+
+function populateSelects() {
+  const selDesde = document.getElementById('selDesde');
+  const selHasta = document.getElementById('selHasta');
+  selDesde.innerHTML = '';
+  selHasta.innerHTML = '';
+
+  sheetData.forEach((d, i) => {
+    const txt = formatDate(d.fecha) + (d.numParte ? ` (Parte ${d.numParte})` : '');
+    const optD = new Option(txt, i);
+    const optH = new Option(txt, i);
+    selDesde.appendChild(optD);
+    selHasta.appendChild(optH);
+  });
+  if (sheetData.length > 0) {
+    selHasta.value = sheetData.length - 1;
+    const lastMonth = sheetData[sheetData.length-1].fecha.getMonth();
+    const lastYear = sheetData[sheetData.length-1].fecha.getFullYear();
+    for (let i = sheetData.length-1; i >= 0; i--) {
+      const d = sheetData[i].fecha;
+      if (d.getMonth() === lastMonth && d.getFullYear() === lastYear) {
+        selDesde.value = i;
+      } else break;
+    }
+  }
+}
+
+function formatDate(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function sameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function generarResumen() {
+  const idxDesde = parseInt(document.getElementById('selDesde').value);
+  const idxHasta = parseInt(document.getElementById('selHasta').value);
+  if (isNaN(idxDesde) || isNaN(idxHasta)) return alert('Seleccioná un rango de fechas.');
+  if (idxDesde > idxHasta) return alert('"Desde" debe ser anterior a "Hasta".');
+
+  const fechaInicio = new Date(sheetData[idxDesde].fecha);
+  const fechaFin = new Date(sheetData[idxHasta].fecha);
+
+  const lookup = new Map();
+  sheetData.forEach(d => {
+    const key = d.fecha.toISOString().slice(0,10);
+    lookup.set(key, d);
+  });
+
+  const tbody = document.getElementById('resumenBody');
+  tbody.innerHTML = '';
+  let diasHabiles = 0;
+  let totalComb = 0, totalDina = 0, totalNiv = 0, totalCanc = 0;
+
+  let current = new Date(fechaInicio);
+  while (current <= fechaFin) {
+    const dow = current.getDay();
+    const isWeekend = (dow === 0 || dow === 6);
+    const diaNombre = DIAS_ES[dow];
+    const key = current.toISOString().slice(0,10);
+    const match = lookup.get(key);
+
+    const tr = document.createElement('tr');
+    if (isWeekend) tr.className = 'row-weekend';
+
+    const tdFecha = document.createElement('td');
+    tdFecha.textContent = formatDate(current);
+    tdFecha.style.textAlign = 'left';
+    tr.appendChild(tdFecha);
+
+    const tdDia = document.createElement('td');
+    tdDia.textContent = diaNombre;
+    tr.appendChild(tdDia);
+
+    const tdParte = document.createElement('td');
+    const tdComb = document.createElement('td');
+    const tdDinaC = document.createElement('td');
+    const tdNivel = document.createElement('td');
+    const tdFrust = document.createElement('td');
+
+    if (!isWeekend && match) {
+      tdParte.textContent = match.numParte || '';
+      tdComb.textContent = match.combinadas || '';
+      tdDinaC.textContent = match.dina || '';
+      tdNivel.textContent = match.niveles || '';
+      tdFrust.textContent = match.canceladas || '';
+      totalComb += match.combinadas || 0;
+      totalDina += match.dina || 0;
+      totalNiv += match.niveles || 0;
+      totalCanc += match.canceladas || 0;
+      diasHabiles++;
+    } else if (!isWeekend && !match) {
+      // Día hábil sin datos (feriado o sin parte)
+    }
+
+    tr.appendChild(tdParte);
+    tr.appendChild(tdComb);
+    tr.appendChild(tdDinaC);
+    tr.appendChild(tdNivel);
+    tr.appendChild(tdFrust);
+    tbody.appendChild(tr);
+
+    current = addDays(current, 1);
+  }
+
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'row-total';
+  trTotal.innerHTML = `
+    <td></td>
+    <td>Totales (${diasHabiles} días hábiles)</td>
+    <td></td>
+    <td>${totalComb}</td>
+    <td>${totalDina}</td>
+    <td>${totalNiv}</td>
+    <td>${totalCanc}</td>
+  `;
+  tbody.appendChild(trTotal);
+
+  const mesInicio = MESES_ES[fechaInicio.getMonth()];
+  const mesFin = MESES_ES[fechaFin.getMonth()];
+  const yearFin = fechaFin.getFullYear();
+  let periodoTxt = mesInicio === mesFin
+    ? `Resumen de Operaciones Periodo ${mesFin} ${yearFin}`
+    : `Resumen de Operaciones Periodo ${mesInicio} - ${mesFin} ${yearFin}`;
+
+  document.getElementById('resTitle').textContent = document.getElementById('txtContrato').value;
+  document.getElementById('resCliente').textContent = document.getElementById('txtCliente').value;
+  document.getElementById('resPeriodo').textContent = periodoTxt;
+  document.getElementById('resNota').textContent = document.getElementById('txtNotaPedido').value;
+  document.getElementById('resLeyenda').textContent =
+    `Se factura Periodo desde ${formatDate(fechaInicio)} hasta ${formatDate(fechaFin)}`;
+
+  document.getElementById('resumenContainer').style.display = 'block';
+  document.getElementById('btnPDF').style.display = '';
+  document.getElementById('btnExportXlsx').style.display = '';
+  document.getElementById('resumenContainer').scrollIntoView({ behavior:'smooth' });
+}
+
+function exportPDF() {
+  window.print();
+}
+
+function exportXlsx() {
+  const wb = XLSX.utils.book_new();
+  const titulo = document.getElementById('txtContrato').value;
+  const cliente = document.getElementById('txtCliente').value;
+  const periodo = document.getElementById('resPeriodo').textContent;
+  const nota = document.getElementById('txtNotaPedido').value;
+  const leyenda = document.getElementById('resLeyenda').textContent;
+
+  const rows = [];
+  rows.push(['', '', titulo, '', '', cliente]);
+  rows.push([]);
+  rows.push(['', '', periodo]);
+  rows.push([nota]);
+  rows.push(['Fecha', 'Día', 'Nro de Parte', 'Combinada Item3', 'Dinamometro Item 1', 'Nivel Item 2', 'Frustrada Item 4']);
+
+  const trs = document.querySelectorAll('#resumenBody tr');
+  trs.forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    const vals = Array.from(tds).map(td => {
+      const n = parseFloat(td.textContent);
+      return (!isNaN(n) && td.cellIndex >= 3) ? n : td.textContent;
+    });
+    rows.push(vals);
+  });
+  rows.push([]);
+  rows.push([leyenda]);
+  rows.push([]);
+  rows.push([]);
+  rows.push(['', '______________', '', '', '___________']);
+  rows.push(['', 'Firma VA&PE', '', '', 'Firma Cliente']);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    {wch:12},{wch:12},{wch:14},{wch:16},{wch:18},{wch:16},{wch:14}
+  ];
+  const sheetName = 'Resumen_Operaciones Dinas';
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `Resumen_Dinas_${formatDate(new Date()).replace(/\//g,'-')}.xlsx`);
+}
+
+// === EVENT HANDLERS ===
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  document.getElementById('fileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, { type:'array', cellDates:true });
+    processWorkbook(wb);
+    populateSelects();
+    document.getElementById('controlsCard').style.display = '';
+    const sr = document.getElementById('statsRow');
+    sr.style.display = 'flex';
+    sr.innerHTML = `
+      <div class="stat-chip">Hojas con datos: <strong>${sheetData.length}</strong></div>
+      <div class="stat-chip">Desde: <strong>${sheetData.length ? formatDate(sheetData[0].fecha) : '-'}</strong></div>
+      <div class="stat-chip">Hasta: <strong>${sheetData.length ? formatDate(sheetData[sheetData.length-1].fecha) : '-'}</strong></div>
+    `;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('btnGenerar').addEventListener('click', generarResumen);
+document.getElementById('btnPDF').addEventListener('click', exportPDF);
+document.getElementById('btnExportXlsx').addEventListener('click', exportXlsx);
+</script>
+</body>
+</html>
