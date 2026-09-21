@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de Operaciones - SAM</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3347;
+  --text: #e8eaf0;
+  --text-muted: #8b90a5;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --green: #34d399;
+  --green-bg: #0d2e22;
+  --header-bg: #1e2235;
+  --total-bg: #132e1f;
+  --total-border: #34d399;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.app-header {
+  background: linear-gradient(135deg, #1a1d27 0%, #0f1a2e 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.app-header svg { width:36px; height:36px; color: var(--accent); flex-shrink:0; }
+.app-header h1 { font-size:1.3rem; font-weight:600; letter-spacing:.02em; }
+.app-header span { color: var(--text-muted); font-size:.85rem; }
+
+.container { max-width:1400px; margin:0 auto; padding:24px 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title svg { width:18px; height:18px; color: var(--accent); }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(59,130,246,.05);
+}
+.upload-zone svg { width:40px; height:40px; color: var(--text-muted); margin-bottom:12px; }
+.upload-zone p { color: var(--text-muted); font-size:.9rem; }
+.upload-zone .filename { color: var(--green); font-weight:500; margin-top:8px; }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+.controls {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.field { display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
+.field label { font-size:.8rem; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
+.field select, .field input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.field select:focus, .field input:focus { border-color: var(--accent); }
+
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.btn svg { width:16px; height:16px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-hover); transform:translateY(-1px); }
+.btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.btn-success { background: var(--green); color:#0a0a0a; }
+.btn-success:hover { background: #4ade80; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: .82rem;
+}
+.stat-chip strong { color: var(--accent); }
+
+.config-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.config-row .field { min-width:180px; }
+
+/* === RESUMEN TABLE === */
+#resumenContainer { display:none; }
+
+.resumen-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--header-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.resumen-header h2 { font-size:1.1rem; font-weight:700; color: var(--accent); margin-bottom:4px; }
+.resumen-header h3 { font-size:.95rem; font-weight:500; color: var(--text); margin-bottom:4px; }
+.resumen-header .subtitle { font-size:.82rem; color: var(--text-muted); }
+
+.resumen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+.resumen-table th {
+  background: var(--header-bg);
+  color: var(--accent);
+  padding: 10px 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+.resumen-table td {
+  padding: 7px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: background .15s;
+}
+.resumen-table tbody tr:hover { background: rgba(59,130,246,.04); }
+.resumen-table td.td-detalle {
+  text-align: left;
+  font-size: .82rem;
+}
+
+.row-total {
+  background: var(--total-bg) !important;
+  font-weight: 700;
+}
+.row-total td { color: var(--green); border-top: 2px solid var(--total-border); }
+
+.summary-box {
+  display: inline-block;
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  float: right;
+}
+.summary-box table {
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.summary-box th {
+  background: var(--header-bg);
+  padding: 6px 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+.summary-box td {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.summary-box td strong { color: var(--accent); }
+
+.leyenda {
+  margin-top: 16px;
+  padding: 12px 16px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  clear: both;
+}
+.firmas {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 40px;
+  padding: 0 60px;
+}
+.firma-block { text-align:center; }
+.firma-line { width:180px; border-bottom:1px solid var(--text-muted); margin-bottom:6px; }
+.firma-label { font-size:.8rem; color:var(--text-muted); }
+
+/* === PRINT === */
+@media print {
+  :root {
+    --bg:#fff; --surface:#fff; --surface2:#f5f5f5;
+    --border:#ccc; --text:#111; --text-muted:#666;
+    --accent:#1e40af; --header-bg:#dbeafe; --total-bg:#e6f4ea;
+    --total-border:#2e7d32; --green:#2e7d32;
+  }
+  body { background:#fff; }
+  .app-header, .card:has(.upload-zone), .card:has(.controls),
+  #btnGenerar, #btnPDF, #btnExportXlsx, .no-print { display:none !important; }
+  .card { border:none; padding:0; margin:0; }
+  #resumenContainer { display:block !important; }
+  .resumen-header { border:none; background:none; }
+  .resumen-header h2 { color:#1e40af; }
+  .resumen-table { font-size:9pt; }
+  .resumen-table th { background:#dbeafe !important; color:#1e40af; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total { background:#e0f2e1 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .row-total td { color:#1b5e20; }
+  .summary-box { border-color:#ccc; }
+  .summary-box th { background:#dbeafe !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @page { size:A4 landscape; margin:12mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+  <div>
+    <h1>Resumen de Operaciones - SAM</h1>
+    <span>CONTRATO SAM (SISTEMA DE ADQUISICION Y MONITOREO)</span>
+  </div>
+</div>
+
+<div class="container">
+  <!-- UPLOAD -->
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar Parte Diario SAM (.xlsx)
+    </div>
+    <div class="upload-zone" id="dropZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <p>Arrastrá o hacé clic para cargar el archivo Excel del Parte Diario SAM</p>
+      <div class="filename" id="fileName"></div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm">
+    </div>
+    <div class="stats-row" id="statsRow" style="display:none"></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="card" id="controlsCard" style="display:none">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Configuración del Resumen
+    </div>
+    <div class="config-row">
+      <div class="field">
+        <label>Contrato / Título</label>
+        <input type="text" id="txtContrato" value="CONTRATO SAM">
+      </div>
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="txtCliente" value="CrowPoint">
+      </div>
+      <div class="field">
+        <label>Nota de Pedido</label>
+        <input type="text" id="txtNotaPedido" value="Nota de Pedido - N°4620001791">
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="field" style="max-width:140px">
+        <label>Prefijo Parte</label>
+        <input type="text" id="txtPrefijoParte" value="000">
+      </div>
+      <div class="field">
+        <label>Detalle Items (descripción)</label>
+        <input type="text" id="txtDetalle" value="Montaje/Desmontaje/Reparación/Mantenimiento SAM">
+      </div>
+    </div>
+    <div class="controls">
+      <div class="field">
+        <label>Desde (fecha)</label>
+        <select id="selDesde"></select>
+      </div>
+      <div class="field">
+        <label>Hasta (fecha)</label>
+        <select id="selHasta"></select>
+      </div>
+      <button class="btn btn-primary" id="btnGenerar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Generar Resumen
+      </button>
+      <button class="btn btn-success" id="btnPDF" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportar PDF
+      </button>
+      <button class="btn btn-outline" id="btnExportXlsx" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6a2 2 0 00-2 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportar XLSX
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN OUTPUT -->
+  <div class="card" id="resumenContainer">
+    <div class="resumen-header">
+      <div id="resCliente" class="subtitle" style="text-align:right;font-weight:600;margin-bottom:8px"></div>
+      <h2 id="resTitle">CONTRATO SAM</h2>
+      <h3 id="resPeriodo"></h3>
+      <div id="resNota" class="subtitle"></div>
+    </div>
+    <table class="resumen-table" id="resumenTable">
+      <thead>
+        <tr>
+          <th style="width:95px">Fecha</th>
+          <th style="width:85px">Día</th>
+          <th style="width:85px">Nro de Parte</th>
+          <th style="width:60px">Item 8<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Montaje</span></th>
+          <th style="width:60px">Item 9<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Desmontaje</span></th>
+          <th style="width:60px">Item 10<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Reparación</span></th>
+          <th style="width:60px">Item 11<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Mantenim.</span></th>
+          <th style="width:60px">Item 12<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Relevam.</span></th>
+          <th style="width:70px">Cantidades</th>
+          <th>Detalle ITEMS</th>
+        </tr>
+      </thead>
+      <tbody id="resumenBody"></tbody>
+    </table>
+    <div id="summaryArea"></div>
+    <div class="firmas">
+      <div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma VA&PE</div></div>
+      <div class="firma-block"><div class="firma-line"></div><div class="firma-label">Firma Cliente</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const ITEM_MAP = {1:8, 2:9, 3:10, 4:11, 5:12};
+const ITEM_LABELS = {8:'Montaje', 9:'Desmontaje', 10:'Reparación', 11:'Mantenimiento', 12:'Relevamiento'};
+
+let sheetData = [];
+
+function parseDate(val) {
+  if (!val) return null;
+  if (val instanceof Date && !isNaN(val)) return val;
+  const s = String(val).trim();
+  if (!s) return null;
+  let m;
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) {
+    let y = +m[3]; if (y < 100) y += 2000;
+    return new Date(y, +m[2]-1, +m[1]);
+  }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) return new Date(new Date().getFullYear(), +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function getCellVal(ws, addr) {
+  const cell = ws[addr];
+  return cell ? cell.v : null;
+}
+
+function findDateInSheet(ws) {
+  const positions = ['E2','E1','D3','D4','D5','F2','F3'];
+  for (const addr of positions) {
+    const v = getCellVal(ws, addr);
+    if (v) {
+      const d = parseDate(v);
+      if (d && d.getFullYear() >= 2000 && d.getFullYear() <= 2030) return d;
+    }
+  }
+  for (let r = 1; r <= 8; r++) {
+    for (const col of ['D','E','F']) {
+      const v = getCellVal(ws, col + r);
+      if (v) {
+        const d = parseDate(v);
+        if (d && d.getFullYear() >= 2000 && d.getFullYear() <= 2030) return d;
+      }
+    }
+  }
+  return null;
+}
+
+function findTotalRow(ws) {
+  for (let r = 10; r <= 40; r++) {
+    const v = getCellVal(ws, 'A' + r);
+    if (v && typeof v === 'string' && v.toUpperCase().includes('TOTAL')) return r;
+  }
+  return -1;
+}
+
+function processWorkbook(wb) {
+  sheetData = [];
+  const excluded = ['hoja1','hoja2','hoja3','parte_operaciones','resumen'];
+
+  wb.SheetNames.forEach(name => {
+    const nameLower = name.trim().toLowerCase();
+    if (excluded.some(e => nameLower.startsWith(e))) {
+      if (!nameLower.match(/^hoja\d+$/) || nameLower === 'hoja1' || nameLower === 'hoja2' || nameLower === 'hoja3') return;
+    }
+    if (nameLower.match(/^hoja\d+$/)) return;
+
+    const ws = wb.Sheets[name];
+    const fecha = findDateInSheet(ws);
+    if (!fecha) return;
+
+    const totalRow = findTotalRow(ws);
+    const maxScanRow = totalRow > 0 ? totalRow - 1 : 35;
+
+    let pozos = [];
+    let itemCounts = {1:0, 2:0, 3:0, 4:0, 5:0};
+    let detalleTexts = [];
+
+    for (let r = 4; r <= maxScanRow; r++) {
+      const aVal = getCellVal(ws, 'A' + r);
+      const bVal = getCellVal(ws, 'B' + r);
+
+      if (aVal && typeof aVal === 'string') {
+        const pStr = aVal.trim();
+        if (/^s[-\s]?\d+/i.test(pStr)) {
+          if (!pozos.includes(pStr.toUpperCase())) pozos.push(pStr.toUpperCase());
+        }
+      }
+
+      if (bVal !== null && typeof bVal === 'number' && bVal >= 1 && bVal <= 5) {
+        itemCounts[bVal]++;
+        const eVal = getCellVal(ws, 'E' + r) || getCellVal(ws, 'D' + r);
+        if (eVal && typeof eVal === 'string') {
+          const desc = eVal.trim();
+          if (desc && !detalleTexts.includes(desc)) detalleTexts.push(desc);
+        }
+      }
+    }
+
+    let totalItems = 0;
+    if (totalRow > 0) {
+      const gVal = getCellVal(ws, 'G' + totalRow);
+      const fVal = getCellVal(ws, 'F' + totalRow);
+      totalItems = (typeof gVal === 'number' ? gVal : 0) || (typeof fVal === 'number' ? fVal : 0);
+    }
+    if (!totalItems) {
+      totalItems = Object.values(itemCounts).reduce((s, v) => s + v, 0);
+    }
+
+    let totalPozos = pozos.length;
+    if (totalRow > 0) {
+      const cVal = getCellVal(ws, 'C' + totalRow);
+      if (typeof cVal === 'number' && cVal > totalPozos) totalPozos = cVal;
+    }
+
+    if (totalPozos === 0 && totalItems === 0) return;
+
+    sheetData.push({
+      sheetName: name.trim(),
+      fecha,
+      pozos: totalPozos,
+      pozosList: pozos,
+      itemCounts,
+      totalItems,
+      detalle: detalleTexts.slice(0, 3).join(', ')
+    });
+  });
+
+  sheetData.sort((a, b) => a.fecha - b.fecha);
+  return sheetData;
+}
+
+function formatDate(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' +
+         String(d.getMonth()+1).padStart(2,'0') + '/' +
+         d.getFullYear();
+}
+
+function populateSelects() {
+  const selDesde = document.getElementById('selDesde');
+  const selHasta = document.getElementById('selHasta');
+  selDesde.innerHTML = '';
+  selHasta.innerHTML = '';
+
+  sheetData.forEach((d, i) => {
+    const txt = formatDate(d.fecha) + ` (${d.pozos} pozos, ${d.totalItems} items)`;
+    selDesde.appendChild(new Option(txt, i));
+    selHasta.appendChild(new Option(txt, i));
+  });
+
+  if (sheetData.length > 0) {
+    selHasta.value = sheetData.length - 1;
+    const last = sheetData[sheetData.length-1].fecha;
+    const lastMonth = last.getMonth();
+    const lastYear = last.getFullYear();
+    let firstOfMonth = 0;
+    for (let i = 0; i < sheetData.length; i++) {
+      const d = sheetData[i].fecha;
+      if (d.getMonth() === lastMonth && d.getFullYear() === lastYear) {
+        firstOfMonth = i;
+        break;
+      }
+    }
+    selDesde.value = Math.max(0, firstOfMonth - 1);
+  }
+}
+
+function generarResumen() {
+  const idxDesde = parseInt(document.getElementById('selDesde').value);
+  const idxHasta = parseInt(document.getElementById('selHasta').value);
+  if (isNaN(idxDesde) || isNaN(idxHasta)) return alert('Seleccioná un rango de fechas.');
+  if (idxDesde > idxHasta) return alert('"Desde" debe ser anterior a "Hasta".');
+
+  const detalle = document.getElementById('txtDetalle').value;
+  const prefijo = document.getElementById('txtPrefijoParte').value;
+
+  const filtered = sheetData.slice(idxDesde, idxHasta + 1);
+  const fechaInicio = filtered[0].fecha;
+  const fechaFin = filtered[filtered.length - 1].fecha;
+
+  const tbody = document.getElementById('resumenBody');
+  tbody.innerHTML = '';
+
+  let totals = {8:0, 9:0, 10:0, 11:0, 12:0};
+  let totalCant = 0;
+  let partNum = 1;
+
+  filtered.forEach(d => {
+    const tr = document.createElement('tr');
+
+    const tdFecha = document.createElement('td');
+    tdFecha.textContent = formatDate(d.fecha);
+    tr.appendChild(tdFecha);
+
+    const tdDia = document.createElement('td');
+    tdDia.textContent = DIAS_ES[d.fecha.getDay()];
+    tr.appendChild(tdDia);
+
+    const tdParte = document.createElement('td');
+    tdParte.textContent = prefijo + '-' + partNum;
+    tr.appendChild(tdParte);
+
+    for (let parteItem = 1; parteItem <= 5; parteItem++) {
+      const resumenItem = ITEM_MAP[parteItem];
+      const td = document.createElement('td');
+      const count = d.itemCounts[parteItem] || 0;
+      td.textContent = count || '';
+      tr.appendChild(td);
+      totals[resumenItem] += count;
+    }
+
+    const tdCant = document.createElement('td');
+    tdCant.textContent = d.totalItems;
+    tr.appendChild(tdCant);
+
+    const tdDetalle = document.createElement('td');
+    tdDetalle.textContent = d.detalle || detalle;
+    tdDetalle.className = 'td-detalle';
+    tr.appendChild(tdDetalle);
+
+    tbody.appendChild(tr);
+    totalCant += d.totalItems;
+    partNum++;
+  });
+
+  // Fila TOTAL
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'row-total';
+  trTotal.innerHTML = `<td colspan="3">TOTALES</td>`;
+  for (const resItem of [8,9,10,11,12]) {
+    const td = document.createElement('td');
+    td.textContent = totals[resItem];
+    trTotal.appendChild(td);
+  }
+  const tdTotalCant = document.createElement('td');
+  tdTotalCant.textContent = totalCant;
+  trTotal.appendChild(tdTotalCant);
+  const tdTotalDet = document.createElement('td');
+  tdTotalDet.textContent = '';
+  trTotal.appendChild(tdTotalDet);
+  tbody.appendChild(trTotal);
+
+  // Header info
+  const mesInicio = MESES_ES[fechaInicio.getMonth()];
+  const mesFin = MESES_ES[fechaFin.getMonth()];
+  const yearFin = fechaFin.getFullYear();
+  const periodoTxt = mesInicio === mesFin
+    ? `Resumen de Operaciones Periodo ${mesFin.toUpperCase()} ${yearFin}`
+    : `Resumen de Operaciones Periodo ${mesInicio.toUpperCase()} - ${mesFin.toUpperCase()} ${yearFin}`;
+
+  document.getElementById('resTitle').textContent = document.getElementById('txtContrato').value;
+  document.getElementById('resCliente').textContent = document.getElementById('txtCliente').value;
+  document.getElementById('resPeriodo').textContent = periodoTxt;
+  document.getElementById('resNota').textContent = document.getElementById('txtNotaPedido').value;
+
+  // Summary box
+  let summaryHtml = '<div class="summary-box"><table><tr><th>Resumen</th><th>Cantidad</th></tr>';
+  for (const resItem of [8,9,10,11,12]) {
+    summaryHtml += `<tr><td>Item ${resItem} - ${ITEM_LABELS[resItem]}</td><td><strong>${totals[resItem]}</strong></td></tr>`;
+  }
+  summaryHtml += `<tr style="font-weight:700"><td>Total General</td><td><strong>${totalCant}</strong></td></tr>`;
+  summaryHtml += '</table></div>';
+  summaryHtml += `<div class="leyenda" style="margin-top:70px">Se factura Periodo desde ${formatDate(fechaInicio)} hasta ${formatDate(fechaFin)}</div>`;
+  document.getElementById('summaryArea').innerHTML = summaryHtml;
+
+  document.getElementById('resumenContainer').style.display = 'block';
+  document.getElementById('btnPDF').style.display = '';
+  document.getElementById('btnExportXlsx').style.display = '';
+  document.getElementById('resumenContainer').scrollIntoView({ behavior:'smooth' });
+}
+
+function exportPDF() { window.print(); }
+
+function exportXlsx() {
+  const wb = XLSX.utils.book_new();
+  const titulo = document.getElementById('txtContrato').value;
+  const cliente = document.getElementById('txtCliente').value;
+  const periodo = document.getElementById('resPeriodo').textContent;
+  const nota = document.getElementById('txtNotaPedido').value;
+
+  const thinBrd = {style:'thin', color:{rgb:'000000'}};
+  const borders = {top:thinBrd, bottom:thinBrd, left:thinBrd, right:thinBrd};
+  const grayFill = {fgColor:{rgb:'C8C8C8'}, type:'pattern', patternType:'solid'};
+  const greenFill = {fgColor:{rgb:'B4DCB4'}, type:'pattern', patternType:'solid'};
+  const ctr = {horizontal:'center', vertical:'center', wrapText:true};
+  const ctrV = {vertical:'center'};
+
+  const ws = {};
+
+  // Row 2: L2 = cliente
+  ws['L2'] = {v:cliente, t:'s', s:{font:{sz:14}}};
+
+  // Row 3: D3 = titulo bold center (merged D3:I3)
+  ws['D3'] = {v:titulo, t:'s', s:{font:{bold:true, sz:12}, alignment:{horizontal:'center', vertical:'center'}}};
+
+  // Row 5: D5 = periodo center (merged D5:I5)
+  ws['D5'] = {v:periodo, t:'s', s:{alignment:{horizontal:'center', vertical:'center'}}};
+
+  // Row 6: A6 = nota
+  ws['A6'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left', vertical:'center'}, numFmt:'@'}};
+
+  // Row 7: headers
+  const hdrStyle = {font:{bold:true, sz:9}, alignment:ctr, fill:grayFill, border:borders};
+  ws['A7'] = {v:'Fecha', t:'s', s:{...hdrStyle}};
+  ws['B7'] = {v:'Día', t:'s', s:{...hdrStyle}};
+  ws['C7'] = {v:'Nro de Parte', t:'s', s:{...hdrStyle}};
+  ws['D7'] = {v:'Item 8\nMontaje', t:'s', s:{...hdrStyle}};
+  ws['E7'] = {v:'Item 9\nDesmontaje', t:'s', s:{...hdrStyle}};
+  ws['F7'] = {v:'Item 10\nReparación', t:'s', s:{...hdrStyle}};
+  ws['G7'] = {v:'Item 11\nMantenim.', t:'s', s:{...hdrStyle}};
+  ws['H7'] = {v:'Item 12\nRelevam.', t:'s', s:{...hdrStyle}};
+  ws['I7'] = {v:'Cantidades', t:'s', s:{...hdrStyle}};
+  ws['J7'] = {v:'Detalle ITEMS', t:'s', s:{...hdrStyle}};
+  ws['K7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+  ws['L7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+
+  const merges = [
+    {s:{r:2,c:3}, e:{r:2,c:8}},   // D3:I3 titulo
+    {s:{r:4,c:3}, e:{r:4,c:8}},   // D5:I5 periodo
+    {s:{r:6,c:9}, e:{r:6,c:11}}   // J7:L7 detalle header
+  ];
+
+  const trs = document.querySelectorAll('#resumenBody tr:not(.row-total)');
+  let r = 8;
+  let totals = {8:0, 9:0, 10:0, 11:0, 12:0};
+  let totalCant = 0;
+  const rowHeights = {};
+  rowHeights[7] = 28;
+
+  trs.forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    const vals = Array.from(tds).map(td => td.textContent.trim());
+
+    const fechaParts = vals[0].split('/');
+    let fechaVal = vals[0];
+    let fechaType = 's';
+    let fechaFmt = undefined;
+    if (fechaParts.length === 3) {
+      const dt = new Date(+fechaParts[2], +fechaParts[1]-1, +fechaParts[0]);
+      if (!isNaN(dt)) {
+        fechaVal = dt;
+        fechaType = 'd';
+        fechaFmt = 'dd/mm/yyyy';
+      }
+    }
+
+    ws['A'+r] = {v:fechaVal, t:fechaType, s:{alignment:{horizontal:'center', vertical:'center'}, border:borders, numFmt:fechaFmt}};
+    ws['B'+r] = {v:vals[1], t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
+    ws['C'+r] = {v:vals[2], t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
+
+    for (let i = 0; i < 5; i++) {
+      const col = String.fromCharCode(68 + i); // D, E, F, G, H
+      const num = parseInt(vals[3 + i]) || 0;
+      const resItem = [8,9,10,11,12][i];
+      ws[col+r] = {v:num || '', t: num ? 'n' : 's', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
+      totals[resItem] += num;
+    }
+
+    const cant = parseInt(vals[8]) || 0;
+    ws['I'+r] = {v:cant, t:'n', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
+    ws['J'+r] = {v:vals[9] || '', t:'s', s:{border:borders, alignment:{vertical:'center', wrapText:true}}};
+    ws['K'+r] = {v:'', t:'s', s:{border:borders}};
+    ws['L'+r] = {v:'', t:'s', s:{border:borders}};
+
+    merges.push({s:{r:r-1, c:9}, e:{r:r-1, c:11}}); // J:L merge detalle
+
+    rowHeights[r] = 18;
+    totalCant += cant;
+    r++;
+  });
+
+  // Fila TOTAL
+  const totalStyle = {font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}, fill:greenFill, border:borders};
+  ws['A'+r] = {v:'TOTALES', t:'s', s:{...totalStyle}};
+  ws['B'+r] = {v:'', t:'s', s:{...totalStyle}};
+  ws['C'+r] = {v:'', t:'s', s:{...totalStyle}};
+  merges.push({s:{r:r-1, c:0}, e:{r:r-1, c:2}}); // A:C merge TOTALES
+
+  for (let i = 0; i < 5; i++) {
+    const col = String.fromCharCode(68 + i);
+    const resItem = [8,9,10,11,12][i];
+    ws[col+r] = {v:totals[resItem], t:'n', s:{...totalStyle}};
+  }
+  ws['I'+r] = {v:totalCant, t:'n', s:{...totalStyle}};
+  ws['J'+r] = {v:'', t:'s', s:{...totalStyle}};
+  ws['K'+r] = {v:'', t:'s', s:{...totalStyle}};
+  ws['L'+r] = {v:'', t:'s', s:{...totalStyle}};
+  merges.push({s:{r:r-1, c:9}, e:{r:r-1, c:11}});
+  rowHeights[r] = 18;
+  r++;
+
+  const lastDataRow = r - 1;
+
+  // Cuadro Resumen
+  const sumRow = lastDataRow + 3;
+  ws['J'+sumRow] = {v:'Resumen', t:'s', s:{font:{bold:true}, fill:grayFill, border:borders}};
+  ws['K'+sumRow] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+  ws['L'+sumRow] = {v:'Cantidad', t:'s', s:{font:{bold:true}, fill:grayFill, border:borders}};
+  merges.push({s:{r:sumRow-1, c:9}, e:{r:sumRow-1, c:10}});
+
+  const itemKeys = [8,9,10,11,12];
+  itemKeys.forEach((resItem, idx) => {
+    const rr = sumRow + 1 + idx;
+    ws['J'+rr] = {v:'Item '+resItem+' - '+ITEM_LABELS[resItem], t:'s', s:{border:borders}};
+    ws['K'+rr] = {v:'', t:'s', s:{border:borders}};
+    ws['L'+rr] = {v:totals[resItem], t:'n', s:{border:borders, alignment:{horizontal:'center'}}};
+    merges.push({s:{r:rr-1, c:9}, e:{r:rr-1, c:10}});
+  });
+  const totalSumRow = sumRow + 6;
+  ws['J'+totalSumRow] = {v:'Total General', t:'s', s:{font:{bold:true}, border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}}};
+  ws['K'+totalSumRow] = {v:'', t:'s', s:{border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}}};
+  ws['L'+totalSumRow] = {v:totalCant, t:'n', s:{font:{bold:true}, border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}, alignment:{horizontal:'center'}}};
+  merges.push({s:{r:totalSumRow-1, c:9}, e:{r:totalSumRow-1, c:10}});
+
+  // Firmas
+  const firmaRow = Math.max(totalSumRow + 6, lastDataRow + 14);
+  ws['B'+firmaRow] = {v:'Firma VA&PE', t:'s'};
+  ws['I'+firmaRow] = {v:'Firma Cliente', t:'s'};
+
+  // Anchos de columna
+  ws['!cols'] = [
+    {wch:11},   // A - Fecha
+    {wch:10},   // B - Día
+    {wch:10.5}, // C - Nro Parte
+    {wch:8.5},  // D - Item 8
+    {wch:8.5},  // E - Item 9
+    {wch:8.5},  // F - Item 10
+    {wch:8.5},  // G - Item 11
+    {wch:8.5},  // H - Item 12
+    {wch:10},   // I - Cantidades
+    {wch:14},   // J - Detalle 1
+    {wch:10},   // K - Detalle 2
+    {wch:14}    // L - Detalle 3
+  ];
+
+  ws['!rows'] = [];
+  for (let i = 1; i <= firmaRow; i++) {
+    ws['!rows'][i-1] = rowHeights[i] ? {hpt:rowHeights[i]} : {};
+  }
+
+  ws['!ref'] = 'A1:L' + firmaRow;
+  ws['!merges'] = merges;
+
+  ws['!pageSetup'] = {
+    orientation: 'landscape',
+    paperSize: 9,
+    fitToWidth: 1,
+    fitToHeight: 1
+  };
+  ws['!margins'] = {left:0.5, right:0.5, top:0.6, bottom:0.6, header:0.3, footer:0.3};
+  ws['!print'] = {area: 'A1:L' + firmaRow};
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Parte_Operaciones_SAM');
+
+  const idxDesde = parseInt(document.getElementById('selDesde').value);
+  const idxHasta = parseInt(document.getElementById('selHasta').value);
+  const fInicio = sheetData[idxDesde].fecha;
+  const fFin = sheetData[idxHasta].fecha;
+  const fname = `Resumen_SAM_del_${formatDate(fInicio).replace(/\//g,'-')}_al_${formatDate(fFin).replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// === EVENT HANDLERS ===
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  document.getElementById('fileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const wbFile = XLSX.read(data, { type:'array', cellDates:true });
+    processWorkbook(wbFile);
+    populateSelects();
+    document.getElementById('controlsCard').style.display = '';
+    const sr = document.getElementById('statsRow');
+    sr.style.display = 'flex';
+
+    let globalItems = {1:0, 2:0, 3:0, 4:0, 5:0};
+    sheetData.forEach(d => {
+      for (let i = 1; i <= 5; i++) globalItems[i] += d.itemCounts[i];
+    });
+
+    sr.innerHTML = `
+      <div class="stat-chip">Sesiones con datos: <strong>${sheetData.length}</strong></div>
+      <div class="stat-chip">Desde: <strong>${sheetData.length ? formatDate(sheetData[0].fecha) : '-'}</strong></div>
+      <div class="stat-chip">Hasta: <strong>${sheetData.length ? formatDate(sheetData[sheetData.length-1].fecha) : '-'}</strong></div>
+      <div class="stat-chip">Montajes: <strong>${globalItems[1]}</strong></div>
+      <div class="stat-chip">Desmontajes: <strong>${globalItems[2]}</strong></div>
+      <div class="stat-chip">Reparaciones: <strong>${globalItems[3]}</strong></div>
+      <div class="stat-chip">Mantenimiento: <strong>${globalItems[4]}</strong></div>
+      <div class="stat-chip">Relevamiento: <strong>${globalItems[5]}</strong></div>
+    `;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('btnGenerar').addEventListener('click', generarResumen);
+document.getElementById('btnPDF').addEventListener('click', exportPDF);
+document.getElementById('btnExportXlsx').addEventListener('click', exportXlsx);
+</script>
+</body>
+</html>
