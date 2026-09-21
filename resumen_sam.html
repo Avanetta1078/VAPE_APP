@@ -172,7 +172,7 @@ body {
   padding: 10px 6px;
   text-align: center;
   font-weight: 600;
-  font-size: .75rem;
+  font-size: .72rem;
   text-transform: uppercase;
   letter-spacing: .04em;
   border: 1px solid var(--border);
@@ -186,7 +186,7 @@ body {
   transition: background .15s;
 }
 .resumen-table tbody tr:hover { background: rgba(59,130,246,.04); }
-.resumen-table td.td-detalle {
+.resumen-table td.td-obs {
   text-align: left;
   font-size: .82rem;
 }
@@ -220,6 +220,7 @@ body {
   border: 1px solid var(--border);
   text-align: center;
 }
+.summary-box td:first-child { text-align:left; }
 .summary-box td strong { color: var(--accent); }
 
 .leyenda {
@@ -274,7 +275,7 @@ body {
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
   <div>
     <h1>Resumen de Operaciones - SAM</h1>
-    <span>CONTRATO SAM (SISTEMA DE ADQUISICION Y MONITOREO)</span>
+    <span>CONTRATO MANTENIMIENTO DE SAM</span>
   </div>
 </div>
 
@@ -303,7 +304,7 @@ body {
     <div class="config-row">
       <div class="field">
         <label>Contrato / Título</label>
-        <input type="text" id="txtContrato" value="CONTRATO SAM">
+        <input type="text" id="txtContrato" value="CONTRATO MANTENIMIENTO DE SAM">
       </div>
       <div class="field">
         <label>Cliente</label>
@@ -320,8 +321,8 @@ body {
         <input type="text" id="txtPrefijoParte" value="000">
       </div>
       <div class="field">
-        <label>Detalle Items (descripción)</label>
-        <input type="text" id="txtDetalle" value="Montaje/Desmontaje/Reparación/Mantenimiento SAM">
+        <label>Observaciones (por defecto)</label>
+        <input type="text" id="txtObservaciones" value="Opera Normal">
       </div>
     </div>
     <div class="controls">
@@ -352,23 +353,25 @@ body {
   <div class="card" id="resumenContainer">
     <div class="resumen-header">
       <div id="resCliente" class="subtitle" style="text-align:right;font-weight:600;margin-bottom:8px"></div>
-      <h2 id="resTitle">CONTRATO SAM</h2>
+      <h2 id="resTitle">CONTRATO MANTENIMIENTO DE SAM</h2>
       <h3 id="resPeriodo"></h3>
       <div id="resNota" class="subtitle"></div>
     </div>
     <table class="resumen-table" id="resumenTable">
       <thead>
         <tr>
-          <th style="width:95px">Fecha</th>
-          <th style="width:85px">Día</th>
-          <th style="width:85px">Nro de Parte</th>
-          <th style="width:60px">Item 8<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Montaje</span></th>
-          <th style="width:60px">Item 9<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Desmontaje</span></th>
-          <th style="width:60px">Item 10<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Reparación</span></th>
-          <th style="width:60px">Item 11<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Mantenim.</span></th>
-          <th style="width:60px">Item 12<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Relevam.</span></th>
-          <th style="width:70px">Cantidades</th>
-          <th>Detalle ITEMS</th>
+          <th style="width:90px">Fecha</th>
+          <th style="width:80px">Día</th>
+          <th style="width:65px">Parte</th>
+          <th style="width:70px">Montaje SAM<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 8</span></th>
+          <th style="width:75px">Desmontaje SAM<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 9</span></th>
+          <th style="width:75px">Reparacion SAM1<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 10</span></th>
+          <th style="width:75px">Reparacion SAM2<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 11</span></th>
+          <th style="width:75px">Reparacion SAM3<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 12</span></th>
+          <th style="width:75px">Cantidad<br>Operaciones</th>
+          <th style="width:70px">Hs Hombre<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 7</span></th>
+          <th style="width:70px">Fuerza Mayor<br><span style="font-size:.65rem;font-weight:400;text-transform:none">Item 5</span></th>
+          <th>Observaciones</th>
         </tr>
       </thead>
       <tbody id="resumenBody"></tbody>
@@ -386,7 +389,6 @@ const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sá
 const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const ITEM_MAP = {1:8, 2:9, 3:10, 4:11, 5:12};
-const ITEM_LABELS = {8:'Montaje', 9:'Desmontaje', 10:'Reparación', 11:'Mantenimiento', 12:'Relevamiento'};
 
 let sheetData = [];
 
@@ -403,10 +405,7 @@ function parseDate(val) {
     let y = +m[3]; if (y < 100) y += 2000;
     return new Date(y, +m[2]-1, +m[1]);
   }
-  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
-  if (m) return new Date(new Date().getFullYear(), +m[2]-1, +m[1]);
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+  return null;
 }
 
 function getCellVal(ws, addr) {
@@ -414,24 +413,43 @@ function getCellVal(ws, addr) {
   return cell ? cell.v : null;
 }
 
+function isDateValue(v) {
+  if (!v) return false;
+  if (v instanceof Date && !isNaN(v)) return true;
+  const s = String(v).trim();
+  if (s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)) return true;
+  if (s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/)) return true;
+  return false;
+}
+
 function findDateInSheet(ws) {
-  const positions = ['E2','E1','D3','D4','D5','F2','F3'];
-  for (const addr of positions) {
-    const v = getCellVal(ws, addr);
-    if (v) {
-      const d = parseDate(v);
-      if (d && d.getFullYear() >= 2000 && d.getFullYear() <= 2030) return d;
+  // Buscar la celda que dice "FECHA" y tomar la celda a su derecha
+  for (let r = 1; r <= 6; r++) {
+    for (let c = 1; c <= 8; c++) {
+      const colLetter = String.fromCharCode(64 + c);
+      const v = getCellVal(ws, colLetter + r);
+      if (v && typeof v === 'string' && v.trim().toUpperCase() === 'FECHA') {
+        const nextCol = String.fromCharCode(65 + c);
+        const dateVal = getCellVal(ws, nextCol + r);
+        if (dateVal) {
+          const d = parseDate(dateVal);
+          if (d && d.getFullYear() >= 2000 && d.getFullYear() <= 2030) return d;
+        }
+      }
     }
   }
-  for (let r = 1; r <= 8; r++) {
-    for (const col of ['D','E','F']) {
+
+  // Fallback: buscar cualquier celda datetime en filas 1-6, solo en D/E/F
+  for (let r = 1; r <= 6; r++) {
+    for (const col of ['E','D','F']) {
       const v = getCellVal(ws, col + r);
-      if (v) {
+      if (v && isDateValue(v)) {
         const d = parseDate(v);
         if (d && d.getFullYear() >= 2000 && d.getFullYear() <= 2030) return d;
       }
     }
   }
+
   return null;
 }
 
@@ -443,57 +461,57 @@ function findTotalRow(ws) {
   return -1;
 }
 
+function findHeaderRow(ws) {
+  for (let r = 1; r <= 6; r++) {
+    const v = getCellVal(ws, 'A' + r);
+    if (v && typeof v === 'string' && v.trim().toLowerCase() === 'pozo') return r;
+  }
+  return 3;
+}
+
 function processWorkbook(wb) {
   sheetData = [];
-  const excluded = ['hoja1','hoja2','hoja3','parte_operaciones','resumen'];
 
   wb.SheetNames.forEach(name => {
     const nameLower = name.trim().toLowerCase();
-    if (excluded.some(e => nameLower.startsWith(e))) {
-      if (!nameLower.match(/^hoja\d+$/) || nameLower === 'hoja1' || nameLower === 'hoja2' || nameLower === 'hoja3') return;
-    }
-    if (nameLower.match(/^hoja\d+$/)) return;
+    if (/^hoja\d*$/.test(nameLower)) return;
+    if (nameLower.startsWith('parte_operaciones') || nameLower.startsWith('resumen')) return;
 
     const ws = wb.Sheets[name];
     const fecha = findDateInSheet(ws);
     if (!fecha) return;
 
+    const headerRow = findHeaderRow(ws);
+    const dataStartRow = headerRow + 1;
     const totalRow = findTotalRow(ws);
     const maxScanRow = totalRow > 0 ? totalRow - 1 : 35;
 
     let pozos = [];
     let itemCounts = {1:0, 2:0, 3:0, 4:0, 5:0};
-    let detalleTexts = [];
 
-    for (let r = 4; r <= maxScanRow; r++) {
+    for (let r = dataStartRow; r <= maxScanRow; r++) {
       const aVal = getCellVal(ws, 'A' + r);
       const bVal = getCellVal(ws, 'B' + r);
 
       if (aVal && typeof aVal === 'string') {
         const pStr = aVal.trim();
         if (/^s[-\s]?\d+/i.test(pStr)) {
-          if (!pozos.includes(pStr.toUpperCase())) pozos.push(pStr.toUpperCase());
+          const pUp = pStr.toUpperCase().replace(/\s+/g,'');
+          if (!pozos.includes(pUp)) pozos.push(pUp);
         }
       }
 
       if (bVal !== null && typeof bVal === 'number' && bVal >= 1 && bVal <= 5) {
         itemCounts[bVal]++;
-        const eVal = getCellVal(ws, 'E' + r) || getCellVal(ws, 'D' + r);
-        if (eVal && typeof eVal === 'string') {
-          const desc = eVal.trim();
-          if (desc && !detalleTexts.includes(desc)) detalleTexts.push(desc);
-        }
       }
     }
 
-    let totalItems = 0;
+    let totalItems = Object.values(itemCounts).reduce((s, v) => s + v, 0);
     if (totalRow > 0) {
-      const gVal = getCellVal(ws, 'G' + totalRow);
-      const fVal = getCellVal(ws, 'F' + totalRow);
-      totalItems = (typeof gVal === 'number' ? gVal : 0) || (typeof fVal === 'number' ? fVal : 0);
-    }
-    if (!totalItems) {
-      totalItems = Object.values(itemCounts).reduce((s, v) => s + v, 0);
+      for (const col of ['G','F']) {
+        const v = getCellVal(ws, col + totalRow);
+        if (typeof v === 'number' && v > 0) { totalItems = v; break; }
+      }
     }
 
     let totalPozos = pozos.length;
@@ -504,14 +522,25 @@ function processWorkbook(wb) {
 
     if (totalPozos === 0 && totalItems === 0) return;
 
+    // Observaciones de la hoja
+    let obs = '';
+    for (let r = totalRow + 1; r <= totalRow + 5; r++) {
+      if (r <= 0) continue;
+      const v = getCellVal(ws, 'A' + r);
+      if (v && typeof v === 'string' && /observ/i.test(v)) {
+        const obsText = getCellVal(ws, 'C' + r) || getCellVal(ws, 'D' + r) || getCellVal(ws, 'B' + r);
+        if (obsText) obs = String(obsText).trim().substring(0, 80);
+        break;
+      }
+    }
+
     sheetData.push({
       sheetName: name.trim(),
       fecha,
       pozos: totalPozos,
-      pozosList: pozos,
       itemCounts,
       totalItems,
-      detalle: detalleTexts.slice(0, 3).join(', ')
+      obs
     });
   });
 
@@ -560,8 +589,8 @@ function generarResumen() {
   if (isNaN(idxDesde) || isNaN(idxHasta)) return alert('Seleccioná un rango de fechas.');
   if (idxDesde > idxHasta) return alert('"Desde" debe ser anterior a "Hasta".');
 
-  const detalle = document.getElementById('txtDetalle').value;
   const prefijo = document.getElementById('txtPrefijoParte').value;
+  const defaultObs = document.getElementById('txtObservaciones').value;
 
   const filtered = sheetData.slice(idxDesde, idxHasta + 1);
   const fechaInicio = filtered[0].fecha;
@@ -589,6 +618,7 @@ function generarResumen() {
     tdParte.textContent = prefijo + '-' + partNum;
     tr.appendChild(tdParte);
 
+    let rowSum = 0;
     for (let parteItem = 1; parteItem <= 5; parteItem++) {
       const resumenItem = ITEM_MAP[parteItem];
       const td = document.createElement('td');
@@ -596,38 +626,31 @@ function generarResumen() {
       td.textContent = count || '';
       tr.appendChild(td);
       totals[resumenItem] += count;
+      rowSum += count;
     }
 
     const tdCant = document.createElement('td');
-    tdCant.textContent = d.totalItems;
+    tdCant.textContent = rowSum;
     tr.appendChild(tdCant);
 
-    const tdDetalle = document.createElement('td');
-    tdDetalle.textContent = d.detalle || detalle;
-    tdDetalle.className = 'td-detalle';
-    tr.appendChild(tdDetalle);
+    // Hs Hombre y Fuerza Mayor (vacíos, se llenan manualmente)
+    const tdHs = document.createElement('td');
+    tdHs.textContent = '';
+    tr.appendChild(tdHs);
+
+    const tdFM = document.createElement('td');
+    tdFM.textContent = '';
+    tr.appendChild(tdFM);
+
+    const tdObs = document.createElement('td');
+    tdObs.textContent = d.obs || defaultObs;
+    tdObs.className = 'td-obs';
+    tr.appendChild(tdObs);
 
     tbody.appendChild(tr);
-    totalCant += d.totalItems;
+    totalCant += rowSum;
     partNum++;
   });
-
-  // Fila TOTAL
-  const trTotal = document.createElement('tr');
-  trTotal.className = 'row-total';
-  trTotal.innerHTML = `<td colspan="3">TOTALES</td>`;
-  for (const resItem of [8,9,10,11,12]) {
-    const td = document.createElement('td');
-    td.textContent = totals[resItem];
-    trTotal.appendChild(td);
-  }
-  const tdTotalCant = document.createElement('td');
-  tdTotalCant.textContent = totalCant;
-  trTotal.appendChild(tdTotalCant);
-  const tdTotalDet = document.createElement('td');
-  tdTotalDet.textContent = '';
-  trTotal.appendChild(tdTotalDet);
-  tbody.appendChild(trTotal);
 
   // Header info
   const mesInicio = MESES_ES[fechaInicio.getMonth()];
@@ -642,12 +665,15 @@ function generarResumen() {
   document.getElementById('resPeriodo').textContent = periodoTxt;
   document.getElementById('resNota').textContent = document.getElementById('txtNotaPedido').value;
 
-  // Summary box
-  let summaryHtml = '<div class="summary-box"><table><tr><th>Resumen</th><th>Cantidad</th></tr>';
-  for (const resItem of [8,9,10,11,12]) {
-    summaryHtml += `<tr><td>Item ${resItem} - ${ITEM_LABELS[resItem]}</td><td><strong>${totals[resItem]}</strong></td></tr>`;
-  }
-  summaryHtml += `<tr style="font-weight:700"><td>Total General</td><td><strong>${totalCant}</strong></td></tr>`;
+  // Summary box (igual al modelo)
+  let summaryHtml = '<div class="summary-box"><table>';
+  summaryHtml += '<tr><th colspan="2">Resumen Operaciones</th></tr>';
+  summaryHtml += `<tr><td>Fuerza Mayor Item5</td><td><strong>0</strong></td></tr>`;
+  summaryHtml += `<tr><td>Montaje Item8</td><td><strong>${totals[8]}</strong></td></tr>`;
+  summaryHtml += `<tr><td>Desmontaje Item9</td><td><strong>${totals[9]}</strong></td></tr>`;
+  summaryHtml += `<tr><td>Rep SAM Item10</td><td><strong>${totals[10]}</strong></td></tr>`;
+  summaryHtml += `<tr><td>Rep SAM Item 11</td><td><strong>${totals[11]}</strong></td></tr>`;
+  summaryHtml += `<tr><td>Rep SAM Item 12</td><td><strong>${totals[12]}</strong></td></tr>`;
   summaryHtml += '</table></div>';
   summaryHtml += `<div class="leyenda" style="margin-top:70px">Se factura Periodo desde ${formatDate(fechaInicio)} hasta ${formatDate(fechaFin)}</div>`;
   document.getElementById('summaryArea').innerHTML = summaryHtml;
@@ -669,57 +695,56 @@ function exportXlsx() {
 
   const thinBrd = {style:'thin', color:{rgb:'000000'}};
   const borders = {top:thinBrd, bottom:thinBrd, left:thinBrd, right:thinBrd};
+  const borderTop = {top:thinBrd};
   const grayFill = {fgColor:{rgb:'C8C8C8'}, type:'pattern', patternType:'solid'};
-  const greenFill = {fgColor:{rgb:'B4DCB4'}, type:'pattern', patternType:'solid'};
+  const yellowFill = {fgColor:{rgb:'FFFF00'}, type:'pattern', patternType:'solid'};
   const ctr = {horizontal:'center', vertical:'center', wrapText:true};
-  const ctrV = {vertical:'center'};
 
   const ws = {};
 
-  // Row 2: L2 = cliente
-  ws['L2'] = {v:cliente, t:'s', s:{font:{sz:14}}};
+  // Row 2: D2 = titulo bold center (merged D2:H2), L2 = cliente
+  ws['D2'] = {v:titulo, t:'s', s:{font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}}};
+  ws['L2'] = {v:cliente, t:'s', s:{font:{bold:true, sz:14}}};
 
-  // Row 3: D3 = titulo bold center (merged D3:I3)
-  ws['D3'] = {v:titulo, t:'s', s:{font:{bold:true, sz:12}, alignment:{horizontal:'center', vertical:'center'}}};
+  // Row 4: D4 = periodo center (merged D4:H4)
+  ws['D4'] = {v:periodo, t:'s', s:{alignment:{horizontal:'center', vertical:'center'}}};
 
-  // Row 5: D5 = periodo center (merged D5:I5)
-  ws['D5'] = {v:periodo, t:'s', s:{alignment:{horizontal:'center', vertical:'center'}}};
+  // Row 5: A5 = nota
+  ws['A5'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left', vertical:'center'}, numFmt:'@'}};
 
-  // Row 6: A6 = nota
-  ws['A6'] = {v:nota, t:'s', s:{font:{bold:true}, alignment:{horizontal:'left', vertical:'center'}, numFmt:'@'}};
-
-  // Row 7: headers
+  // Row 6: headers (exacto al modelo)
   const hdrStyle = {font:{bold:true, sz:9}, alignment:ctr, fill:grayFill, border:borders};
-  ws['A7'] = {v:'Fecha', t:'s', s:{...hdrStyle}};
-  ws['B7'] = {v:'Día', t:'s', s:{...hdrStyle}};
-  ws['C7'] = {v:'Nro de Parte', t:'s', s:{...hdrStyle}};
-  ws['D7'] = {v:'Item 8\nMontaje', t:'s', s:{...hdrStyle}};
-  ws['E7'] = {v:'Item 9\nDesmontaje', t:'s', s:{...hdrStyle}};
-  ws['F7'] = {v:'Item 10\nReparación', t:'s', s:{...hdrStyle}};
-  ws['G7'] = {v:'Item 11\nMantenim.', t:'s', s:{...hdrStyle}};
-  ws['H7'] = {v:'Item 12\nRelevam.', t:'s', s:{...hdrStyle}};
-  ws['I7'] = {v:'Cantidades', t:'s', s:{...hdrStyle}};
-  ws['J7'] = {v:'Detalle ITEMS', t:'s', s:{...hdrStyle}};
-  ws['K7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
-  ws['L7'] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
+  ws['A6'] = {v:'Fecha', t:'s', s:{font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}, fill:grayFill, border:borders}};
+  ws['B6'] = {v:'Día', t:'s', s:{font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}, fill:grayFill, border:borders}};
+  ws['C6'] = {v:'Parte', t:'s', s:{font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}, fill:grayFill, border:borders}};
+  ws['D6'] = {v:'Montaje SAM Item 8', t:'s', s:{...hdrStyle}};
+  ws['E6'] = {v:'Desmontaje SAM Item 9', t:'s', s:{...hdrStyle}};
+  ws['F6'] = {v:'Reparacion SAM1          Item 10', t:'s', s:{...hdrStyle}};
+  ws['G6'] = {v:'Reparacion SAM2 Item11', t:'s', s:{...hdrStyle}};
+  ws['H6'] = {v:'Reparacion SAM3          Item12', t:'s', s:{...hdrStyle}};
+  ws['I6'] = {v:'Cantidad Operaciones', t:'s', s:{...hdrStyle}};
+  ws['J6'] = {v:'Hs Hombre Item 7', t:'s', s:{...hdrStyle}};
+  ws['K6'] = {v:'Fuerza Mayor Item5', t:'s', s:{...hdrStyle}};
+  ws['L6'] = {v:'Observaciones', t:'s', s:{...hdrStyle}};
 
   const merges = [
-    {s:{r:2,c:3}, e:{r:2,c:8}},   // D3:I3 titulo
-    {s:{r:4,c:3}, e:{r:4,c:8}},   // D5:I5 periodo
-    {s:{r:6,c:9}, e:{r:6,c:11}}   // J7:L7 detalle header
+    {s:{r:1,c:3}, e:{r:1,c:7}},   // D2:H2 titulo
+    {s:{r:3,c:3}, e:{r:3,c:7}},   // D4:H4 periodo
   ];
 
-  const trs = document.querySelectorAll('#resumenBody tr:not(.row-total)');
-  let r = 8;
-  let totals = {8:0, 9:0, 10:0, 11:0, 12:0};
-  let totalCant = 0;
+  const trs = document.querySelectorAll('#resumenBody tr');
+  let r = 7;
   const rowHeights = {};
-  rowHeights[7] = 28;
+  rowHeights[2] = 18;
+  rowHeights[6] = 36;
+
+  let sumI8=0, sumI9=0, sumI10=0, sumI11=0, sumI12=0;
 
   trs.forEach(tr => {
     const tds = tr.querySelectorAll('td');
     const vals = Array.from(tds).map(td => td.textContent.trim());
 
+    // vals: [fecha, dia, parte, i8, i9, i10, i11, i12, cant, hsHombre, fMayor, obs]
     const fechaParts = vals[0].split('/');
     let fechaVal = vals[0];
     let fechaType = 's';
@@ -729,97 +754,90 @@ function exportXlsx() {
       if (!isNaN(dt)) {
         fechaVal = dt;
         fechaType = 'd';
-        fechaFmt = 'dd/mm/yyyy';
+        fechaFmt = 'mm-dd-yy';
       }
     }
 
-    ws['A'+r] = {v:fechaVal, t:fechaType, s:{alignment:{horizontal:'center', vertical:'center'}, border:borders, numFmt:fechaFmt}};
-    ws['B'+r] = {v:vals[1], t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
-    ws['C'+r] = {v:vals[2], t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
+    const dataCellStyle = {alignment:{horizontal:'center', vertical:'center'}, border:borderTop};
+    const numCellStyle = {alignment:{horizontal:'center', vertical:'center'}, border:borderTop};
 
-    for (let i = 0; i < 5; i++) {
-      const col = String.fromCharCode(68 + i); // D, E, F, G, H
-      const num = parseInt(vals[3 + i]) || 0;
-      const resItem = [8,9,10,11,12][i];
-      ws[col+r] = {v:num || '', t: num ? 'n' : 's', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
-      totals[resItem] += num;
-    }
+    ws['A'+r] = {v:fechaVal, t:fechaType, s:{alignment:{horizontal:'left'}, border:borderTop, numFmt:fechaFmt}};
+    ws['B'+r] = {v:vals[1], t:'s', s:{border:borderTop}};
+    ws['C'+r] = {v:vals[2], t:'s', s:{border:borderTop}};
 
-    const cant = parseInt(vals[8]) || 0;
-    ws['I'+r] = {v:cant, t:'n', s:{alignment:{horizontal:'center', vertical:'center'}, border:borders}};
-    ws['J'+r] = {v:vals[9] || '', t:'s', s:{border:borders, alignment:{vertical:'center', wrapText:true}}};
-    ws['K'+r] = {v:'', t:'s', s:{border:borders}};
-    ws['L'+r] = {v:'', t:'s', s:{border:borders}};
+    const i8 = parseInt(vals[3]) || 0;
+    const i9 = parseInt(vals[4]) || 0;
+    const i10 = parseInt(vals[5]) || 0;
+    const i11 = parseInt(vals[6]) || 0;
+    const i12 = parseInt(vals[7]) || 0;
 
-    merges.push({s:{r:r-1, c:9}, e:{r:r-1, c:11}}); // J:L merge detalle
+    ws['D'+r] = {v:i8 || '', t:i8?'n':'s', s:{...numCellStyle}};
+    ws['E'+r] = {v:i9 || '', t:i9?'n':'s', s:{...numCellStyle}};
+    ws['F'+r] = {v:i10 || '', t:i10?'n':'s', s:{...numCellStyle}};
+    ws['G'+r] = {v:i11 || '', t:i11?'n':'s', s:{...numCellStyle}};
+    ws['H'+r] = {v:i12 || '', t:i12?'n':'s', s:{...numCellStyle}};
 
-    rowHeights[r] = 18;
-    totalCant += cant;
+    // I = SUM(D:H) como fórmula
+    ws['I'+r] = {v:i8+i9+i10+i11+i12, t:'n', f:`SUM(D${r}:H${r})`, s:{font:{bold:true}, alignment:{horizontal:'center'}, border:borderTop}};
+
+    ws['J'+r] = {v:'', t:'s', s:{border:borderTop}};
+    ws['K'+r] = {v:'', t:'s', s:{border:borderTop}};
+    ws['L'+r] = {v:vals[11] || '', t:'s', s:{font:{bold:true, sz:9}, fill:yellowFill, alignment:{horizontal:'center', vertical:'center'}, border:borderTop}};
+
+    sumI8 += i8; sumI9 += i9; sumI10 += i10; sumI11 += i11; sumI12 += i12;
+    rowHeights[r] = 22.8;
     r++;
   });
 
-  // Fila TOTAL
-  const totalStyle = {font:{bold:true}, alignment:{horizontal:'center', vertical:'center'}, fill:greenFill, border:borders};
-  ws['A'+r] = {v:'TOTALES', t:'s', s:{...totalStyle}};
-  ws['B'+r] = {v:'', t:'s', s:{...totalStyle}};
-  ws['C'+r] = {v:'', t:'s', s:{...totalStyle}};
-  merges.push({s:{r:r-1, c:0}, e:{r:r-1, c:2}}); // A:C merge TOTALES
-
-  for (let i = 0; i < 5; i++) {
-    const col = String.fromCharCode(68 + i);
-    const resItem = [8,9,10,11,12][i];
-    ws[col+r] = {v:totals[resItem], t:'n', s:{...totalStyle}};
-  }
-  ws['I'+r] = {v:totalCant, t:'n', s:{...totalStyle}};
-  ws['J'+r] = {v:'', t:'s', s:{...totalStyle}};
-  ws['K'+r] = {v:'', t:'s', s:{...totalStyle}};
-  ws['L'+r] = {v:'', t:'s', s:{...totalStyle}};
-  merges.push({s:{r:r-1, c:9}, e:{r:r-1, c:11}});
-  rowHeights[r] = 18;
-  r++;
-
   const lastDataRow = r - 1;
 
-  // Cuadro Resumen
-  const sumRow = lastDataRow + 3;
-  ws['J'+sumRow] = {v:'Resumen', t:'s', s:{font:{bold:true}, fill:grayFill, border:borders}};
-  ws['K'+sumRow] = {v:'', t:'s', s:{fill:grayFill, border:borders}};
-  ws['L'+sumRow] = {v:'Cantidad', t:'s', s:{font:{bold:true}, fill:grayFill, border:borders}};
-  merges.push({s:{r:sumRow-1, c:9}, e:{r:sumRow-1, c:10}});
+  // Cuadro Resumen (exacto al modelo: I16:K22 relativo)
+  const sumStartRow = lastDataRow + 5;
+  // Header
+  ws['I'+sumStartRow] = {v:'Resumen Operaciones', t:'s', s:{font:{bold:true}, fill:grayFill, alignment:{horizontal:'left'}}};
+  ws['J'+sumStartRow] = {v:'', t:'s', s:{fill:grayFill}};
+  ws['K'+sumStartRow] = {v:'', t:'s', s:{fill:grayFill}};
+  merges.push({s:{r:sumStartRow-1, c:8}, e:{r:sumStartRow-1, c:10}});
 
-  const itemKeys = [8,9,10,11,12];
-  itemKeys.forEach((resItem, idx) => {
-    const rr = sumRow + 1 + idx;
-    ws['J'+rr] = {v:'Item '+resItem+' - '+ITEM_LABELS[resItem], t:'s', s:{border:borders}};
-    ws['K'+rr] = {v:'', t:'s', s:{border:borders}};
-    ws['L'+rr] = {v:totals[resItem], t:'n', s:{border:borders, alignment:{horizontal:'center'}}};
-    merges.push({s:{r:rr-1, c:9}, e:{r:rr-1, c:10}});
+  const sumItems = [
+    {label:'Fuerza Mayor Item5', val:0},
+    {label:'Montaje Item8', val:sumI8},
+    {label:'Desmontaje Item9', val:sumI9},
+    {label:'Rep SAM Item10', val:sumI10},
+    {label:'Rep SAM Item 11', val:sumI11},
+    {label:'Rep SAM Item 12', val:sumI12}
+  ];
+  sumItems.forEach((item, idx) => {
+    const rr = sumStartRow + 1 + idx;
+    ws['I'+rr] = {v:item.label, t:'s', s:{alignment:{horizontal:'left'}}};
+    ws['J'+rr] = {v:'', t:'s'};
+    ws['K'+rr] = {v:item.val, t:'n', s:{alignment:{horizontal:'right'}}};
+    merges.push({s:{r:rr-1, c:8}, e:{r:rr-1, c:9}});
   });
-  const totalSumRow = sumRow + 6;
-  ws['J'+totalSumRow] = {v:'Total General', t:'s', s:{font:{bold:true}, border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}}};
-  ws['K'+totalSumRow] = {v:'', t:'s', s:{border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}}};
-  ws['L'+totalSumRow] = {v:totalCant, t:'n', s:{font:{bold:true}, border:{top:{style:'medium', color:{rgb:'000000'}}, bottom:thinBrd, left:thinBrd, right:thinBrd}, alignment:{horizontal:'center'}}};
-  merges.push({s:{r:totalSumRow-1, c:9}, e:{r:totalSumRow-1, c:10}});
 
-  // Firmas
-  const firmaRow = Math.max(totalSumRow + 6, lastDataRow + 14);
-  ws['B'+firmaRow] = {v:'Firma VA&PE', t:'s'};
-  ws['I'+firmaRow] = {v:'Firma Cliente', t:'s'};
+  // Firmas (A26:B26 y E26:F26 como el modelo)
+  const firmaRow = Math.max(sumStartRow + 12, lastDataRow + 16);
+  ws['A'+firmaRow] = {v:'Firma VA&PE', t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borderTop}};
+  ws['B'+firmaRow] = {v:'', t:'s', s:{border:borderTop}};
+  ws['E'+firmaRow] = {v:'Firma Cliente', t:'s', s:{alignment:{horizontal:'center', vertical:'center'}, border:borderTop}};
+  ws['F'+firmaRow] = {v:'', t:'s', s:{border:borderTop}};
+  merges.push({s:{r:firmaRow-1, c:0}, e:{r:firmaRow-1, c:1}});
+  merges.push({s:{r:firmaRow-1, c:4}, e:{r:firmaRow-1, c:5}});
 
-  // Anchos de columna
+  // Anchos de columna (del modelo)
   ws['!cols'] = [
-    {wch:11},   // A - Fecha
-    {wch:10},   // B - Día
-    {wch:10.5}, // C - Nro Parte
-    {wch:8.5},  // D - Item 8
-    {wch:8.5},  // E - Item 9
-    {wch:8.5},  // F - Item 10
-    {wch:8.5},  // G - Item 11
-    {wch:8.5},  // H - Item 12
-    {wch:10},   // I - Cantidades
-    {wch:14},   // J - Detalle 1
-    {wch:10},   // K - Detalle 2
-    {wch:14}    // L - Detalle 3
+    {wch:11.2},   // A - Fecha
+    {wch:10.1},   // B - Día
+    {wch:7.9},    // C - Parte
+    {wch:11.2},   // D - Item 8
+    {wch:12.2},   // E - Item 9
+    {wch:9.3},    // F - Item 10
+    {wch:8.4},    // G - Item 11
+    {wch:10.4},   // H - Item 12
+    {wch:10.6},   // I - Cantidad Ops
+    {wch:12.1},   // J - Hs Hombre
+    {wch:8.4},    // K - Fuerza Mayor
+    {wch:13.6}    // L - Observaciones
   ];
 
   ws['!rows'] = [];
@@ -832,12 +850,9 @@ function exportXlsx() {
 
   ws['!pageSetup'] = {
     orientation: 'landscape',
-    paperSize: 9,
-    fitToWidth: 1,
-    fitToHeight: 1
+    paperSize: 9
   };
-  ws['!margins'] = {left:0.5, right:0.5, top:0.6, bottom:0.6, header:0.3, footer:0.3};
-  ws['!print'] = {area: 'A1:L' + firmaRow};
+  ws['!margins'] = {left:0.7, right:0.7, top:0.75, bottom:0.75, header:0.3, footer:0.3};
 
   XLSX.utils.book_append_sheet(wb, ws, 'Parte_Operaciones_SAM');
 
@@ -883,11 +898,11 @@ function handleFile(file) {
       <div class="stat-chip">Sesiones con datos: <strong>${sheetData.length}</strong></div>
       <div class="stat-chip">Desde: <strong>${sheetData.length ? formatDate(sheetData[0].fecha) : '-'}</strong></div>
       <div class="stat-chip">Hasta: <strong>${sheetData.length ? formatDate(sheetData[sheetData.length-1].fecha) : '-'}</strong></div>
-      <div class="stat-chip">Montajes: <strong>${globalItems[1]}</strong></div>
-      <div class="stat-chip">Desmontajes: <strong>${globalItems[2]}</strong></div>
-      <div class="stat-chip">Reparaciones: <strong>${globalItems[3]}</strong></div>
-      <div class="stat-chip">Mantenimiento: <strong>${globalItems[4]}</strong></div>
-      <div class="stat-chip">Relevamiento: <strong>${globalItems[5]}</strong></div>
+      <div class="stat-chip">Montajes (I8): <strong>${globalItems[1]}</strong></div>
+      <div class="stat-chip">Desmontajes (I9): <strong>${globalItems[2]}</strong></div>
+      <div class="stat-chip">Rep SAM1 (I10): <strong>${globalItems[3]}</strong></div>
+      <div class="stat-chip">Rep SAM2 (I11): <strong>${globalItems[4]}</strong></div>
+      <div class="stat-chip">Rep SAM3 (I12): <strong>${globalItems[5]}</strong></div>
     `;
   };
   reader.readAsArrayBuffer(file);
