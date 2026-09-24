@@ -9229,16 +9229,14 @@
           }
 
           const { testId, isNew } = await ensureTest(wellId, wellConfigId, type, rowDate, rowTime, csvFile ? csvFile.name : 'CSV general', findCsvColumnValue(row, 'Test Comments'));
-          if(isNew){
-            const map = type === 'DYN' ? DYN_FIELD_MAP : ACU_FIELD_MAP;
-            const lengthFields = type === 'DYN' ? DYN_LENGTH_FIELDS : null;
-            const vals = buildFieldValues(row, map, lengthFields);
-            vals.test_id = testId;
-            const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
-            const { error } = await supabaseClient.from(table).upsert(vals, { onConflict: 'test_id' });
-            if(error) throw error;
-            summary.tests++;
-          }
+          const map = type === 'DYN' ? DYN_FIELD_MAP : ACU_FIELD_MAP;
+          const lengthFields = type === 'DYN' ? DYN_LENGTH_FIELDS : null;
+          const vals = buildFieldValues(row, map, lengthFields);
+          vals.test_id = testId;
+          const table = type === 'DYN' ? 'dyn_results' : 'acu_results';
+          const { error } = await supabaseClient.from(table).upsert(vals, { onConflict: 'test_id' });
+          if(error) throw error;
+          if(isNew) summary.tests++;
           summary.wells.add(wellName);
           matchedWells.add(wellName);
           logFn(`✓ ${wellName} · ${type} · ${rowDate} ${rowTime} (del CSV general, sin curva — falta TXT para la carta)`);
