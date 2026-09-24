@@ -4705,8 +4705,8 @@
           rows.push({
             well: n, dt: h.dt, tipo: h.tipo, bateria: w.bateria, operadora: w.operadora,
             operacion: h.tipo, sistema: h.sistema || w.sistema || '—',
-            condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (h.tipo === 'Nivel' ? cnCondicionFromWellState(h.wellState, false) : cnCondicionFromWellState(w.wellState, h.tipo === 'Dina' || w.hasDyn)),
-            nivel: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.nivel,
+            condicion: (h.tipo === 'Nivel') ? cnCondicionFromWellState(h.wellState, false) : cnCondicionFromWellState(w.wellState, h.tipo === 'Dina' || w.hasDyn),
+            nivel: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : h.nivel,
             sumerg: (h.tipo === 'Nivel' && h.nivelIndefinido) ? null : h.sumerg,
             fillage: h.fillage, fomax: h.fomax, tv: h.tv, spm: h.spm,
             pkr: w.packerM != null ? w.packerM : null,
@@ -4774,8 +4774,8 @@
         return {
           well: n, dt: w.dt, tipo: tipoUltimo, bateria: w.bateria, operadora: w.operadora,
           operacion, sistema: sistemaMostrar,
-          condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn),
-          nivel: w.nivelIndefinido ? null : w.nivel,
+          condicion: cnCondicionFromWellState(w.wellState, w.hasDyn),
+          nivel: w.nivelIndefinido ? 'INDEFINIDO' : w.nivel,
           sumerg: w.nivelIndefinido ? null : w.sumerg,
           fillage: w.fillage, fomax: w.fomax, tv: w.tv, spm: w.spm,
           pkr: w.packerM != null ? w.packerM : null,
@@ -4864,7 +4864,7 @@
           <td class="ie-cell" data-field="operacion">${ensayoBadgeHtml(r.operacion)}</td>
           <td class="ie-cell" data-field="condicion">${r.condicion || '—'}</td>
           <td>${r.sistema || '—'}</td>
-          <td>${r.nivel != null ? fmtN(r.nivel,0) : '—'}</td>
+          <td>${r.nivel === 'INDEFINIDO' ? 'INDEF.' : (r.nivel != null ? fmtN(r.nivel,0) : '—')}</td>
           <td>${r.sumerg != null ? fmtN(r.sumerg,0) : '—'}</td>
           <td>${r.fillage != null ? fmtN(r.fillage,1) : '—'}</td>
           <td>${r.spm != null ? fmtN(r.spm,2) : '—'}</td>
@@ -5227,7 +5227,7 @@
     { key:'fecha',       label:'Fecha',         filterType:'date',     get:r=>r.fecha },
     { key:'bateria',     label:'Batería',       filterType:'checkbox', get:r=>r.bateria },
     { key:'diasSinDina', label:'Días s/dinas',  filterType:'numeric',  get:r=>r.diasSinDina },
-    { key:'operacion',   label:'Tipo Ensayo',     filterType:'checkbox', get:r=>r.condicion },
+    { key:'operacion',   label:'Tipo Ensayo',     filterType:'checkbox', get:r=>r.operacion },
     { key:'tipoEnsayo',  label:'Tipo ensayo',   filterType:'checkbox', get:r=>r.tipoEnsayo },
     { key:'sistema',     label:'Sistema',       filterType:'checkbox', get:r=>r.sistema || 'Sin clasificar' },
   ];
@@ -5339,7 +5339,7 @@
         if(cp.cm2 != null && cp.cm2 !== '') _cpDistSecu = Number(cp.cm2);
       }
       return Object.assign({}, w, {
-        name: n, tipoEnsayo, condicion: (w.nivelIndefinido && !w.hasDyn) ? 'INDEFINIDO' : cnCondicionFromWellState(w.wellState, w.hasDyn), fecha: w.dt,
+        name: n, tipoEnsayo, condicion: cnCondicionFromWellState(w.wellState, w.hasDyn), fecha: w.dt,
         diasSinDina: w.hasDyn ? cnDiasSinDina(w.dynDate) : null,
         _cpPrinc, _cpCantPrinc, _cpDistPrinc, _cpSecu, _cpCantSecu, _cpDistSecu,
       });
@@ -5359,7 +5359,7 @@
         const isLatest = idx === 0;
         rows.push(Object.assign({}, w, h, {
           name:n, fecha:h.dt, tipoEnsayo:h.tipo,
-          condicion: (h.tipo === 'Nivel' && h.nivelIndefinido) ? 'INDEFINIDO' : (isLatest ? cnCondicionFromWellState(w.wellState, w.hasDyn) : (h.tipo === 'Dina' ? 'Dinámico' : '—')),
+          condicion: isLatest ? cnCondicionFromWellState(w.wellState, w.hasDyn) : (h.tipo === 'Dina' ? 'Dinámico' : '—'),
           sistema: h.sistema || w.sistema || 'Sin clasificar',
           diasSinDina: (h.tipo === 'Dina') ? cnDiasSinDina(h.dt) : null,
           torqueDown: isLatest ? w.torqueDown : null, torqueUp: isLatest ? w.torqueUp : null,
