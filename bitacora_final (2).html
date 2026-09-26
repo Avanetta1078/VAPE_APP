@@ -34,33 +34,109 @@
   button:hover, .side-tab:hover{border-color:var(--navy-glow) !important;}
   .cp-link:hover{box-shadow:0 0 0 1px var(--navy-glow); border-radius:4px;}
 
-  /* --- grilla lineal, orden exacto del planillero --- */
-  .lg-panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:4px;}
-  .lg-row{display:flex; gap:1px; background:var(--border); flex-wrap:nowrap;}
+  /* --- grilla lineal moderna --- */
+  .lg-panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:0; overflow:hidden;
+    box-shadow:0 4px 24px rgba(0,0,0,.25), 0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  .lg-row{display:flex; gap:1px; background:rgba(42,49,59,.6); flex-wrap:nowrap;}
+  .lg-row:last-child > div{ border-bottom:none; }
   .lg-row > div{flex:1 1 0; min-width:0;}
   .lg-col-narrow{flex:0 0 80px !important;}
-  .lg-col-pozo{flex:0 0 140px !important;}
+  .lg-col-pozo{flex:0 0 145px !important;}
   .lg-col-carrera{flex:0 0 90px !important;}
-  .lg-col-presion{flex:0 0 140px !important;}
-  .lg-col-nivel{flex:0 0 150px !important;}
-  .lg-col-ensayo{flex:0 0 230px !important;}
-  .lg-col-pip{flex:0 0 250px !important;}
+  .lg-col-presion{flex:0 0 145px !important;}
+  .lg-col-nivel{flex:0 0 155px !important;}
+  .lg-col-ensayo{flex:0 0 234px !important;}
+  .lg-col-pip{flex:0 0 255px !important;}
   .lg-col-wide{flex:1.6 1 0 !important;}
-  .lg-col-aib{flex:1 1 130px !important;}
-  .lg-col-motor{flex:0 0 285px !important;}
+  .lg-col-aib{flex:1 1 135px !important;}
+  .lg-col-motor{flex:0 0 290px !important;}
   .lg-col-hidden{display:none !important;}
-  .lg-row.head > div{background:var(--panel-2); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink); font-weight:800; padding:11px 10px; border-bottom:2px solid var(--rust); text-align:center; display:flex; align-items:center; justify-content:center;}
-  .lg-row.data > div{background:var(--panel); padding:8px 10px;}
+  .lg-row.head > div{
+    background:linear-gradient(180deg,#1e2530,#181d25);
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--teal-glow); font-weight:700;
+    padding:12px 10px;
+    border-bottom:1px solid rgba(126,200,217,.2);
+    text-align:center; display:flex; align-items:center; justify-content:center;
+    gap:4px;
+  }
+  .lg-row.head > div:first-child{ border-left:3px solid var(--teal); }
+  .lg-row.data > div{
+    background:var(--panel); padding:9px 10px;
+    border-bottom:1px solid rgba(42,49,59,.5);
+  }
+  .lg-row.data > div:first-child{ border-left:3px solid transparent; }
+  .lg-row.data:hover > div{ background:#1a1f29; }
   .lg-cell-group{display:flex; gap:8px; justify-content:space-between;}
+  /* ===== FIELD STATE SYSTEM (spec: heredado/editado/modificado/required) ===== */
+  :root{
+    --teal:#2D5F6F; --teal-glow:#7ec8d9;
+    --state-inherited-bg:rgba(255,255,255,.03); --state-inherited-bd:rgba(255,255,255,.07); --state-inherited-ink:#6a7280;
+    --state-edited-bd:#7ec8d9; --state-edited-bg:rgba(126,200,217,.06);
+    --state-modified-bd:#e6c34d; --state-modified-bg:rgba(230,195,77,.08);
+    --state-req-bd:#c94b4b; --state-req-bg:rgba(201,75,75,.08);
+  }
   .lg-input, .lg-select{
     width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:6px;
-    padding:6px 7px; font-size:12.5px; color:var(--ink); font-family:'IBM Plex Mono',monospace;
+    padding:7px 8px; font-size:13px; color:var(--ink); font-family:'IBM Plex Mono',monospace;
+    transition:border-color .15s, background .15s, box-shadow .15s;
   }
-  .lg-row.data .lg-input, .lg-row.data .lg-select{ color:#f2c14e; font-weight:600; }
+  .lg-input:focus, .lg-select:focus{
+    outline:none; border-color:var(--teal-glow); box-shadow:0 0 0 2px rgba(126,200,217,.18);
+  }
+  .lg-row.data .lg-input, .lg-row.data .lg-select{ color:#eeece4; font-weight:500; }
+
+  /* Heredado: dato del registro anterior, no tocado aún */
+  .lg-input[data-state="inherited"], .lg-select[data-state="inherited"]{
+    background:var(--state-inherited-bg) !important; border-color:var(--state-inherited-bd) !important;
+    color:var(--state-inherited-ink) !important; font-style:italic;
+  }
+  /* Editado: operador tocó el campo en este registro */
+  .lg-input[data-state="edited"], .lg-select[data-state="edited"]{
+    background:var(--state-edited-bg) !important; border-color:var(--state-edited-bd) !important;
+    color:#e8f8ff !important; font-style:normal;
+  }
+  /* Modificado: campo guardado que se cambió ahora */
+  .lg-input[data-state="modified"], .lg-select[data-state="modified"]{
+    background:var(--state-modified-bg) !important; border-color:var(--state-modified-bd) !important;
+    color:#fdf3d0 !important; font-style:normal;
+  }
+  /* Requerido vacío */
+  .lg-input[data-state="required"], .lg-select[data-state="required"]{
+    background:var(--state-req-bg) !important; border-color:var(--state-req-bd) !important;
+    animation:pulseRequired .8s ease-in-out 3;
+  }
+  @keyframes pulseRequired{
+    0%,100%{box-shadow:0 0 0 0 rgba(201,75,75,.4);}
+    50%{box-shadow:0 0 0 4px rgba(201,75,75,0);}
+  }
+  /* Legacy pending/saved classes */
   .field-pending{ background:rgba(230,195,77,.16) !important; border-color:#e6c34d !important; }
   .field-saved{ background:rgba(76,175,80,.16) !important; border-color:rgba(76,175,80,.5) !important; color:#eafbe9 !important; }
   .lg-select{font-family:'IBM Plex Sans'; cursor:pointer;}
-  .lg-sub-lbl{font-size:9px; color:var(--ink-faint); text-transform:uppercase; margin-bottom:2px;}
+  .lg-sub-lbl{font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; margin-bottom:3px; letter-spacing:.04em; font-weight:600;}
+
+  /* ===== STICKY SAVE BAR ===== */
+  #saveStickyBar{
+    position:sticky; top:0; z-index:50; display:none;
+    background:rgba(17,20,26,.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--teal); padding:10px 0;
+    align-items:center; gap:12px;
+    animation:slideDown .2s ease;
+  }
+  @keyframes slideDown{from{transform:translateY(-8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  #saveStickyBar.show{ display:flex; }
+  #btnGuardarSticky{
+    background:linear-gradient(135deg,#1e6b4a,#27854e); border:none; border-radius:9px;
+    color:#fff; padding:9px 22px; font-size:13px; font-weight:700; cursor:pointer;
+    letter-spacing:.04em; white-space:nowrap; box-shadow:0 2px 10px rgba(39,133,78,.35);
+    transition:filter .12s;
+  }
+  #btnGuardarSticky:hover{ filter:brightness(1.15); }
+  #saveStickyStatus{ font-size:11.5px; color:var(--teal-glow); flex:1; }
   .pending{outline:1px dashed #e6c34d55; background:rgba(212,175,55,.06);}
   .ac-dropdown{
     display:none; position:absolute; top:100%; left:0; right:0; z-index:300; margin-top:2px;
@@ -314,7 +390,7 @@
       <div class="brand-mark">VP</div>
       <div class="brand-text"><div class="t1">VA&amp;PE · Bitácora</div><div class="t2">Eco Dinamometría Computarizada</div></div>
       <span style="position:relative; margin-left:28px;">
-        <input id="inlineBuscarInput" placeholder="Buscar pozo..." style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:13px; color:var(--ink); font-family:'IBM Plex Mono',monospace; width:170px;">
+        <input id="inlineBuscarInput" placeholder="⚡ Buscar y relevar..." style="background:var(--panel-2); border:1px solid var(--teal); border-radius:9px; padding:9px 14px; font-size:13px; color:var(--ink); font-family:'IBM Plex Mono',monospace; width:210px; transition:box-shadow .15s;" onfocus="this.style.boxShadow='0 0 0 2px rgba(126,200,217,.25)'" onblur="this.style.boxShadow=''">
         <div id="ac-inlineBuscarInput" class="ac-dropdown"></div>
       </span>
       <button id="btnBuscar" style="background:var(--panel-2); border:1px solid var(--border); border-radius:9px; color:var(--ink); padding:9px 14px; font-size:13px; font-weight:700; letter-spacing:.03em; cursor:pointer;">🔍</button>
@@ -389,14 +465,21 @@
     </div>
   </div>
 
-  <div style="display:flex; gap:8px; padding:10px 0 4px;">
-    <button id="btnRelevar" style="background:var(--panel-2); border:1px solid #4caf50; border-radius:8px; color:var(--ink); padding:8px 16px; font-size:12px; font-weight:700; letter-spacing:.03em; cursor:pointer; white-space:nowrap;">RELEVAR</button>
-    <button id="btnEditar" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink); padding:8px 16px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">✎ Editar</button>
-    <button id="btnLimpiar" style="background:var(--panel-2); border:1px solid var(--border); color:var(--ink); font-family:'IBM Plex Sans',sans-serif; border-radius:8px; padding:8px 16px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Vacía la pantalla sin buscar ni crear nada">🧹 Limpiar</button>
-    <button id="btnGuardar" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink); padding:8px 16px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">Guardar</button>
-    <span style="width:1px; background:var(--border); margin:0 4px;"></span>
-    <button id="btnNuevoPozo" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink); padding:8px 16px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Usar solo si el pozo NO existe en la base">Nuevo Pozo</button>
-    <button id="btnEliminar" style="background:var(--panel-2); border:1px solid #c94b4b; color:#e07a7a; border-radius:8px; padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Eliminar el relevamiento cargado">🗑</button>
+  <!-- STICKY SAVE BAR (aparece cuando hay cambios pendientes) -->
+  <div id="saveStickyBar">
+    <button id="btnGuardarSticky">💾 GUARDAR</button>
+    <span id="saveStickyStatus">Cambios pendientes — Ctrl+S para guardar</span>
+    <div id="stickyFieldCount" style="font-size:10.5px; color:var(--ink-faint);"></div>
+  </div>
+
+  <div style="display:flex; gap:8px; padding:10px 0 4px; flex-wrap:wrap; align-items:center;">
+    <button id="btnRelevar" style="background:linear-gradient(135deg,#1b4d38,#225e44); border:1px solid #2d7a55; border-radius:9px; color:#7edcaa; padding:9px 20px; font-size:12.5px; font-weight:700; letter-spacing:.05em; cursor:pointer; white-space:nowrap; box-shadow:0 2px 8px rgba(34,94,68,.3);">⚡ RELEVAR</button>
+    <button id="btnEditar" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink-dim); padding:9px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">✎ Editar</button>
+    <button id="btnGuardar" style="background:linear-gradient(135deg,#1e6b4a,#27854e); border:none; border-radius:9px; color:#fff; padding:9px 22px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; box-shadow:0 2px 8px rgba(39,133,78,.3); letter-spacing:.03em;">💾 Guardar</button>
+    <button id="btnLimpiar" style="background:var(--panel-2); border:1px solid var(--border); color:var(--ink-dim); font-family:'IBM Plex Sans',sans-serif; border-radius:8px; padding:9px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Vacía la pantalla sin buscar ni crear nada">🧹</button>
+    <span style="width:1px; background:var(--border); margin:0 2px;"></span>
+    <button id="btnNuevoPozo" style="background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink-dim); padding:9px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Usar solo si el pozo NO existe en la base">+ Nuevo</button>
+    <button id="btnEliminar" style="background:var(--panel-2); border:1px solid rgba(201,75,75,.4); color:#c97a7a; border-radius:8px; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;" title="Eliminar el relevamiento cargado">🗑</button>
   </div>
 
   <div class="lg-panel">
@@ -913,7 +996,7 @@
     });
   });
 
-  function fillField(id, value){
+  function fillField(id, value, markInherited){
     const el = document.getElementById(id);
     if(!el) return;
     if(el.tagName === 'SELECT'){
@@ -929,6 +1012,55 @@
     } else {
       el.value = val(value);
     }
+    if(markInherited !== false){
+      el.setAttribute('data-state', 'inherited');
+      el.setAttribute('data-base-value', el.value);
+    }
+  }
+
+  const FIELD_TRACKING_IDS = ['f-pozo','f-bateria','f-hz','f-pip','f-rpmbes','f-torque','f-carrera','f-tbg','f-csg','f-nivel','f-nivel-estado','f-estado-pozo','f-tipo-op','f-tipo-ensayo','f-unidad-desc','f-motor-marca','f-motor-rpm','f-motor-hp','f-motor-polea','f-observaciones'];
+
+  function markFieldEdited(el){
+    if(!el) return;
+    const state = el.getAttribute('data-state');
+    if(state === 'inherited') el.setAttribute('data-state','edited');
+    else if(state === 'saved') el.setAttribute('data-state','modified');
+    showSaveStickyBar();
+  }
+
+  function attachFieldTracking(){
+    FIELD_TRACKING_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el || el._trackingAttached) return;
+      el._trackingAttached = true;
+      el.addEventListener('input',  () => markFieldEdited(el));
+      el.addEventListener('change', () => markFieldEdited(el));
+    });
+  }
+
+  function markAllFieldsSaved(){
+    FIELD_TRACKING_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.setAttribute('data-state','saved');
+    });
+    hideSaveStickyBar();
+  }
+
+  function clearFieldStates(){
+    FIELD_TRACKING_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.removeAttribute('data-state');
+    });
+    hideSaveStickyBar();
+  }
+
+  function showSaveStickyBar(){
+    const bar = document.getElementById('saveStickyBar');
+    if(bar) bar.classList.add('show');
+  }
+  function hideSaveStickyBar(){
+    const bar = document.getElementById('saveStickyBar');
+    if(bar) bar.classList.remove('show');
   }
 
   function sistemaSubmenuFor(sist){
@@ -1023,6 +1155,8 @@
     actualizarDiasSinDina();
     document.getElementById('inlineBuscarInput').value = row.well_name_raw || '';
     document.getElementById('btnUbicacion').style.display = 'flex';
+    // Activar tracking de cambios para field states
+    attachFieldTracking();
   }
 
   function diasCalendarioDesde(fechaStr){
@@ -1768,18 +1902,29 @@
   }
 
   document.getElementById('btnRelevar').addEventListener('click', () => openRelevar('relevar'));
-  async function runInlineSearch(term){
+  async function runInlineSearch(term, forceReadOnly){
     term = term !== undefined ? term : document.getElementById('inlineBuscarInput').value.trim();
     if(!term){ setStatus('Ingresá el número de pozo a buscar.', true); return; }
     if(!confirmarDescartarCambios('buscar otro pozo')) return;
     const res = await searchWell(term);
     if(res.found){
-      // Buscar: solo consulta, queda en modo lectura (sin marcar como pendiente ni habilitar edición).
-      editMode = false;
-      applyEditState();
-      applyFieldStatus('clear');
-      // Si la búsqueda se hizo desde Consultas, se muestra el resultado pasando a Bitácora.
       if(!document.getElementById('view-bitacora').classList.contains('active')) mostrarSeccion('bitacora');
+      if(forceReadOnly){
+        // Solo consulta (desde Consultas o buscar histórico).
+        editMode = false;
+        applyEditState();
+        applyFieldStatus('clear');
+        clearFieldStates();
+      } else {
+        // Operador busca para relevar: entra directo en modo RELEVAR (nuevo registro del día).
+        isNewVisit = true;
+        editMode = true;
+        applyEditState();
+        applyFieldStatus('pending');
+        modoRelevarActivo = true;
+        actualizarBtnRelevar();
+        setStatus(`⚡ ${term} cargado — editá los campos y tocá Guardar para registrar el relevamiento de hoy.`);
+      }
     }
   }
   document.getElementById('btnBuscar').addEventListener('click', () => runInlineSearch());
@@ -2171,6 +2316,7 @@
       editMode = false;
       applyEditState();
       applyFieldStatus('saved');
+      markAllFieldsSaved();
       modoRelevarActivo = false;
       actualizarBtnRelevar();
       cargarResumenHoyCount();
@@ -2185,6 +2331,13 @@
   }
 
   document.getElementById('btnGuardar').addEventListener('click', saveVisit);
+  document.getElementById('btnGuardarSticky').addEventListener('click', saveVisit);
+  document.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key === 's'){
+      e.preventDefault();
+      saveVisit();
+    }
+  });
 
   function limpiarFormulario(opts){
     opts = opts || {};
@@ -2212,6 +2365,7 @@
     isNewVisit = !!opts.nuevo;
     applyEditState();
     applyFieldStatus(opts.editar ? 'pending' : 'clear');
+    clearFieldStates();
   }
 
   document.getElementById('btnNuevoPozo').addEventListener('click', () => {
