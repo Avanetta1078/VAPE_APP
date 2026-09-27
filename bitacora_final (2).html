@@ -487,7 +487,7 @@
       <div class="lg-col-pozo">Pozo</div>
       <div class="lg-col-narrow">Batería</div>
       <div id="col-pip-h" class="lg-col-pip">Sistema</div>
-      <div id="col-carrera-h" class="lg-col-carrera">Carrera</div>
+      <div id="col-carrera-h" class="lg-col-carrera">Régimen</div>
       <div class="lg-col-presion">Presiones</div>
       <div class="lg-col-nivel">Nivel</div>
       <div id="col-estado-h" class="lg-col-narrow">Estado</div>
@@ -509,7 +509,7 @@
           <div style="flex:1;"><div class="lg-sub-lbl">Torque</div><input id="f-torque" class="lg-input" value="—" style="width:100%;"></div>
         </div>
       </div>
-      <div id="col-carrera" class="lg-col-carrera"><div class="lg-sub-lbl" style="visibility:hidden;">·</div><input id="f-carrera" class="lg-input" value=""></div>
+      <div id="col-carrera" class="lg-col-carrera"><div class="lg-sub-lbl" id="regimen-sublbl">Carrera (in)</div><input id="f-carrera" class="lg-input" value=""></div>
       <div class="lg-col-presion">
         <div class="lg-cell-group">
           <div><div class="lg-sub-lbl">Tbg</div><input id="f-tbg" class="lg-input" value=""></div>
@@ -519,12 +519,12 @@
       <div class="lg-col-nivel">
         <div class="lg-cell-group">
           <div><div class="lg-sub-lbl">Nivel (mts)</div><input id="f-nivel" class="lg-input" value=""></div>
-          <select id="f-nivel-estado" class="lg-select" style="max-width:56px;"><option>OK</option><option>NO</option><option>Ver</option><option>NRN</option></select>
+          <select id="f-nivel-estado" class="lg-select" style="max-width:76px;" onchange="onNivelEstadoChange(this.value)"><option value="OK">OK</option><option value="Cancelado">Cancelado</option><option value="Indefinido">Indefinido</option></select>
         </div>
       </div>
       <div id="col-estado" class="lg-col-narrow">
         <div class="lg-sub-lbl" style="visibility:hidden;">·</div>
-        <select id="f-estado-pozo" class="lg-select"><option>D</option><option>E</option></select>
+        <select id="f-estado-pozo" class="lg-select"><option>Dinámico</option><option>Estático</option></select>
       </div>
       <div id="col-ensayo" class="lg-col-ensayo">
         <div class="lg-cell-group">
@@ -988,6 +988,17 @@
     }
     ultimoTipoEnsayo = value;
   }
+
+  function onNivelEstadoChange(value){
+    const tipoOp = document.getElementById('f-tipo-op');
+    if(!tipoOp) return;
+    if(value === 'Cancelado' && currentSistemaExtraccion === 'AIB'){
+      tipoOp.value = 'Dina';
+    } else if(value === 'OK' || value === 'Indefinido'){
+      if(tipoOp.value === 'Dina') tipoOp.value = 'Combinada';
+    }
+  }
+
   document.querySelectorAll('.tipoOpOpcion').forEach(btn => {
     btn.addEventListener('click', () => {
       document.getElementById('f-tipo-op').value = btn.dataset.val;
@@ -2828,26 +2839,35 @@
     currentSistemaExtraccion = label || document.getElementById(btnId).textContent.trim();
 
     const pip = ['col-pip','col-pip-h'];
-    const aibCols = ['col-carrera','col-carrera-h','col-ensayo','col-ensayo-h','col-aib','col-aib-h'];
-    const aibOnly = ['col-estado','col-estado-h']; // se esconde solo con AIB (redundante con Ensayo ahi)
+    const regimenCols = ['col-carrera','col-carrera-h'];
+    const aibOnlyCols = ['col-ensayo','col-ensayo-h','col-aib','col-aib-h'];
+    const aibOnly = ['col-estado','col-estado-h'];
     const motorCols = ['col-motor','col-motor-h'];
+
+    const regimenH = document.getElementById('col-carrera-h');
+    const regimenSub = document.getElementById('regimen-sublbl');
 
     if(tipo === 'aib'){
       pip.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
-      aibCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
+      regimenCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
+      aibOnlyCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
       aibOnly.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
       motorCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
-      // No se limpian los campos de AIB al volver, por si se tocó el submenú por error.
+      if(regimenH) regimenH.textContent = 'Régimen';
+      if(regimenSub) regimenSub.textContent = 'Carrera (in)';
     } else if(tipo === 'bes' || tipo === 'pcp'){
       pip.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
-      aibCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
+      regimenCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
+      aibOnlyCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
       aibOnly.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
       motorCols.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
+      if(regimenH) regimenH.textContent = 'Régimen';
+      if(regimenSub) regimenSub.textContent = tipo === 'bes' ? 'Hz' : 'RPM';
       ['f-hz','f-pip','f-rpmbes','f-torque'].forEach(id => { const el = document.getElementById(id); if(el) el.value = '—'; });
     } else {
-      // SSE / Abandonado: igual que BES/PCP, no aplica ni AIB ni Pulg/PIP/Torque; tampoco Motor.
       pip.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
-      aibCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
+      regimenCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
+      aibOnlyCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
       aibOnly.forEach(id => document.getElementById(id).classList.remove('lg-col-hidden'));
       motorCols.forEach(id => document.getElementById(id).classList.add('lg-col-hidden'));
     }
