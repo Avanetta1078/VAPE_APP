@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bitácora Operador — VA&PE</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0e1116;--panel:#181d25;--panel2:#1d232c;
+  --border:#252c36;--brd2:#2a313b;
+  --ink:#eeece4;--dim:#8a919d;--faint:#454d5a;
+  --teal:#2D5F6F;--glow:#7ec8d9;
+  --rust:#c8492c;--rustg:#e8663f;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;font-size:13px}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0}
+.brand-mark{width:30px;height:30px;border-radius:6px;flex-shrink:0;background:linear-gradient(145deg,var(--teal),#1a3d4a);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-weight:700;font-size:12px;color:var(--glow)}
+.brand-name{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+.brand-sub{font-size:10px;color:var(--dim)}
+.tsep{width:1px;height:24px;background:var(--border);margin:0 2px}
+
+.search-wrap{position:relative;flex:0 0 auto}
+.search-wrap input{background:var(--panel2);border:1px solid var(--brd2);border-radius:8px;padding:7px 14px 7px 30px;font-size:12.5px;font-family:'IBM Plex Mono';color:var(--ink);width:260px;outline:none}
+.search-wrap input:focus{border-color:var(--glow);box-shadow:0 0 0 2px rgba(126,200,217,.18)}
+.search-wrap input::placeholder{color:var(--faint)}
+.search-wrap::before{content:'⚡';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;opacity:.45}
+.ac-list{position:absolute;top:100%;left:0;right:0;z-index:300;background:var(--panel);border:1px solid var(--border);border-radius:8px;max-height:260px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);margin-top:2px}
+.ac-list.open{display:block}
+.ac-item{padding:8px 12px;cursor:pointer;font-family:'IBM Plex Mono';font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.ac-item:hover,.ac-item.active{background:var(--panel2)}
+.ac-item .ac-bat{font-size:10px;color:var(--dim)}
+.ac-empty{padding:10px 12px;font-size:11px;color:var(--dim);font-style:italic}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.t-btn{background:var(--panel2);border:1px solid var(--brd2);border-radius:7px;color:var(--dim);padding:6px 12px;font-size:11.5px;font-weight:600;cursor:pointer}
+.t-btn:hover{border-color:var(--glow);color:var(--ink)}
+
+.tabs{display:flex;gap:1px;padding:8px 18px 0;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0}
+.tab{padding:7px 15px;border-radius:6px 6px 0 0;font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);cursor:pointer;border:1px solid transparent;border-bottom:none}
+.tab.active{background:var(--bg);color:var(--ink);border-color:var(--border);border-bottom-color:var(--bg);margin-bottom:-1px;position:relative}
+
+.ctx-strip{display:flex;align-items:center;gap:10px;padding:7px 18px;border-bottom:1px solid var(--border);background:var(--panel2);flex-shrink:0;min-height:42px}
+.ctx-pozo{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:16px;color:var(--glow);letter-spacing:.02em}
+.ctx-sep{width:1px;height:18px;background:var(--border)}
+.ctx-badge{display:inline-flex;align-items:center;gap:5px;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-bat{background:rgba(45,95,111,.18);border:1px solid rgba(126,200,217,.2);color:var(--glow)}
+.badge-zona{background:rgba(122,132,148,.1);border:1px solid rgba(122,132,148,.22);color:var(--dim)}
+.badge-sistema{border-radius:4px;padding:2px 8px;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:700}
+.badge-aib{background:rgba(91,118,224,.13);color:#8fa4f8;border:1px solid rgba(91,118,224,.28)}
+.badge-bes{background:rgba(168,85,247,.13);color:#c084fc;border:1px solid rgba(168,85,247,.28)}
+.badge-pcp{background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.28)}
+.ctx-actions{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ctx-ghost{background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--dim);padding:5px 11px;font-size:11.5px;font-weight:600;cursor:pointer}
+.ctx-ghost:hover{border-color:var(--glow);color:var(--ink)}
+.ctx-save{background:linear-gradient(135deg,#1b6040,#207848);border:1px solid #2d8a56;border-radius:8px;color:#7edcaa;padding:6px 18px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(45,138,86,.25);letter-spacing:.04em}
+.ctx-save:hover{filter:brightness(1.15)}
+.ctx-save:disabled{opacity:.4;cursor:default;filter:none}
+
+.grid-outer{flex:1;overflow:auto;padding:14px 18px 0;background:var(--bg)}
+.grid-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:visible;box-shadow:0 4px 20px rgba(0,0,0,.28)}
+table.main-grid{border-collapse:collapse;width:100%;min-width:960px}
+
+thead th{
+  font-family:'IBM Plex Sans';font-size:9px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--dim);padding:8px 6px;text-align:center;
+  border-right:1px solid var(--border);border-bottom:2px solid rgba(126,200,217,.18);
+  background:linear-gradient(180deg,#1b2130,#171c26);white-space:nowrap;vertical-align:middle;
+}
+thead th:last-child{border-right:none}
+thead th.hi{color:var(--glow);opacity:.85}
+thead th.grp-mot{background:rgba(80,168,120,.06);color:rgba(114,212,158,.6);font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em;border-bottom:1px solid rgba(80,168,120,.18)}
+thead th.sub-mot{background:rgba(80,168,120,.03);font-size:8px;padding:5px 3px;color:rgba(114,212,158,.5);border-bottom:2px solid rgba(126,200,217,.18)}
+thead th.cp-h{background:rgba(200,146,44,.06);color:rgba(242,193,78,.6);font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em}
+
+tbody td{
+  padding:5px 5px;border-right:1px solid rgba(42,49,59,.5);border-bottom:1px solid rgba(42,49,59,.55);
+  font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);vertical-align:middle;white-space:nowrap;
+}
+tbody td:last-child{border-right:none}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#191e28}
+tbody tr.active{border-left:3px solid var(--glow);background:rgba(126,200,217,.025)}
+tbody td input{width:100%;background:transparent;border:none;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;min-width:0}
+tbody td select{background:transparent;border:none;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink);outline:none;cursor:pointer}
+tbody td input::placeholder{color:var(--faint);font-style:italic}
+tbody td input[data-state="inherited"],tbody td select[data-state="inherited"]{color:var(--dim);font-style:italic}
+tbody td input[data-state="edited"]{color:#e8f8ff}
+tbody td.mot-cell{background:rgba(80,168,120,.02)}
+
+.chip{display:inline-flex;align-items:center;border-radius:4px;padding:2px 7px;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:700}
+.c-aib{background:rgba(91,118,224,.13);color:#8fa4f8;border:1px solid rgba(91,118,224,.28)}
+.c-bes{background:rgba(168,85,247,.13);color:#c084fc;border:1px solid rgba(168,85,247,.28)}
+.c-pcp{background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.28)}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:10px;padding:3px 9px;font-size:10px;font-weight:700;white-space:nowrap}
+.p-g{background:rgba(45,122,85,.18);color:#5ecf94;border:1px solid rgba(45,122,85,.35)}
+.p-a{background:rgba(200,146,44,.18);color:#f2c14e;border:1px solid rgba(200,146,44,.35)}
+.pill .dot{width:4px;height:4px;border-radius:50%;background:currentColor}
+
+.reg-cell{display:flex;flex-direction:column;gap:1px;width:100%}
+.reg-label{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.reg-cell input{font-family:'IBM Plex Mono';font-size:12px;background:transparent;border:none;outline:none;color:var(--ink);width:100%}
+
+.nivel-sel{
+  background:transparent;border:1px solid var(--brd2);border-radius:4px;
+  font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);
+  padding:3px 4px;cursor:pointer;outline:none;width:100%;
+}
+.nivel-sel.cancelado{background:rgba(200,73,44,.1);border-color:rgba(200,73,44,.35);color:#f08060}
+.nivel-sel.indefinido{background:rgba(200,146,44,.1);border-color:rgba(200,146,44,.35);color:#f2c14e}
+.nivel-sel.ok{background:rgba(126,200,217,.06);border-color:rgba(126,200,217,.22);color:var(--glow)}
+
+.cp-btn{
+  display:flex;align-items:center;justify-content:center;gap:4px;width:100%;
+  background:rgba(200,146,44,.07);border:1px solid rgba(200,146,44,.25);border-radius:5px;
+  padding:6px 8px;cursor:pointer;font-size:11px;font-weight:700;
+  color:rgba(242,193,78,.7);font-family:'IBM Plex Sans';white-space:nowrap;
+  transition:border-color .12s,color .12s;
+}
+.cp-btn:hover{border-color:rgba(242,193,78,.5);color:rgba(242,193,78,.9)}
+.cp-btn.loaded{color:#f2c14e;border-color:rgba(242,193,78,.4)}
+
+.cp-popover{
+  position:fixed;z-index:200;
+  background:var(--panel);border:1px solid rgba(200,146,44,.25);border-radius:14px;
+  padding:16px;width:580px;max-width:95vw;
+  box-shadow:0 16px 48px rgba(0,0,0,.55);display:none;
+  resize:none;overflow:hidden;
+}
+.cp-popover.open{display:block}
+.cp-pop-title{
+  font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:14px;
+  color:rgba(242,193,78,.8);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;
+  cursor:grab;user-select:none;
+}
+.cp-pop-title:active{cursor:grabbing}
+.cp-pop-close{color:var(--faint);cursor:pointer;font-size:18px;line-height:1}
+.cp-pop-close:hover{color:var(--ink)}
+
+table.cp-table{border-collapse:collapse;width:100%}
+table.cp-table th{
+  font-family:'IBM Plex Sans';font-size:8.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:5px 6px;text-align:center;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:rgba(200,146,44,.04);color:rgba(242,193,78,.5);white-space:nowrap;
+}
+table.cp-table th:last-child{border-right:none}
+table.cp-table th.m-title{
+  background:rgba(200,146,44,.08);color:rgba(242,193,78,.65);
+  font-family:'IBM Plex Sans Condensed';font-size:9.5px;letter-spacing:.08em;
+  border-bottom:1px solid rgba(200,146,44,.18);
+}
+table.cp-table td{
+  padding:5px 6px;border-right:1px solid rgba(42,49,59,.5);border-bottom:1px solid rgba(42,49,59,.55);
+  font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);text-align:center;background:rgba(200,146,44,.02);
+}
+table.cp-table td:last-child{border-right:none}
+table.cp-table tr:last-child td{border-bottom:none}
+table.cp-table td input{
+  width:100%;background:transparent;border:none;font-family:'IBM Plex Mono';font-size:11px;
+  color:var(--ink);outline:none;text-align:center;
+}
+table.cp-table td input[data-state="inherited"]{color:var(--dim);font-style:italic}
+table.cp-table td.placa-cell{text-align:left}
+table.cp-table td.placa-cell input{text-align:left}
+
+.cp-pop-actions{display:flex;gap:8px;margin-top:12px}
+.cp-pop-cancel{background:var(--panel2);border:1px solid var(--border);border-radius:7px;color:var(--dim);padding:8px 16px;font-size:12px;cursor:pointer}
+.cp-pop-confirm{flex:1;background:linear-gradient(135deg,rgba(200,146,44,.3),rgba(200,146,44,.2));border:1px solid rgba(200,146,44,.35);border-radius:7px;color:#f2c14e;padding:8px;font-size:12px;font-weight:700;cursor:pointer}
+
+.cp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;display:none}
+.cp-backdrop.open{display:block}
+
+.obs-panel{flex-shrink:0;background:var(--panel);border-top:2px solid rgba(126,200,217,.2);padding:10px 18px;display:flex;gap:14px;align-items:flex-start;min-height:88px}
+.obs-header{flex-shrink:0;padding-top:2px;min-width:90px}
+.obs-header .oh-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--glow)}
+.obs-header .oh-sub{font-size:10px;color:var(--dim);margin-top:2px}
+.obs-fields{display:flex;gap:8px;flex:1}
+.obs-group{flex:1;display:flex;flex-direction:column;gap:3px}
+.obs-group-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim)}
+.obs-group textarea{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);resize:none;width:100%;min-height:50px;outline:none}
+.obs-group textarea:focus{border-color:var(--teal)}
+.obs-group textarea::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
+.obs-group.main textarea{border-color:rgba(126,200,217,.18)}
+.obs-chips{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
+.obs-chip{padding:2px 7px;border-radius:4px;cursor:pointer;background:var(--panel2);border:1px solid var(--border);font-size:10px;color:var(--dim)}
+.obs-chip:hover{border-color:var(--glow);color:var(--glow)}
+.obs-chip.active{background:rgba(126,200,217,.1);border-color:var(--glow);color:var(--glow)}
+
+.save-bar{flex-shrink:0;background:rgba(14,17,22,.97);border-top:1px solid var(--teal);padding:8px 18px;display:flex;align-items:center;gap:12px}
+.save-hint{font-size:11px;color:var(--glow);flex:1}
+.save-count{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono';background:rgba(126,200,217,.07);border:1px solid rgba(126,200,217,.14);border-radius:4px;padding:2px 8px}
+.save-btn{background:linear-gradient(135deg,#1b6040,#207848);border:1px solid #2d8a56;border-radius:8px;color:#7edcaa;padding:7px 22px;font-size:12px;font-weight:700;cursor:pointer}
+.save-btn:hover{filter:brightness(1.15)}
+
+.legend{flex-shrink:0;display:flex;gap:18px;padding:6px 18px;border-top:1px solid var(--border);background:var(--panel);flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim)}
+.leg-sq{width:9px;height:9px;border-radius:2px}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--dim);font-size:13px}
+.empty-state .es-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+.empty-state .es-msg{margin-bottom:6px}
+.empty-state .es-hint{font-size:11px;color:var(--faint)}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--glow);border-radius:10px;padding:10px 20px;font-size:12px;color:var(--glow);font-weight:600;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+.toast.error{border-color:var(--rustg);color:var(--rustg)}
+.toast.show{display:block;animation:fadeInUp .3s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand-mark">VP</div>
+  <div><div class="brand-name">VA&amp;PE · Bitácora</div><div class="brand-sub">Eco Dinamometría Computarizada</div></div>
+  <div class="tsep"></div>
+  <div class="search-wrap">
+    <input id="searchInput" placeholder="Buscar pozo y relevar…" autocomplete="off">
+    <div class="ac-list" id="acList"></div>
+  </div>
+  <div class="topbar-right">
+    <button class="t-btn" id="btnHoy" title="Cargar pozos del día">Hoy <span id="hoyCount" style="background:var(--rust);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:3px">0</span></button>
+    <button class="t-btn" id="btnNuevo" title="Nueva medición">+ Nuevo</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active">Bitácora</div><div class="tab">Consultas</div><div class="tab">Recorrido</div>
+</div>
+
+<div class="ctx-strip" id="ctxStrip">
+  <div class="ctx-pozo" id="ctxPozo">—</div>
+  <div class="ctx-sep"></div>
+  <span class="ctx-badge badge-bat" id="ctxBat">—</span>
+  <span class="ctx-badge badge-zona" id="ctxZona">—</span>
+  <span class="ctx-badge badge-sistema" id="ctxSistema" style="display:none"></span>
+  <div class="ctx-actions">
+    <button class="ctx-save" id="btnGuardar" disabled onclick="guardarVisita()">GUARDAR</button>
+  </div>
+</div>
+
+<div class="grid-outer">
+<div class="grid-panel">
+<table class="main-grid">
+  <thead>
+    <tr>
+      <th rowspan="2" style="width:68px">Pozo</th>
+      <th rowspan="2" style="width:72px">Fecha</th>
+      <th rowspan="2" style="width:48px">Bat</th>
+      <th rowspan="2" style="width:58px">Sistema</th>
+      <th rowspan="2" style="width:82px">Estado</th>
+      <th rowspan="2" class="hi" style="width:86px">Ensayo</th>
+      <th rowspan="2" style="width:72px">Nivel (m)</th>
+      <th rowspan="2" class="hi" style="width:80px">Régimen</th>
+      <th rowspan="2" style="width:140px">Modelo equipo</th>
+      <th rowspan="2" class="cp-h" style="width:100px">Contrapesos</th>
+      <th colspan="4" class="grp-mot">Motor</th>
+    </tr>
+    <tr>
+      <th class="sub-mot" style="width:62px">Marca</th>
+      <th class="sub-mot" style="width:42px">RPM</th>
+      <th class="sub-mot" style="width:36px">HP</th>
+      <th class="sub-mot" style="width:42px;border-right:none">Polea</th>
+    </tr>
+  </thead>
+  <tbody id="gridBody">
+    <tr><td colspan="14"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy" para cargar los del día</div></div></td></tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<div class="cp-backdrop" id="cpBackdrop" onclick="closeCp()"></div>
+<div class="cp-popover" id="cpPopover">
+  <div class="cp-pop-title">
+    <span>Contrapesos — <span id="cpPozo" style="color:var(--glow)"></span></span>
+    <span class="cp-pop-close" onclick="closeCp()">✕</span>
+  </div>
+  <table class="cp-table">
+    <thead>
+      <tr>
+        <th colspan="6" class="m-title">Manivela 1</th>
+        <th colspan="6" class="m-title" style="border-left:2px solid rgba(200,146,44,.15)">Manivela 2</th>
+      </tr>
+      <tr>
+        <th>Placa Ppal</th><th>Cant</th><th>Dist cm</th>
+        <th style="border-left:1px solid rgba(200,146,44,.1)">Placa Sec</th><th>Cant</th><th>Dist cm</th>
+        <th style="border-left:2px solid rgba(200,146,44,.15)">Placa Ppal</th><th>Cant</th><th>Dist cm</th>
+        <th style="border-left:1px solid rgba(200,146,44,.1)">Placa Sec</th><th>Cant</th><th style="border-right:none">Dist cm</th>
+      </tr>
+    </thead>
+    <tbody id="cpBody"></tbody>
+  </table>
+  <div class="cp-pop-actions">
+    <button class="cp-pop-cancel" onclick="closeCp()">Cerrar</button>
+    <button class="cp-pop-confirm" onclick="confirmCp()">Confirmar</button>
+  </div>
+</div>
+
+<div class="obs-panel">
+  <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
+  <div class="obs-fields">
+    <div class="obs-group main">
+      <div class="obs-group-label">General</div>
+      <div class="obs-chips">
+        <span class="obs-chip" onclick="toggleChip(this)">Golpe de fluido</span>
+        <span class="obs-chip" onclick="toggleChip(this)">Lateral abierto</span>
+        <span class="obs-chip" onclick="toggleChip(this)">Sin SAM</span>
+        <span class="obs-chip" onclick="toggleChip(this)">Fuga en cabeza</span>
+      </div>
+      <textarea id="obsGeneral" placeholder="Observaciones generales del pozo…"></textarea>
+    </div>
+    <div class="obs-group">
+      <div class="obs-group-label">Comments DYN</div>
+      <textarea id="obsDyn" placeholder="Comentarios del DYN…"></textarea>
+    </div>
+    <div class="obs-group">
+      <div class="obs-group-label">Comments ACU</div>
+      <textarea id="obsAcu" placeholder="Comentarios del ACU…"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <button class="save-btn" onclick="guardarVisita()">GUARDAR — Ctrl+S</button>
+  <span class="save-hint" id="saveHint">Sin cambios pendientes</span>
+  <span class="save-count" id="saveCount"></span>
+</div>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-sq" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)"></div><span style="font-style:italic;color:var(--dim)">Heredado</span></div>
+  <div class="leg-item"><div class="leg-sq" style="background:rgba(126,200,217,.1);border:1px solid #7ec8d9"></div><span>Editado</span></div>
+  <div class="leg-item"><span style="color:#f08060">Cancelado → Dina (solo AIB, automático)</span></div>
+  <div class="leg-item"><span>Estático → solo Nivel o Dina (no Combinada)</span></div>
+  <div class="leg-item"><span style="color:var(--glow)">Régimen: AIB=GPM · BES=Hz · PCP=RPM</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://fkfrhboiugnfmrfsbvjm.supabase.co';
+const SUPA_KEY = 'sb_publishable_VB0cXroFNoZFElEgMQXAbA_hzj4ey74';
+let supabaseClient;
+try { supabaseClient = window.supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e){ console.error('Supabase init error',e); }
+
+let allWells = [];
+let gridRows = [];
+let activeRowIdx = -1;
+let currentCpIdx = -1;
+let editedFields = new Set();
+
+function fechaHoy(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fechaDisplay(iso){
+  if(!iso) return '';
+  const p = iso.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0].slice(2);
+}
+
+function toast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(()=> t.classList.remove('show'), 3000);
+}
+
+// ===== SEARCH / AUTOCOMPLETE =====
+const searchInput = document.getElementById('searchInput');
+const acList = document.getElementById('acList');
+
+async function loadAllWells(){
+  if(!supabaseClient) return;
+  const { data, error } = await supabaseClient.from('wells')
+    .select('well_id,well_name,bateria,operadora,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos')
+    .eq('oculto', false)
+    .order('well_name');
+  if(error){ console.error(error); return; }
+  allWells = data || [];
+}
+
+searchInput.addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  if(q.length < 2){ acList.classList.remove('open'); return; }
+  const matches = allWells.filter(w => w.well_name.toLowerCase().includes(q)).slice(0,15);
+  if(!matches.length){
+    acList.innerHTML = '<div class="ac-empty">Sin resultados para "'+q+'"</div>';
+  } else {
+    acList.innerHTML = matches.map(w =>
+      `<div class="ac-item" data-id="${w.well_id}" onclick="selectWell(${w.well_id})">
+        <span>${w.well_name}</span>
+        <span class="ac-bat">${w.bateria||''} · ${w.operadora||''}</span>
+      </div>`
+    ).join('');
+  }
+  acList.classList.add('open');
+});
+
+searchInput.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') acList.classList.remove('open');
+  if(e.key === 'Enter'){
+    const first = acList.querySelector('.ac-item');
+    if(first) first.click();
+  }
+});
+
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.search-wrap')) acList.classList.remove('open');
+});
+
+// ===== SELECT WELL → add to grid =====
+async function selectWell(wellId){
+  acList.classList.remove('open');
+  searchInput.value = '';
+  const well = allWells.find(w => w.well_id === wellId);
+  if(!well) return;
+
+  if(gridRows.find(r => r.well_id === wellId)){
+    const idx = gridRows.findIndex(r => r.well_id === wellId);
+    setActiveRow(idx);
+    toast(well.well_name + ' ya está en la grilla');
+    return;
+  }
+
+  const lastVisit = await getLastVisit(wellId);
+  const lastFieldLog = await getLastFieldLog(well.well_name);
+
+  const sistema = lastFieldLog?.sistema_extraccion_tipo || lastVisit?.sistema_extraccion || 'AIB';
+  const row = {
+    well_id: wellId,
+    well_name: well.well_name,
+    fecha: fechaHoy(),
+    bateria: well.bateria || '',
+    operadora: well.operadora || '',
+    sistema: sistema,
+    estado: lastVisit?.tipo_ensayo || lastFieldLog?.tipo_ensayo || 'Dinamico',
+    ensayo: lastVisit?.tipo_operacion || lastFieldLog?.tipo_operacion || 'Combinada',
+    nivel_m: lastVisit?.nivel_medido_m || null,
+    nivel_estado: lastVisit?.nivel_estado || lastFieldLog?.nivel_estado || 'OK',
+    regimen: getRegimenValue(sistema, lastVisit, lastFieldLog),
+    modelo: lastVisit?.unidad_modelo || lastFieldLog?.unidad_descripcion || '',
+    motor_marca: well.motor_marca || lastFieldLog?.motor_marca || '',
+    motor_rpm: well.motor_rpm || lastFieldLog?.motor_rpm || '',
+    motor_hp: well.motor_hp || lastFieldLog?.motor_potencia_hp || '',
+    motor_polea: well.motor_polea || lastFieldLog?.motor_polea || '',
+    contrapesos: well.contrapesos || lastFieldLog?.contrapesos || {},
+    observaciones: '',
+    visita_id: null,
+    _dirty: false
+  };
+
+  gridRows.push(row);
+  renderGrid();
+  setActiveRow(gridRows.length - 1);
+  toast(well.well_name + ' agregado');
+}
+
+function getRegimenValue(sistema, visita, fieldLog){
+  if(sistema === 'BES') return visita?.hz || '';
+  if(sistema === 'PCP') return visita?.rpm_bes || '';
+  return fieldLog?.gpm_rpm_hz || visita?.carrera_in || '';
+}
+
+function getRegimenLabel(sistema){
+  if(sistema === 'BES') return 'Hz';
+  if(sistema === 'PCP') return 'RPM';
+  return 'GPM';
+}
+
+async function getLastVisit(wellId){
+  if(!supabaseClient) return null;
+  const { data } = await supabaseClient.from('bitacora_visitas')
+    .select('*')
+    .eq('well_id', wellId)
+    .order('fecha', {ascending:false})
+    .limit(1);
+  return data?.[0] || null;
+}
+
+async function getLastFieldLog(wellName){
+  if(!supabaseClient) return null;
+  const { data } = await supabaseClient.from('field_log')
+    .select('*')
+    .eq('well_name_raw', wellName)
+    .order('fecha', {ascending:false})
+    .limit(1);
+  return data?.[0] || null;
+}
+
+// ===== HOY: load today's wells =====
+document.getElementById('btnHoy').addEventListener('click', loadToday);
+
+async function loadToday(){
+  if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+  const { data } = await supabaseClient.from('bitacora_visitas')
+    .select('*')
+    .eq('fecha', fechaHoy());
+  if(!data?.length){
+    toast('No hay visitas cargadas hoy');
+    return;
+  }
+  for(const v of data){
+    if(gridRows.find(r => r.visita_id === v.visita_id)) continue;
+    const well = allWells.find(w => w.well_id === v.well_id) || {};
+    gridRows.push({
+      well_id: v.well_id,
+      well_name: v.well_name_raw,
+      fecha: v.fecha,
+      bateria: v.bateria || well.bateria || '',
+      operadora: v.operadora || well.operadora || '',
+      sistema: v.sistema_extraccion || 'AIB',
+      estado: v.tipo_ensayo || 'Dinamico',
+      ensayo: v.tipo_operacion || 'Combinada',
+      nivel_m: v.nivel_medido_m,
+      nivel_estado: v.nivel_estado || 'OK',
+      regimen: getRegimenValue(v.sistema_extraccion, v, null),
+      modelo: v.unidad_modelo || '',
+      motor_marca: v.motor_marca || well.motor_marca || '',
+      motor_rpm: v.motor_rpm || well.motor_rpm || '',
+      motor_hp: v.motor_hp || well.motor_hp || '',
+      motor_polea: v.motor_polea || well.motor_polea || '',
+      contrapesos: well.contrapesos || {},
+      observaciones: v.observaciones || '',
+      visita_id: v.visita_id,
+      _dirty: false
+    });
+  }
+  document.getElementById('hoyCount').textContent = data.length;
+  renderGrid();
+  if(gridRows.length) setActiveRow(0);
+  toast(data.length + ' visitas del día cargadas');
+}
+
+// ===== NUEVO =====
+document.getElementById('btnNuevo').addEventListener('click', ()=>{
+  searchInput.focus();
+  toast('Buscá un pozo para crear una nueva medición');
+});
+
+// ===== RENDER GRID =====
+function renderGrid(){
+  const tbody = document.getElementById('gridBody');
+  if(!gridRows.length){
+    tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy"</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = gridRows.map((r,i) => {
+    const sistemaClass = r.sistema === 'BES' ? 'c-bes' : r.sistema === 'PCP' ? 'c-pcp' : 'c-aib';
+    const estadoClass = r.estado === 'Estatico' ? 'p-a' : 'p-g';
+    const estadoLabel = r.estado === 'Estatico' ? 'Estático' : 'Dinámico';
+    const ensayoOpts = r.estado === 'Estatico'
+      ? ['Nivel','Dina'].map(o => `<option ${r.ensayo===o?'selected':''}>${o}</option>`).join('')
+      : ['Combinada','Dina','Nivel'].map(o => `<option ${r.ensayo===o?'selected':''}>${o}</option>`).join('');
+
+    const nivelVal = r.nivel_estado === 'NO' ? 'Cancelado' : r.nivel_estado === 'Ver' ? 'Indefinido' : (r.nivel_m || '');
+    const nivelClass = r.nivel_estado === 'NO' ? 'cancelado' : r.nivel_estado === 'Ver' ? 'indefinido' : 'ok';
+    let nivelOpts = '';
+    if(r.nivel_estado === 'NO'){
+      nivelOpts = `<option value="Cancelado" selected>Cancelado</option><option value="Indefinido">Indefinido</option><option value="">Ingresar valor</option>`;
+    } else if(r.nivel_estado === 'Ver'){
+      nivelOpts = `<option value="Indefinido" selected>Indefinido</option><option value="Cancelado">Cancelado</option><option value="">Ingresar valor</option>`;
+    } else {
+      nivelOpts = `<option value="${r.nivel_m||''}" selected>${r.nivel_m||'—'}</option><option value="Cancelado">Cancelado</option><option value="Indefinido">Indefinido</option>`;
+    }
+
+    const cpLoaded = r.contrapesos && r.contrapesos.tipo ? ' loaded' : '';
+    const ds = r.visita_id ? 'inherited' : 'edited';
+
+    return `<tr class="${i===activeRowIdx?'active':''}" onclick="setActiveRow(${i})" data-idx="${i}">
+      <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer"></td>
+      <td><input value="${fechaDisplay(r.fecha)}" data-state="${ds}" readonly></td>
+      <td><input value="${r.bateria}" data-state="inherited" readonly></td>
+      <td style="text-align:center"><span class="chip ${sistemaClass}">${r.sistema}</span></td>
+      <td style="text-align:center"><span class="pill ${estadoClass}"><span class="dot"></span>${estadoLabel}</span></td>
+      <td><select data-state="${ds}" onchange="onEnsayoChange(${i},this.value)">${ensayoOpts}</select></td>
+      <td><select class="nivel-sel ${nivelClass}" onchange="onNivelChange(${i},this)">${nivelOpts}</select></td>
+      <td><div class="reg-cell"><span class="reg-label">${getRegimenLabel(r.sistema)}</span><input value="${r.regimen||'—'}" data-state="inherited" onchange="onFieldChange(${i},'regimen',this.value)"></div></td>
+      <td><input value="${r.modelo}" data-state="inherited" style="font-size:10px" onchange="onFieldChange(${i},'modelo',this.value)"></td>
+      <td style="padding:4px"><button class="cp-btn${cpLoaded}" onclick="openCp(${i},this);event.stopPropagation()">Contrapesos</button></td>
+      <td class="mot-cell"><input value="${r.motor_marca}" data-state="inherited" onchange="onFieldChange(${i},'motor_marca',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${r.motor_rpm||'—'}" data-state="inherited" style="text-align:center" onchange="onFieldChange(${i},'motor_rpm',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${r.motor_hp||'—'}" data-state="inherited" style="text-align:center" onchange="onFieldChange(${i},'motor_hp',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${r.motor_polea||'—'}" data-state="inherited" style="text-align:center" onchange="onFieldChange(${i},'motor_polea',this.value)"></td>
+    </tr>`;
+  }).join('');
+}
+
+function setActiveRow(idx){
+  activeRowIdx = idx;
+  const r = gridRows[idx];
+  if(!r) return;
+  document.getElementById('ctxPozo').textContent = r.well_name;
+  document.getElementById('ctxBat').textContent = 'Bat ' + r.bateria;
+  document.getElementById('ctxZona').textContent = r.operadora;
+  const cs = document.getElementById('ctxSistema');
+  cs.textContent = r.sistema;
+  cs.className = 'ctx-badge badge-sistema badge-' + r.sistema.toLowerCase();
+  cs.style.display = '';
+  document.getElementById('obsPozo').textContent = r.well_name;
+  document.getElementById('obsGeneral').value = r.observaciones || '';
+  document.querySelectorAll('#gridBody tr').forEach((tr,i) => tr.classList.toggle('active', i===idx));
+  document.getElementById('btnGuardar').disabled = false;
+}
+
+function onFieldChange(idx, field, val){
+  gridRows[idx][field] = val;
+  gridRows[idx]._dirty = true;
+  updateSaveBar();
+}
+
+function onEnsayoChange(idx, val){
+  gridRows[idx].ensayo = val;
+  gridRows[idx]._dirty = true;
+  updateSaveBar();
+}
+
+function onNivelChange(idx, sel){
+  const v = sel.value;
+  sel.className = 'nivel-sel';
+  if(v === 'Cancelado'){ sel.classList.add('cancelado'); gridRows[idx].nivel_estado = 'NO'; gridRows[idx].nivel_m = null; }
+  else if(v === 'Indefinido'){ sel.classList.add('indefinido'); gridRows[idx].nivel_estado = 'Ver'; gridRows[idx].nivel_m = null; }
+  else { sel.classList.add('ok'); gridRows[idx].nivel_estado = 'OK'; gridRows[idx].nivel_m = parseFloat(v) || null; }
+
+  gridRows[idx]._dirty = true;
+  const row = sel.closest('tr');
+  const ensayo = row.querySelector('td:nth-child(6) select');
+  if(!ensayo) return;
+  if(v === 'Cancelado' && gridRows[idx].sistema === 'AIB'){
+    ensayo.value = 'Dina';
+    gridRows[idx].ensayo = 'Dina';
+  }
+  updateSaveBar();
+}
+
+function updateSaveBar(){
+  const dirty = gridRows.filter(r => r._dirty);
+  const hint = document.getElementById('saveHint');
+  const count = document.getElementById('saveCount');
+  if(!dirty.length){
+    hint.textContent = 'Sin cambios pendientes';
+    count.textContent = '';
+  } else {
+    hint.textContent = dirty.length + ' pozo(s) con cambios';
+    count.textContent = dirty.map(r => r.well_name).join(' · ');
+  }
+}
+
+// ===== CONTRAPESOS POPOVER =====
+function openCp(idx, btn){
+  currentCpIdx = idx;
+  const r = gridRows[idx];
+  document.getElementById('cpPozo').textContent = r.well_name;
+  const cp = r.contrapesos || {};
+  const vals = [
+    cp.tipo||'—', cp.cant||'—', cp.cm||'—',
+    cp.secu||'—', cp.cant2||'—', cp.cm2||'—',
+    cp.tipo||'—', cp.cant||'—', cp.cm||'—',
+    '—','—','—'
+  ];
+  const placaCols = [0,3,6,9];
+  document.getElementById('cpBody').innerHTML = '<tr>' + vals.map((v,i) => {
+    const cls = placaCols.includes(i) ? 'placa-cell' : '';
+    const bl = i===6 ? 'border-left:2px solid rgba(200,146,44,.12);' : (i===3||i===9) ? 'border-left:1px solid rgba(200,146,44,.08);' : '';
+    return `<td class="${cls}" style="${bl}${i===11?'border-right:none':''}"><input value="${v}" data-state="inherited" id="cpF${i}"></td>`;
+  }).join('') + '</tr>';
+
+  const pop = document.getElementById('cpPopover');
+  const rect = btn.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 8) + 'px';
+  pop.style.left = Math.max(16, Math.min(rect.left - 200, window.innerWidth - 610)) + 'px';
+  document.getElementById('cpBackdrop').classList.add('open');
+  pop.classList.add('open');
+}
+
+function closeCp(){
+  document.getElementById('cpBackdrop').classList.remove('open');
+  document.getElementById('cpPopover').classList.remove('open');
+  currentCpIdx = -1;
+}
+
+function confirmCp(){
+  if(currentCpIdx < 0) return;
+  const r = gridRows[currentCpIdx];
+  r.contrapesos = {
+    tipo: document.getElementById('cpF0').value,
+    cant: parseInt(document.getElementById('cpF1').value) || null,
+    cm: parseInt(document.getElementById('cpF2').value) || null,
+    secu: document.getElementById('cpF3').value,
+    cant2: parseInt(document.getElementById('cpF4').value) || null,
+    cm2: parseInt(document.getElementById('cpF5').value) || null,
+  };
+  r._dirty = true;
+  updateSaveBar();
+  closeCp();
+  renderGrid();
+  toast('Contrapesos actualizados');
+}
+
+// ===== GUARDAR → Supabase =====
+async function guardarVisita(){
+  const dirty = gridRows.filter(r => r._dirty);
+  if(!dirty.length){ toast('No hay cambios para guardar'); return; }
+  if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+
+  let saved = 0;
+  for(const r of dirty){
+    const obs = activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id
+      ? document.getElementById('obsGeneral').value : r.observaciones;
+
+    const payload = {
+      well_id: r.well_id,
+      well_name_raw: r.well_name,
+      operadora: r.operadora,
+      bateria: r.bateria,
+      fecha: r.fecha,
+      sistema_extraccion: r.sistema,
+      tipo_ensayo: r.estado,
+      tipo_operacion: r.ensayo,
+      nivel_medido_m: r.nivel_m,
+      nivel_estado: r.nivel_estado,
+      carrera_in: r.sistema === 'AIB' ? (parseFloat(r.regimen) || null) : null,
+      hz: r.sistema === 'BES' ? (parseFloat(r.regimen) || null) : null,
+      rpm_bes: r.sistema === 'PCP' ? (parseFloat(r.regimen) || null) : null,
+      unidad_modelo: r.modelo,
+      motor_marca: r.motor_marca,
+      motor_rpm: parseFloat(r.motor_rpm) || null,
+      motor_hp: parseFloat(r.motor_hp) || null,
+      motor_polea: r.motor_polea === '—' ? null : r.motor_polea,
+      observaciones: obs,
+    };
+
+    let result;
+    if(r.visita_id){
+      result = await supabaseClient.from('bitacora_visitas')
+        .update(payload)
+        .eq('visita_id', r.visita_id)
+        .select();
+    } else {
+      result = await supabaseClient.from('bitacora_visitas')
+        .insert(payload)
+        .select();
+    }
+
+    if(result.error){
+      toast('Error guardando ' + r.well_name + ': ' + result.error.message, true);
+      console.error(result.error);
+      continue;
+    }
+
+    if(result.data?.[0]){
+      r.visita_id = result.data[0].visita_id;
+    }
+    r._dirty = false;
+    saved++;
+  }
+
+  updateSaveBar();
+  renderGrid();
+  toast(saved + ' pozo(s) guardados correctamente');
+}
+
+// ===== OBS CHIPS =====
+function toggleChip(el){
+  el.classList.toggle('active');
+  const ta = document.getElementById('obsGeneral');
+  const chips = [...document.querySelectorAll('.obs-chip.active')].map(c => c.textContent);
+  const manual = ta.value.split('\n').filter(l => !document.querySelectorAll('.obs-chip').length || ![...document.querySelectorAll('.obs-chip')].some(c => l.trim() === c.textContent));
+  ta.value = (chips.length ? chips.join('. ') + '. ' : '') + manual.join('\n');
+}
+
+// ===== KEYBOARD =====
+document.addEventListener('keydown', function(e){
+  if((e.ctrlKey || e.metaKey) && e.key === 's'){
+    e.preventDefault();
+    guardarVisita();
+  }
+});
+
+// ===== DRAG POPOVER =====
+(function(){
+  const pop = document.getElementById('cpPopover');
+  const handle = pop.querySelector('.cp-pop-title');
+  let drag = false, startX, startY, startLeft, startTop;
+  handle.addEventListener('pointerdown', function(e){
+    if(e.target.classList.contains('cp-pop-close')) return;
+    drag = true; startX = e.clientX; startY = e.clientY;
+    const rect = pop.getBoundingClientRect();
+    startLeft = rect.left; startTop = rect.top;
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener('pointermove', function(e){
+    if(!drag) return;
+    pop.style.left = (startLeft + e.clientX - startX) + 'px';
+    pop.style.top = (startTop + e.clientY - startY) + 'px';
+  });
+  handle.addEventListener('pointerup', function(e){ drag = false; handle.releasePointerCapture(e.pointerId); });
+  handle.addEventListener('lostpointercapture', function(){ drag = false; });
+})();
+
+// ===== INIT =====
+loadAllWells().then(()=>{
+  document.getElementById('hoyCount').textContent = allWells.length > 0 ? '?' : '0';
+});
+</script>
+</body>
+</html>
