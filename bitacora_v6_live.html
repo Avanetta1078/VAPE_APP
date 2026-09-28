@@ -258,6 +258,8 @@ table.cp-table td.placa-cell input{text-align:left}
       <th rowspan="2" class="hi" style="width:86px">Ensayo</th>
       <th rowspan="2" style="width:72px">Nivel (m)</th>
       <th rowspan="2" class="hi" style="width:80px">Régimen</th>
+      <th rowspan="2" style="width:56px">P.Tbg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
+      <th rowspan="2" style="width:56px">P.Csg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
       <th rowspan="2" style="width:140px">Modelo equipo</th>
       <th rowspan="2" class="cp-h" style="width:100px">Contrapesos</th>
       <th colspan="4" class="grp-mot">Motor</th>
@@ -270,7 +272,7 @@ table.cp-table td.placa-cell input{text-align:left}
     </tr>
   </thead>
   <tbody id="gridBody">
-    <tr><td colspan="14"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy" para cargar los del día</div></div></td></tr>
+    <tr><td colspan="16"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy" para cargar los del día</div></div></td></tr>
   </tbody>
 </table>
 </div>
@@ -445,6 +447,8 @@ async function selectWell(wellId){
     nivel_m: lastVisit?.nivel_medido_m || null,
     nivel_estado: lastVisit?.nivel_estado || lastFieldLog?.nivel_estado || 'OK',
     regimen: getRegimenValue(sistema, lastVisit, lastFieldLog),
+    presion_tbg: lastVisit?.presion_tubing_kg || lastFieldLog?.presion_tubing_kg || null,
+    presion_csg: lastVisit?.presion_casing_kg || lastFieldLog?.presion_casing_kg || null,
     modelo: lastVisit?.unidad_modelo || lastFieldLog?.unidad_descripcion || '',
     motor_marca: well.motor_marca || lastFieldLog?.motor_marca || '',
     motor_rpm: well.motor_rpm || lastFieldLog?.motor_rpm || '',
@@ -521,6 +525,8 @@ async function loadToday(){
       nivel_m: v.nivel_medido_m,
       nivel_estado: v.nivel_estado || 'OK',
       regimen: getRegimenValue(v.sistema_extraccion, v, null),
+      presion_tbg: v.presion_tubing_kg || null,
+      presion_csg: v.presion_casing_kg || null,
       modelo: v.unidad_modelo || '',
       motor_marca: v.motor_marca || well.motor_marca || '',
       motor_rpm: v.motor_rpm || well.motor_rpm || '',
@@ -548,7 +554,7 @@ document.getElementById('btnNuevo').addEventListener('click', ()=>{
 function renderGrid(){
   const tbody = document.getElementById('gridBody');
   if(!gridRows.length){
-    tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy"</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="16"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Escribí el nombre en el buscador o presioná "Hoy"</div></div></td></tr>';
     return;
   }
   tbody.innerHTML = gridRows.map((r,i) => {
@@ -582,6 +588,8 @@ function renderGrid(){
       <td><select data-state="${ds}" onchange="onEnsayoChange(${i},this.value)">${ensayoOpts}</select></td>
       <td><select class="nivel-sel ${nivelClass}" onchange="onNivelChange(${i},this)">${nivelOpts}</select></td>
       <td><div class="reg-cell"><span class="reg-label">${getRegimenLabel(r.sistema)}</span><input value="${r.regimen||'—'}" data-state="inherited" onchange="onFieldChange(${i},'regimen',this.value)"></div></td>
+      <td style="text-align:center"><input value="${r.presion_tbg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
+      <td style="text-align:center"><input value="${r.presion_csg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_csg',this.value)"></td>
       <td><input value="${r.modelo}" data-state="inherited" style="font-size:10px" onchange="onFieldChange(${i},'modelo',this.value)"></td>
       <td style="padding:4px"><button class="cp-btn${cpLoaded}" onclick="openCp(${i},this);event.stopPropagation()">Contrapesos</button></td>
       <td class="mot-cell"><input value="${r.motor_marca}" data-state="inherited" onchange="onFieldChange(${i},'motor_marca',this.value)"></td>
@@ -725,6 +733,8 @@ async function guardarVisita(){
       tipo_operacion: r.ensayo,
       nivel_medido_m: r.nivel_m,
       nivel_estado: r.nivel_estado,
+      presion_tubing_kg: parseFloat(r.presion_tbg) || null,
+      presion_casing_kg: parseFloat(r.presion_csg) || null,
       carrera_in: r.sistema === 'AIB' ? (parseFloat(r.regimen) || null) : null,
       hz: r.sistema === 'BES' ? (parseFloat(r.regimen) || null) : null,
       rpm_bes: r.sistema === 'PCP' ? (parseFloat(r.regimen) || null) : null,
