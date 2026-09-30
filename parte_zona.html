@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA&amp;PE — Generador de Partes (desde Planillero)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root{--teal:#2D5F6F;--teal-soft:rgba(45,95,111,.06);--bg:#f4f5f7;--card:#fff;--border:#e0e0e0;--text:#333;--text-light:#666;--text-muted:#999;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;}
+
+  .app-header{text-align:center;padding:20px 0 16px;border-bottom:2px solid var(--teal);margin-bottom:24px;}
+  .app-header h1{font-size:18px;color:var(--teal);font-weight:700;}
+  .app-header p{font-size:12px;color:var(--text-light);margin-top:4px;}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;max-width:900px;margin:0 auto 20px;}
+  .panel h2{font-size:14px;color:var(--teal);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .panel h2::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+
+  .form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;}
+  .form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px;}
+  .form-group label{font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;}
+  .form-group input,.form-group select{padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:#fff;color:var(--text);outline:none;}
+  .form-group input:focus,.form-group select:focus{border-color:var(--teal);}
+
+  .btn{padding:8px 16px;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+  .btn-primary{background:var(--teal);color:#fff;}
+  .btn-primary:hover{background:#1a4a5a;}
+  .btn-primary:disabled{background:#aaa;cursor:default;}
+  .btn-outline{background:transparent;border:1px solid var(--teal);color:var(--teal);}
+  .btn-outline:hover{background:var(--teal-soft);}
+  .btn-danger{background:#c0392b;color:#fff;}
+  .btn-danger:hover{background:#96281b;}
+
+  .file-area{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .file-label{padding:8px 16px;background:var(--teal);color:#fff;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;}
+  .file-label:hover{background:#1a4a5a;}
+  .file-name{font-size:11px;color:var(--text-light);}
+
+  .info-bar{font-size:11px;color:var(--text-light);margin:8px 0;padding:6px 10px;background:#f0f4f5;border-radius:4px;border-left:3px solid var(--teal);}
+  .info-bar.warn{border-left-color:#e65100;background:#fff8f0;}
+
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+
+  /* ── Parte — estilos (idénticos al original) ── */
+  .parte-container{margin-top:14px;background:#fff;border-radius:8px;padding:20px;color:#333;font-size:11px;max-width:21cm;border:1px solid var(--border);}
+  .parte-hdr{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;border-bottom:2px solid #2D5F6F;padding-bottom:10px;}
+  .parte-hdr-top{display:flex;align-items:flex-start;gap:10px;}
+  .parte-logo{width:50px;height:38px;background:linear-gradient(135deg,#2D5F6F,#1a3a4a);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;flex-shrink:0;}
+  .parte-hdr-title{font-size:13px;font-weight:600;color:#2D5F6F;line-height:1.2;}
+  .parte-hdr-sub{font-size:10px;color:#666;}
+  .parte-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;padding-top:4px;}
+  .parte-meta-item{display:flex;flex-direction:column;}
+  .parte-meta-lbl{font-size:9px;color:#999;font-weight:500;margin-bottom:1px;}
+  .parte-meta-val{font-size:10px;color:#333;font-weight:600;word-wrap:break-word;}
+  .parte-meta-val[contenteditable="true"]{cursor:text;outline:none;border-bottom:1px dashed #ccc;padding:0 2px;}
+  .parte-meta-val[contenteditable="true"]:focus{border-color:#2D5F6F;background:rgba(45,95,111,.06);}
+  .parte-content{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:start;}
+  .parte-table{width:100%;border-collapse:collapse;font-size:10px;border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;}
+  .parte-table thead{background:#2D5F6F;color:#fff;}
+  .parte-table th{padding:5px 6px;text-align:left;font-weight:600;font-size:10px;white-space:nowrap;}
+  .parte-table td{padding:6px 6px;border-bottom:0.5px solid #f0f0f0;color:#333;}
+  .parte-table tbody tr:hover{background:#f9fbfd;}
+  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:2px;}
+  .parte-table td[contenteditable="true"]:focus{background:rgba(45,95,111,.08);box-shadow:inset 0 0 0 1px #2D5F6F;}
+  .parte-ops{border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;background:#fff;height:fit-content;}
+  .parte-ops-hdr{background:#2D5F6F;color:#fff;padding:5px 6px;font-size:10px;font-weight:600;text-transform:uppercase;}
+  .parte-ops-row{display:grid;grid-template-columns:1fr 50px;border-bottom:0.5px solid #f0f0f0;align-items:center;}
+  .parte-ops-row:last-child{border-bottom:none;}
+  .parte-ops-lbl{padding:6px;font-weight:500;color:#333;border-right:0.5px solid #f0f0f0;font-size:10px;}
+  .parte-ops-val{padding:6px;text-align:center;font-weight:700;color:#2D5F6F;font-size:13px;}
+  .parte-ops-total{background:#f9f9f9;border-top:1px solid #2D5F6F;font-weight:600;}
+  .parte-obs-section{border-top:1px solid #e0e0e0;padding-top:10px;margin-top:12px;}
+  .parte-obs-title{font-size:10px;font-weight:600;color:#2D5F6F;text-transform:uppercase;margin-bottom:6px;}
+  .parte-obs-area{min-height:50px;padding:8px;border:0.5px solid #e0e0e0;border-radius:3px;font-size:10px;color:#333;outline:none;}
+  .parte-obs-area:focus{border-color:#2D5F6F;background:rgba(45,95,111,.04);}
+  .parte-footer{text-align:center;font-size:8px;color:#999;margin-top:10px;padding-top:6px;border-top:0.5px solid #e0e0e0;}
+
+  @media print{
+    body{padding:0;background:#fff;}
+    .panel,.app-header,.actions,.no-print{display:none!important;}
+    .parte-container{box-shadow:none;margin:0;width:100%;border:none;max-width:100%;}
+    .parte-table thead{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .parte-ops-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header no-print">
+  <h1>VA&amp;PE — Generador de Partes desde Planillero</h1>
+  <p>Importá el Excel del Planillero Diario y generá el parte con formato idéntico al de la app</p>
+</div>
+
+<!-- ── Panel de importación ── -->
+<div class="panel no-print" id="importPanel">
+  <h2>Importar Planillero Diario</h2>
+
+  <div class="file-area">
+    <label class="file-label" for="xlsFile">Elegir Excel</label>
+    <input type="file" id="xlsFile" accept=".xlsx,.xls" hidden>
+    <span class="file-name" id="fileName">Ningún archivo</span>
+  </div>
+
+  <div id="configArea" style="display:none;">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Operadora</label>
+        <input type="text" id="inpOperadora" placeholder="Ej: Crown Point">
+      </div>
+      <div class="form-group">
+        <label>Yacimiento</label>
+        <input type="text" id="inpYacimiento" placeholder="Ej: Cerro Dragón">
+      </div>
+      <div class="form-group">
+        <label>Nº Parte</label>
+        <input type="text" id="inpNroParte" placeholder="Ej: 2026-0001">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Hoja específica</label>
+        <select id="hojaCombo"><option value="">— Todas las hojas con fecha —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Desde</label>
+        <input type="date" id="inpDesde">
+      </div>
+      <div class="form-group">
+        <label>Hasta</label>
+        <input type="date" id="inpHasta">
+      </div>
+    </div>
+
+    <div id="hojasInfo" class="info-bar" style="display:none;"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="btnGenerar">Generar Parte</button>
+      <button class="btn btn-outline" id="btnLimpiar">Limpiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Botones de exportación ── -->
+<div class="panel no-print" id="exportPanel" style="display:none;">
+  <h2>Exportar</h2>
+  <div class="actions">
+    <button class="btn btn-primary" id="btnPdf">Exportar PDF</button>
+    <button class="btn btn-outline" id="btnXls">Exportar Excel</button>
+    <button class="btn btn-outline" id="btnPrint">Imprimir</button>
+  </div>
+</div>
+
+<!-- ── Salida del parte ── -->
+<div class="parte-container" id="parteOutput" style="display:none;"></div>
+
+<script>
+(function(){
+  const xlsFile = document.getElementById('xlsFile');
+  const fileNameEl = document.getElementById('fileName');
+  const configArea = document.getElementById('configArea');
+  const hojaCombo = document.getElementById('hojaCombo');
+  const desdeInput = document.getElementById('inpDesde');
+  const hastaInput = document.getElementById('inpHasta');
+  const hojasInfo = document.getElementById('hojasInfo');
+  const inpOp = document.getElementById('inpOperadora');
+  const inpYac = document.getElementById('inpYacimiento');
+  const inpNum = document.getElementById('inpNroParte');
+  const btnGenerar = document.getElementById('btnGenerar');
+  const btnLimpiar = document.getElementById('btnLimpiar');
+  const btnPdf = document.getElementById('btnPdf');
+  const btnXls = document.getElementById('btnXls');
+  const btnPrint = document.getElementById('btnPrint');
+  const exportPanel = document.getElementById('exportPanel');
+  const output = document.getElementById('parteOutput');
+
+  let workbook = null;
+  let sheetDates = [];
+  let parteData = null;
+
+  // ── Utilidades de fecha ──
+  function parseSheetDate(name){
+    const m = String(name).match(/(\d{1,2})[\-\/\.](\d{1,2})[\-\/\.](\d{2,4})/);
+    if(!m) return null;
+    let d=parseInt(m[1],10), mo=parseInt(m[2],10), y=parseInt(m[3],10);
+    if(y<100) y+=2000;
+    if(mo<1||mo>12||d<1||d>31) return null;
+    const dt=new Date(Date.UTC(y,mo-1,d));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  function fmtDDMMYYYY(dt){
+    return String(dt.getUTCDate()).padStart(2,'0')+'/'+String(dt.getUTCMonth()+1).padStart(2,'0')+'/'+dt.getUTCFullYear();
+  }
+  function toIsoDate(dt){
+    return dt.getUTCFullYear()+'-'+String(dt.getUTCMonth()+1).padStart(2,'0')+'-'+String(dt.getUTCDate()).padStart(2,'0');
+  }
+  function numOrNull(v){
+    if(v===null||v===undefined||v==='') return null;
+    const n=parseFloat(v);
+    return isNaN(n)?null:n;
+  }
+
+  // ── Carga del Excel ──
+  xlsFile.addEventListener('change', async ()=>{
+    const f = xlsFile.files[0];
+    if(!f) return;
+    fileNameEl.textContent = f.name;
+    try{
+      const buf = await f.arrayBuffer();
+      workbook = XLSX.read(buf, {type:'array', cellDates:false});
+      sheetDates = workbook.SheetNames
+        .map(name=>({name, date:parseSheetDate(name)}))
+        .filter(s=>s.date)
+        .sort((a,b)=>a.date-b.date);
+
+      hojaCombo.innerHTML = '<option value="">— Todas las hojas con fecha —</option>' +
+        sheetDates.map(s=>`<option value="${s.name}">${fmtDDMMYYYY(s.date)} — ${s.name.trim()}</option>`).join('');
+
+      const descartadas = workbook.SheetNames.length - sheetDates.length;
+      hojasInfo.textContent = `${sheetDates.length} hojas con fecha reconocida (de ${workbook.SheetNames.length} totales; ${descartadas} descartadas).`;
+      hojasInfo.style.display = '';
+
+      if(sheetDates.length){
+        desdeInput.value = toIsoDate(sheetDates[0].date);
+        hastaInput.value = toIsoDate(sheetDates[sheetDates.length-1].date);
+      }
+      configArea.style.display = '';
+    } catch(e){
+      alert('Error al leer el Excel: '+(e.message||e));
+    }
+  });
+
+  // ── Extraer filas de una hoja (mismo parseo que VAPE_APP) ──
+  function extractRows(sheetName, fechaISO){
+    const ws = workbook.Sheets[sheetName];
+    if(!ws||!ws['!ref']) return [];
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const rows = [];
+    for(let r=5; r<=range.e.r; r++){
+      const get = (col)=>{
+        const cell = ws[XLSX.utils.encode_cell({r,c:col})];
+        return cell ? cell.v : null;
+      };
+      const pozoRaw = get(3); // D
+      if(pozoRaw===null||pozoRaw===undefined||String(pozoRaw).trim()==='') continue;
+      const pozo = String(pozoRaw).trim();
+      const bateria = get(4) ? String(get(4)).trim() : ''; // E
+      const estadoPozo = get(9) ? String(get(9)).trim() : ''; // J
+      const tipoEnsayoRaw = String(get(10)||'').trim().toLowerCase(); // K
+      const tipoOperacionRaw = String(get(11)||'').trim().toLowerCase(); // L
+      const unidadDesc = get(12) ? String(get(12)).trim() : ''; // M
+
+      let tipoEnsayo = '';
+      if(tipoEnsayoRaw.startsWith('din')) tipoEnsayo = 'Dinamico';
+      else if(tipoEnsayoRaw.startsWith('est')) tipoEnsayo = 'Estatico';
+
+      let tipoOperacion = '';
+      if(tipoOperacionRaw.includes('comb')) tipoOperacion = 'Combinada';
+      else if(tipoOperacionRaw.includes('cancel')) tipoOperacion = 'Cancelada';
+      else if(tipoOperacionRaw.includes('nivel')) tipoOperacion = 'Nivel';
+      else if(tipoOperacionRaw.includes('dina')) tipoOperacion = 'Dina';
+
+      rows.push({
+        fecha: fechaISO,
+        well: pozo,
+        bateria: bateria,
+        estado: estadoPozo || tipoEnsayo,
+        ensayo: tipoOperacion,
+        sistema: unidadDesc
+      });
+    }
+    return rows;
+  }
+
+  function sheetsToProcess(){
+    const single = hojaCombo.value;
+    if(single) return sheetDates.filter(s=>s.name===single);
+    if(!desdeInput.value||!hastaInput.value) return [];
+    const desde = new Date(desdeInput.value+'T00:00:00Z');
+    const hasta = new Date(hastaInput.value+'T00:00:00Z');
+    return sheetDates.filter(s=>s.date>=desde&&s.date<=hasta);
+  }
+
+  // ── Generar parte ──
+  btnGenerar.addEventListener('click', ()=>{
+    if(!workbook){alert('Subí primero el Excel.');return;}
+    const sheets = sheetsToProcess();
+    if(!sheets.length){alert('No hay hojas en el rango seleccionado.');return;}
+
+    let allRows = [];
+    sheets.forEach(s=>{
+      allRows = allRows.concat(extractRows(s.name, toIsoDate(s.date)));
+    });
+
+    if(!allRows.length){alert('No se encontraron pozos en las hojas seleccionadas.');return;}
+
+    const counts = {Nivel:0, Combinada:0, Dina:0, Cancelada:0};
+    allRows.forEach(r=>{
+      if(counts[r.ensayo]!==undefined) counts[r.ensayo]++;
+    });
+    const total = allRows.length;
+
+    const baterias = [...new Set(allRows.map(r=>r.bateria).filter(Boolean))].join(', ') || '—';
+    const operadora = inpOp.value.trim()||'—';
+    const yacimiento = inpYac.value.trim()||'—';
+    const numParte = inpNum.value.trim()||'';
+
+    const firstDate = sheets[0].date;
+    const fechaFmt = fmtDDMMYYYY(firstDate);
+    const shortDate = fechaFmt.substring(0,5);
+
+    parteData = {fechaFmt, numParte, operadora, yacimiento, baterias, parteRows:allRows, counts, total, shortDate};
+
+    const now = new Date();
+    const genTimestamp = fechaFmt+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+    output.style.display = 'block';
+    exportPanel.style.display = '';
+    output.innerHTML = `
+      <div class="parte-hdr">
+        <div class="parte-hdr-top">
+          <div class="parte-logo">VA&amp;PE</div>
+          <div>
+            <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
+            <div class="parte-hdr-sub">Parte Dinamometría</div>
+          </div>
+        </div>
+        <div class="parte-meta-grid">
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum" style="${numParte?'':'color:#c62828;font-style:italic;'}">${numParte||'Sin asignar'}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" contenteditable="true" id="parteMetaFecha">${fechaFmt}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${operadora}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" contenteditable="true" id="parteMetaYac">${yacimiento}</span></div>
+        </div>
+        <div style="padding-top:6px;">
+          <span class="parte-meta-lbl">Baterías recorridas</span>
+          <span class="parte-meta-val" contenteditable="true" id="parteMetaBat" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
+        </div>
+      </div>
+      <div class="parte-content">
+        <div>
+          <table class="parte-table" id="parteTableResult">
+            <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
+            <tbody>
+              ${allRows.map(r=>`<tr>
+                <td contenteditable="true">${shortDate}</td>
+                <td contenteditable="true">${r.well}</td>
+                <td contenteditable="true">${r.estado}</td>
+                <td contenteditable="true">${r.ensayo}</td>
+                <td contenteditable="true">${r.sistema}</td>
+              </tr>`).join('')}
+              ${allRows.length===0?'<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No se encontraron ensayos.</td></tr>':''}
+            </tbody>
+          </table>
+        </div>
+        <div class="parte-ops">
+          <div class="parte-ops-hdr">Operaciones</div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
+          <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
+        </div>
+      </div>
+      <div class="parte-obs-section">
+        <div class="parte-obs-title">Observaciones (Dina / Nivel)</div>
+        <div class="parte-obs-area" id="parteObsArea" contenteditable="true"></div>
+      </div>
+      <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | Generado: ${genTimestamp}</div>
+    `;
+  });
+
+  // ── Limpiar ──
+  btnLimpiar.addEventListener('click', ()=>{
+    output.style.display = 'none';
+    output.innerHTML = '';
+    exportPanel.style.display = 'none';
+    parteData = null;
+  });
+
+  // ── Imprimir ──
+  btnPrint.addEventListener('click', ()=>window.print());
+
+  // ── Exportar PDF (idéntico al original) ──
+  btnPdf.addEventListener('click', ()=>{
+    if(!parteData){alert('Generá el parte primero.');return;}
+    const jspdfLib = window.jspdf||window.jsPDF;
+    if(!jspdfLib){alert('Error: jsPDF no se cargó.');return;}
+    const {jsPDF} = jspdfLib;
+    const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pw=210, ph=297, mx=16;
+    const cw = pw-mx*2;
+    let y = 14;
+    const teal = [45,95,111];
+
+    const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim())||parteData.numParte;
+    const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim())||parteData.fechaFmt;
+    const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim())||parteData.operadora;
+    const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim())||parteData.yacimiento;
+    const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim())||parteData.baterias;
+
+    doc.setFillColor(...teal);
+    doc.roundedRect(mx,y,16,12,1.5,1.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(255,255,255);
+    doc.text('VA&PE',mx+8,y+7.5,{align:'center'});
+
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...teal);
+    doc.text('Servicio de Ecodinamometría',mx+20,y+5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(102,102,102);
+    doc.text('Parte Dinamometría',mx+20,y+10);
+
+    y+=16;
+    doc.setDrawColor(...teal);doc.setLineWidth(0.6);
+    doc.line(mx,y,pw-mx,y);
+    y+=6;
+
+    const metaItems = [
+      {lbl:'Nº Parte',val:metaNum},{lbl:'Fecha',val:metaFecha},
+      {lbl:'Operadora',val:metaOp},{lbl:'Yacimiento',val:metaYac}
+    ];
+    const metaW = cw/4;
+    metaItems.forEach((m,i)=>{
+      const bx=mx+i*metaW;
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(153,153,153);
+      doc.text(m.lbl,bx,y);
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(51,51,51);
+      doc.text(m.val||'—',bx,y+4.5);
+    });
+    y+=10;
+
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(153,153,153);
+    doc.text('Baterías recorridas',mx,y);
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(51,51,51);
+    const batLines = doc.splitTextToSize(metaBat||'—',cw);
+    doc.text(batLines,mx,y+4.5);
+    y+=5+batLines.length*3.5+3;
+
+    const tableW = cw-42;
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...teal);
+    doc.text('DETALLE DE OPERACIONES',mx,y);
+    doc.text('OPERACIONES',mx+tableW+4,y);
+    y+=4;
+
+    const tableEl = document.getElementById('parteTableResult');
+    const tableData = [];
+    const countsDOM = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
+    if(tableEl){
+      tableEl.querySelectorAll('tbody tr').forEach(tr=>{
+        const cells=[];
+        tr.querySelectorAll('td').forEach(td=>cells.push(td.textContent.trim()));
+        if(cells.length>=5){
+          tableData.push(cells);
+          if(countsDOM[cells[3]]!==undefined) countsDOM[cells[3]]++;
+        }
+      });
+    }
+    const totalDOM = tableData.length;
+
+    doc.autoTable({
+      startY:y,
+      margin:{left:mx,right:mx+44},
+      head:[['Fecha','Pozo','Estado','Ensayo','Tipo']],
+      body:tableData,
+      styles:{fontSize:8.5,cellPadding:2.2,lineColor:[224,224,224],lineWidth:0.15,textColor:[51,51,51]},
+      headStyles:{fillColor:teal,textColor:[255,255,255],fontStyle:'bold',fontSize:8},
+      alternateRowStyles:{fillColor:[249,251,253]},
+      tableWidth:tableW
+    });
+
+    const opsX = mx+tableW+4;
+    const opsW = 38;
+    let oy = y;
+    doc.setFillColor(...teal);
+    doc.rect(opsX,oy,opsW,6,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(255,255,255);
+    doc.text('Cantidad',opsX+2,oy+4.2);
+    oy+=6;
+    [{lbl:'Nivel',val:countsDOM.Nivel},{lbl:'Combinada',val:countsDOM.Combinada},{lbl:'Dina',val:countsDOM.Dina},{lbl:'Canceladas',val:countsDOM.Cancelada}].forEach(r=>{
+      doc.setDrawColor(240,240,240);doc.setLineWidth(0.15);
+      doc.line(opsX,oy+7,opsX+opsW,oy+7);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(51,51,51);
+      doc.text(r.lbl,opsX+2,oy+5);
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...teal);
+      doc.text(String(r.val),opsX+opsW-4,oy+5.2,{align:'right'});
+      oy+=7;
+    });
+    doc.setDrawColor(...teal);doc.setLineWidth(0.4);
+    doc.line(opsX,oy,opsX+opsW,oy);
+    doc.setFillColor(249,249,249);doc.rect(opsX,oy,opsW,8,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(51,51,51);
+    doc.text('TOTAL',opsX+2,oy+5.5);
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...teal);
+    doc.text(String(totalDOM),opsX+opsW-4,oy+5.8,{align:'right'});
+
+    y = Math.max(doc.lastAutoTable.finalY,oy+8)+6;
+
+    doc.setDrawColor(224,224,224);doc.setLineWidth(0.3);
+    doc.line(mx,y,pw-mx,y);
+    y+=5;
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...teal);
+    doc.text('OBSERVACIONES (DINA / NIVEL)',mx,y);
+    y+=5;
+    const obsEl = document.getElementById('parteObsArea');
+    const obsText = obsEl ? obsEl.textContent.trim() : '';
+    if(obsText){
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(51,51,51);
+      const obsLines = doc.splitTextToSize(obsText,cw);
+      doc.text(obsLines,mx,y);
+      y+=obsLines.length*3.5+2;
+    }
+    doc.setDrawColor(153,153,153);doc.setLineWidth(0.15);
+    for(let i=0;i<5;i++){doc.line(mx,y+6,pw-mx,y+6);y+=8;}
+
+    doc.setFontSize(7);doc.setTextColor(153,153,153);
+    doc.setDrawColor(224,224,224);doc.setLineWidth(0.15);
+    doc.line(mx,ph-14,pw-mx,ph-14);
+    const now=new Date();
+    const ts=metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    doc.text('VA&PE | Ecodinamometría Computarizada | Generado: '+ts,pw/2,ph-10,{align:'center'});
+
+    const fname = `Parte_${(metaOp||'zona').replace(/\s+/g,'_')}_${(metaFecha||'').replace(/\//g,'-')}_N_${metaNum||'SP'}.pdf`;
+    doc.save(fname);
+  });
+
+  // ── Exportar Excel (idéntico al original) ──
+  btnXls.addEventListener('click', async ()=>{
+    if(!parteData){alert('Generá el parte primero.');return;}
+    if(typeof ExcelJS==='undefined'){alert('Error: ExcelJS no se cargó.');return;}
+
+    const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim())||parteData.numParte;
+    const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim())||parteData.fechaFmt;
+    const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim())||parteData.operadora;
+    const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim())||parteData.yacimiento;
+    const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim())||parteData.baterias;
+
+    const tableEl = document.getElementById('parteTableResult');
+    const dataRows = [];
+    const cnt = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
+    if(tableEl){
+      tableEl.querySelectorAll('tbody tr').forEach(tr=>{
+        const c=[];tr.querySelectorAll('td').forEach(td=>c.push(td.textContent.trim()));
+        if(c.length>=5){if(cnt[c[3]]!==undefined)cnt[c[3]]++;dataRows.push(c);}
+      });
+    }
+    const totalXls = Object.values(cnt).reduce((a,b)=>a+b,0);
+    const obsEl = document.getElementById('parteObsArea');
+    const obsText = obsEl ? obsEl.textContent.trim() : '';
+    const now = new Date();
+    const ts = metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+    const TEAL={argb:'FF2D5F6F'};const WHITE={argb:'FFFFFFFF'};const DARK={argb:'FF333333'};
+    const GRAY={argb:'FF999999'};const LTGRAY={argb:'FFF0F0F0'};const ZEBRA={argb:'FFF9FBFD'};
+    const fontTitle={name:'Calibri',size:13,bold:true,color:TEAL};
+    const fontSub={name:'Calibri',size:9,color:{argb:'FF666666'}};
+    const fontMetaLbl={name:'Calibri',size:8,color:GRAY};
+    const fontMetaVal={name:'Calibri',size:10,bold:true,color:DARK};
+    const fontTh={name:'Calibri',size:9,bold:true,color:WHITE};
+    const fontTd={name:'Calibri',size:9,color:DARK};
+    const fontOpsLbl={name:'Calibri',size:9,color:DARK};
+    const fontOpsVal={name:'Calibri',size:12,bold:true,color:TEAL};
+    const thinBorder={style:'thin',color:LTGRAY};
+    const tealBorder={style:'thin',color:TEAL};
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'VA&PE App';
+    const ws = wb.addWorksheet('Parte',{
+      pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,
+        margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2}}
+    });
+    ws.columns=[{width:12},{width:16},{width:13},{width:14},{width:11},{width:2},{width:16},{width:10}];
+
+    let r=1;
+    ws.mergeCells(r,1,r,2);
+    const logoCell=ws.getCell(r,1);
+    logoCell.value='VA&PE';
+    logoCell.font={name:'Calibri',size:11,bold:true,color:WHITE};
+    logoCell.fill={type:'pattern',pattern:'solid',fgColor:TEAL};
+    logoCell.alignment={horizontal:'center',vertical:'middle'};
+    ws.mergeCells(r,3,r,5);
+    ws.getCell(r,3).value='Servicio de Ecodinamometría';
+    ws.getCell(r,3).font=fontTitle;
+    ws.getCell(r,3).alignment={vertical:'middle'};
+    ws.getRow(r).height=22;
+    r++;
+
+    ws.mergeCells(r,3,r,5);
+    ws.getCell(r,3).value='Parte Dinamometría';
+    ws.getCell(r,3).font=fontSub;
+    for(let c=1;c<=8;c++) ws.getCell(r,c).border={bottom:{style:'medium',color:TEAL}};
+    r++;
+
+    ws.getRow(r).height=6;r++;
+
+    const metaLabels=['Nº Parte','Fecha','Operadora','Yacimiento'];
+    const metaValues=[metaNum,metaFecha,metaOp,metaYac];
+    const metaCols=[[1,2],[3,3],[4,5],[7,8]];
+    metaCols.forEach((mc,i)=>{
+      if(mc[0]!==mc[1])ws.mergeCells(r,mc[0],r,mc[1]);
+      ws.getCell(r,mc[0]).value=metaLabels[i];
+      ws.getCell(r,mc[0]).font=fontMetaLbl;
+    });
+    r++;
+    metaCols.forEach((mc,i)=>{
+      if(mc[0]!==mc[1])ws.mergeCells(r,mc[0],r,mc[1]);
+      ws.getCell(r,mc[0]).value=metaValues[i];
+      ws.getCell(r,mc[0]).font=fontMetaVal;
+    });
+    r++;
+
+    ws.getCell(r,1).value='Baterías recorridas';
+    ws.getCell(r,1).font=fontMetaLbl;
+    ws.mergeCells(r,2,r,5);
+    ws.getCell(r,2).value=metaBat;
+    ws.getCell(r,2).font={name:'Calibri',size:9,bold:true,color:DARK};
+    r++;
+
+    ws.getRow(r).height=6;r++;
+
+    const thLabels=['Fecha','Pozo','Estado','Ensayo','Tipo'];
+    thLabels.forEach((lbl,i)=>{
+      const cell=ws.getCell(r,i+1);
+      cell.value=lbl;
+      cell.font=fontTh;
+      cell.fill={type:'pattern',pattern:'solid',fgColor:TEAL};
+      cell.alignment={horizontal:'left',vertical:'middle'};
+      cell.border={bottom:tealBorder};
+    });
+    ws.getCell(r,7).value='Cantidad';
+    ws.getCell(r,7).font=fontTh;
+    ws.getCell(r,7).fill={type:'pattern',pattern:'solid',fgColor:TEAL};
+    ws.getCell(r,7).alignment={horizontal:'left',vertical:'middle'};
+    ws.getCell(r,8).fill={type:'pattern',pattern:'solid',fgColor:TEAL};
+    r++;
+
+    const opsLabels=['Nivel','Combinada','Dina','Canceladas'];
+    const opsVals=[cnt.Nivel,cnt.Combinada,cnt.Dina,cnt.Cancelada];
+    const maxRows=Math.max(dataRows.length,opsLabels.length+1);
+    for(let i=0;i<maxRows;i++){
+      const row=ws.getRow(r);
+      if(i<dataRows.length){
+        dataRows[i].forEach((v,ci)=>{
+          const cell=ws.getCell(r,ci+1);
+          cell.value=v;
+          cell.font=fontTd;
+          cell.border={bottom:thinBorder};
+          if(i%2===1) cell.fill={type:'pattern',pattern:'solid',fgColor:ZEBRA};
+        });
+      }
+      if(i<opsLabels.length){
+        ws.getCell(r,7).value=opsLabels[i];
+        ws.getCell(r,7).font=fontOpsLbl;
+        ws.getCell(r,7).border={bottom:thinBorder,right:thinBorder};
+        ws.getCell(r,8).value=opsVals[i];
+        ws.getCell(r,8).font=fontOpsVal;
+        ws.getCell(r,8).alignment={horizontal:'center'};
+        ws.getCell(r,8).border={bottom:thinBorder};
+      } else if(i===opsLabels.length){
+        ws.getCell(r,7).value='TOTAL';
+        ws.getCell(r,7).font={name:'Calibri',size:10,bold:true,color:DARK};
+        ws.getCell(r,7).border={top:tealBorder,bottom:tealBorder};
+        ws.getCell(r,7).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+        ws.getCell(r,8).value=totalXls;
+        ws.getCell(r,8).font={name:'Calibri',size:13,bold:true,color:TEAL};
+        ws.getCell(r,8).alignment={horizontal:'center'};
+        ws.getCell(r,8).border={top:tealBorder,bottom:tealBorder};
+        ws.getCell(r,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF9F9F9'}};
+      }
+      r++;
+    }
+
+    r++;
+    for(let c=1;c<=8;c++) ws.getCell(r,c).border={top:{style:'thin',color:LTGRAY}};
+    r++;
+    ws.mergeCells(r,1,r,8);
+    ws.getCell(r,1).value='OBSERVACIONES (DINA / NIVEL)';
+    ws.getCell(r,1).font={name:'Calibri',size:9,bold:true,color:TEAL};
+    r++;
+    if(obsText){
+      ws.mergeCells(r,1,r,8);
+      ws.getCell(r,1).value=obsText;
+      ws.getCell(r,1).font={name:'Calibri',size:9,color:DARK};
+      r++;
+    }
+    for(let i=0;i<5;i++){
+      ws.mergeCells(r,1,r,8);
+      ws.getCell(r,1).border={bottom:{style:'thin',color:GRAY}};
+      ws.getRow(r).height=16;
+      r++;
+    }
+
+    r++;
+    for(let c=1;c<=8;c++) ws.getCell(r,c).border={top:{style:'thin',color:LTGRAY}};
+    r++;
+    ws.mergeCells(r,1,r,8);
+    ws.getCell(r,1).value='VA&PE | Ecodinamometría Computarizada | Generado: '+ts;
+    ws.getCell(r,1).font={name:'Calibri',size:7,color:GRAY};
+    ws.getCell(r,1).alignment={horizontal:'center'};
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url;
+    a.download=`Parte_${(metaOp||'zona').replace(/\s+/g,'_')}_${(metaFecha||'').replace(/\//g,'-')}_N_${metaNum||'SP'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+})();
+</script>
+</body>
+</html>
