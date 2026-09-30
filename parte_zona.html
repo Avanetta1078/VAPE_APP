@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VA&amp;PE — Generador de Partes (desde Planillero)</title>
+<title>VA&amp;PE — Generador de Partes BREST</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-  :root{--teal:#2D5F6F;--teal-soft:rgba(45,95,111,.06);--bg:#f4f5f7;--card:#fff;--border:#e0e0e0;--text:#333;--text-light:#666;--text-muted:#999;}
+  :root{--teal:#2D5F6F;--teal-soft:rgba(45,95,111,.06);--bg:#f4f5f7;--card:#fff;--border:#e0e0e0;--text:#333;--text-light:#666;--text-muted:#999;--edit-bg:#fffbe6;--edit-border:#e6c200;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;}
 
@@ -33,8 +33,10 @@
   .btn-primary:disabled{background:#aaa;cursor:default;}
   .btn-outline{background:transparent;border:1px solid var(--teal);color:var(--teal);}
   .btn-outline:hover{background:var(--teal-soft);}
-  .btn-danger{background:#c0392b;color:#fff;}
-  .btn-danger:hover{background:#96281b;}
+  .btn-edit{background:#f59e0b;color:#fff;}
+  .btn-edit:hover{background:#d97706;}
+  .btn-edit.active{background:#dc2626;color:#fff;}
+  .btn-edit.active:hover{background:#b91c1c;}
 
   .file-area{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
   .file-label{padding:8px 16px;background:var(--teal);color:#fff;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;}
@@ -42,12 +44,15 @@
   .file-name{font-size:11px;color:var(--text-light);}
 
   .info-bar{font-size:11px;color:var(--text-light);margin:8px 0;padding:6px 10px;background:#f0f4f5;border-radius:4px;border-left:3px solid var(--teal);}
-  .info-bar.warn{border-left-color:#e65100;background:#fff8f0;}
 
   .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 
-  /* ── Parte — estilos (idénticos al original) ── */
-  .parte-container{margin-top:14px;background:#fff;border-radius:8px;padding:20px;color:#333;font-size:11px;max-width:21cm;border:1px solid var(--border);}
+  .edit-indicator{display:none;font-size:11px;color:#d97706;font-weight:600;padding:4px 10px;background:#fffbe6;border:1px solid #e6c200;border-radius:4px;margin-left:auto;}
+  .edit-indicator.visible{display:inline-block;}
+
+  /* ── Parte — estilos ── */
+  .parte-container{margin-top:14px;background:#fff;border-radius:8px;padding:20px;color:#333;font-size:11px;max-width:21cm;border:1px solid var(--border);margin-left:auto;margin-right:auto;}
+  .parte-container.editing{border-color:var(--edit-border);box-shadow:0 0 0 2px rgba(230,194,0,.25);}
   .parte-hdr{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;border-bottom:2px solid #2D5F6F;padding-bottom:10px;}
   .parte-hdr-top{display:flex;align-items:flex-start;gap:10px;}
   .parte-logo{width:50px;height:38px;background:linear-gradient(135deg,#2D5F6F,#1a3a4a);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;flex-shrink:0;}
@@ -57,16 +62,18 @@
   .parte-meta-item{display:flex;flex-direction:column;}
   .parte-meta-lbl{font-size:9px;color:#999;font-weight:500;margin-bottom:1px;}
   .parte-meta-val{font-size:10px;color:#333;font-weight:600;word-wrap:break-word;}
-  .parte-meta-val[contenteditable="true"]{cursor:text;outline:none;border-bottom:1px dashed #ccc;padding:0 2px;}
+  .parte-meta-val[contenteditable="true"]{cursor:text;outline:none;border-bottom:1px dashed #ccc;padding:0 2px;background:var(--edit-bg);}
   .parte-meta-val[contenteditable="true"]:focus{border-color:#2D5F6F;background:rgba(45,95,111,.06);}
+  .parte-meta-val[contenteditable="false"]{cursor:default;}
   .parte-content{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:start;}
   .parte-table{width:100%;border-collapse:collapse;font-size:10px;border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;}
   .parte-table thead{background:#2D5F6F;color:#fff;}
   .parte-table th{padding:5px 6px;text-align:left;font-weight:600;font-size:10px;white-space:nowrap;}
   .parte-table td{padding:6px 6px;border-bottom:0.5px solid #f0f0f0;color:#333;}
   .parte-table tbody tr:hover{background:#f9fbfd;}
-  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:2px;}
+  .parte-table td[contenteditable="true"]{cursor:text;outline:none;border-radius:2px;background:var(--edit-bg);}
   .parte-table td[contenteditable="true"]:focus{background:rgba(45,95,111,.08);box-shadow:inset 0 0 0 1px #2D5F6F;}
+  .parte-table td[contenteditable="false"]{cursor:default;}
   .parte-ops{border:0.5px solid #e0e0e0;border-radius:3px;overflow:hidden;background:#fff;height:fit-content;}
   .parte-ops-hdr{background:#2D5F6F;color:#fff;padding:5px 6px;font-size:10px;font-weight:600;text-transform:uppercase;}
   .parte-ops-row{display:grid;grid-template-columns:1fr 50px;border-bottom:0.5px solid #f0f0f0;align-items:center;}
@@ -80,20 +87,34 @@
   .parte-obs-area:focus{border-color:#2D5F6F;background:rgba(45,95,111,.04);}
   .parte-footer{text-align:center;font-size:8px;color:#999;margin-top:10px;padding-top:6px;border-top:0.5px solid #e0e0e0;}
 
+  /* ── Botones para agregar/eliminar filas en modo edición ── */
+  .row-actions{display:none;}
+  .editing .row-actions{display:table-cell;}
+  .row-del{background:none;border:none;color:#c0392b;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:3px;}
+  .row-del:hover{background:rgba(192,57,43,.1);}
+  .add-row-btn{display:none;margin-top:6px;font-size:11px;padding:4px 12px;}
+  .editing~.add-row-wrap .add-row-btn{display:inline-block;}
+
   @media print{
     body{padding:0;background:#fff;}
     .panel,.app-header,.actions,.no-print{display:none!important;}
     .parte-container{box-shadow:none;margin:0;width:100%;border:none;max-width:100%;}
+    .parte-container.editing{border:none;box-shadow:none;}
     .parte-table thead{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .parte-ops-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .row-actions{display:none!important;}
+    .add-row-btn{display:none!important;}
+    .edit-indicator{display:none!important;}
+    td[contenteditable="true"]{background:transparent!important;}
+    .parte-meta-val[contenteditable="true"]{background:transparent!important;border-bottom-color:transparent!important;}
   }
 </style>
 </head>
 <body>
 
 <div class="app-header no-print">
-  <h1>VA&amp;PE — Generador de Partes desde Planillero</h1>
-  <p>Importá el Excel del Planillero Diario y generá el parte con formato idéntico al de la app</p>
+  <h1>VA&amp;PE — Generador de Partes BREST</h1>
+  <p>Import&aacute; el Excel del Planillero Diario y gener&aacute; el parte con formato oficial</p>
 </div>
 
 <!-- ── Panel de importación ── -->
@@ -103,28 +124,28 @@
   <div class="file-area">
     <label class="file-label" for="xlsFile">Elegir Excel</label>
     <input type="file" id="xlsFile" accept=".xlsx,.xls" hidden>
-    <span class="file-name" id="fileName">Ningún archivo</span>
+    <span class="file-name" id="fileName">Ning&uacute;n archivo</span>
   </div>
 
   <div id="configArea" style="display:none;">
     <div class="form-row">
       <div class="form-group">
         <label>Operadora</label>
-        <input type="text" id="inpOperadora" placeholder="Ej: Crown Point">
+        <input type="text" id="inpOperadora" value="BREST">
       </div>
       <div class="form-group">
         <label>Yacimiento</label>
-        <input type="text" id="inpYacimiento" placeholder="Ej: Cerro Dragón">
+        <input type="text" id="inpYacimiento" placeholder="Ej: Cerro Drag&oacute;n">
       </div>
       <div class="form-group">
-        <label>Nº Parte</label>
+        <label>N&ordm; Parte</label>
         <input type="text" id="inpNroParte" placeholder="Ej: 2026-0001">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Hoja específica</label>
+        <label>Hoja espec&iacute;fica</label>
         <select id="hojaCombo"><option value="">— Todas las hojas con fecha —</option></select>
       </div>
       <div class="form-group">
@@ -148,11 +169,13 @@
 
 <!-- ── Botones de exportación ── -->
 <div class="panel no-print" id="exportPanel" style="display:none;">
-  <h2>Exportar</h2>
+  <h2>Acciones</h2>
   <div class="actions">
+    <button class="btn btn-edit" id="btnEditar">Editar Parte</button>
     <button class="btn btn-primary" id="btnPdf">Exportar PDF</button>
     <button class="btn btn-outline" id="btnXls">Exportar Excel</button>
     <button class="btn btn-outline" id="btnPrint">Imprimir</button>
+    <span class="edit-indicator" id="editIndicator">MODO EDICI&Oacute;N ACTIVO</span>
   </div>
 </div>
 
@@ -173,15 +196,18 @@
   const inpNum = document.getElementById('inpNroParte');
   const btnGenerar = document.getElementById('btnGenerar');
   const btnLimpiar = document.getElementById('btnLimpiar');
+  const btnEditar = document.getElementById('btnEditar');
   const btnPdf = document.getElementById('btnPdf');
   const btnXls = document.getElementById('btnXls');
   const btnPrint = document.getElementById('btnPrint');
   const exportPanel = document.getElementById('exportPanel');
+  const editIndicator = document.getElementById('editIndicator');
   const output = document.getElementById('parteOutput');
 
   let workbook = null;
   let sheetDates = [];
   let parteData = null;
+  let editMode = false;
 
   // ── Utilidades de fecha ──
   function parseSheetDate(name){
@@ -198,11 +224,6 @@
   }
   function toIsoDate(dt){
     return dt.getUTCFullYear()+'-'+String(dt.getUTCMonth()+1).padStart(2,'0')+'-'+String(dt.getUTCDate()).padStart(2,'0');
-  }
-  function numOrNull(v){
-    if(v===null||v===undefined||v==='') return null;
-    const n=parseFloat(v);
-    return isNaN(n)?null:n;
   }
 
   // ── Carga del Excel ──
@@ -235,7 +256,7 @@
     }
   });
 
-  // ── Extraer filas de una hoja (mismo parseo que VAPE_APP) ──
+  // ── Extraer filas: Fecha, Pozo, Batería, Estado (Din/Est), Operación (Comb/Dina/Nivel/Cancel) ──
   function extractRows(sheetName, fechaISO){
     const ws = workbook.Sheets[sheetName];
     if(!ws||!ws['!ref']) return [];
@@ -250,28 +271,25 @@
       if(pozoRaw===null||pozoRaw===undefined||String(pozoRaw).trim()==='') continue;
       const pozo = String(pozoRaw).trim();
       const bateria = get(4) ? String(get(4)).trim() : ''; // E
-      const estadoPozo = get(9) ? String(get(9)).trim() : ''; // J
-      const tipoEnsayoRaw = String(get(10)||'').trim().toLowerCase(); // K
-      const tipoOperacionRaw = String(get(11)||'').trim().toLowerCase(); // L
-      const unidadDesc = get(12) ? String(get(12)).trim() : ''; // M
+      const tipoEnsayoRaw = String(get(10)||'').trim().toLowerCase(); // K → Estado
+      const tipoOperacionRaw = String(get(11)||'').trim().toLowerCase(); // L → Operación
 
-      let tipoEnsayo = '';
-      if(tipoEnsayoRaw.startsWith('din')) tipoEnsayo = 'Dinamico';
-      else if(tipoEnsayoRaw.startsWith('est')) tipoEnsayo = 'Estatico';
+      let estado = '';
+      if(tipoEnsayoRaw.startsWith('din')) estado = 'Dinamico';
+      else if(tipoEnsayoRaw.startsWith('est')) estado = 'Estatico';
 
-      let tipoOperacion = '';
-      if(tipoOperacionRaw.includes('comb')) tipoOperacion = 'Combinada';
-      else if(tipoOperacionRaw.includes('cancel')) tipoOperacion = 'Cancelada';
-      else if(tipoOperacionRaw.includes('nivel')) tipoOperacion = 'Nivel';
-      else if(tipoOperacionRaw.includes('dina')) tipoOperacion = 'Dina';
+      let operacion = '';
+      if(tipoOperacionRaw.includes('comb')) operacion = 'Combinada';
+      else if(tipoOperacionRaw.includes('cancel')) operacion = 'Cancelada';
+      else if(tipoOperacionRaw.includes('nivel')) operacion = 'Nivel';
+      else if(tipoOperacionRaw.includes('dina')) operacion = 'Dina';
 
       rows.push({
         fecha: fechaISO,
         well: pozo,
         bateria: bateria,
-        estado: estadoPozo || tipoEnsayo,
-        ensayo: tipoOperacion,
-        sistema: unidadDesc
+        estado: estado,
+        operacion: operacion
       });
     }
     return rows;
@@ -286,9 +304,24 @@
     return sheetDates.filter(s=>s.date>=desde&&s.date<=hasta);
   }
 
+  // ── Toggle edición ──
+  function setEditMode(on){
+    editMode = on;
+    output.querySelectorAll('[data-editable]').forEach(el=>{
+      el.contentEditable = on ? 'true' : 'false';
+      if(!on) el.blur();
+    });
+    output.classList.toggle('editing', on);
+    btnEditar.textContent = on ? 'Finalizar Edicion' : 'Editar Parte';
+    btnEditar.classList.toggle('active', on);
+    editIndicator.classList.toggle('visible', on);
+  }
+
+  btnEditar.addEventListener('click', ()=> setEditMode(!editMode));
+
   // ── Generar parte ──
   btnGenerar.addEventListener('click', ()=>{
-    if(!workbook){alert('Subí primero el Excel.');return;}
+    if(!workbook){alert('Subi primero el Excel.');return;}
     const sheets = sheetsToProcess();
     if(!sheets.length){alert('No hay hojas en el rango seleccionado.');return;}
 
@@ -301,12 +334,12 @@
 
     const counts = {Nivel:0, Combinada:0, Dina:0, Cancelada:0};
     allRows.forEach(r=>{
-      if(counts[r.ensayo]!==undefined) counts[r.ensayo]++;
+      if(counts[r.operacion]!==undefined) counts[r.operacion]++;
     });
     const total = allRows.length;
 
     const baterias = [...new Set(allRows.map(r=>r.bateria).filter(Boolean))].join(', ') || '—';
-    const operadora = inpOp.value.trim()||'—';
+    const operadora = inpOp.value.trim()||'BREST';
     const yacimiento = inpYac.value.trim()||'—';
     const numParte = inpNum.value.trim()||'';
 
@@ -321,58 +354,103 @@
 
     output.style.display = 'block';
     exportPanel.style.display = '';
+    setEditMode(false);
+
     output.innerHTML = `
       <div class="parte-hdr">
         <div class="parte-hdr-top">
           <div class="parte-logo">VA&amp;PE</div>
           <div>
-            <div class="parte-hdr-title">Servicio de Ecodinamometría</div>
-            <div class="parte-hdr-sub">Parte Dinamometría</div>
+            <div class="parte-hdr-title">Servicio de Ecodinamometr&iacute;a</div>
+            <div class="parte-hdr-sub">Parte Dinamometr&iacute;a</div>
           </div>
         </div>
         <div class="parte-meta-grid">
-          <div class="parte-meta-item"><span class="parte-meta-lbl">Nº Parte</span><span class="parte-meta-val" contenteditable="true" id="parteMetaNum" style="${numParte?'':'color:#c62828;font-style:italic;'}">${numParte||'Sin asignar'}</span></div>
-          <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" contenteditable="true" id="parteMetaFecha">${fechaFmt}</span></div>
-          <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" contenteditable="true" id="parteMetaOp">${operadora}</span></div>
-          <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" contenteditable="true" id="parteMetaYac">${yacimiento}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">N&ordm; Parte</span><span class="parte-meta-val" data-editable contenteditable="false" id="parteMetaNum" style="${numParte?'':'color:#c62828;font-style:italic;'}">${numParte||'Sin asignar'}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Fecha</span><span class="parte-meta-val" data-editable contenteditable="false" id="parteMetaFecha">${fechaFmt}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Operadora</span><span class="parte-meta-val" data-editable contenteditable="false" id="parteMetaOp">${operadora}</span></div>
+          <div class="parte-meta-item"><span class="parte-meta-lbl">Yacimiento</span><span class="parte-meta-val" data-editable contenteditable="false" id="parteMetaYac">${yacimiento}</span></div>
         </div>
         <div style="padding-top:6px;">
-          <span class="parte-meta-lbl">Baterías recorridas</span>
-          <span class="parte-meta-val" contenteditable="true" id="parteMetaBat" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
+          <span class="parte-meta-lbl">Bater&iacute;as recorridas</span>
+          <span class="parte-meta-val" data-editable contenteditable="false" id="parteMetaBat" style="display:block;font-size:10px;line-height:1.5;">${baterias}</span>
         </div>
       </div>
       <div class="parte-content">
         <div>
           <table class="parte-table" id="parteTableResult">
-            <thead><tr><th>Fecha</th><th>Pozo</th><th>Estado</th><th>Ensayo</th><th>Tipo</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Pozo</th><th>Bater&iacute;a</th><th>Estado</th><th>Operaci&oacute;n</th><th class="row-actions" style="width:30px;"></th></tr></thead>
             <tbody>
               ${allRows.map(r=>`<tr>
-                <td contenteditable="true">${shortDate}</td>
-                <td contenteditable="true">${r.well}</td>
-                <td contenteditable="true">${r.estado}</td>
-                <td contenteditable="true">${r.ensayo}</td>
-                <td contenteditable="true">${r.sistema}</td>
+                <td data-editable contenteditable="false">${shortDate}</td>
+                <td data-editable contenteditable="false">${r.well}</td>
+                <td data-editable contenteditable="false">${r.bateria}</td>
+                <td data-editable contenteditable="false">${r.estado}</td>
+                <td data-editable contenteditable="false">${r.operacion}</td>
+                <td class="row-actions"><button class="row-del" title="Eliminar fila" onclick="this.closest('tr').remove();window._recountOps();">&times;</button></td>
               </tr>`).join('')}
               ${allRows.length===0?'<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No se encontraron ensayos.</td></tr>':''}
             </tbody>
           </table>
+          <div class="add-row-wrap">
+            <button class="btn btn-outline add-row-btn" onclick="window._addParteRow();">+ Agregar fila</button>
+          </div>
         </div>
-        <div class="parte-ops">
+        <div class="parte-ops" id="opsPanel">
           <div class="parte-ops-hdr">Operaciones</div>
-          <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val">${counts.Nivel}</div></div>
-          <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val">${counts.Combinada}</div></div>
-          <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val">${counts.Dina}</div></div>
-          <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val">${counts.Cancelada}</div></div>
-          <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val">${total}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Nivel</div><div class="parte-ops-val" id="opNivel">${counts.Nivel}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Combinada</div><div class="parte-ops-val" id="opCombinada">${counts.Combinada}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Dina</div><div class="parte-ops-val" id="opDina">${counts.Dina}</div></div>
+          <div class="parte-ops-row"><div class="parte-ops-lbl">Canceladas</div><div class="parte-ops-val" id="opCancelada">${counts.Cancelada}</div></div>
+          <div class="parte-ops-row parte-ops-total"><div class="parte-ops-lbl">TOTAL</div><div class="parte-ops-val" id="opTotal">${total}</div></div>
         </div>
       </div>
       <div class="parte-obs-section">
         <div class="parte-obs-title">Observaciones (Dina / Nivel)</div>
         <div class="parte-obs-area" id="parteObsArea" contenteditable="true"></div>
       </div>
-      <div class="parte-footer">VA&amp;PE | Ecodinamometría Computarizada | Generado: ${genTimestamp}</div>
+      <div class="parte-footer">VA&amp;PE | Ecodinamometr&iacute;a Computarizada | Generado: ${genTimestamp}</div>
     `;
   });
+
+  // ── Recontar operaciones desde el DOM ──
+  window._recountOps = function(){
+    const tableEl = document.getElementById('parteTableResult');
+    if(!tableEl) return;
+    const cnt = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
+    let total = 0;
+    tableEl.querySelectorAll('tbody tr').forEach(tr=>{
+      const cells = tr.querySelectorAll('td[data-editable]');
+      if(cells.length>=5){
+        const op = cells[4].textContent.trim();
+        if(cnt[op]!==undefined) cnt[op]++;
+        total++;
+      }
+    });
+    const el = id => document.getElementById(id);
+    if(el('opNivel')) el('opNivel').textContent = cnt.Nivel;
+    if(el('opCombinada')) el('opCombinada').textContent = cnt.Combinada;
+    if(el('opDina')) el('opDina').textContent = cnt.Dina;
+    if(el('opCancelada')) el('opCancelada').textContent = cnt.Cancelada;
+    if(el('opTotal')) el('opTotal').textContent = total;
+  };
+
+  // ── Agregar fila en modo edición ──
+  window._addParteRow = function(){
+    const tableEl = document.getElementById('parteTableResult');
+    if(!tableEl) return;
+    const tbody = tableEl.querySelector('tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-editable contenteditable="true"></td>
+      <td data-editable contenteditable="true"></td>
+      <td data-editable contenteditable="true"></td>
+      <td data-editable contenteditable="true"></td>
+      <td data-editable contenteditable="true"></td>
+      <td class="row-actions"><button class="row-del" title="Eliminar fila" onclick="this.closest('tr').remove();window._recountOps();">&times;</button></td>
+    `;
+    tbody.appendChild(tr);
+  };
 
   // ── Limpiar ──
   btnLimpiar.addEventListener('click', ()=>{
@@ -380,16 +458,49 @@
     output.innerHTML = '';
     exportPanel.style.display = 'none';
     parteData = null;
+    editMode = false;
   });
 
   // ── Imprimir ──
-  btnPrint.addEventListener('click', ()=>window.print());
+  btnPrint.addEventListener('click', ()=>{
+    if(editMode) setEditMode(false);
+    setTimeout(()=>window.print(), 100);
+  });
 
-  // ── Exportar PDF (idéntico al original) ──
+  // ── Leer tabla del DOM (5 cols: Fecha, Pozo, Batería, Estado, Operación) ──
+  function readTableFromDOM(){
+    const tableEl = document.getElementById('parteTableResult');
+    const rows = [];
+    const cnt = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
+    if(tableEl){
+      tableEl.querySelectorAll('tbody tr').forEach(tr=>{
+        const cells = [];
+        tr.querySelectorAll('td[data-editable]').forEach(td=>cells.push(td.textContent.trim()));
+        if(cells.length>=5){
+          rows.push(cells);
+          if(cnt[cells[4]]!==undefined) cnt[cells[4]]++;
+        }
+      });
+    }
+    return {rows, counts:cnt, total:rows.length};
+  }
+
+  function readMeta(){
+    return {
+      num: (document.getElementById('parteMetaNum')?.textContent?.trim())||parteData?.numParte||'',
+      fecha: (document.getElementById('parteMetaFecha')?.textContent?.trim())||parteData?.fechaFmt||'',
+      op: (document.getElementById('parteMetaOp')?.textContent?.trim())||parteData?.operadora||'BREST',
+      yac: (document.getElementById('parteMetaYac')?.textContent?.trim())||parteData?.yacimiento||'',
+      bat: (document.getElementById('parteMetaBat')?.textContent?.trim())||parteData?.baterias||''
+    };
+  }
+
+  // ── Exportar PDF ──
   btnPdf.addEventListener('click', ()=>{
-    if(!parteData){alert('Generá el parte primero.');return;}
+    if(!parteData){alert('Genera el parte primero.');return;}
+    if(editMode) setEditMode(false);
     const jspdfLib = window.jspdf||window.jsPDF;
-    if(!jspdfLib){alert('Error: jsPDF no se cargó.');return;}
+    if(!jspdfLib){alert('Error: jsPDF no se cargo.');return;}
     const {jsPDF} = jspdfLib;
     const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     const pw=210, ph=297, mx=16;
@@ -397,11 +508,8 @@
     let y = 14;
     const teal = [45,95,111];
 
-    const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim())||parteData.numParte;
-    const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim())||parteData.fechaFmt;
-    const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim())||parteData.operadora;
-    const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim())||parteData.yacimiento;
-    const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim())||parteData.baterias;
+    const meta = readMeta();
+    const {rows:tableData, counts:countsDOM, total:totalDOM} = readTableFromDOM();
 
     doc.setFillColor(...teal);
     doc.roundedRect(mx,y,16,12,1.5,1.5,'F');
@@ -409,9 +517,9 @@
     doc.text('VA&PE',mx+8,y+7.5,{align:'center'});
 
     doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...teal);
-    doc.text('Servicio de Ecodinamometría',mx+20,y+5);
+    doc.text('Servicio de Ecodinamometria',mx+20,y+5);
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(102,102,102);
-    doc.text('Parte Dinamometría',mx+20,y+10);
+    doc.text('Parte Dinamometria',mx+20,y+10);
 
     y+=16;
     doc.setDrawColor(...teal);doc.setLineWidth(0.6);
@@ -419,8 +527,8 @@
     y+=6;
 
     const metaItems = [
-      {lbl:'Nº Parte',val:metaNum},{lbl:'Fecha',val:metaFecha},
-      {lbl:'Operadora',val:metaOp},{lbl:'Yacimiento',val:metaYac}
+      {lbl:'Nº Parte',val:meta.num},{lbl:'Fecha',val:meta.fecha},
+      {lbl:'Operadora',val:meta.op},{lbl:'Yacimiento',val:meta.yac}
     ];
     const metaW = cw/4;
     metaItems.forEach((m,i)=>{
@@ -433,9 +541,9 @@
     y+=10;
 
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(153,153,153);
-    doc.text('Baterías recorridas',mx,y);
+    doc.text('Baterias recorridas',mx,y);
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(51,51,51);
-    const batLines = doc.splitTextToSize(metaBat||'—',cw);
+    const batLines = doc.splitTextToSize(meta.bat||'—',cw);
     doc.text(batLines,mx,y+4.5);
     y+=5+batLines.length*3.5+3;
 
@@ -445,25 +553,10 @@
     doc.text('OPERACIONES',mx+tableW+4,y);
     y+=4;
 
-    const tableEl = document.getElementById('parteTableResult');
-    const tableData = [];
-    const countsDOM = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
-    if(tableEl){
-      tableEl.querySelectorAll('tbody tr').forEach(tr=>{
-        const cells=[];
-        tr.querySelectorAll('td').forEach(td=>cells.push(td.textContent.trim()));
-        if(cells.length>=5){
-          tableData.push(cells);
-          if(countsDOM[cells[3]]!==undefined) countsDOM[cells[3]]++;
-        }
-      });
-    }
-    const totalDOM = tableData.length;
-
     doc.autoTable({
       startY:y,
       margin:{left:mx,right:mx+44},
-      head:[['Fecha','Pozo','Estado','Ensayo','Tipo']],
+      head:[['Fecha','Pozo','Bateria','Estado','Operacion']],
       body:tableData,
       styles:{fontSize:8.5,cellPadding:2.2,lineColor:[224,224,224],lineWidth:0.15,textColor:[51,51,51]},
       headStyles:{fillColor:teal,textColor:[255,255,255],fontStyle:'bold',fontSize:8},
@@ -504,8 +597,7 @@
     doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...teal);
     doc.text('OBSERVACIONES (DINA / NIVEL)',mx,y);
     y+=5;
-    const obsEl = document.getElementById('parteObsArea');
-    const obsText = obsEl ? obsEl.textContent.trim() : '';
+    const obsText = (document.getElementById('parteObsArea')?.textContent?.trim())||'';
     if(obsText){
       doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(51,51,51);
       const obsLines = doc.splitTextToSize(obsText,cw);
@@ -519,38 +611,24 @@
     doc.setDrawColor(224,224,224);doc.setLineWidth(0.15);
     doc.line(mx,ph-14,pw-mx,ph-14);
     const now=new Date();
-    const ts=metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    doc.text('VA&PE | Ecodinamometría Computarizada | Generado: '+ts,pw/2,ph-10,{align:'center'});
+    const ts=meta.fecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    doc.text('VA&PE | Ecodinamometria Computarizada | Generado: '+ts,pw/2,ph-10,{align:'center'});
 
-    const fname = `Parte_${(metaOp||'zona').replace(/\s+/g,'_')}_${(metaFecha||'').replace(/\//g,'-')}_N_${metaNum||'SP'}.pdf`;
+    const fname = `Parte_${(meta.op||'BREST').replace(/\s+/g,'_')}_${(meta.fecha||'').replace(/\//g,'-')}_N_${meta.num||'SP'}.pdf`;
     doc.save(fname);
   });
 
-  // ── Exportar Excel (idéntico al original) ──
+  // ── Exportar Excel ──
   btnXls.addEventListener('click', async ()=>{
-    if(!parteData){alert('Generá el parte primero.');return;}
-    if(typeof ExcelJS==='undefined'){alert('Error: ExcelJS no se cargó.');return;}
+    if(!parteData){alert('Genera el parte primero.');return;}
+    if(editMode) setEditMode(false);
+    if(typeof ExcelJS==='undefined'){alert('Error: ExcelJS no se cargo.');return;}
 
-    const metaNum = (document.getElementById('parteMetaNum')?.textContent?.trim())||parteData.numParte;
-    const metaFecha = (document.getElementById('parteMetaFecha')?.textContent?.trim())||parteData.fechaFmt;
-    const metaOp = (document.getElementById('parteMetaOp')?.textContent?.trim())||parteData.operadora;
-    const metaYac = (document.getElementById('parteMetaYac')?.textContent?.trim())||parteData.yacimiento;
-    const metaBat = (document.getElementById('parteMetaBat')?.textContent?.trim())||parteData.baterias;
-
-    const tableEl = document.getElementById('parteTableResult');
-    const dataRows = [];
-    const cnt = {Nivel:0,Combinada:0,Dina:0,Cancelada:0};
-    if(tableEl){
-      tableEl.querySelectorAll('tbody tr').forEach(tr=>{
-        const c=[];tr.querySelectorAll('td').forEach(td=>c.push(td.textContent.trim()));
-        if(c.length>=5){if(cnt[c[3]]!==undefined)cnt[c[3]]++;dataRows.push(c);}
-      });
-    }
-    const totalXls = Object.values(cnt).reduce((a,b)=>a+b,0);
-    const obsEl = document.getElementById('parteObsArea');
-    const obsText = obsEl ? obsEl.textContent.trim() : '';
+    const meta = readMeta();
+    const {rows:dataRows, counts:cnt, total:totalXls} = readTableFromDOM();
+    const obsText = (document.getElementById('parteObsArea')?.textContent?.trim())||'';
     const now = new Date();
-    const ts = metaFecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const ts = meta.fecha+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
     const TEAL={argb:'FF2D5F6F'};const WHITE={argb:'FFFFFFFF'};const DARK={argb:'FF333333'};
     const GRAY={argb:'FF999999'};const LTGRAY={argb:'FFF0F0F0'};const ZEBRA={argb:'FFF9FBFD'};
@@ -571,7 +649,7 @@
       pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,
         margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2}}
     });
-    ws.columns=[{width:12},{width:16},{width:13},{width:14},{width:11},{width:2},{width:16},{width:10}];
+    ws.columns=[{width:12},{width:16},{width:14},{width:13},{width:13},{width:2},{width:16},{width:10}];
 
     let r=1;
     ws.mergeCells(r,1,r,2);
@@ -581,14 +659,14 @@
     logoCell.fill={type:'pattern',pattern:'solid',fgColor:TEAL};
     logoCell.alignment={horizontal:'center',vertical:'middle'};
     ws.mergeCells(r,3,r,5);
-    ws.getCell(r,3).value='Servicio de Ecodinamometría';
+    ws.getCell(r,3).value='Servicio de Ecodinamometria';
     ws.getCell(r,3).font=fontTitle;
     ws.getCell(r,3).alignment={vertical:'middle'};
     ws.getRow(r).height=22;
     r++;
 
     ws.mergeCells(r,3,r,5);
-    ws.getCell(r,3).value='Parte Dinamometría';
+    ws.getCell(r,3).value='Parte Dinamometria';
     ws.getCell(r,3).font=fontSub;
     for(let c=1;c<=8;c++) ws.getCell(r,c).border={bottom:{style:'medium',color:TEAL}};
     r++;
@@ -596,7 +674,7 @@
     ws.getRow(r).height=6;r++;
 
     const metaLabels=['Nº Parte','Fecha','Operadora','Yacimiento'];
-    const metaValues=[metaNum,metaFecha,metaOp,metaYac];
+    const metaValues=[meta.num,meta.fecha,meta.op,meta.yac];
     const metaCols=[[1,2],[3,3],[4,5],[7,8]];
     metaCols.forEach((mc,i)=>{
       if(mc[0]!==mc[1])ws.mergeCells(r,mc[0],r,mc[1]);
@@ -611,16 +689,16 @@
     });
     r++;
 
-    ws.getCell(r,1).value='Baterías recorridas';
+    ws.getCell(r,1).value='Baterias recorridas';
     ws.getCell(r,1).font=fontMetaLbl;
     ws.mergeCells(r,2,r,5);
-    ws.getCell(r,2).value=metaBat;
+    ws.getCell(r,2).value=meta.bat;
     ws.getCell(r,2).font={name:'Calibri',size:9,bold:true,color:DARK};
     r++;
 
     ws.getRow(r).height=6;r++;
 
-    const thLabels=['Fecha','Pozo','Estado','Ensayo','Tipo'];
+    const thLabels=['Fecha','Pozo','Bateria','Estado','Operacion'];
     thLabels.forEach((lbl,i)=>{
       const cell=ws.getCell(r,i+1);
       cell.value=lbl;
@@ -640,7 +718,6 @@
     const opsVals=[cnt.Nivel,cnt.Combinada,cnt.Dina,cnt.Cancelada];
     const maxRows=Math.max(dataRows.length,opsLabels.length+1);
     for(let i=0;i<maxRows;i++){
-      const row=ws.getRow(r);
       if(i<dataRows.length){
         dataRows[i].forEach((v,ci)=>{
           const cell=ws.getCell(r,ci+1);
@@ -696,7 +773,7 @@
     for(let c=1;c<=8;c++) ws.getCell(r,c).border={top:{style:'thin',color:LTGRAY}};
     r++;
     ws.mergeCells(r,1,r,8);
-    ws.getCell(r,1).value='VA&PE | Ecodinamometría Computarizada | Generado: '+ts;
+    ws.getCell(r,1).value='VA&PE | Ecodinamometria Computarizada | Generado: '+ts;
     ws.getCell(r,1).font={name:'Calibri',size:7,color:GRAY};
     ws.getCell(r,1).alignment={horizontal:'center'};
 
@@ -705,7 +782,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href=url;
-    a.download=`Parte_${(metaOp||'zona').replace(/\s+/g,'_')}_${(metaFecha||'').replace(/\//g,'-')}_N_${metaNum||'SP'}.xlsx`;
+    a.download=`Parte_${(meta.op||'BREST').replace(/\s+/g,'_')}_${(meta.fecha||'').replace(/\//g,'-')}_N_${meta.num||'SP'}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   });
