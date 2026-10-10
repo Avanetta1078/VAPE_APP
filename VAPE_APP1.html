@@ -5886,6 +5886,7 @@
     well_state: 'Well State',
     buildup_psi: 'Buildup (psi)',
     buildup_time_sec: 'Buildup Time (sec)',
+    _buildup_time_min: 'Buildup Time (min)',
   };
   const CONFIG_FIELD_MAP = {
     tubing_od_in: 'Tubing OD (in)',
@@ -5969,6 +5970,10 @@
     // Tercer intento: columna que TERMINA con el nombre buscado (para que
     // "Tubing Pressure (kilo (g))" matchee "DYN Tubing Pressure (kilo (g))").
     key = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, ' ').trim().endsWith(target));
+    if(key !== undefined) return row[key];
+    // Cuarto intento: el nombre buscado TERMINA con el nombre de la columna
+    // (para que "DYN Casing Pressure (kilo (g))" matchee "Casing Pressure (kilo (g))").
+    key = Object.keys(row).find(k => target.endsWith(k.toLowerCase().replace(/\s+/g, ' ').trim()));
     if(key !== undefined) return row[key];
     // Ultimo recurso: cualquier encabezado que CONTENGA la palabra principal
     // (ej. busca "comment" y encuentra "Test Comments (optional)" o similar).
@@ -6057,6 +6062,10 @@
     if(out.gearbox_rating_inlb != null){
       out.gearbox_rating_inlb = Math.round(out.gearbox_rating_inlb / 1000);
     }
+    if(out.buildup_time_sec == null && out._buildup_time_min != null){
+      out.buildup_time_sec = out._buildup_time_min * 60;
+    }
+    delete out._buildup_time_min;
     return out;
   }
 
