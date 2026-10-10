@@ -5941,7 +5941,7 @@
         else if(ch === '"'){ inQ = false; }
         else { cur += ch; }
       } else {
-        if(ch === '"'){ inQ = true; }
+        if(ch === '"' && cur === ''){ inQ = true; }
         else if(ch === delim){ cells.push(cur); cur = ''; }
         else { cur += ch; }
       }
