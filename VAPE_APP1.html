@@ -934,6 +934,52 @@
     display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:10.5px; min-height:100px; text-align:center; padding:8px;}
   .qp-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
 
+  /* ---- Visor de evolución de cartas Dina (ojito grilla + ojito panel Dina) ---- */
+  #chartEvolutionModal .modal-box{width:min(1180px, 96vw); max-height:92vh; display:flex; flex-direction:column;}
+  #ceBody{overflow-y:auto; padding-right:4px;}
+  .ce-loading, .ce-empty{padding:40px; text-align:center; color:var(--ink-faint); font-size:13px;}
+  .ce-controls{display:flex; align-items:center; justify-content:center; gap:14px; margin:4px 0 14px; font-size:12px; color:var(--ink-dim);}
+  .ce-nav{
+    padding:6px 14px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink); font-size:11.5px; cursor:pointer;
+  }
+  .ce-nav:hover:not(:disabled){background:#242c37; color:var(--steel-glow);}
+  .ce-nav:disabled{opacity:.35; cursor:default;}
+  .ce-counter{font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.04em;}
+  .ce-grid{display:grid; gap:10px;}
+  .ce-grid-1{grid-template-columns:minmax(0,520px); justify-content:center;}
+  .ce-grid-2{grid-template-columns:repeat(2, minmax(0,1fr));}
+  .ce-grid-3{grid-template-columns:repeat(3, minmax(0,1fr));}
+  .ce-grid-4{grid-template-columns:repeat(4, minmax(0,1fr));}
+  .ce-card{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:8px; display:flex; flex-direction:column; gap:6px;}
+  .ce-card-date{font-family:'IBM Plex Mono'; font-size:11px; color:var(--steel-glow); text-align:center; font-weight:600; letter-spacing:.03em;}
+  .ce-card-img-wrap{background:#fff; border-radius:6px; min-height:160px; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .ce-card-img-wrap img{max-width:100%; max-height:220px; display:block;}
+  .ce-card-nochart{color:#888; font-size:11px; padding:30px 10px; text-align:center;}
+  .ce-card-stats{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-size:10.5px; font-family:'IBM Plex Mono';}
+  .ce-card-stats .ce-lbl{color:var(--ink-faint); text-transform:uppercase; font-size:9px; letter-spacing:.04em;}
+  .ce-card-stats .ce-val{color:var(--ink); text-align:right; font-weight:600;}
+  .ce-diffs{margin-top:8px;}
+  .ce-diff-cell{
+    background:transparent; border:1px dashed var(--border); border-radius:8px;
+    padding:8px 10px; font-size:10.5px; font-family:'IBM Plex Mono'; color:var(--ink-dim);
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .ce-diff-cell.empty{border:none;}
+  .ce-diff-head{color:var(--ink-faint); font-size:9px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; text-align:center;}
+  .ce-diff-row{display:flex; justify-content:space-between; gap:6px;}
+  .ce-diff-lbl{color:var(--ink-faint);}
+  .ce-diff-val{font-weight:600;}
+  .ce-diff-val.up{color:#4ea0ff;}
+  .ce-diff-val.down{color:#e8663f;}
+  .ce-diff-val.flat{color:var(--ink-dim);}
+  .rp-eye-btn{
+    width:22px; height:22px; margin-left:8px; border-radius:6px; border:1px solid var(--border);
+    background:var(--panel-2); color:var(--ink-dim); cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+  }
+  .rp-eye-btn:hover{background:#242c37; color:var(--steel-glow);}
+
   /* ---- Herramientas (Tarea 4) — grid tipo Win11 ---- */
   .tools-grid{display:flex; flex-direction:column; gap:8px; max-width:560px;}
   .tool-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden; align-self:start;}
@@ -1225,6 +1271,13 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="chartEvolutionModal">
+    <div class="modal-box">
+      <h3 id="ceTitle">Evolución de carta <button class="modal-close" id="ceClose" type="button">&#10005;</button></h3>
+      <div id="ceBody"></div>
+    </div>
+  </div>
+
   <div class="view" id="view-resumen">
 
     <button id="fullReportBtn" class="cn-btn primary" type="button"
@@ -1240,6 +1293,10 @@
           <h2><span class="dot2 navy"></span>Carta Dinamométrica</h2>
           <span id="rp-classif" class="rp-badge rp-badge-accent" style="margin-left:8px;">—</span>
           <span class="stamp" id="rp-dyn-stamp">—</span>
+          <button type="button" class="rp-eye-btn" id="rp-dyn-eye" title="Ver evolución de cartas Dina"
+                  onclick="if(typeof currentWell!=='undefined' && currentWell) openChartEvolution(currentWell);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
         </div>
         <div class="rp-chips-row rp-chips-9">
           <div class="rp-chip"><span class="rp-lbl">Carga Máx</span><span class="rp-val" id="rp-cargamax">—</span></div>
@@ -4291,6 +4348,127 @@
     document.getElementById('quickPreviewModal').classList.add('active');
   }
 
+  // ---- Visor de evolución de cartas Dina (ojito grilla Inicio + ojito panel Dina) ----
+  // Lista hasta 4 cartas simultaneas, ordenadas de más vieja a más reciente, con
+  // flechas para correr la ventana si hay más de 4. Debajo muestra las diferencias
+  // calculadas (ΔFillage, ΔFo, ΔSPM, ΔPPRL) entre cada par consecutivo. Solo lectura.
+  let _ceState = null;
+  async function openChartEvolution(wellName){
+    const modal = document.getElementById('chartEvolutionModal');
+    const body = document.getElementById('ceBody');
+    const title = document.getElementById('ceTitle');
+    if(!modal || !body || !title) return;
+    title.innerHTML = `${wellName} — Evolución de cartas Dina <button class="modal-close" id="ceClose2" type="button">&#10005;</button>`;
+    document.getElementById('ceClose2').addEventListener('click', ()=> modal.classList.remove('active'));
+    modal.classList.add('active');
+    body.innerHTML = '<div class="ce-loading">Cargando historial…</div>';
+
+    let hist = [];
+    try{
+      if(typeof loadWellHistory === 'function'){
+        hist = await loadWellHistory(wellName, 'DYN');
+      }
+    } catch(e){ console.warn('openChartEvolution: error cargando historial', e); }
+
+    if(!hist || !hist.length){
+      body.innerHTML = '<div class="ce-empty">Este pozo todavía no tiene cartas Dina cargadas.</div>';
+      return;
+    }
+
+    // Historial ordenado ASCENDENTE (más vieja a más reciente, izq → der para leer evolución).
+    const ordered = hist.slice().sort((a,b) =>
+      ((a.test_date||'') + (a.test_time||'')).localeCompare((b.test_date||'') + (b.test_time||''))
+    );
+    _ceState = { wellName, ordered, endIdx: ordered.length - 1 };
+    _ceRender();
+  }
+
+  function _ceRender(){
+    const st = _ceState;
+    if(!st) return;
+    const body = document.getElementById('ceBody');
+    if(!body) return;
+    const { wellName, ordered, endIdx } = st;
+    const total = ordered.length;
+    const windowSize = Math.min(4, total);
+    const startIdx = Math.max(0, endIdx - windowSize + 1);
+    const win = ordered.slice(startIdx, endIdx + 1);
+
+    const cards = win.map(t => _ceRenderCard(wellName, t)).join('');
+    const diffs = win.map((t, i) => i === 0
+      ? '<div class="ce-diff-cell empty"></div>'
+      : _ceRenderDiff(win[i-1], t)
+    ).join('');
+
+    const counter = total > 4
+      ? `Mostrando ${startIdx+1}–${endIdx+1} de ${total}`
+      : `${total} carta${total>1?'s':''} cargada${total>1?'s':''}`;
+    const prevDisabled = startIdx <= 0 ? 'disabled' : '';
+    const nextDisabled = endIdx >= total - 1 ? 'disabled' : '';
+
+    body.innerHTML = `
+      <div class="ce-controls">
+        <button class="ce-nav" id="cePrev" type="button" ${prevDisabled}>◀ Anterior</button>
+        <span class="ce-counter">${counter}</span>
+        <button class="ce-nav" id="ceNext" type="button" ${nextDisabled}>Siguiente ▶</button>
+      </div>
+      <div class="ce-grid ce-grid-${win.length}">${cards}</div>
+      ${win.length > 1 ? `<div class="ce-grid ce-grid-${win.length} ce-diffs">${diffs}</div>` : ''}
+    `;
+    const prevBtn = document.getElementById('cePrev');
+    const nextBtn = document.getElementById('ceNext');
+    if(prevBtn) prevBtn.addEventListener('click', () => { if(_ceState.endIdx > windowSize - 1){ _ceState.endIdx--; _ceRender(); } });
+    if(nextBtn) nextBtn.addEventListener('click', () => { if(_ceState.endIdx < total - 1){ _ceState.endIdx++; _ceRender(); } });
+  }
+
+  function _ceRenderCard(wellName, t){
+    const r = t.results || {};
+    const dateStr = (typeof fmtDate === 'function') ? fmtDate(t.test_date) : (t.test_date || '—');
+    const timeStr = t.test_time ? String(t.test_time).slice(0,5) : '';
+    let imgHtml = '<div class="ce-card-nochart">Sin carta<br>archivada</div>';
+    try{
+      if(supabaseClient){
+        const url = supabaseClient.storage.from('cartas').getPublicUrl(chartHistPath(wellName, 'DYN', t.test_date, t.test_time)).data.publicUrl;
+        imgHtml = `<img src="${url}" alt="Carta ${dateStr}" onerror="this.parentElement.innerHTML='&lt;div class=&quot;ce-card-nochart&quot;&gt;Sin carta&lt;br&gt;archivada&lt;/div&gt;'">`;
+      }
+    } catch(e){ /* queda el placeholder */ }
+    const F = (v, dec) => (v != null && !isNaN(Number(v))) ? Number(v).toFixed(dec) : '—';
+    return `
+      <div class="ce-card">
+        <div class="ce-card-date">${dateStr}${timeStr ? ' · '+timeStr : ''}</div>
+        <div class="ce-card-img-wrap">${imgHtml}</div>
+        <div class="ce-card-stats">
+          <span class="ce-lbl">SPM</span><span class="ce-val">${F(r.spm, 2)}</span>
+          <span class="ce-lbl">Fillage</span><span class="ce-val">${F(r.adjusted_fillage_pct, 1)}%</span>
+          <span class="ce-lbl">Fo máx</span><span class="ce-val">${F(r.fo_max_line_lb, 0)}</span>
+          <span class="ce-lbl">PPRL</span><span class="ce-val">${F(r.peak_polished_rod_load_lb, 0)}</span>
+          <span class="ce-lbl">MPRL</span><span class="ce-val">${F(r.minimum_polished_rod_load_lb, 0)}</span>
+        </div>
+      </div>`;
+  }
+
+  function _ceRenderDiff(prev, curr){
+    const dp = prev.results || {}, dc = curr.results || {};
+    const row = (lbl, a, b, dec, suffix) => {
+      const va = (a != null && !isNaN(Number(a))) ? Number(a) : null;
+      const vb = (b != null && !isNaN(Number(b))) ? Number(b) : null;
+      if(va == null || vb == null) return `<div class="ce-diff-row"><span class="ce-diff-lbl">${lbl}</span><span class="ce-diff-val flat">—</span></div>`;
+      const d = vb - va;
+      const cls = Math.abs(d) < Math.pow(10, -(dec+1)) ? 'flat' : (d > 0 ? 'up' : 'down');
+      const sign = d > 0 ? '+' : (d < 0 ? '−' : '');
+      const abs = Math.abs(d).toFixed(dec);
+      return `<div class="ce-diff-row"><span class="ce-diff-lbl">${lbl}</span><span class="ce-diff-val ${cls}">${sign}${abs}${suffix||''}</span></div>`;
+    };
+    return `
+      <div class="ce-diff-cell">
+        <div class="ce-diff-head">Δ vs anterior</div>
+        ${row('SPM',    dp.spm,                         dc.spm,                         2, '')}
+        ${row('Fillage',dp.adjusted_fillage_pct,        dc.adjusted_fillage_pct,        1, '%')}
+        ${row('Fo máx', dp.fo_max_line_lb,              dc.fo_max_line_lb,              0, '')}
+        ${row('PPRL',   dp.peak_polished_rod_load_lb,   dc.peak_polished_rod_load_lb,   0, '')}
+      </div>`;
+  }
+
   // ---- Funciones de búsqueda de pozo y grilla Inicio ----
   let inicioPage = 0;
   let inicioActiveRowKey = null;
@@ -4851,7 +5029,7 @@
             <button class="row-preview-btn" type="button" onclick="toggleWellOculto('${n.replace(/'/g,"\\'")}')" title="${isHidden ? 'Mostrar pozo' : 'Ocultar pozo'}" style="${isHidden ? 'color:#2ea05a;' : ''}">
               ${eyeIcon}
             </button>
-            <button class="row-preview-btn" type="button" onclick="openQuickPreview('${n.replace(/'/g,"\\'")}')" title="Vista rápida">
+            <button class="row-preview-btn" type="button" onclick="openChartEvolution('${n.replace(/'/g,"\\'")}')" title="Ver evolución de cartas Dina">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
             </button>
             ${canDelete ? `<button class="row-del-btn" type="button" onclick="deleteInicioRow('${rowKey.replace(/'/g,"\\'")}')" title="Eliminar ensayo">
