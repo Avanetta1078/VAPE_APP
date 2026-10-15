@@ -953,9 +953,10 @@
   .ce-grid-4{grid-template-columns:repeat(4, minmax(0,1fr));}
   .ce-card{background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:8px; display:flex; flex-direction:column; gap:6px;}
   .ce-card-date{font-family:'IBM Plex Mono'; font-size:11px; color:var(--steel-glow); text-align:center; font-weight:600; letter-spacing:.03em;}
-  .ce-card-img-wrap{background:#fff; border-radius:6px; min-height:160px; display:flex; align-items:center; justify-content:center; overflow:hidden;}
-  .ce-card-img-wrap img{max-width:100%; max-height:220px; display:block;}
-  .ce-card-nochart{color:#888; font-size:11px; padding:30px 10px; text-align:center;}
+  .ce-card-img-wrap{border-radius:6px; overflow:hidden; display:flex; align-items:stretch; justify-content:center;}
+  .ce-card-img-wrap img{width:100%; height:auto; display:block; border-radius:6px;}
+  .ce-card-img-wrap.placeholder{background:var(--panel); border:1px dashed var(--border); min-height:120px; align-items:center;}
+  .ce-card-nochart{color:var(--ink-faint); font-size:11px; padding:24px 10px; text-align:center;}
   .ce-card-stats{display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; font-size:10.5px; font-family:'IBM Plex Mono';}
   .ce-card-stats .ce-lbl{color:var(--ink-faint); text-transform:uppercase; font-size:9px; letter-spacing:.04em;}
   .ce-card-stats .ce-val{color:var(--ink); text-align:right; font-weight:600;}
@@ -973,12 +974,15 @@
   .ce-diff-val.up{color:#4ea0ff;}
   .ce-diff-val.down{color:#e8663f;}
   .ce-diff-val.flat{color:var(--ink-dim);}
-  .rp-eye-btn{
-    width:22px; height:22px; margin-left:8px; border-radius:6px; border:1px solid var(--border);
-    background:var(--panel-2); color:var(--ink-dim); cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+  .rp-eye-floating{
+    position:absolute; top:8px; right:8px; z-index:3;
+    width:28px; height:28px; border-radius:7px; border:1px solid rgba(255,255,255,.35);
+    background:rgba(20,28,38,.72); color:#fff; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(3px); box-shadow:0 2px 8px rgba(0,0,0,.35);
+    transition:background .15s ease, color .15s ease, transform .15s ease;
   }
-  .rp-eye-btn:hover{background:#242c37; color:var(--steel-glow);}
+  .rp-eye-floating:hover{background:var(--steel-glow); color:#0b0f14; transform:scale(1.06);}
 
   /* ---- Herramientas (Tarea 4) — grid tipo Win11 ---- */
   .tools-grid{display:flex; flex-direction:column; gap:8px; max-width:560px;}
@@ -1293,10 +1297,6 @@
           <h2><span class="dot2 navy"></span>Carta Dinamométrica</h2>
           <span id="rp-classif" class="rp-badge rp-badge-accent" style="margin-left:8px;">—</span>
           <span class="stamp" id="rp-dyn-stamp">—</span>
-          <button type="button" class="rp-eye-btn" id="rp-dyn-eye" title="Ver evolución de cartas Dina"
-                  onclick="if(typeof currentWell!=='undefined' && currentWell) openChartEvolution(currentWell);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
         </div>
         <div class="rp-chips-row rp-chips-9">
           <div class="rp-chip"><span class="rp-lbl">Carga Máx</span><span class="rp-val" id="rp-cargamax">—</span></div>
@@ -1309,7 +1309,13 @@
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">Carrera</span><span class="rp-val" id="rp-carrera">—</span></div>
           <div class="rp-chip rp-chip-aib"><span class="rp-lbl">PIP Dyn</span><span class="rp-val" id="rp-pipdyn">—</span></div>
         </div>
-        <div class="rp-chart-box"><img id="rp-dyn-img" alt="Carta dinamométrica"></div>
+        <div class="rp-chart-box" style="position:relative;">
+          <button type="button" class="rp-eye-floating" id="rp-dyn-eye" title="Ver evolución de cartas Dina"
+                  onclick="if(typeof currentWell!=='undefined' && currentWell) openChartEvolution(currentWell);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <img id="rp-dyn-img" alt="Carta dinamométrica">
+        </div>
         <div class="rp-comment-box">
           <div class="rp-comment-val" id="rp-dyn-comment">Sin comentarios registrados.</div>
           <button type="button" class="rp-edit-comment-btn" id="rp-edit-dyn-btn" title="Editar comentario Dyn" style="display:none;" onclick="openCommentEditor('dyn')">
@@ -4425,18 +4431,20 @@
     const r = t.results || {};
     const dateStr = (typeof fmtDate === 'function') ? fmtDate(t.test_date) : (t.test_date || '—');
     const timeStr = t.test_time ? String(t.test_time).slice(0,5) : '';
+    let wrapCls = 'ce-card-img-wrap placeholder';
     let imgHtml = '<div class="ce-card-nochart">Sin carta<br>archivada</div>';
     try{
       if(supabaseClient){
         const url = supabaseClient.storage.from('cartas').getPublicUrl(chartHistPath(wellName, 'DYN', t.test_date, t.test_time)).data.publicUrl;
-        imgHtml = `<img src="${url}" alt="Carta ${dateStr}" onerror="this.parentElement.innerHTML='&lt;div class=&quot;ce-card-nochart&quot;&gt;Sin carta&lt;br&gt;archivada&lt;/div&gt;'">`;
+        wrapCls = 'ce-card-img-wrap';
+        imgHtml = `<img src="${url}" alt="Carta ${dateStr}" onerror="this.parentElement.className='ce-card-img-wrap placeholder'; this.parentElement.innerHTML='&lt;div class=&quot;ce-card-nochart&quot;&gt;Sin carta&lt;br&gt;archivada&lt;/div&gt;'">`;
       }
     } catch(e){ /* queda el placeholder */ }
     const F = (v, dec) => (v != null && !isNaN(Number(v))) ? Number(v).toFixed(dec) : '—';
     return `
       <div class="ce-card">
         <div class="ce-card-date">${dateStr}${timeStr ? ' · '+timeStr : ''}</div>
-        <div class="ce-card-img-wrap">${imgHtml}</div>
+        <div class="${wrapCls}">${imgHtml}</div>
         <div class="ce-card-stats">
           <span class="ce-lbl">SPM</span><span class="ce-val">${F(r.spm, 2)}</span>
           <span class="ce-lbl">Fillage</span><span class="ce-val">${F(r.adjusted_fillage_pct, 1)}%</span>
