@@ -375,7 +375,7 @@
   async function loadData(){
     try{
       // Pozos: si es cliente, solo los de su operadora. Admin ve todo.
-      let wellsQ = supabaseClient.from('wells').select('well_id, well_name, operadora, zona, bateria, oculto');
+      let wellsQ = supabaseClient.from('wells').select('well_id, well_name, operadora, zona, bateria, oculto, motor_marca, motor_rpm, motor_hp, motor_polea, contrapesos, packer_m');
       if(currentUser.role === 'cliente' && currentUser.operadora){
         wellsQ = wellsQ.eq('operadora', currentUser.operadora);
       }
@@ -605,6 +605,20 @@
     const motorPolea = w.motor_polea || null;
     const contrapesosRaw = w.contrapesos || null;
 
+    // % Torque = MAX(Upstroke Peak, Downstroke Peak) * 100 / Gearbox Rating
+    // (misma fórmula que VAPE_APP, línea 4204)
+    const torquePct = (up, down, rating) => {
+      if(up == null || down == null || !rating) return null;
+      const m = Math.max(Number(up), Number(down));
+      return m * 100 / Number(rating);
+    };
+    const pctTorqueExistente = torquePct(d.existing_max_torque_upstroke_inlb, d.existing_max_torque_downstroke_inlb, c.gearbox_rating_inlb);
+    const pctTorqueBalance   = torquePct(d.in_balance_max_torque_upstroke_inlb, d.in_balance_max_torque_downstroke_inlb, c.gearbox_rating_inlb);
+
+    // Gas: anular + producción total
+    const gasAnular = a ? a.annular_gas_flow_m3d : null;
+    const gasProd   = a ? a.gas_production_m3d : null;
+
     let html = `
       <div class="block">
         <div class="block-title"><span class="dot"></span>Datos Dina · ${fmtDate(lastDynTest.test_date)}</div>
@@ -612,15 +626,13 @@
           ${kv('Presión Tbg', fmtN(d.dyn_tubing_pressure_kg,1)+' kg')}
           ${kv('GPM (SPM)', fmtN(d.spm,2))}
           ${kv('Carga Máx', fmtN(d.peak_polished_rod_load_lb,0)+' lb')}
-          ${kv('Carga Mín', fmtN(d.minimum_polished_rod_load_lb,0)+' lb')}
+          ${kv('Carga Estruc. AIB', fmtN(d.beam_loading_pct,1)+' %')}
           ${kv('PIP Dyn', fmtN(d.pip_dyn_kg,1)+' kg')}
           ${kv('PIP Acu', fmtN(pipAcu,1)+' kg')}
           ${kv('API Bba', c.pump_designation_api || '—')}
           ${kv('Prof. Bba', fmtN(c.pump_intake_depth_m,0)+' m')}
-          ${kv('Torque Up', fmtN(d.existing_max_torque_upstroke_inlb,0))}
-          ${kv('Torque Down', fmtN(d.existing_max_torque_downstroke_inlb,0))}
-          ${kv('T.Bal Up', fmtN(d.in_balance_max_torque_upstroke_inlb,0))}
-          ${kv('T.Bal Down', fmtN(d.in_balance_max_torque_downstroke_inlb,0))}
+          ${kv('% Torque Exist.', pctTorqueExistente != null ? pctTorqueExistente.toFixed(1)+' %' : '—')}
+          ${kv('% Torque Balance', pctTorqueBalance != null ? pctTorqueBalance.toFixed(1)+' %' : '—')}
           ${kv('API AIB', c.surface_unit_api || '—')}
         </div>
         ${lastDynTest.test_comments ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;">${escapeHtml(lastDynTest.test_comments)}</div>` : ''}
@@ -630,13 +642,14 @@
         <div class="block-title alt"><span class="dot"></span>Controles / Producción</div>
         <div class="kv-grid">
           ${kv('Prod. ajustada', fmtN(d.adjusted_displacement_m3d,1)+' m³/d')}
-          ${kv('Prod. teórica', fmtN(d.pump_displacement_m3d,1)+' m³/d')}
           ${kv('Vol. ef.', fmtN(d.volumetric_efficiency_pct,1)+'%')}
           ${kv('Fillage', fmtN(d.adjusted_fillage_pct,1)+'%')}
           ${kv('Petróleo', fmtN(oil,1)+' m³/d')}
           ${kv('Agua', fmtN(water,1)+' m³/d')}
           ${kv('Bruta', bruta != null ? bruta.toFixed(1)+' m³/d' : '—')}
           ${kv('% Agua', pctAgua != null ? pctAgua.toFixed(1)+'%' : '—')}
+          ${kv('Gas producción', fmtN(gasProd,0)+' m³/d')}
+          ${kv('Gas anular', fmtN(gasAnular,0)+' m³/d')}
         </div>
       </div>
 
@@ -659,19 +672,45 @@
       </div>
 
       <div class="block">
-        <div class="block-title motor"><span class="dot"></span>Motor y Contrapesos</div>
+        <div class="block-title motor"><span class="dot"></span>Motor</div>
         <div class="kv-grid">
-          ${kv('Motor marca', motorMarca || '—')}
-          ${kv('Motor RPM', motorRpm != null ? motorRpm : '—')}
-          ${kv('Motor HP', motorHp != null ? motorHp+' HP' : '—')}
+          ${kv('Marca', motorMarca || '—')}
+          ${kv('RPM', motorRpm != null ? motorRpm : '—')}
+          ${kv('Potencia', motorHp != null ? motorHp+' HP' : '—')}
           ${kv('Polea', motorPolea || '—')}
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title motor"><span class="dot"></span>Contrapesos / Manivelas</div>
+        <div class="kv-grid">
           ${kv('CBM', fmtN(c.counter_balance_moment_inlb,0))}
           ${kv('Peso CP', fmtN(c.weight_of_counterweights_lb,0)+' lb')}
         </div>
-        ${contrapesosRaw ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;"><strong style="color:var(--steel-glow);">Contrapesos:</strong> ${escapeHtml(typeof contrapesosRaw==='string'?contrapesosRaw:JSON.stringify(contrapesosRaw))}</div>` : ''}
+        ${contrapesosRaw ? renderContrapesos(contrapesosRaw) : '<div class="sarta-empty" style="margin-top:8px;">Sin contrapesos cargados en Bitácora.</div>'}
       </div>
     `;
     el.innerHTML = html;
+  }
+
+  function renderContrapesos(raw){
+    // Puede venir como string JSON o como objeto. Formato típico: {tipo, cantidad, cm, secuencia, cant2, cm2}
+    let obj = raw;
+    if(typeof raw === 'string'){
+      try{ obj = JSON.parse(raw); } catch(e){ return `<div class="comment-box" style="margin-top:8px; margin-bottom:0;">${escapeHtml(raw)}</div>`; }
+    }
+    if(!obj || typeof obj !== 'object') return '';
+    const rows = [];
+    if(obj.tipo || obj.cantidad || obj.cm || obj.secuencia){
+      rows.push(`<tr><td>Juego 1</td><td>${escapeHtml(obj.tipo||'—')}</td><td>${obj.cantidad != null ? obj.cantidad : '—'}</td><td>${obj.cm != null ? obj.cm : '—'}</td><td>${escapeHtml(obj.secuencia||'—')}</td></tr>`);
+    }
+    if(obj.cant2 || obj.cm2){
+      rows.push(`<tr><td>Juego 2</td><td>${escapeHtml(obj.tipo2||obj.tipo||'—')}</td><td>${obj.cant2 != null ? obj.cant2 : '—'}</td><td>${obj.cm2 != null ? obj.cm2 : '—'}</td><td>${escapeHtml(obj.secuencia2||'—')}</td></tr>`);
+    }
+    if(!rows.length) return `<div class="comment-box" style="margin-top:8px; margin-bottom:0;">${escapeHtml(JSON.stringify(obj))}</div>`;
+    return `<table class="sarta-table" style="margin-top:10px;">
+      <thead><tr><th>Juego</th><th>Tipo</th><th>Cant.</th><th>CM</th><th>Sec.</th></tr></thead>
+      <tbody>${rows.join('')}</tbody></table>`;
   }
 
   function renderNivelSection(w, lastAcuTest, a, cfg){
@@ -692,11 +731,11 @@
       <div class="block">
         <div class="block-title"><span class="dot"></span>Nivel · ${fmtDate(lastAcuTest.test_date)}</div>
         <div class="kv-grid">
-          ${kv('Presión Csg', fmtN(a.acu_casing_pressure_kg,1)+' kg')}
           ${kv('Nivel medido', fmtN(nivelMedido,0)+' m')}
-          ${kv('Nivel corregido', nivelCorr != null ? Math.round(nivelCorr)+' m' : '—')}
           ${kv('Sumergencia', fmtN(a.fluid_above_pump_m,0)+' m')}
+          ${kv('Nivel corregido', nivelCorr != null ? Math.round(nivelCorr)+' m' : '—')}
           ${kv('Sumerg. corregida', fmtN(a.gas_free_above_pump_m,0)+' m')}
+          ${kv('Presión Csg', fmtN(a.acu_casing_pressure_kg,1)+' kg')}
           ${kv('PIP (nivel)', fmtN(a.pip_ll_kg,1)+' kg')}
         </div>
         ${lastAcuTest.test_comments ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;">${escapeHtml(lastAcuTest.test_comments)}</div>` : ''}
