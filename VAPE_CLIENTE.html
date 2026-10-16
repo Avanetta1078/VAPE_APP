@@ -129,6 +129,50 @@
   .spin{display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--steel-glow); border-radius:50%; animation:spin .8s linear infinite; vertical-align:middle; margin-right:8px;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
+  /* Campañas desplegable */
+  .campaign-toggle{
+    width:100%; background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; color:var(--ink); font-size:13px; font-weight:600;
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+  }
+  .campaign-toggle:active{background:var(--panel-2);}
+  .campaign-toggle.open{border-color:var(--steel-glow); color:var(--steel-glow);}
+  .campaign-toggle.open svg{transform:rotate(180deg);}
+  .campaign-toggle svg{transition:transform .18s ease;}
+  .campaign-list{display:none; flex-direction:column; gap:6px; margin-bottom:14px; max-height:260px; overflow-y:auto;}
+  .campaign-list.open{display:flex;}
+  .campaign-item{
+    background:var(--panel); border:1px solid var(--border); border-radius:9px;
+    padding:11px 13px; display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .campaign-item:active{background:var(--panel-2);}
+  .campaign-item.active{border-color:var(--steel-glow); background:rgba(126,200,217,.08);}
+  .campaign-date{font-family:'IBM Plex Mono'; font-size:13px; font-weight:600; flex:1;}
+  .campaign-count{font-size:10.5px; color:var(--ink-faint); background:var(--panel-2); padding:3px 8px; border-radius:5px;}
+  .campaign-clear{margin-left:auto; font-size:10.5px; color:var(--bad); background:transparent; border:none; cursor:pointer; padding:4px 8px;}
+
+  /* Detalle - badge sistema + bloques Dina scroll vertical */
+  .sistema-badge-row{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+  .sb-chip{font-size:10px; padding:4px 9px; border-radius:5px; background:var(--panel-2); color:var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--border);}
+  .sb-chip.sys{background:rgba(78,160,255,.14); color:var(--accent); border-color:rgba(78,160,255,.3);}
+  .sb-chip.sys.bes{background:rgba(232,163,58,.14); color:var(--warn); border-color:rgba(232,163,58,.3);}
+  .sb-chip.sys.pcp{background:rgba(166,120,220,.14); color:#a678dc; border-color:rgba(166,120,220,.3);}
+  .sb-chip.date{background:rgba(126,200,217,.1); color:var(--steel-glow); border-color:rgba(126,200,217,.25);}
+
+  .block{background:var(--panel); border:1px solid var(--border); border-radius:11px; padding:12px 14px; margin-bottom:12px;}
+  .block-title{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--steel-glow); text-transform:uppercase; letter-spacing:.07em; font-weight:700; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border);}
+  .block-title .dot{width:6px; height:6px; border-radius:50%; background:var(--steel-glow);}
+  .block-title.alt .dot{background:var(--accent);}
+  .block-title.motor .dot{background:var(--warn);}
+  .block-title.sarta .dot{background:#a678dc;}
+
+  /* Tabla sarta */
+  .sarta-table{width:100%; border-collapse:collapse; font-family:'IBM Plex Mono'; font-size:11.5px;}
+  .sarta-table th{text-align:left; color:var(--ink-faint); font-weight:600; padding:5px 4px; border-bottom:1px solid var(--border); text-transform:uppercase; font-size:9.5px; letter-spacing:.04em;}
+  .sarta-table td{padding:7px 4px; color:var(--ink); border-bottom:1px solid var(--border);}
+  .sarta-table tr:last-child td{border-bottom:none;}
+  .sarta-empty{text-align:center; padding:14px; color:var(--ink-faint); font-size:11.5px;}
+
   /* Perfil */
   .profile-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px; text-align:center;}
   .profile-avatar{width:60px; height:60px; border-radius:50%; background:var(--teal); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono'; font-size:22px; font-weight:700; margin-bottom:10px;}
@@ -176,7 +220,13 @@
       <div class="stat-card warn"><div class="stat-val" id="stat-pending">—</div><div class="stat-lbl">Sin ensayos</div></div>
       <div class="stat-card bad"><div class="stat-val" id="stat-alerts">—</div><div class="stat-lbl">Con alertas</div></div>
     </div>
-    <div class="section-head">Últimos ensayos</div>
+    <div class="section-head">Campañas (días medidos)</div>
+    <button class="campaign-toggle" id="campaignToggle" onclick="toggleCampaigns()">
+      <span id="campaignToggleLbl">Elegí un día…</span>
+      <svg id="campaignChev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="campaign-list" id="campaignList"></div>
+    <div class="section-head" id="recentHeader">Últimos ensayos</div>
     <div class="recent-list" id="recentList">
       <div class="loading"><span class="spin"></span>Cargando…</div>
     </div>
@@ -200,13 +250,11 @@
       </button>
       <div class="detail-title" id="detailTitle">—</div>
     </div>
-    <div class="tabs">
-      <button class="tab active" data-tab="resumen" onclick="switchTab('resumen')">Resumen</button>
-      <button class="tab" data-tab="dina" onclick="switchTab('dina')">Carta</button>
-      <button class="tab" data-tab="historial" onclick="switchTab('historial')">Historial</button>
-    </div>
-    <div class="tab-content active" id="tab-resumen"></div>
-    <div class="tab-content" id="tab-dina"></div>
+    <div class="sistema-badge-row" id="sistemaBadgeRow"></div>
+    <div class="tabs" id="detailTabs"></div>
+    <div class="tab-content active" id="tab-dina"></div>
+    <div class="tab-content" id="tab-nivel"></div>
+    <div class="tab-content" id="tab-cartas"></div>
     <div class="tab-content" id="tab-historial"></div>
   </div>
 
@@ -268,7 +316,8 @@
 
   // ---- Estado global ----
   let currentUser = null;
-  const DATA = { wells: [], tests: [], dynByTest: {}, acuByTest: {} };
+  const DATA = { wells: [], tests: [], dynByTest: {}, acuByTest: {}, cfgById: {}, tapersByCfg: {}, testCfgId: {}, wellsByOp: {} };
+  let selectedCampaign = null; // 'YYYY-MM-DD' o null
 
   // ---- Login ----
   async function attemptLogin(){
@@ -340,25 +389,37 @@
       const wellIds = DATA.wells.map(w => w.well_id);
 
       const { data: tests } = await supabaseClient
-        .from('tests').select('test_id, well_id, test_type, test_date, test_time, test_comments')
+        .from('tests').select('test_id, well_id, test_type, test_date, test_time, test_comments, well_config_id')
         .in('well_id', wellIds)
         .order('test_date', { ascending: false }).order('test_time', { ascending: false });
       DATA.tests = tests || [];
+      DATA.tests.forEach(t => { if(t.well_config_id) DATA.testCfgId[t.test_id] = t.well_config_id; });
 
       const testIds = DATA.tests.map(t => t.test_id);
+      const cfgIds = [...new Set(DATA.tests.map(t => t.well_config_id).filter(Boolean))];
       if(testIds.length){
         // Fetch en chunks para no superar límite de IN
         const chunks = [];
         for(let i=0; i<testIds.length; i+=200) chunks.push(testIds.slice(i, i+200));
-        const [dynRes, acuRes] = await Promise.all([
+        const cfgChunks = [];
+        for(let i=0; i<cfgIds.length; i+=200) cfgChunks.push(cfgIds.slice(i, i+200));
+        const [dynRes, acuRes, cfgRes, taperRes] = await Promise.all([
           Promise.all(chunks.map(c => supabaseClient.from('dyn_results').select('*').in('test_id', c))),
           Promise.all(chunks.map(c => supabaseClient.from('acu_results').select('*').in('test_id', c))),
+          cfgChunks.length ? Promise.all(cfgChunks.map(c => supabaseClient.from('well_configurations').select('*').in('well_config_id', c))) : Promise.resolve([]),
+          cfgChunks.length ? Promise.all(cfgChunks.map(c => supabaseClient.from('rod_tapers').select('*').in('well_config_id', c))) : Promise.resolve([]),
         ]);
         dynRes.forEach(r => (r.data||[]).forEach(d => { DATA.dynByTest[d.test_id] = d; }));
         acuRes.forEach(r => (r.data||[]).forEach(a => { DATA.acuByTest[a.test_id] = a; }));
+        cfgRes.forEach(r => (r.data||[]).forEach(c => { DATA.cfgById[c.well_config_id] = c; }));
+        taperRes.forEach(r => (r.data||[]).forEach(t => {
+          if(!DATA.tapersByCfg[t.well_config_id]) DATA.tapersByCfg[t.well_config_id] = [];
+          DATA.tapersByCfg[t.well_config_id].push(t);
+        }));
       }
 
       renderDashboard();
+      renderCampaigns();
       renderWells();
       renderPartesList();
     } catch(e){
@@ -380,12 +441,14 @@
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-alerts').textContent = '—';
 
-    // Últimos ensayos (10 más recientes)
+    // Lista inferior: si hay campaña seleccionada → ensayos de ese día; si no → últimos 10
     const wellById = {};
     DATA.wells.forEach(w => { wellById[w.well_id] = w; });
-    const recent = DATA.tests.slice(0, 10);
-    const html = recent.length
-      ? recent.map(t => {
+    const filtered = selectedCampaign
+      ? DATA.tests.filter(t => t.test_date === selectedCampaign)
+      : DATA.tests.slice(0, 10);
+    const html = filtered.length
+      ? filtered.map(t => {
           const w = wellById[t.well_id];
           if(!w) return '';
           return `<div class="recent-item" onclick="openWell(${w.well_id})">
@@ -394,16 +457,22 @@
             <div class="recent-date">${fmtDate(t.test_date)}</div>
           </div>`;
         }).join('')
-      : '<div class="well-empty">Todavía no hay ensayos cargados.</div>';
+      : '<div class="well-empty">Sin ensayos para este criterio.</div>';
     document.getElementById('recentList').innerHTML = html;
   }
 
   // ---- Pozos (lista + buscador) ----
   function renderWells(filter){
     const q = (filter || '').trim().toLowerCase();
-    const list = DATA.wells.filter(w => !q || w.well_name.toLowerCase().includes(q));
+    // Si hay campaña activa, limito la lista a los pozos medidos ese día
+    let base = DATA.wells;
+    if(selectedCampaign){
+      const wellIdsCamp = new Set(DATA.tests.filter(t => t.test_date === selectedCampaign).map(t => t.well_id));
+      base = base.filter(w => wellIdsCamp.has(w.well_id));
+    }
+    const list = base.filter(w => !q || w.well_name.toLowerCase().includes(q));
     if(!list.length){
-      document.getElementById('wellList').innerHTML = '<div class="well-empty">No se encontraron pozos.</div>';
+      document.getElementById('wellList').innerHTML = `<div class="well-empty">No se encontraron pozos${selectedCampaign ? ' para esa campaña' : ''}.</div>`;
       return;
     }
     // Pre-calculo último ensayo por pozo
@@ -446,65 +515,200 @@
   }
 
   // ---- Detalle de pozo ----
+  // ---- Detalle de pozo: solapas dinámicas según sistema ----
+  function classifySistema(d, dyn_comment, acu_comment){
+    const txt = `${dyn_comment||''} ${acu_comment||''}`.toUpperCase();
+    if(/\bROTAFLEX\b/.test(txt)) return 'ROTAFLEX';
+    if(/\bBES\b|ELECTRO|\bHZ\b/.test(txt)) return 'BES';
+    if(/\bPCP\b|CAVIDAD PROGRESIVA/.test(txt)) return 'PCP';
+    if(/\bSSE\b/.test(txt)) return 'SSE';
+    if(d && d.peak_polished_rod_load_lb != null) return 'AIB';
+    return null;
+  }
+
   function openWell(wellId){
     const w = DATA.wells.find(x => x.well_id === wellId);
     if(!w) return;
     const tests = DATA.tests.filter(t => t.well_id === wellId);
     document.getElementById('detailTitle').textContent = w.well_name;
     switchView('detalle');
-    renderDetailResumen(w, tests);
-    renderDetailDina(w, tests);
-    renderDetailHistorial(w, tests);
-    switchTab('resumen');
+
+    // Último ensayo Dina válido + último Nivel
+    const lastDynTest = tests.find(t => t.test_type === 'DYN' && DATA.dynByTest[t.test_id] && DATA.dynByTest[t.test_id].peak_polished_rod_load_lb != null);
+    const lastAcuTest = tests.find(t => t.test_type === 'ACU');
+    const dyn = lastDynTest ? DATA.dynByTest[lastDynTest.test_id] : null;
+    const acu = lastAcuTest ? DATA.acuByTest[lastAcuTest.test_id] : null;
+    const cfgId = (lastDynTest && lastDynTest.well_config_id) || (lastAcuTest && lastAcuTest.well_config_id) || null;
+    const cfg = cfgId ? DATA.cfgById[cfgId] : null;
+    const tapers = cfg ? (DATA.tapersByCfg[cfg.well_config_id] || []).slice().sort((a,b)=>a.taper_number-b.taper_number) : [];
+    const sistema = classifySistema(dyn, lastDynTest && lastDynTest.test_comments, lastAcuTest && lastAcuTest.test_comments);
+
+    // Badges: batería, sistema, fecha último
+    const lastDate = (lastDynTest && lastDynTest.test_date) || (lastAcuTest && lastAcuTest.test_date);
+    const sysClass = sistema === 'AIB' || sistema === 'ROTAFLEX' ? 'sys' : (sistema === 'BES' ? 'sys bes' : (sistema === 'PCP' ? 'sys pcp' : 'sys'));
+    document.getElementById('sistemaBadgeRow').innerHTML = `
+      ${sistema ? `<span class="sb-chip ${sysClass}">${sistema}</span>` : '<span class="sb-chip">—</span>'}
+      ${w.bateria ? `<span class="sb-chip">Bat: ${w.bateria}</span>` : ''}
+      ${w.zona ? `<span class="sb-chip">${w.zona}</span>` : ''}
+      ${lastDate ? `<span class="sb-chip date">Últ: ${fmtDate(lastDate)}</span>` : ''}
+    `;
+
+    // Decide orden de solapas: si hay Dina válido → Dina primero; si no → Nivel primero
+    const hasDina = !!dyn;
+    const hasNivel = !!acu;
+    const tabs = [];
+    if(hasDina){ tabs.push({id:'dina', lbl:'Dina'}); if(hasNivel) tabs.push({id:'nivel', lbl:'Nivel'}); }
+    else { if(hasNivel) tabs.push({id:'nivel', lbl:'Nivel'}); }
+    tabs.push({id:'cartas', lbl:'Cartas'});
+    tabs.push({id:'historial', lbl:'Historial'});
+    document.getElementById('detailTabs').innerHTML = tabs.map((t,i) =>
+      `<button class="tab ${i===0?'active':''}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.lbl}</button>`
+    ).join('');
+    // Ocultar paneles de solapas que no están en el array
+    ['dina','nivel','cartas','historial'].forEach(id => {
+      const el = document.getElementById('tab-'+id);
+      if(el) el.classList.remove('active');
+    });
+
+    renderDinaSection(w, lastDynTest, dyn, cfg, tapers);
+    renderNivelSection(w, lastAcuTest, acu, cfg);
+    renderCartasSection(w, tests);
+    renderHistorialSection(w, tests);
+    switchTab(tabs[0].id);
   }
 
-  function renderDetailResumen(w, tests){
-    const lastDyn = tests.find(t => t.test_type === 'DYN' && DATA.dynByTest[t.test_id] && DATA.dynByTest[t.test_id].peak_polished_rod_load_lb != null);
-    const lastAcu = tests.find(t => t.test_type === 'ACU');
-    const d = lastDyn ? DATA.dynByTest[lastDyn.test_id] : null;
-    const a = lastAcu ? DATA.acuByTest[lastAcu.test_id] : null;
+  function renderDinaSection(w, lastDynTest, d, cfg, tapers){
+    const el = document.getElementById('tab-dina');
+    if(!d || !lastDynTest){
+      el.innerHTML = '<div class="well-empty">Este pozo no tiene ensayo Dina con datos cargados.</div>';
+      return;
+    }
     const kv = (lbl, val) => `<div class="kv"><div class="kv-lbl">${lbl}</div><div class="kv-val">${val}</div></div>`;
+    const c = cfg || {};
+    const lastAcu = DATA.tests.find(t => t.well_id === w.well_id && t.test_type === 'ACU');
+    const a = lastAcu ? DATA.acuByTest[lastAcu.test_id] : null;
+    const pipAcu = a ? a.pip_ll_kg : null;
+
+    // Producción: bruta y % agua
+    const oil = a ? a.oil_production_m3d : null;
+    const water = a ? a.water_production_m3d : null;
+    let bruta = null, pctAgua = null;
+    if(oil != null && water != null){
+      bruta = Math.round((Number(oil)+Number(water))*100)/100;
+      pctAgua = bruta ? Math.round((Number(water)/bruta*100)*10)/10 : null;
+    }
+
+    // Motor + contrapesos: desde wells (cargado por operador) + config
+    const motorMarca = w.motor_marca || null;
+    const motorRpm = w.motor_rpm;
+    const motorHp = w.motor_hp;
+    const motorPolea = w.motor_polea || null;
+    const contrapesosRaw = w.contrapesos || null;
+
     let html = `
-      <div class="kv-grid">
-        ${kv('Batería', w.bateria || '—')}
-        ${kv('Zona', w.zona || '—')}
-      </div>`;
-    if(d){
-      html += `<div class="section-head">Último ensayo Dina · ${fmtDate(lastDyn.test_date)}</div>
-      <div class="kv-grid">
-        ${kv('SPM', fmtN(d.spm,2))}
-        ${kv('Fillage', fmtN(d.adjusted_fillage_pct,1)+'%')}
-        ${kv('Fo máx', fmtN(d.fo_max_line_lb,0)+' lb')}
-        ${kv('PPRL', fmtN(d.peak_polished_rod_load_lb,0)+' lb')}
-        ${kv('Prod. ajust.', fmtN(d.adjusted_displacement_m3d,1)+' m³/d')}
-        ${kv('Vol. ef.', fmtN(d.volumetric_efficiency_pct,1)+'%')}
-      </div>`;
-      if(lastDyn.test_comments){
-        html += `<div class="comment-box">${escapeHtml(lastDyn.test_comments)}</div>`;
-      }
-    }
-    if(a){
-      html += `<div class="section-head">Último Nivel · ${fmtDate(lastAcu.test_date)}</div>
-      <div class="kv-grid">
-        ${kv('Nivel', fmtN(a.liquid_level_tvd_m,0)+' m')}
-        ${kv('Sumergencia', fmtN(a.fluid_above_pump_m,0)+' m')}
-        ${kv('Petróleo', fmtN(a.oil_production_m3d,1)+' m³/d')}
-        ${kv('Agua', fmtN(a.water_production_m3d,1)+' m³/d')}
-      </div>`;
-      if(lastAcu.test_comments){
-        html += `<div class="comment-box">${escapeHtml(lastAcu.test_comments)}</div>`;
-      }
-    }
-    if(!d && !a){
-      html += '<div class="well-empty">Este pozo todavía no tiene ensayos cargados.</div>';
-    }
-    document.getElementById('tab-resumen').innerHTML = html;
+      <div class="block">
+        <div class="block-title"><span class="dot"></span>Datos Dina · ${fmtDate(lastDynTest.test_date)}</div>
+        <div class="kv-grid">
+          ${kv('Presión Tbg', fmtN(d.dyn_tubing_pressure_kg,1)+' kg')}
+          ${kv('GPM (SPM)', fmtN(d.spm,2))}
+          ${kv('Carga Máx', fmtN(d.peak_polished_rod_load_lb,0)+' lb')}
+          ${kv('Carga Mín', fmtN(d.minimum_polished_rod_load_lb,0)+' lb')}
+          ${kv('PIP Dyn', fmtN(d.pip_dyn_kg,1)+' kg')}
+          ${kv('PIP Acu', fmtN(pipAcu,1)+' kg')}
+          ${kv('API Bba', c.pump_designation_api || '—')}
+          ${kv('Prof. Bba', fmtN(c.pump_intake_depth_m,0)+' m')}
+          ${kv('Torque Up', fmtN(d.existing_max_torque_upstroke_inlb,0))}
+          ${kv('Torque Down', fmtN(d.existing_max_torque_downstroke_inlb,0))}
+          ${kv('T.Bal Up', fmtN(d.in_balance_max_torque_upstroke_inlb,0))}
+          ${kv('T.Bal Down', fmtN(d.in_balance_max_torque_downstroke_inlb,0))}
+          ${kv('API AIB', c.surface_unit_api || '—')}
+        </div>
+        ${lastDynTest.test_comments ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;">${escapeHtml(lastDynTest.test_comments)}</div>` : ''}
+      </div>
+
+      <div class="block">
+        <div class="block-title alt"><span class="dot"></span>Controles / Producción</div>
+        <div class="kv-grid">
+          ${kv('Prod. ajustada', fmtN(d.adjusted_displacement_m3d,1)+' m³/d')}
+          ${kv('Prod. teórica', fmtN(d.pump_displacement_m3d,1)+' m³/d')}
+          ${kv('Vol. ef.', fmtN(d.volumetric_efficiency_pct,1)+'%')}
+          ${kv('Fillage', fmtN(d.adjusted_fillage_pct,1)+'%')}
+          ${kv('Petróleo', fmtN(oil,1)+' m³/d')}
+          ${kv('Agua', fmtN(water,1)+' m³/d')}
+          ${kv('Bruta', bruta != null ? bruta.toFixed(1)+' m³/d' : '—')}
+          ${kv('% Agua', pctAgua != null ? pctAgua.toFixed(1)+'%' : '—')}
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title sarta"><span class="dot"></span>Sarta de varillas</div>
+        ${tapers.length ? `
+          <table class="sarta-table">
+            <thead><tr><th>#</th><th>Diám.</th><th>Grado</th><th>Long.</th><th>Fabric.</th></tr></thead>
+            <tbody>
+              ${tapers.map(t => `<tr>
+                <td>${t.taper_number || '—'}</td>
+                <td>${t.diameter_in != null ? Number(t.diameter_in).toFixed(3)+' in' : '—'}</td>
+                <td>${t.grade || '—'}</td>
+                <td>${t.length_m != null ? Math.round(t.length_m)+' m' : '—'}</td>
+                <td>${t.manufacturer || '—'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        ` : '<div class="sarta-empty">Sin sarta cargada.</div>'}
+      </div>
+
+      <div class="block">
+        <div class="block-title motor"><span class="dot"></span>Motor y Contrapesos</div>
+        <div class="kv-grid">
+          ${kv('Motor marca', motorMarca || '—')}
+          ${kv('Motor RPM', motorRpm != null ? motorRpm : '—')}
+          ${kv('Motor HP', motorHp != null ? motorHp+' HP' : '—')}
+          ${kv('Polea', motorPolea || '—')}
+          ${kv('CBM', fmtN(c.counter_balance_moment_inlb,0))}
+          ${kv('Peso CP', fmtN(c.weight_of_counterweights_lb,0)+' lb')}
+        </div>
+        ${contrapesosRaw ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;"><strong style="color:var(--steel-glow);">Contrapesos:</strong> ${escapeHtml(typeof contrapesosRaw==='string'?contrapesosRaw:JSON.stringify(contrapesosRaw))}</div>` : ''}
+      </div>
+    `;
+    el.innerHTML = html;
   }
 
-  function renderDetailDina(w, tests){
+  function renderNivelSection(w, lastAcuTest, a, cfg){
+    const el = document.getElementById('tab-nivel');
+    if(!a || !lastAcuTest){
+      el.innerHTML = '<div class="well-empty">Este pozo no tiene ensayo de Nivel cargado.</div>';
+      return;
+    }
+    const kv = (lbl, val) => `<div class="kv"><div class="kv-lbl">${lbl}</div><div class="kv-val">${val}</div></div>`;
+    const pumpDepth = cfg ? cfg.pump_intake_depth_m : null;
+    // Fórmula de VAPE_APP: Nivel Corregido = Prof.Bba - Sumergencia corregida (gas_free_above_pump_m)
+    const sumergCorr = a.gas_free_above_pump_m;
+    const nivelCorr = (pumpDepth != null && sumergCorr != null) ? (Number(pumpDepth) - Number(sumergCorr)) : null;
+    // Nivel medido: distance_to_liquid_m (crudo). Si no, usar TVD como respaldo.
+    const nivelMedido = a.distance_to_liquid_m != null ? a.distance_to_liquid_m : a.liquid_level_tvd_m;
+
+    let html = `
+      <div class="block">
+        <div class="block-title"><span class="dot"></span>Nivel · ${fmtDate(lastAcuTest.test_date)}</div>
+        <div class="kv-grid">
+          ${kv('Presión Csg', fmtN(a.acu_casing_pressure_kg,1)+' kg')}
+          ${kv('Nivel medido', fmtN(nivelMedido,0)+' m')}
+          ${kv('Nivel corregido', nivelCorr != null ? Math.round(nivelCorr)+' m' : '—')}
+          ${kv('Sumergencia', fmtN(a.fluid_above_pump_m,0)+' m')}
+          ${kv('Sumerg. corregida', fmtN(a.gas_free_above_pump_m,0)+' m')}
+          ${kv('PIP (nivel)', fmtN(a.pip_ll_kg,1)+' kg')}
+        </div>
+        ${lastAcuTest.test_comments ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0;">${escapeHtml(lastAcuTest.test_comments)}</div>` : ''}
+      </div>
+    `;
+    el.innerHTML = html;
+  }
+
+  function renderCartasSection(w, tests){
     const dynTests = tests.filter(t => t.test_type === 'DYN' && DATA.dynByTest[t.test_id] && DATA.dynByTest[t.test_id].peak_polished_rod_load_lb != null);
     if(!dynTests.length){
-      document.getElementById('tab-dina').innerHTML = '<div class="well-empty">Este pozo no tiene cartas Dina cargadas.</div>';
+      document.getElementById('tab-cartas').innerHTML = '<div class="well-empty">Este pozo no tiene cartas Dina cargadas.</div>';
       return;
     }
     const html = dynTests.slice(0, 6).map(t => {
@@ -514,10 +718,10 @@
         <img src="${url}" alt="Carta ${t.test_date}" onerror="this.parentElement.innerHTML='<div class=&quot;chart-date&quot;>${fmtDate(t.test_date)}</div><div class=&quot;no-chart&quot;>Carta no archivada</div>'">
       </div>`;
     }).join('');
-    document.getElementById('tab-dina').innerHTML = html;
+    document.getElementById('tab-cartas').innerHTML = html;
   }
 
-  function renderDetailHistorial(w, tests){
+  function renderHistorialSection(w, tests){
     if(!tests.length){
       document.getElementById('tab-historial').innerHTML = '<div class="well-empty">Sin historial.</div>';
       return;
@@ -531,6 +735,55 @@
       </div>`;
     }).join('');
     document.getElementById('tab-historial').innerHTML = '<div class="hist-list">' + html + '</div>';
+  }
+
+  // ---- Campañas (desplegable con días medidos) ----
+  function renderCampaigns(){
+    const list = document.getElementById('campaignList');
+    if(!list) return;
+    // Agrupo tests por fecha, contando pozos únicos por día
+    const byDate = {};
+    DATA.tests.forEach(t => {
+      if(!byDate[t.test_date]) byDate[t.test_date] = new Set();
+      byDate[t.test_date].add(t.well_id);
+    });
+    const days = Object.keys(byDate).sort().reverse(); // más reciente primero
+    if(!days.length){
+      list.innerHTML = '<div class="well-empty" style="padding:14px;">Todavía no hay campañas.</div>';
+      return;
+    }
+    list.innerHTML = days.map(d => {
+      const n = byDate[d].size;
+      const active = selectedCampaign === d ? 'active' : '';
+      return `<div class="campaign-item ${active}" onclick="selectCampaign('${d}')">
+        <div class="campaign-date">${fmtDate(d)}</div>
+        <div class="campaign-count">${n} pozo${n>1?'s':''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleCampaigns(){
+    const list = document.getElementById('campaignList');
+    const btn = document.getElementById('campaignToggle');
+    list.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+
+  function selectCampaign(dateStr){
+    selectedCampaign = (selectedCampaign === dateStr) ? null : dateStr;
+    const lbl = document.getElementById('campaignToggleLbl');
+    lbl.innerHTML = selectedCampaign
+      ? `${fmtDate(selectedCampaign)} <span class="campaign-clear" onclick="event.stopPropagation(); selectedCampaign=null; renderCampaigns(); selectCampaign(null);">× quitar</span>`
+      : 'Elegí un día…';
+    // Cerrar panel desplegable y refrescar vistas
+    document.getElementById('campaignList').classList.remove('open');
+    document.getElementById('campaignToggle').classList.remove('open');
+    renderCampaigns();
+    renderDashboard();
+    renderWells(document.getElementById('searchInput').value || '');
+    document.getElementById('recentHeader').textContent = selectedCampaign
+      ? `Ensayos del ${fmtDate(selectedCampaign)}`
+      : 'Últimos ensayos';
   }
 
   // ---- Partes ----
