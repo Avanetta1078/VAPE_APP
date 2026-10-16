@@ -9116,20 +9116,18 @@
 
       // 1) Copia permanente por ensayo (para poder navegar el historial mas adelante,
       //    nunca se pisa: cada fecha guarda su propia carta para siempre).
-      if(testDate){
-        const histPath = chartHistPath(wellName, type, testDate, testTime);
-        const { error: histErr } = await supabaseClient.storage.from('cartas').upload(histPath, blob, {
-          upsert: true, contentType: 'image/png',
-        });
-        if(histErr) console.error('Error subiendo carta histórica a Storage:', JSON.stringify(histErr));
-      }
-
-      // 2) "Ultima" (se sigue pisando, para la vista rapida/grilla que solo muestra la mas reciente)
+      // 2) "Ultima" (se sigue pisando, para la vista rapida/grilla que solo muestra la mas reciente).
+      // Las 2 subidas corren EN PARALELO (son archivos distintos, independientes)
+      // para que la carga de cartas sea ~50% mas rapida sin cambiar la logica.
       const path = `${safePathName(wellName)}_${type}.png`;
-      const { error } = await supabaseClient.storage.from('cartas').upload(path, blob, {
-        upsert: true, contentType: 'image/png',
-      });
-      if(error){ console.error('Error subiendo carta a Storage:', JSON.stringify(error)); return null; }
+      const uploadOpts = { upsert: true, contentType: 'image/png' };
+      const histTask = testDate
+        ? supabaseClient.storage.from('cartas').upload(chartHistPath(wellName, type, testDate, testTime), blob, uploadOpts)
+        : Promise.resolve({ error: null });
+      const lastTask = supabaseClient.storage.from('cartas').upload(path, blob, uploadOpts);
+      const [histRes, lastRes] = await Promise.all([histTask, lastTask]);
+      if(histRes && histRes.error) console.error('Error subiendo carta histórica a Storage:', JSON.stringify(histRes.error));
+      if(lastRes && lastRes.error){ console.error('Error subiendo carta a Storage:', JSON.stringify(lastRes.error)); return null; }
       const { data } = supabaseClient.storage.from('cartas').getPublicUrl(path);
       return data ? data.publicUrl + '?t=' + Date.now() : null; // cache-bust para ver la version nueva
     } catch(e){
