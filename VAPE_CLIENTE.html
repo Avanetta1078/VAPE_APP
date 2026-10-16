@@ -742,21 +742,27 @@
 
       <div class="block">
         <div class="block-title motor"><span class="dot"></span>Motor</div>
-        <div class="kv-grid">
-          ${kv('Marca', motorMarca || '—')}
-          ${kv('RPM', motorRpm != null ? motorRpm : '—')}
-          ${kv('Potencia', motorHp != null ? motorHp+' HP' : '—')}
-          ${kv('Polea', motorPolea || '—')}
-        </div>
+        ${(motorMarca || motorRpm != null || motorHp != null || motorPolea) ? `
+          <div class="kv-grid">
+            ${kv('Marca', motorMarca || '—')}
+            ${kv('RPM', motorRpm != null ? motorRpm : '—')}
+            ${kv('Potencia', motorHp != null ? motorHp+' HP' : '—')}
+            ${kv('Polea', motorPolea || '—')}
+          </div>
+          ${mc.unidadDesc ? `<div class="comment-box" style="margin-top:10px; margin-bottom:0; font-style:normal;"><span style="color:var(--ink-faint); font-size:10.5px; text-transform:uppercase;">Unidad: </span>${escapeHtml(mc.unidadDesc)}</div>` : ''}
+        ` : '<div class="sarta-empty">Datos de motor sin cargar en Bitácora para este pozo.</div>'}
       </div>
 
       <div class="block">
         <div class="block-title motor"><span class="dot"></span>Contrapesos / Manivelas</div>
-        <div class="kv-grid">
-          ${kv('CBM', fmtN(c.counter_balance_moment_inlb,0))}
-          ${kv('Peso CP', fmtN(c.weight_of_counterweights_lb,0)+' lb')}
-        </div>
-        ${contrapesosRaw ? renderContrapesos(contrapesosRaw) : '<div class="sarta-empty" style="margin-top:8px;">Sin contrapesos cargados en Bitácora.</div>'}
+        ${(c.counter_balance_moment_inlb != null || c.weight_of_counterweights_lb != null) ? `
+          <div class="kv-grid">
+            ${kv('CBM', fmtN(c.counter_balance_moment_inlb,0))}
+            ${kv('Peso CP', fmtN(c.weight_of_counterweights_lb,0)+' lb')}
+          </div>` : ''}
+        ${contrapesosRaw ? renderContrapesos(contrapesosRaw)
+          : (c.counter_balance_moment_inlb == null && c.weight_of_counterweights_lb == null
+              ? '<div class="sarta-empty">Sin contrapesos cargados en Bitácora.</div>' : '')}
       </div>
     `;
     el.innerHTML = html;
@@ -767,9 +773,10 @@
   // los campos que haya podido encontrar + "source" para diagnóstico.
   function resolveMotorContrapesos(w, cfg){
     const fl = DATA.fieldLogByWell[w.well_id] || null;
+    const toNum = v => (v == null || v === '') ? null : (isNaN(Number(v)) ? null : Number(v));
     const marca = w.motor_marca || (fl && fl.motor_marca) || null;
-    const rpm   = (w.motor_rpm != null ? w.motor_rpm : (fl ? fl.motor_rpm : null));
-    const hp    = (w.motor_hp != null ? w.motor_hp : (fl ? fl.motor_potencia_hp : null));
+    const rpm   = toNum(w.motor_rpm != null && w.motor_rpm !== '' ? w.motor_rpm : (fl ? fl.motor_rpm : null));
+    const hp    = toNum(w.motor_hp  != null && w.motor_hp  !== '' ? w.motor_hp  : (fl ? fl.motor_potencia_hp : null));
     const polea = w.motor_polea || (fl && fl.motor_polea) || null;
     const contrapesos = w.contrapesos || (fl && fl.contrapesos) || null;
     const unidadDesc = (fl && fl.unidad_descripcion) ||
@@ -778,18 +785,24 @@
   }
 
   function renderContrapesos(raw){
-    // Puede venir como string JSON o como objeto. Formato típico: {tipo, cantidad, cm, secuencia, cant2, cm2}
+    // Puede venir como string JSON o como objeto. Formato real en Supabase:
+    //   { tipo, cant, cm, secu, cant2, cm2, (tipo2?), (secu2?) }
     let obj = raw;
     if(typeof raw === 'string'){
       try{ obj = JSON.parse(raw); } catch(e){ return `<div class="comment-box" style="margin-top:8px; margin-bottom:0;">${escapeHtml(raw)}</div>`; }
     }
     if(!obj || typeof obj !== 'object') return '';
+    // Soporta ambos esquemas: cant/secu (real) y cantidad/secuencia (legacy, por si cambia)
+    const cant1 = obj.cant != null ? obj.cant : obj.cantidad;
+    const secu1 = obj.secu != null ? obj.secu : obj.secuencia;
+    const cant2 = obj.cant2 != null ? obj.cant2 : obj.cantidad2;
+    const secu2 = obj.secu2 != null ? obj.secu2 : obj.secuencia2;
     const rows = [];
-    if(obj.tipo || obj.cantidad || obj.cm || obj.secuencia){
-      rows.push(`<tr><td>Juego 1</td><td>${escapeHtml(obj.tipo||'—')}</td><td>${obj.cantidad != null ? obj.cantidad : '—'}</td><td>${obj.cm != null ? obj.cm : '—'}</td><td>${escapeHtml(obj.secuencia||'—')}</td></tr>`);
+    if(obj.tipo || cant1 != null || obj.cm != null || secu1){
+      rows.push(`<tr><td>J1</td><td>${escapeHtml(obj.tipo||'—')}</td><td>${cant1 != null ? cant1 : '—'}</td><td>${obj.cm != null ? obj.cm : '—'}</td><td>${escapeHtml(secu1||'—')}</td></tr>`);
     }
-    if(obj.cant2 || obj.cm2){
-      rows.push(`<tr><td>Juego 2</td><td>${escapeHtml(obj.tipo2||obj.tipo||'—')}</td><td>${obj.cant2 != null ? obj.cant2 : '—'}</td><td>${obj.cm2 != null ? obj.cm2 : '—'}</td><td>${escapeHtml(obj.secuencia2||'—')}</td></tr>`);
+    if(cant2 != null || obj.cm2 != null || secu2){
+      rows.push(`<tr><td>J2</td><td>${escapeHtml(obj.tipo2||obj.tipo||'—')}</td><td>${cant2 != null ? cant2 : '—'}</td><td>${obj.cm2 != null ? obj.cm2 : '—'}</td><td>${escapeHtml(secu2||'—')}</td></tr>`);
     }
     if(!rows.length) return `<div class="comment-box" style="margin-top:8px; margin-bottom:0;">${escapeHtml(JSON.stringify(obj))}</div>`;
     return `<table class="sarta-table" style="margin-top:10px;">
