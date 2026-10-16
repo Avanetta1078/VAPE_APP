@@ -66,6 +66,22 @@
   .recent-badge{font-size:10px; padding:3px 8px; border-radius:5px; background:var(--panel-2); color:var(--ink-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
   .recent-badge.dyn{background:rgba(78,160,255,.15); color:var(--accent);}
   .recent-badge.acu{background:rgba(126,200,217,.15); color:var(--steel-glow);}
+  .recent-badge.combo{background:rgba(166,120,220,.18); color:#c198e8;}
+
+  /* Alertas */
+  .alert-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; padding:3px 8px; border-radius:5px;
+    background:rgba(232,102,63,.14); color:var(--bad); border:1px solid rgba(232,102,63,.35);
+    font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  }
+  .alert-chip.warn{background:rgba(232,163,58,.14); color:var(--warn); border-color:rgba(232,163,58,.3);}
+  .alert-chip.info{background:rgba(126,200,217,.14); color:var(--steel-glow); border-color:rgba(126,200,217,.3);}
+  .alert-block{background:var(--panel); border:1px solid rgba(232,102,63,.4); border-left:3px solid var(--bad); border-radius:10px; padding:11px 13px; margin-bottom:12px;}
+  .alert-row{display:flex; align-items:center; gap:9px; padding:6px 0;}
+  .alert-row + .alert-row{border-top:1px dashed var(--border);}
+  .alert-text{flex:1; font-size:12.5px; color:var(--ink);}
+  .alert-date{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-faint);}
 
   /* ---- Pozos (buscador + lista) ---- */
   .search-wrap{position:sticky; top:var(--topbar-h); background:var(--bg); padding:12px 0; z-index:20;}
@@ -316,7 +332,7 @@
 
   // ---- Estado global ----
   let currentUser = null;
-  const DATA = { wells: [], tests: [], dynByTest: {}, acuByTest: {}, cfgById: {}, tapersByCfg: {}, testCfgId: {}, wellsByOp: {} };
+  const DATA = { wells: [], tests: [], dynByTest: {}, acuByTest: {}, cfgById: {}, tapersByCfg: {}, testCfgId: {}, wellsByOp: {}, fieldLogByWell: {}, alertsByWell: {}, alertasCat: {} };
   let selectedCampaign = null; // 'YYYY-MM-DD' o null
 
   // ---- Login ----
@@ -418,6 +434,38 @@
         }));
       }
 
+      // Fallback: field_log (bitácora histórica migrada desde Excel). Trae motor y
+      // contrapesos para los pozos que todavía no tienen datos cargados en wells.
+      try {
+        const flChunks = [];
+        for(let i=0; i<wellIds.length; i+=200) flChunks.push(wellIds.slice(i, i+200));
+        const flRes = await Promise.all(flChunks.map(c =>
+          supabaseClient.from('field_log')
+            .select('well_id, fecha, motor_marca, motor_rpm, motor_potencia_hp, motor_polea, contrapesos, unidad_descripcion')
+            .in('well_id', c).order('fecha', { ascending: false })
+        ));
+        flRes.forEach(r => (r.data||[]).forEach(fl => {
+          // Nos quedamos con la fila más reciente que tenga al menos motor_marca o contrapesos
+          if(!DATA.fieldLogByWell[fl.well_id] &&
+             (fl.motor_marca || fl.contrapesos || fl.motor_rpm != null || fl.motor_potencia_hp != null)){
+            DATA.fieldLogByWell[fl.well_id] = fl;
+          }
+        }));
+      } catch(e){ console.warn('field_log no accesible:', e); }
+
+      // Alertas activas por pozo (y catálogo de nombres predefinidos)
+      try {
+        const [alCat, alW] = await Promise.all([
+          supabaseClient.from('alertas_catalogo').select('alerta_id, texto, nivel'),
+          supabaseClient.from('well_alerts').select('well_alert_id, well_id, alerta_catalogo_id, texto_libre, nivel, created_at, activa').eq('activa', true).in('well_id', wellIds),
+        ]);
+        (alCat.data || []).forEach(c => { DATA.alertasCat[c.alerta_id] = c; });
+        (alW.data || []).forEach(a => {
+          if(!DATA.alertsByWell[a.well_id]) DATA.alertsByWell[a.well_id] = [];
+          DATA.alertsByWell[a.well_id].push(a);
+        });
+      } catch(e){ console.warn('alertas no accesibles:', e); }
+
       renderDashboard();
       renderCampaigns();
       renderWells();
@@ -439,7 +487,8 @@
     document.getElementById('stat-wells').textContent = DATA.wells.length;
     document.getElementById('stat-tests').textContent = testsLast30.length;
     document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-alerts').textContent = '—';
+    const alertCount = Object.keys(DATA.alertsByWell).length;
+    document.getElementById('stat-alerts').textContent = alertCount || '0';
 
     // Lista inferior: si hay campaña seleccionada → ensayos de ese día; si no → últimos 10
     const wellById = {};
@@ -499,10 +548,13 @@
           extra = `<span><strong>Nivel</strong> ${fmtN(a.liquid_level_tvd_m,0)} m</span>`;
         }
       }
+      const alertN = (DATA.alertsByWell[w.well_id] || []).length;
+      const alertChip = alertN ? `<span class="alert-chip" style="margin-left:6px;">⚠ ${alertN}</span>` : '';
       return `<div class="well-card" onclick="openWell(${w.well_id})">
         <div class="well-card-row">
           <div class="well-name">${w.well_name}</div>
           ${sistemaBadge}
+          ${alertChip}
         </div>
         <div class="well-sub">
           <span><strong>Batería</strong> ${w.bateria || '—'}</span>
@@ -546,12 +598,29 @@
     // Badges: batería, sistema, fecha último
     const lastDate = (lastDynTest && lastDynTest.test_date) || (lastAcuTest && lastAcuTest.test_date);
     const sysClass = sistema === 'AIB' || sistema === 'ROTAFLEX' ? 'sys' : (sistema === 'BES' ? 'sys bes' : (sistema === 'PCP' ? 'sys pcp' : 'sys'));
+    const alerts = DATA.alertsByWell[w.well_id] || [];
+    const alertBlock = alerts.length ? `
+      <div class="alert-block">
+        ${alerts.map(a => {
+          const cat = DATA.alertasCat[a.alerta_catalogo_id];
+          const txt = a.texto_libre || (cat && cat.texto) || '(alerta sin descripción)';
+          const nv = a.nivel || (cat && cat.nivel) || 'alta';
+          const cls = /crit|alta|urg/i.test(nv) ? '' : (/med|warn/i.test(nv) ? 'warn' : 'info');
+          return `<div class="alert-row">
+            <span class="alert-chip ${cls}">${escapeHtml(nv || 'alerta')}</span>
+            <div class="alert-text">${escapeHtml(txt)}</div>
+            <div class="alert-date">${fmtDate(a.created_at ? a.created_at.slice(0,10) : '')}</div>
+          </div>`;
+        }).join('')}
+      </div>` : '';
+
     document.getElementById('sistemaBadgeRow').innerHTML = `
       ${sistema ? `<span class="sb-chip ${sysClass}">${sistema}</span>` : '<span class="sb-chip">—</span>'}
       ${w.bateria ? `<span class="sb-chip">Bat: ${w.bateria}</span>` : ''}
       ${w.zona ? `<span class="sb-chip">${w.zona}</span>` : ''}
       ${lastDate ? `<span class="sb-chip date">Últ: ${fmtDate(lastDate)}</span>` : ''}
-    `;
+      ${alerts.length ? `<span class="alert-chip">⚠ ${alerts.length} alerta${alerts.length>1?'s':''}</span>` : ''}
+    ` + alertBlock;
 
     // Decide orden de solapas: si hay Dina válido → Dina primero; si no → Nivel primero
     const hasDina = !!dyn;
@@ -598,12 +667,13 @@
       pctAgua = bruta ? Math.round((Number(water)/bruta*100)*10)/10 : null;
     }
 
-    // Motor + contrapesos: desde wells (cargado por operador) + config
-    const motorMarca = w.motor_marca || null;
-    const motorRpm = w.motor_rpm;
-    const motorHp = w.motor_hp;
-    const motorPolea = w.motor_polea || null;
-    const contrapesosRaw = w.contrapesos || null;
+    // Motor + contrapesos: wells → field_log → well_configurations (fallbacks)
+    const mc = resolveMotorContrapesos(w, c);
+    const motorMarca = mc.marca;
+    const motorRpm = mc.rpm;
+    const motorHp = mc.hp;
+    const motorPolea = mc.polea;
+    const contrapesosRaw = mc.contrapesos;
 
     // % Torque = MAX(Upstroke Peak, Downstroke Peak) * 100 / Gearbox Rating
     // (misma fórmula que VAPE_APP, línea 4204)
@@ -642,14 +712,13 @@
         <div class="block-title alt"><span class="dot"></span>Controles / Producción</div>
         <div class="kv-grid">
           ${kv('Prod. ajustada', fmtN(d.adjusted_displacement_m3d,1)+' m³/d')}
+          ${kv('Llenado de bba', fmtN(d.adjusted_fillage_pct,1)+'%')}
           ${kv('Vol. ef.', fmtN(d.volumetric_efficiency_pct,1)+'%')}
-          ${kv('Fillage', fmtN(d.adjusted_fillage_pct,1)+'%')}
-          ${kv('Petróleo', fmtN(oil,1)+' m³/d')}
           ${kv('Agua', fmtN(water,1)+' m³/d')}
-          ${kv('Bruta', bruta != null ? bruta.toFixed(1)+' m³/d' : '—')}
           ${kv('% Agua', pctAgua != null ? pctAgua.toFixed(1)+'%' : '—')}
+          ${kv('Petróleo', fmtN(oil,1)+' m³/d')}
+          ${kv('Bruta', bruta != null ? bruta.toFixed(1)+' m³/d' : '—')}
           ${kv('Gas producción', fmtN(gasProd,0)+' m³/d')}
-          ${kv('Gas anular', fmtN(gasAnular,0)+' m³/d')}
         </div>
       </div>
 
@@ -691,6 +760,21 @@
       </div>
     `;
     el.innerHTML = html;
+  }
+
+  // Resuelve motor y contrapesos para un pozo: primero wells, después field_log,
+  // después well_configurations (surface_unit_*). Devuelve siempre un objeto con
+  // los campos que haya podido encontrar + "source" para diagnóstico.
+  function resolveMotorContrapesos(w, cfg){
+    const fl = DATA.fieldLogByWell[w.well_id] || null;
+    const marca = w.motor_marca || (fl && fl.motor_marca) || null;
+    const rpm   = (w.motor_rpm != null ? w.motor_rpm : (fl ? fl.motor_rpm : null));
+    const hp    = (w.motor_hp != null ? w.motor_hp : (fl ? fl.motor_potencia_hp : null));
+    const polea = w.motor_polea || (fl && fl.motor_polea) || null;
+    const contrapesos = w.contrapesos || (fl && fl.contrapesos) || null;
+    const unidadDesc = (fl && fl.unidad_descripcion) ||
+      (cfg ? [cfg.surface_unit_manufacturer, cfg.surface_unit_model].filter(Boolean).join(' ') : null) || null;
+    return { marca, rpm, hp, polea, contrapesos, unidadDesc };
   }
 
   function renderContrapesos(raw){
@@ -765,12 +849,23 @@
       document.getElementById('tab-historial').innerHTML = '<div class="well-empty">Sin historial.</div>';
       return;
     }
-    const html = tests.map(t => {
-      const tipo = t.test_type === 'DYN' ? 'Dina' : 'Nivel';
-      const cls = t.test_type === 'DYN' ? 'dyn' : 'acu';
+    // Agrupo por fecha: si ese día hay Dina + Nivel → Combinada; si solo uno, su tipo.
+    const byDate = {};
+    tests.forEach(t => {
+      if(!byDate[t.test_date]) byDate[t.test_date] = { hasDyn:false, hasAcu:false, time:t.test_time };
+      if(t.test_type === 'DYN') byDate[t.test_date].hasDyn = true;
+      else if(t.test_type === 'ACU') byDate[t.test_date].hasAcu = true;
+    });
+    const dates = Object.keys(byDate).sort().reverse();
+    const html = dates.map(dt => {
+      const g = byDate[dt];
+      let tipo, cls;
+      if(g.hasDyn && g.hasAcu){ tipo = 'Combinada'; cls = 'combo'; }
+      else if(g.hasDyn){ tipo = 'Dina'; cls = 'dyn'; }
+      else { tipo = 'Nivel'; cls = 'acu'; }
       return `<div class="hist-item">
         <span class="hist-badge recent-badge ${cls}">${tipo}</span>
-        <div class="hist-date">${fmtDate(t.test_date)}${t.test_time ? ' · ' + t.test_time.slice(0,5) : ''}</div>
+        <div class="hist-date">${fmtDate(dt)}</div>
       </div>`;
     }).join('');
     document.getElementById('tab-historial').innerHTML = '<div class="hist-list">' + html + '</div>';
