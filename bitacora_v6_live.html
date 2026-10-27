@@ -226,16 +226,55 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-header .oh-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--glow)}
 .obs-header .oh-sub{font-size:10px;color:var(--dim);margin-top:2px}
 .obs-fields{display:flex;gap:8px;flex:1}
-.obs-group{flex:1;display:flex;flex-direction:column;gap:3px}
-.obs-group-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim)}
-.obs-group textarea{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);resize:none;width:100%;min-height:50px;outline:none}
-.obs-group textarea:focus{border-color:var(--teal)}
-.obs-group textarea::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
-.obs-group.main textarea{border-color:rgba(126,200,217,.18)}
-.obs-chips{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
-.obs-chip{padding:2px 7px;border-radius:4px;cursor:pointer;background:var(--panel2);border:1px solid var(--border);font-size:10px;color:var(--dim)}
-.obs-chip:hover{border-color:var(--glow);color:var(--glow)}
-.obs-chip.active{background:rgba(126,200,217,.1);border-color:var(--glow);color:var(--glow)}
+.obs-col{flex:1;display:flex;flex-direction:column;gap:3px}
+.obs-col-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);display:flex;align-items:center;gap:6px}
+.obs-col-label .ocl-tag{font-size:8px;padding:1px 5px;border-radius:3px;font-family:'IBM Plex Mono'}
+.ocl-gen{background:rgba(126,200,217,.1);color:var(--glow);border:1px solid rgba(126,200,217,.2)}
+.ocl-dyn{background:rgba(91,118,224,.1);color:#8fa4f8;border:1px solid rgba(91,118,224,.2)}
+.ocl-niv{background:rgba(200,146,44,.1);color:var(--amberl);border:1px solid rgba(200,146,44,.2)}
+
+.obs-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px;min-height:22px}
+.obs-tag{
+  display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;
+  background:rgba(126,200,217,.08);border:1px solid rgba(126,200,217,.2);
+  font-size:10px;color:var(--glow);font-family:'IBM Plex Mono';
+}
+.obs-tag.dyn{background:rgba(91,118,224,.08);border-color:rgba(91,118,224,.2);color:#8fa4f8}
+.obs-tag.niv{background:rgba(200,146,44,.08);border-color:rgba(200,146,44,.2);color:var(--amberl)}
+.obs-tag .otx{cursor:pointer;font-size:12px;line-height:1;opacity:.5}
+.obs-tag .otx:hover{opacity:1;color:var(--rustg)}
+
+.obs-combo{position:relative;width:100%}
+.obs-combo input{
+  width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:6px;
+  padding:5px 28px 5px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;
+}
+.obs-combo input:focus{border-color:var(--teal)}
+.obs-combo input::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
+.obs-combo .oc-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--faint);pointer-events:none}
+.obs-combo .oc-drop{
+  position:absolute;bottom:100%;left:0;right:0;z-index:200;
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  max-height:180px;overflow-y:auto;display:none;box-shadow:0 -4px 16px rgba(0,0,0,.4);margin-bottom:2px;
+}
+.obs-combo .oc-drop.open{display:block}
+.oc-drop-item{
+  padding:6px 10px;cursor:pointer;font-size:11px;font-family:'IBM Plex Mono';
+  display:flex;justify-content:space-between;align-items:center;
+}
+.oc-drop-item:hover{background:var(--panel2)}
+.oc-drop-item .odi-x{color:var(--faint);font-size:13px;cursor:pointer;padding:0 2px}
+.oc-drop-item .odi-x:hover{color:var(--rustg)}
+.oc-drop-add{padding:6px 10px;font-size:10px;color:var(--glow);cursor:pointer;border-top:1px solid var(--border);font-style:italic}
+.oc-drop-add:hover{background:var(--panel2)}
+
+.obs-textarea{
+  flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;
+  padding:6px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);
+  resize:none;width:100%;min-height:40px;outline:none;
+}
+.obs-textarea:focus{border-color:var(--teal)}
+.obs-textarea::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
 
 /* ===== STATUS BAR (slim, bottom) ===== */
 .status-bar{
@@ -371,23 +410,35 @@ table.cp-table td.placa-cell input{text-align:left}
 <div class="obs-panel">
   <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
   <div class="obs-fields">
-    <div class="obs-group main">
-      <div class="obs-group-label">General</div>
-      <div class="obs-chips" id="obsChips">
-        <span class="obs-chip" onclick="toggleChip(this)">Golpe de fluido</span>
-        <span class="obs-chip" onclick="toggleChip(this)">Lateral abierto</span>
-        <span class="obs-chip" onclick="toggleChip(this)">Sin SAM</span>
-        <span class="obs-chip" onclick="toggleChip(this)">Fuga en cabeza</span>
+    <div class="obs-col">
+      <div class="obs-col-label">General <span class="ocl-tag ocl-gen">GEN</span></div>
+      <div class="obs-tags" id="obsTagsGen"></div>
+      <div class="obs-combo" id="comboGen">
+        <input type="text" placeholder="Escribir o elegir observación…" autocomplete="off">
+        <span class="oc-arrow">▾</span>
+        <div class="oc-drop"></div>
       </div>
-      <textarea id="obsGeneral" placeholder="Observaciones generales del pozo…"></textarea>
+      <textarea class="obs-textarea" id="obsGeneral" placeholder="Texto libre general…" rows="2"></textarea>
     </div>
-    <div class="obs-group">
-      <div class="obs-group-label">Comments DYN</div>
-      <textarea id="obsDyn" placeholder="Comentarios del DYN…"></textarea>
+    <div class="obs-col">
+      <div class="obs-col-label">DIN <span class="ocl-tag ocl-dyn">DIN</span></div>
+      <div class="obs-tags" id="obsTagsDin"></div>
+      <div class="obs-combo" id="comboDin">
+        <input type="text" placeholder="Observación DIN…" autocomplete="off">
+        <span class="oc-arrow">▾</span>
+        <div class="oc-drop"></div>
+      </div>
+      <textarea class="obs-textarea" id="obsDin" placeholder="Texto libre DIN…" rows="2"></textarea>
     </div>
-    <div class="obs-group">
-      <div class="obs-group-label">Comments ACU</div>
-      <textarea id="obsAcu" placeholder="Comentarios del ACU…"></textarea>
+    <div class="obs-col">
+      <div class="obs-col-label">NIV <span class="ocl-tag ocl-niv">NIV</span></div>
+      <div class="obs-tags" id="obsTagsNiv"></div>
+      <div class="obs-combo" id="comboNiv">
+        <input type="text" placeholder="Observación NIV…" autocomplete="off">
+        <span class="oc-arrow">▾</span>
+        <div class="oc-drop"></div>
+      </div>
+      <textarea class="obs-textarea" id="obsNiv" placeholder="Texto libre NIV…" rows="2"></textarea>
     </div>
   </div>
 </div>
@@ -505,8 +556,10 @@ async function selectWell(wellId){
     return;
   }
 
-  const lastVisit = await getLastVisit(wellId);
-  const lastFieldLog = await getLastFieldLog(well.well_name);
+  const [lastVisit, lastFieldLog] = await Promise.all([
+    getLastVisit(wellId),
+    getLastFieldLog(well.well_name)
+  ]);
 
   const sistema = lastFieldLog?.sistema_extraccion_tipo || lastVisit?.sistema_extraccion || 'AIB';
   const row = {
@@ -647,9 +700,11 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
   const r = gridRows[activeRowIdx];
   if(!r._dirty){ toast('Sin cambios para descartar'); return; }
 
-  const lastVisit = await getLastVisit(r.well_id);
   const well = allWells.find(w => w.well_id === r.well_id) || {};
-  const lastFieldLog = await getLastFieldLog(r.well_name);
+  const [lastVisit, lastFieldLog] = await Promise.all([
+    getLastVisit(r.well_id),
+    getLastFieldLog(r.well_name)
+  ]);
   const sistema = lastFieldLog?.sistema_extraccion_tipo || lastVisit?.sistema_extraccion || 'AIB';
 
   r.sistema = sistema;
@@ -746,7 +801,7 @@ function setActiveRow(idx){
   cs.style.display = '';
 
   document.getElementById('obsPozo').textContent = r.well_name;
-  document.getElementById('obsGeneral').value = r.observaciones || '';
+  loadObsForRow(r);
 
   document.getElementById('btnGuardar').disabled = false;
   document.getElementById('btnLimpiar').disabled = false;
@@ -903,7 +958,7 @@ async function guardarVisita(){
   let saved = 0;
   for(const r of dirty){
     const obs = activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id
-      ? document.getElementById('obsGeneral').value : r.observaciones;
+      ? collectObsText() : r.observaciones;
 
     const payload = {
       well_id: r.well_id,
@@ -951,14 +1006,169 @@ async function guardarVisita(){
   toast(saved + ' pozo(s) guardados correctamente');
 }
 
-// ===== OBS CHIPS =====
-function toggleChip(el){
-  el.classList.toggle('active');
-  const ta = document.getElementById('obsGeneral');
-  const chips = [...document.querySelectorAll('.obs-chip.active')].map(c => c.textContent);
-  const manual = ta.value.split('\n').filter(l => !document.querySelectorAll('.obs-chip').length || ![...document.querySelectorAll('.obs-chip')].some(c => l.trim() === c.textContent));
-  ta.value = (chips.length ? chips.join('. ') + '. ' : '') + manual.join('\n');
+// ===== OBS COMBO SYSTEM =====
+const OBS_PRESETS_KEY = 'vape_obs_presets';
+const defaultPresets = {
+  gen: ['Golpe de fluido','Lateral abierto','Sin SAM','Fuga en cabeza','Pérdida de sello','Ruido anormal'],
+  din: ['Carta incompleta','Válvula viajera desgastada','Anclaje suelto','Fricción alta','Golpe de bomba'],
+  niv: ['Espumoso','Gasificado','Nivel cancelado','Sin retorno','Pozo surgente']
+};
+function getPresets(){
+  try{ const s = localStorage.getItem(OBS_PRESETS_KEY); if(s) return JSON.parse(s); } catch(e){}
+  return JSON.parse(JSON.stringify(defaultPresets));
 }
+function savePresets(p){ try{ localStorage.setItem(OBS_PRESETS_KEY, JSON.stringify(p)); } catch(e){} }
+
+const obsState = { gen:[], din:[], niv:[] };
+
+function initCombo(cat, comboId, tagsId){
+  const combo = document.getElementById(comboId);
+  const input = combo.querySelector('input');
+  const drop = combo.querySelector('.oc-drop');
+
+  input.addEventListener('focus', ()=> renderDrop(cat, drop, input.value));
+  input.addEventListener('input', ()=> renderDrop(cat, drop, input.value));
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const v=input.value.trim();
+      if(v) addObsTag(cat, v, tagsId);
+      input.value=''; drop.classList.remove('open');
+    }
+    if(e.key==='Escape') drop.classList.remove('open');
+  });
+  combo.querySelector('.oc-arrow')?.addEventListener('click', e=>{
+    e.stopPropagation();
+    input.focus();
+    renderDrop(cat, drop, '');
+  });
+  document.addEventListener('click', e=>{ if(!combo.contains(e.target)) drop.classList.remove('open'); });
+}
+
+function renderDrop(cat, drop, filter){
+  const presets = getPresets()[cat] || [];
+  const f = filter.toLowerCase();
+  const filtered = f ? presets.filter(p=>p.toLowerCase().includes(f)) : presets;
+  const hasExact = presets.some(p=>p.toLowerCase()===f);
+  let html = filtered.map(p=>{
+    const inUse = obsState[cat].includes(p);
+    return `<div class="oc-drop-item${inUse?' style="opacity:.4"':''}" data-val="${p.replace(/"/g,'&quot;')}">
+      <span>${p}</span>
+      <span class="odi-x" data-del="${p.replace(/"/g,'&quot;')}" title="Eliminar preset">✕</span>
+    </div>`;
+  }).join('');
+  if(f && !hasExact) html += `<div class="oc-drop-add" data-new="${f}">+ Agregar "${filter.trim()}" como preset</div>`;
+  drop.innerHTML = html || '<div style="padding:8px 10px;font-size:10px;color:var(--dim)">Sin presets</div>';
+  drop.classList.add('open');
+
+  drop.querySelectorAll('.oc-drop-item').forEach(el=>{
+    el.addEventListener('click', e=>{
+      if(e.target.classList.contains('odi-x')) return;
+      const v = el.dataset.val;
+      if(!obsState[cat].includes(v)){
+        addObsTag(cat, v, cat==='gen'?'obsTagsGen':cat==='din'?'obsTagsDin':'obsTagsNiv');
+      }
+      drop.closest('.obs-combo').querySelector('input').value='';
+      drop.classList.remove('open');
+    });
+  });
+  drop.querySelectorAll('.odi-x').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const p = getPresets();
+      p[cat] = (p[cat]||[]).filter(x=>x!==el.dataset.del);
+      savePresets(p);
+      renderDrop(cat, drop, drop.closest('.obs-combo').querySelector('input').value);
+    });
+  });
+  drop.querySelectorAll('.oc-drop-add').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const v = el.dataset.new;
+      const p = getPresets();
+      if(!p[cat]) p[cat]=[];
+      p[cat].push(v.charAt(0).toUpperCase()+v.slice(1));
+      savePresets(p);
+      addObsTag(cat, v.charAt(0).toUpperCase()+v.slice(1), cat==='gen'?'obsTagsGen':cat==='din'?'obsTagsDin':'obsTagsNiv');
+      drop.closest('.obs-combo').querySelector('input').value='';
+      drop.classList.remove('open');
+    });
+  });
+}
+
+function addObsTag(cat, text, tagsId){
+  if(obsState[cat].includes(text)) return;
+  obsState[cat].push(text);
+  renderObsTags(cat, tagsId);
+  markObsDirty();
+}
+
+function removeObsTag(cat, text, tagsId){
+  obsState[cat] = obsState[cat].filter(t=>t!==text);
+  renderObsTags(cat, tagsId);
+  markObsDirty();
+}
+
+function renderObsTags(cat, tagsId){
+  const cont = document.getElementById(tagsId);
+  const cls = cat==='din'?'dyn':cat==='niv'?'niv':'';
+  cont.innerHTML = obsState[cat].map(t=>
+    `<span class="obs-tag ${cls}"><span class="ot-text">${t}</span><span class="otx" data-cat="${cat}" data-val="${t.replace(/"/g,'&quot;')}" data-tags="${tagsId}">✕</span></span>`
+  ).join('');
+  cont.querySelectorAll('.otx').forEach(x=>{
+    x.addEventListener('click', ()=> removeObsTag(x.dataset.cat, x.dataset.val, x.dataset.tags));
+  });
+}
+
+function markObsDirty(){
+  if(activeRowIdx<0) return;
+  gridRows[activeRowIdx]._dirty = true;
+  gridRows[activeRowIdx].observaciones = collectObsText();
+  updateStatusBar();
+  document.getElementById('btnCancelar').disabled = false;
+}
+
+function collectObsText(){
+  const parts = [];
+  if(obsState.gen.length) parts.push('[GEN] '+obsState.gen.join('. '));
+  const genFree = document.getElementById('obsGeneral').value.trim();
+  if(genFree) parts.push(genFree);
+  if(obsState.din.length) parts.push('[DIN] '+obsState.din.join('. '));
+  const dinFree = document.getElementById('obsDin').value.trim();
+  if(dinFree) parts.push(dinFree);
+  if(obsState.niv.length) parts.push('[NIV] '+obsState.niv.join('. '));
+  const nivFree = document.getElementById('obsNiv').value.trim();
+  if(nivFree) parts.push(nivFree);
+  return parts.join(' | ');
+}
+
+function loadObsForRow(r){
+  obsState.gen=[]; obsState.din=[]; obsState.niv=[];
+  document.getElementById('obsGeneral').value='';
+  document.getElementById('obsDin').value='';
+  document.getElementById('obsNiv').value='';
+  const obs = r.observaciones || '';
+  if(obs){
+    const genMatch = obs.match(/\[GEN\]\s*([^|[\]]*)/);
+    const dinMatch = obs.match(/\[DIN\]\s*([^|[\]]*)/);
+    const nivMatch = obs.match(/\[NIV\]\s*([^|[\]]*)/);
+    if(genMatch) obsState.gen = genMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
+    if(dinMatch) obsState.din = dinMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
+    if(nivMatch) obsState.niv = nivMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
+    const freeTexts = obs.split(' | ').filter(p=>!p.startsWith('[GEN]')&&!p.startsWith('[DIN]')&&!p.startsWith('[NIV]'));
+    if(freeTexts.length) document.getElementById('obsGeneral').value = freeTexts.join('\n');
+  }
+  renderObsTags('gen','obsTagsGen');
+  renderObsTags('din','obsTagsDin');
+  renderObsTags('niv','obsTagsNiv');
+}
+
+['obsGeneral','obsDin','obsNiv'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', markObsDirty);
+});
+
+initCombo('gen','comboGen','obsTagsGen');
+initCombo('din','comboDin','obsTagsDin');
+initCombo('niv','comboNiv','obsTagsNiv');
 
 // ===== KEYBOARD =====
 document.addEventListener('keydown', function(e){
