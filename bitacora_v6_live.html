@@ -207,6 +207,7 @@ tbody tr.active td{font-weight:600}
 tbody tr.editing-locked{opacity:.35;pointer-events:none}
 tbody tr.edit-target{background:rgba(14,116,144,.18);border-left:4px solid var(--teal)}
 tbody tr.edit-target td{font-weight:700}
+tbody tr.edit-target td:first-child input{color:var(--rust);cursor:pointer}
 tbody td input{width:100%;background:transparent;border:none;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;min-width:0}
 tbody td select{background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink);outline:none;cursor:pointer;padding:3px 4px}
 tbody td select option{background:var(--panel2);color:var(--ink)}
@@ -1070,9 +1071,22 @@ fixHeaderTop();
 let rowMenuIdx = -1;
 function openRowMenu(idx, e){
   e.preventDefault();
+  if(editingRowIdx >= 0 && idx === editingRowIdx){
+    editingRowIdx = -1;
+    gridRows[idx]._dirty = false;
+    updateStatusBar();
+    renderGrid();
+    toast('Edición cancelada');
+    return;
+  }
   rowMenuIdx = idx;
   setActiveRow(idx);
   const menu = document.getElementById('rowMenu');
+  const editItem = menu.querySelector('.rmi-edit');
+  editItem.innerHTML = '<span class="rmi-icon">✎</span> Editar';
+  const delItem = menu.querySelector('.rmi-delete');
+  delItem.style.display = gridRows[idx].visita_id ? '' : 'none';
+  menu.querySelectorAll('.row-menu-sep')[1].style.display = gridRows[idx].visita_id ? '' : 'none';
   const x = Math.min(e.clientX, window.innerWidth - 180);
   const y = Math.min(e.clientY, window.innerHeight - 140);
   menu.style.left = x + 'px';
@@ -1097,11 +1111,10 @@ async function rowMenuAction(action){
     toast('Editando ' + r.well_name + ' — modifica y guarda');
   }
   else if(action === 'delete'){
-    if(!confirm('Eliminar la visita de ' + r.well_name + ' del ' + fechaDisplay(r.fecha) + '?')) return;
-    if(r.visita_id && supabaseClient){
-      const del = await supabaseClient.from('bitacora_visitas').delete().eq('visita_id', r.visita_id);
-      if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
-    }
+    if(!r.visita_id){ toast('Este registro aún no fue guardado', true); return; }
+    if(!confirm('Eliminar de la base de datos la visita de ' + r.well_name + ' del ' + fechaDisplay(r.fecha) + '?')) return;
+    const del = await supabaseClient.from('bitacora_visitas').delete().eq('visita_id', r.visita_id);
+    if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
     gridRows.splice(idx, 1);
     if(editingRowIdx === idx) editingRowIdx = -1;
     if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
