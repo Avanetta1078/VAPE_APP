@@ -202,7 +202,11 @@ tbody td{
 tbody td:last-child{border-right:none}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:rgba(14,116,144,.03)}
-tbody tr.active{border-left:3px solid var(--glow);background:rgba(14,116,144,.05)}
+tbody tr.active{border-left:3px solid var(--glow);background:rgba(14,116,144,.12)}
+tbody tr.active td{font-weight:600}
+tbody tr.editing-locked{opacity:.35;pointer-events:none}
+tbody tr.edit-target{background:rgba(14,116,144,.18);border-left:4px solid var(--teal)}
+tbody tr.edit-target td{font-weight:700}
 tbody td input{width:100%;background:transparent;border:none;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;min-width:0}
 tbody td select{background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink);outline:none;cursor:pointer;padding:3px 4px}
 tbody td select option{background:var(--panel2);color:var(--ink)}
@@ -346,6 +350,10 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-textarea:focus{border-color:var(--teal)}
 .obs-textarea::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
 .obs-textarea.readonly{color:var(--dim);background:rgba(238,240,244,.8);cursor:default}
+.obs-copy-btn{position:absolute;top:3px;right:3px;background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;color:var(--dim);opacity:.5;transition:opacity .15s}
+.obs-copy-btn:hover{opacity:1;border-color:var(--glow);color:var(--glow)}
+.obs-ta-wrap{position:relative}
+.ab-counter{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:11px;font-weight:700;color:var(--teal);background:rgba(14,116,144,.08);border:1px solid rgba(14,116,144,.2);border-radius:6px;padding:4px 10px;white-space:nowrap}
 
 /* ===== STATUS BAR (slim, bottom) ===== */
 .status-bar{
@@ -390,9 +398,12 @@ table.cp-table td.placa-cell input{text-align:left}
 <!-- ===== ACTION BAR ===== -->
 <div class="action-bar">
   <button class="ab-btn btn-nuevo" id="btnNuevo" title="Buscar pozo y crear nueva medición"><span class="ab-icon">+</span> Nueva Medición</button>
-  <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día"><span class="ab-icon">⏱</span> Hoy <span class="hoy-count" id="hoyCount">0</span></button>
+  <button class="ab-btn btn-guardar" id="btnGuardar" disabled onclick="guardarVisita()" title="Guardar — Ctrl+S"><span class="ab-icon">✓</span> GUARDAR</button>
+  <span class="ab-counter" id="abCounter">0 pozos</span>
+  <div class="ab-sep"></div>
+  <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día">Hoy <span class="hoy-count" id="hoyCount">0</span></button>
   <div class="camp-wrap" style="position:relative">
-    <button class="ab-btn btn-camp" id="btnCamp" title="Ver campañas anteriores"><span class="ab-icon">📋</span> Campañas</button>
+    <button class="ab-btn btn-camp" id="btnCamp" title="Ver campañas anteriores">Campañas</button>
     <div class="camp-panel" id="campPanel">
       <div class="camp-head">Campañas registradas</div>
       <div class="camp-date-row">
@@ -412,7 +423,6 @@ table.cp-table td.placa-cell input{text-align:left}
     <span class="ab-dirty" id="abDirty"></span>
     <button class="ab-btn btn-limpiar" id="btnLimpiar" disabled title="Quitar pozo de la grilla"><span class="ab-icon">✕</span> Quitar</button>
     <button class="ab-btn btn-cancelar" id="btnCancelar" disabled title="Descartar cambios del pozo activo"><span class="ab-icon">↺</span> Descartar</button>
-    <button class="ab-btn btn-guardar" id="btnGuardar" disabled onclick="guardarVisita()" title="Guardar — Ctrl+S"><span class="ab-icon">✓</span> GUARDAR</button>
   </div>
 </div>
 
@@ -467,11 +477,11 @@ table.cp-table td.placa-cell input{text-align:left}
 
 <!-- ===== ROW CONTEXT MENU ===== -->
 <div class="row-menu" id="rowMenu">
-  <div class="row-menu-item rmi-edit" onclick="rowMenuAction('edit')"><span class="rmi-icon">✏</span> Editar</div>
+  <div class="row-menu-item rmi-edit" onclick="rowMenuAction('edit')"><span class="rmi-icon">✎</span> Editar</div>
   <div class="row-menu-sep"></div>
-  <div class="row-menu-item rmi-data" onclick="rowMenuAction('data')"><span class="rmi-icon">📋</span> Datos</div>
+  <div class="row-menu-item rmi-data" onclick="rowMenuAction('data')"><span class="rmi-icon">≡</span> Datos</div>
   <div class="row-menu-sep"></div>
-  <div class="row-menu-item rmi-delete" onclick="rowMenuAction('delete')"><span class="rmi-icon">🗑</span> Eliminar</div>
+  <div class="row-menu-item rmi-delete" onclick="rowMenuAction('delete')"><span class="rmi-icon">✕</span> Eliminar</div>
 </div>
 
 <!-- ===== CONTRAPESOS POPOVER ===== -->
@@ -541,8 +551,8 @@ table.cp-table td.placa-cell input{text-align:left}
   <div class="obs-fields">
     <div class="obs-col">
       <div class="obs-col-label">General <span class="ocl-tag ocl-gen">GEN</span></div>
-      <textarea class="obs-textarea readonly" id="obsGeneral" placeholder="Se compila automáticamente…" readonly rows="3"></textarea>
-      <textarea class="obs-textarea" id="obsManual" placeholder="Notas adicionales del operador…" rows="2" style="margin-top:3px"></textarea>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea readonly" id="obsGeneral" placeholder="Se compila automáticamente…" readonly rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsGeneral')" title="Copiar">⧉</button></div>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsManual" placeholder="Notas adicionales del operador…" rows="2"></textarea><button class="obs-copy-btn" onclick="copyObs('obsManual')" title="Copiar">⧉</button></div>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">DIN <span class="ocl-tag ocl-dyn">DIN</span></div>
@@ -551,7 +561,7 @@ table.cp-table td.placa-cell input{text-align:left}
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <textarea class="obs-textarea" id="obsDin" placeholder="Se observa…" rows="3"></textarea>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsDin" placeholder="Se observa…" rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsDin')" title="Copiar">⧉</button></div>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">NIV <span class="ocl-tag ocl-niv">NIV</span></div>
@@ -560,7 +570,7 @@ table.cp-table td.placa-cell input{text-align:left}
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <textarea class="obs-textarea" id="obsNiv" placeholder="Se observa…" rows="3"></textarea>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsNiv" placeholder="Se observa…" rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsNiv')" title="Copiar">⧉</button></div>
     </div>
   </div>
 </div>
@@ -594,6 +604,7 @@ let alertasCatalogo = [];
 let gridRows = [];
 let activeRowIdx = -1;
 let currentCpIdx = -1;
+let editingRowIdx = -1;
 let cancelTargetIdx = -1;
 
 const CANCEL_REASONS_KEY = 'vape_cancel_reasons';
@@ -1012,7 +1023,9 @@ function renderGrid(){
     const cpLoaded = r.contrapesos && r.contrapesos.tipo ? ' loaded' : '';
     const ds = r.visita_id ? 'inherited' : 'edited';
 
-    return `<tr class="${i===activeRowIdx?'active':''}" onclick="setActiveRow(${i})" data-idx="${i}">
+    const eIdx = typeof editingRowIdx!=='undefined'?editingRowIdx:-1;
+    const trCls = eIdx>=0&&i!==eIdx?'editing-locked':(eIdx>=0&&i===eIdx?'edit-target active':(i===activeRowIdx?'active':''));
+    return `<tr class="${trCls}" onclick="setActiveRow(${i})" data-idx="${i}">
       <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer" onclick="openRowMenu(${i},event);event.stopPropagation()"></td>
       <td><input value="${fechaDisplay(r.fecha)}" data-state="${ds}" readonly></td>
       <td><input value="${r.bateria}" data-state="inherited" readonly></td>
@@ -1077,6 +1090,8 @@ async function rowMenuAction(action){
 
   if(action === 'edit'){
     r._dirty = true;
+    editingRowIdx = idx;
+    activeRowIdx = idx;
     updateStatusBar();
     renderGrid();
     toast('Editando ' + r.well_name + ' — modifica y guarda');
@@ -1088,6 +1103,7 @@ async function rowMenuAction(action){
       if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
     }
     gridRows.splice(idx, 1);
+    if(editingRowIdx === idx) editingRowIdx = -1;
     if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
     updateStatusBar();
     renderGrid();
@@ -1367,6 +1383,12 @@ function confirmCancelModal(){
   toast('Motivo de cancelación registrado');
 }
 
+function copyObs(id){
+  const ta = document.getElementById(id);
+  if(!ta || !ta.value) return;
+  navigator.clipboard.writeText(ta.value).then(()=> toast('Copiado'));
+}
+
 function updateStatusBar(){
   const dirty = gridRows.filter(r => r._dirty);
   const hint = document.getElementById('sbHint');
@@ -1385,6 +1407,9 @@ function updateStatusBar(){
   if(activeRowIdx >= 0){
     document.getElementById('btnCancelar').disabled = !gridRows[activeRowIdx]._dirty;
   }
+  const ctr = document.getElementById('abCounter');
+  if(ctr) ctr.textContent = gridRows.length + ' pozo' + (gridRows.length !== 1 ? 's' : '');
+  document.getElementById('btnGuardar').disabled = !dirty.length;
 }
 
 // ===== CONTRAPESOS POPOVER =====
@@ -1530,6 +1555,7 @@ async function guardarVisita(){
     saved++;
   }
 
+  editingRowIdx = -1;
   updateStatusBar();
   renderGrid();
   toast(saved + ' pozo(s) guardados correctamente');
