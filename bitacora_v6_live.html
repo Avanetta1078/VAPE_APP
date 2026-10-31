@@ -400,7 +400,7 @@ table.cp-table td.placa-cell input{text-align:left}
       <th rowspan="2" style="width:82px">Estado</th>
       <th rowspan="2" class="hi" style="width:86px">Ensayo</th>
       <th rowspan="2" style="width:72px">Nivel (m)</th>
-      <th rowspan="2" class="hi" style="width:62px">Régimen</th>
+      <th colspan="4" class="hi" style="border-bottom:1px solid rgba(14,116,144,.18)">Régimen</th>
       <th rowspan="2" style="width:56px">P.Tbg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
       <th rowspan="2" style="width:56px">P.Csg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
       <th rowspan="2" style="width:140px">Modelo equipo</th>
@@ -408,6 +408,10 @@ table.cp-table td.placa-cell input{text-align:left}
       <th colspan="4" class="grp-mot">Motor</th>
     </tr>
     <tr>
+      <th class="hi" style="width:56px;font-size:8px;padding:5px 3px">Carrera<br><span style="font-weight:400;opacity:.5">AIB (")</span></th>
+      <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">Hz<br><span style="font-weight:400;opacity:.5">BES</span></th>
+      <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">PIP<br><span style="font-weight:400;opacity:.5">BES kg</span></th>
+      <th class="hi" style="width:52px;font-size:8px;padding:5px 3px">RPM/%T<br><span style="font-weight:400;opacity:.5">PCP</span></th>
       <th class="sub-mot" style="width:62px">Marca</th>
       <th class="sub-mot" style="width:42px">RPM</th>
       <th class="sub-mot" style="width:36px">HP</th>
@@ -415,7 +419,7 @@ table.cp-table td.placa-cell input{text-align:left}
     </tr>
   </thead>
   <tbody id="gridBody">
-    <tr><td colspan="16"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Presioná "+ Nueva Medición" o escribí en el buscador</div></div></td></tr>
+    <tr><td colspan="19"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Presioná "+ Nueva Medición" o escribí en el buscador</div></div></td></tr>
   </tbody>
 </table>
 </div>
@@ -578,7 +582,7 @@ const acList = document.getElementById('acList');
 async function loadAllWells(){
   if(!supabaseClient) return;
   const { data, error } = await supabaseClient.from('wells')
-    .select('well_id,well_name,bateria,operadora,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos')
+    .select('well_id,well_name,bateria,operadora,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,bit_sistema,bit_carrera_in,bit_hz,bit_pip_kg,bit_rpm,bit_torque,bit_nivel_estado,bit_nivel_m,bit_cancel_motivo,alertas_activas')
     .eq('oculto', false)
     .order('well_name');
   if(error){ console.error(error); return; }
@@ -642,7 +646,9 @@ async function selectWell(wellId){
     getLastFieldLog(wellId)
   ]);
 
-  const sistema = lastFieldLog?.sistema_extraccion_tipo || lastVisit?.sistema_extraccion || 'AIB';
+  const fl = lastFieldLog || {};
+  const lv = lastVisit || {};
+  const sistema = well.bit_sistema || fl.sistema_extraccion_tipo || lv.sistema_extraccion || 'AIB';
   const row = {
     well_id: wellId,
     well_name: well.well_name,
@@ -650,26 +656,31 @@ async function selectWell(wellId){
     bateria: well.bateria || '',
     operadora: well.operadora || '',
     sistema: sistema,
-    estado: lastVisit?.tipo_ensayo || lastFieldLog?.tipo_ensayo || 'Dinamico',
-    ensayo: lastVisit?.tipo_operacion || lastFieldLog?.tipo_operacion || 'Combinada',
-    nivel_m: lastVisit?.nivel_medido_m || null,
-    nivel_estado: lastVisit?.nivel_estado || lastFieldLog?.nivel_estado || 'OK',
-    regimen: getRegimenValue(sistema, lastVisit, lastFieldLog),
-    presion_tbg: lastVisit?.presion_tubing_kg || lastFieldLog?.presion_tubing_kg || null,
-    presion_csg: lastVisit?.presion_casing_kg || lastFieldLog?.presion_casing_kg || null,
-    modelo: lastVisit?.unidad_modelo || lastFieldLog?.unidad_descripcion || '',
-    motor_marca: well.motor_marca || lastFieldLog?.motor_marca || '',
-    motor_rpm: well.motor_rpm || lastFieldLog?.motor_rpm || '',
-    motor_hp: well.motor_hp || lastFieldLog?.motor_potencia_hp || '',
-    motor_polea: well.motor_polea || lastFieldLog?.motor_polea || '',
-    contrapesos: well.contrapesos || lastFieldLog?.contrapesos || {},
+    estado: lv.tipo_ensayo || fl.tipo_ensayo || 'Dinamico',
+    ensayo: lv.tipo_operacion || fl.tipo_operacion || 'Combinada',
+    nivel_m: well.bit_nivel_m || lv.nivel_medido_m || null,
+    nivel_estado: well.bit_nivel_estado || lv.nivel_estado || fl.nivel_estado || 'OK',
+    cancel_motivo: well.bit_cancel_motivo || '',
+    carrera_in: well.bit_carrera_in || parseFloat(fl.carrera_in) || lv.carrera_in || null,
+    hz: well.bit_hz || lv.hz || null,
+    pip_kg: well.bit_pip_kg || lv.pip_kg || null,
+    rpm: well.bit_rpm || lv.rpm_bes || null,
+    torque: well.bit_torque || lv.torque_inlb || null,
+    presion_tbg: lv.presion_tubing_kg || fl.presion_tubing_kg || null,
+    presion_csg: lv.presion_casing_kg || fl.presion_casing_kg || null,
+    modelo: lv.unidad_modelo || fl.unidad_descripcion || '',
+    motor_marca: well.motor_marca || '',
+    motor_rpm: well.motor_rpm || '',
+    motor_hp: well.motor_hp || '',
+    motor_polea: well.motor_polea || '',
+    contrapesos: well.contrapesos || {},
     observaciones: '',
     obs_din: '',
     obs_niv: '',
     obs_manual: '',
     visita_id: null,
     _dirty: false,
-    _alertas: [],
+    _alertas: well.alertas_activas || [],
     _cancelReasons: []
   };
 
@@ -679,17 +690,7 @@ async function selectWell(wellId){
   toast(well.well_name + ' agregado');
 }
 
-function getRegimenValue(sistema, visita, fieldLog){
-  if(sistema === 'BES') return visita?.hz || '';
-  if(sistema === 'PCP') return visita?.rpm_bes || '';
-  return fieldLog?.gpm_rpm_hz || visita?.carrera_in || '';
-}
 
-function getRegimenLabel(sistema){
-  if(sistema === 'BES') return 'Hz';
-  if(sistema === 'PCP') return 'RPM';
-  return 'GPM';
-}
 
 async function getLastVisit(wellId){
   if(!supabaseClient) return null;
@@ -717,7 +718,7 @@ document.getElementById('btnHoy').addEventListener('click', loadToday);
 async function loadToday(){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
   const { data } = await supabaseClient.from('bitacora_visitas')
-    .select('*')
+    .select('visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones')
     .eq('fecha', fechaHoy());
   if(!data?.length){
     toast('No hay visitas cargadas hoy');
@@ -737,22 +738,27 @@ async function loadToday(){
       ensayo: v.tipo_operacion || 'Combinada',
       nivel_m: v.nivel_medido_m,
       nivel_estado: v.nivel_estado || 'OK',
-      regimen: getRegimenValue(v.sistema_extraccion, v, null),
+      cancel_motivo: v.cancel_motivo || '',
+      carrera_in: v.carrera_in || null,
+      hz: v.hz || null,
+      pip_kg: v.pip_kg || null,
+      rpm: v.rpm_bes || null,
+      torque: v.torque_inlb || null,
       presion_tbg: v.presion_tubing_kg || null,
       presion_csg: v.presion_casing_kg || null,
-      modelo: v.unidad_modelo || '',
+      modelo: v.unidad_descripcion || '',
       motor_marca: v.motor_marca || well.motor_marca || '',
       motor_rpm: v.motor_rpm || well.motor_rpm || '',
       motor_hp: v.motor_hp || well.motor_hp || '',
       motor_polea: v.motor_polea || well.motor_polea || '',
-      contrapesos: well.contrapesos || {},
+      contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
       obs_din: '',
       obs_niv: '',
       obs_manual: '',
       visita_id: v.visita_id,
       _dirty: false,
-      _alertas: [],
+      _alertas: well.alertas_activas || [],
       _cancelReasons: []
     });
   }
@@ -794,24 +800,31 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
     getLastVisit(r.well_id),
     getLastFieldLog(r.well_id)
   ]);
-  const sistema = lastFieldLog?.sistema_extraccion_tipo || lastVisit?.sistema_extraccion || 'AIB';
+  const fl = lastFieldLog || {};
+  const lv = lastVisit || {};
+  const sistema = well.bit_sistema || fl.sistema_extraccion_tipo || lv.sistema_extraccion || 'AIB';
 
   r.sistema = sistema;
-  r.estado = lastVisit?.tipo_ensayo || lastFieldLog?.tipo_ensayo || 'Dinamico';
-  r.ensayo = lastVisit?.tipo_operacion || lastFieldLog?.tipo_operacion || 'Combinada';
-  r.nivel_m = lastVisit?.nivel_medido_m || null;
-  r.nivel_estado = lastVisit?.nivel_estado || lastFieldLog?.nivel_estado || 'OK';
-  r.regimen = getRegimenValue(sistema, lastVisit, lastFieldLog);
-  r.presion_tbg = lastVisit?.presion_tubing_kg || lastFieldLog?.presion_tubing_kg || null;
-  r.presion_csg = lastVisit?.presion_casing_kg || lastFieldLog?.presion_casing_kg || null;
-  r.modelo = lastVisit?.unidad_modelo || lastFieldLog?.unidad_descripcion || '';
-  r.motor_marca = well.motor_marca || lastFieldLog?.motor_marca || '';
-  r.motor_rpm = well.motor_rpm || lastFieldLog?.motor_rpm || '';
-  r.motor_hp = well.motor_hp || lastFieldLog?.motor_potencia_hp || '';
-  r.motor_polea = well.motor_polea || lastFieldLog?.motor_polea || '';
-  r.contrapesos = well.contrapesos || lastFieldLog?.contrapesos || {};
+  r.estado = lv.tipo_ensayo || fl.tipo_ensayo || 'Dinamico';
+  r.ensayo = lv.tipo_operacion || fl.tipo_operacion || 'Combinada';
+  r.nivel_m = well.bit_nivel_m || lv.nivel_medido_m || null;
+  r.nivel_estado = well.bit_nivel_estado || lv.nivel_estado || fl.nivel_estado || 'OK';
+  r.cancel_motivo = well.bit_cancel_motivo || '';
+  r.carrera_in = well.bit_carrera_in || parseFloat(fl.carrera_in) || lv.carrera_in || null;
+  r.hz = well.bit_hz || lv.hz || null;
+  r.pip_kg = well.bit_pip_kg || lv.pip_kg || null;
+  r.rpm = well.bit_rpm || lv.rpm_bes || null;
+  r.torque = well.bit_torque || lv.torque_inlb || null;
+  r.presion_tbg = lv.presion_tubing_kg || fl.presion_tubing_kg || null;
+  r.presion_csg = lv.presion_casing_kg || fl.presion_casing_kg || null;
+  r.modelo = lv.unidad_modelo || fl.unidad_descripcion || '';
+  r.motor_marca = well.motor_marca || '';
+  r.motor_rpm = well.motor_rpm || '';
+  r.motor_hp = well.motor_hp || '';
+  r.motor_polea = well.motor_polea || '';
+  r.contrapesos = well.contrapesos || {};
   r._dirty = false;
-  r._alertas = [];
+  r._alertas = well.alertas_activas || [];
   r._cancelReasons = [];
   r.obs_din = '';
   r.obs_niv = '';
@@ -827,7 +840,7 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
 function renderGrid(){
   const tbody = document.getElementById('gridBody');
   if(!gridRows.length){
-    tbody.innerHTML = '<tr><td colspan="16"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Presioná "+ Nueva Medición" o escribí en el buscador</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19"><div class="empty-state"><div class="es-icon">⚡</div><div class="es-msg">Buscá un pozo para comenzar</div><div class="es-hint">Presioná "+ Nueva Medición" o escribí en el buscador</div></div></td></tr>';
     return;
   }
   tbody.innerHTML = gridRows.map((r,i) => {
@@ -868,8 +881,11 @@ function renderGrid(){
           </select>
         </div>
       </td>
-      <td><div class="reg-cell"><span class="reg-label">${getRegimenLabel(r.sistema)}</span><input value="${r.regimen||'—'}" data-state="inherited" onchange="onFieldChange(${i},'regimen',this.value)"></div></td>
-      <td style="text-align:center"><input value="${r.presion_tbg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
+      <td style="text-align:center"><input value="${r.carrera_in||''}" data-state="${ds}" style="text-align:center;${r.sistema!=='AIB'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='AIB'?'disabled':''} onchange="onFieldChange(${i},'carrera_in',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${r.hz||''}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'hz',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${r.pip_kg||''}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'pip_kg',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${r.sistema==='PCP'&&r.rpm?r.rpm+(r.torque?'/'+r.torque:''):r.rpm||''}" data-state="${ds}" style="text-align:center;${r.sistema!=='PCP'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='PCP'?'disabled':''} onchange="onRpmTorqueChange(${i},this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${r.presion_tbg||''}" data-state="${ds}" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
       <td style="text-align:center"><input value="${r.presion_csg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_csg',this.value)"></td>
       <td><input value="${r.modelo}" data-state="inherited" style="font-size:10px" onchange="onFieldChange(${i},'modelo',this.value)"></td>
       <td style="padding:4px"><button class="cp-btn${cpLoaded}" onclick="openCp(${i},this);event.stopPropagation()">Contrapesos</button></td>
@@ -1012,6 +1028,14 @@ function confirmAlertModal(){
 // ===== FIELD CHANGES =====
 function onFieldChange(idx, field, val){
   gridRows[idx][field] = val;
+  gridRows[idx]._dirty = true;
+  updateStatusBar();
+}
+
+function onRpmTorqueChange(idx, val){
+  const parts = val.split('/');
+  gridRows[idx].rpm = parseFloat(parts[0]) || null;
+  gridRows[idx].torque = parts[1] ? (parseFloat(parts[1]) || null) : null;
   gridRows[idx]._dirty = true;
   updateStatusBar();
 }
@@ -1203,7 +1227,7 @@ function confirmCp(){
   toast('Contrapesos actualizados');
 }
 
-// ===== GUARDAR → Supabase (siempre INSERT nuevo) =====
+// ===== GUARDAR → INSERT bitacora_visitas + UPDATE wells bit_* =====
 async function guardarVisita(){
   const dirty = gridRows.filter(r => r._dirty);
   if(!dirty.length){ toast('No hay cambios para guardar'); return; }
@@ -1216,7 +1240,7 @@ async function guardarVisita(){
     }
     const obs = compileObsText(r);
 
-    const payload = {
+    const visitaPayload = {
       well_id: r.well_id,
       well_name_raw: r.well_name,
       operadora: r.operadora,
@@ -1225,23 +1249,27 @@ async function guardarVisita(){
       sistema_extraccion: r.sistema,
       tipo_ensayo: r.estado,
       tipo_operacion: r.ensayo,
-      nivel_medido_m: r.nivel_m,
+      nivel_medido_m: parseFloat(r.nivel_m) || null,
       nivel_estado: r.nivel_estado,
+      cancel_motivo: r.cancel_motivo || null,
       presion_tubing_kg: parseFloat(r.presion_tbg) || null,
       presion_casing_kg: parseFloat(r.presion_csg) || null,
-      carrera_in: r.sistema === 'AIB' ? (parseFloat(r.regimen) || null) : null,
-      hz: r.sistema === 'BES' ? (parseFloat(r.regimen) || null) : null,
-      rpm_bes: r.sistema === 'PCP' ? (parseFloat(r.regimen) || null) : null,
+      carrera_in: parseFloat(r.carrera_in) || null,
+      hz: parseFloat(r.hz) || null,
+      pip_kg: parseFloat(r.pip_kg) || null,
+      rpm_bes: parseFloat(r.rpm) || null,
+      torque_inlb: parseFloat(r.torque) || null,
       unidad_descripcion: r.modelo,
       motor_marca: r.motor_marca,
       motor_rpm: parseFloat(r.motor_rpm) || null,
       motor_hp: parseFloat(r.motor_hp) || null,
       motor_polea: r.motor_polea === '—' ? null : r.motor_polea,
+      contrapesos: r.contrapesos && r.contrapesos.tipo ? r.contrapesos : null,
       observaciones: obs,
     };
 
     const result = await supabaseClient.from('bitacora_visitas')
-      .insert(payload)
+      .insert(visitaPayload)
       .select('visita_id');
 
     if(result.error){
@@ -1250,9 +1278,35 @@ async function guardarVisita(){
       continue;
     }
 
-    if(result.data?.[0]){
-      r.visita_id = result.data[0].visita_id;
+    if(result.data?.[0]) r.visita_id = result.data[0].visita_id;
+
+    const wellUpdate = {
+      bit_sistema: r.sistema,
+      bit_carrera_in: parseFloat(r.carrera_in) || null,
+      bit_hz: parseFloat(r.hz) || null,
+      bit_pip_kg: parseFloat(r.pip_kg) || null,
+      bit_rpm: parseFloat(r.rpm) || null,
+      bit_torque: parseFloat(r.torque) || null,
+      bit_nivel_estado: r.nivel_estado,
+      bit_nivel_m: parseFloat(r.nivel_m) || null,
+      bit_cancel_motivo: r.cancel_motivo || null,
+      alertas_activas: r._alertas || [],
+      motor_marca: r.motor_marca || null,
+      motor_rpm: parseFloat(r.motor_rpm) || null,
+      motor_hp: parseFloat(r.motor_hp) || null,
+      motor_polea: r.motor_polea === '—' ? null : r.motor_polea,
+      contrapesos: r.contrapesos && r.contrapesos.tipo ? r.contrapesos : null,
+      bit_updated_at: new Date().toISOString()
+    };
+
+    const upd = await supabaseClient.from('wells')
+      .update(wellUpdate)
+      .eq('well_id', r.well_id);
+
+    if(upd.error){
+      console.warn('wells update error:', upd.error.message);
     }
+
     r._dirty = false;
     saved++;
   }
