@@ -643,7 +643,7 @@ async function selectWell(wellId){
 
   const [lastVisit, lastFieldLog] = await Promise.all([
     getLastVisit(wellId),
-    getLastFieldLog(wellId)
+    getLastFieldLog(wellId, well.well_name)
   ]);
 
   const fl = lastFieldLog || {};
@@ -702,13 +702,18 @@ async function getLastVisit(wellId){
   return data?.[0] || null;
 }
 
-async function getLastFieldLog(wellId){
+async function getLastFieldLog(wellId, wellName){
   if(!supabaseClient) return null;
-  const { data } = await supabaseClient.from('field_log')
-    .select('sistema_extraccion_tipo,tipo_ensayo,tipo_operacion,gpm_rpm_hz,carrera_in,presion_tubing_kg,presion_casing_kg,nivel_estado,unidad_descripcion,contrapesos,motor_marca,motor_rpm,motor_potencia_hp,motor_polea')
-    .eq('well_id', wellId)
-    .order('fecha', {ascending:false})
-    .limit(1);
+  const cols = 'sistema_extraccion_tipo,tipo_ensayo,tipo_operacion,gpm_rpm_hz,carrera_in,presion_tubing_kg,presion_casing_kg,nivel_estado,unidad_descripcion,contrapesos,motor_marca,motor_rpm,motor_potencia_hp,motor_polea';
+  let { data } = await supabaseClient.from('field_log')
+    .select(cols).eq('well_id', wellId)
+    .order('fecha', {ascending:false}).limit(1);
+  if((!data || !data.length) && wellName){
+    const res = await supabaseClient.from('field_log')
+      .select(cols).ilike('well_name_raw', wellName.toLowerCase())
+      .order('fecha', {ascending:false}).limit(1);
+    data = res.data;
+  }
   return data?.[0] || null;
 }
 
@@ -798,7 +803,7 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
   const well = allWells.find(w => w.well_id === r.well_id) || {};
   const [lastVisit, lastFieldLog] = await Promise.all([
     getLastVisit(r.well_id),
-    getLastFieldLog(r.well_id)
+    getLastFieldLog(r.well_id, r.well_name)
   ]);
   const fl = lastFieldLog || {};
   const lv = lastVisit || {};
