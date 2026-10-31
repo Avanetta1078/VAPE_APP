@@ -165,8 +165,8 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .tab.active{background:var(--bg);color:var(--ink);border-color:var(--border);border-bottom-color:var(--bg);margin-bottom:-1px;position:relative}
 
 /* ===== GRID ===== */
-.grid-outer{flex:1;overflow:auto;padding:14px 18px 0;background:var(--bg)}
-.grid-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:visible;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.grid-outer{flex:1;display:flex;flex-direction:column;padding:14px 18px 0;background:var(--bg);overflow:hidden}
+.grid-panel{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:auto;box-shadow:0 4px 20px rgba(0,0,0,.06)}
 table.main-grid{border-collapse:separate;border-spacing:0;width:100%;min-width:960px}
 
 thead th{
@@ -174,10 +174,10 @@ thead th{
   text-transform:uppercase;color:var(--dim);padding:8px 6px;text-align:center;
   border-right:1px solid var(--border);border-bottom:2px solid rgba(14,116,144,.2);
   background:#eef0f4;white-space:nowrap;vertical-align:middle;
-  position:sticky;top:0;z-index:10;
+  position:sticky;z-index:20;
 }
-thead tr:first-child th{top:0}
-thead tr:nth-child(2) th{top:32px}
+thead tr.hdr1 th{top:0}
+thead tr.hdr2 th{top:var(--hdr1-h,36px)}
 thead th:last-child{border-right:none}
 thead th.hi{color:var(--glow)}
 thead th.grp-mot{background:#eaf5ed;color:#15803d;font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em;border-bottom:1px solid rgba(22,163,74,.18)}
@@ -421,7 +421,7 @@ table.cp-table td.placa-cell input{text-align:left}
 <div class="grid-panel">
 <table class="main-grid">
   <thead>
-    <tr>
+    <tr class="hdr1">
       <th rowspan="2" style="width:68px">Pozo</th>
       <th rowspan="2" style="width:72px">Fecha</th>
       <th rowspan="2" style="width:48px">Bat</th>
@@ -436,7 +436,7 @@ table.cp-table td.placa-cell input{text-align:left}
       <th rowspan="2" class="cp-h" style="width:100px">Contrapesos</th>
       <th colspan="4" class="grp-mot">Motor</th>
     </tr>
-    <tr>
+    <tr class="hdr2">
       <th class="hi" style="width:56px;font-size:8px;padding:5px 3px">Carrera<br><span style="font-weight:400;opacity:.5">AIB (")</span></th>
       <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">Hz<br><span style="font-weight:400;opacity:.5">BES</span></th>
       <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">PIP<br><span style="font-weight:400;opacity:.5">BES kg</span></th>
@@ -1022,7 +1022,14 @@ function renderGrid(){
       <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_polea)}" data-state="inherited" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'motor_polea',this.value)"></td>
     </tr>`;
   }).join('');
+  requestAnimationFrame(fixHeaderTop);
 }
+
+function fixHeaderTop(){
+  const r1 = document.querySelector('thead tr.hdr1');
+  if(r1){ document.querySelector('table.main-grid').style.setProperty('--hdr1-h', r1.offsetHeight + 'px'); }
+}
+fixHeaderTop();
 
 function setActiveRow(idx){
   activeRowIdx = idx;
