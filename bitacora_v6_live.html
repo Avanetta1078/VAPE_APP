@@ -1025,13 +1025,18 @@ function renderGrid(){
     const ds = r.visita_id ? 'inherited' : 'edited';
 
     const eIdx = typeof editingRowIdx!=='undefined'?editingRowIdx:-1;
+    const editable = r._dirty || eIdx===i;
     const trCls = eIdx>=0&&i!==eIdx?'editing-locked':(eIdx>=0&&i===eIdx?'edit-target active':(i===activeRowIdx?'active':''));
+
+    const sistemaOpts = ['AIB','BES','PCP'].map(s=>`<option value="${s}" ${r.sistema===s?'selected':''}>${s}</option>`).join('');
+    const estadoOpts = ['Dinamico','Estatico'].map(s=>`<option value="${s}" ${r.estado===s?'selected':''}>${s}</option>`).join('');
+
     return `<tr class="${trCls}" onclick="setActiveRow(${i})" data-idx="${i}">
       <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer" onclick="openRowMenu(${i},event);event.stopPropagation()"></td>
-      <td><input value="${fechaDisplay(r.fecha)}" data-state="${ds}" readonly></td>
-      <td><input value="${r.bateria}" data-state="inherited" readonly></td>
-      <td style="text-align:center"><span class="chip ${sistemaClass}">${r.sistema}</span></td>
-      <td style="text-align:center"><span class="pill ${estadoClass}"><span class="dot"></span>${estadoLabel}</span></td>
+      <td><input type="${editable?'date':'text'}" value="${editable?r.fecha:fechaDisplay(r.fecha)}" data-state="${ds}" ${editable?'':'readonly'} onchange="onFieldChange(${i},'fecha',this.value)" style="font-size:10px"></td>
+      <td><input value="${r.bateria}" data-state="${ds}" ${editable?'':'readonly'} onchange="onFieldChange(${i},'bateria',this.value)"></td>
+      <td style="text-align:center">${editable?`<select class="chip ${sistemaClass}" style="cursor:pointer;padding:2px 4px;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:700" onchange="onSistemaChange(${i},this.value)">${sistemaOpts}</select>`:`<span class="chip ${sistemaClass}">${r.sistema}</span>`}</td>
+      <td style="text-align:center">${editable?`<select style="font-size:10px;padding:3px 4px" onchange="onFieldChange(${i},'estado',this.value)">${estadoOpts}</select>`:`<span class="pill ${estadoClass}"><span class="dot"></span>${estadoLabel}</span>`}</td>
       <td><select data-state="${ds}" onchange="onEnsayoChange(${i},this.value)">${ensayoOpts}</select></td>
       <td>
         <div class="nivel-wrap">
@@ -1270,6 +1275,13 @@ function onFieldChange(idx, field, val){
   gridRows[idx][field] = val;
   gridRows[idx]._dirty = true;
   updateStatusBar();
+}
+
+function onSistemaChange(idx, val){
+  gridRows[idx].sistema = val;
+  gridRows[idx]._dirty = true;
+  updateStatusBar();
+  renderGrid();
 }
 
 function onRpmTorqueChange(idx, val){
