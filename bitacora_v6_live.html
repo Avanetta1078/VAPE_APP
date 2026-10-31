@@ -180,10 +180,8 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .nuevo-sistema-btn:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
 .nuevo-sistema-btn.selected{border-color:var(--glow);background:rgba(14,116,144,.12);color:var(--glow)}
 .nuevo-sistema-btn .nsb-label{display:block;font-size:10px;font-weight:500;color:var(--dim);margin-top:2px}
-.previos-bar{display:none;align-items:center;gap:10px;padding:10px 18px;background:var(--teal);color:#fff;font-family:'IBM Plex Sans Condensed';font-size:13px;font-weight:700;letter-spacing:.04em;flex-shrink:0;min-height:36px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.previos-bar.open{display:flex}
-.previos-bar button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 16px;font-family:'IBM Plex Sans';font-size:12px;font-weight:700;cursor:pointer;transition:background .15s}
-.previos-bar button:hover{background:rgba(255,255,255,.45)}
+.btn-previos-exit{background:var(--teal)!important;color:#fff!important;border:1px solid rgba(26,82,102,.4)!important;border-radius:6px!important;font-weight:700!important;font-size:11px!important;padding:4px 12px!important;cursor:pointer}
+.btn-previos-exit:hover{background:var(--glow)!important}
 .row-menu-sep{height:1px;background:var(--border);margin:4px 0}
 
 /* ===== GRID ===== */
@@ -412,6 +410,7 @@ table.cp-table td.placa-cell input{text-align:left}
   <button class="ab-btn btn-nuevo" id="btnNuevo" title="Buscar pozo y crear nueva medición"><span class="ab-icon">+</span> Nueva Medición</button>
   <button class="ab-btn btn-guardar" id="btnGuardar" disabled onclick="guardarVisita()" title="Guardar — Ctrl+S"><span class="ab-icon">✓</span> GUARDAR</button>
   <span class="ab-counter" id="abCounter">0 pozos</span>
+  <button class="ab-btn btn-previos-exit" id="btnPreviosExit" style="display:none" onclick="salirPrevios()">✕ Salir Previos</button>
   <div class="ab-sep"></div>
   <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día">Hoy <span class="hoy-count" id="hoyCount">0</span></button>
   <div class="camp-wrap" style="position:relative">
@@ -450,13 +449,6 @@ table.cp-table td.placa-cell input{text-align:left}
 </div>
 
 <!-- ===== GRID ===== -->
-<!-- ===== PREVIOS BAR ===== -->
-<div class="previos-bar" id="previosBar">
-  <span id="previosLabel">Previos de —</span>
-  <span style="flex:1"></span>
-  <button onclick="salirPrevios()">✕ Salir de Previos</button>
-</div>
-
 <div class="grid-outer">
 <div class="grid-panel">
 <table class="main-grid">
@@ -803,8 +795,8 @@ async function loadPrevios(wellId, wellName){
 
   editingRowIdx = -1;
   activeRowIdx = -1;
-  document.getElementById('previosLabel').textContent = 'Previos de ' + wellName + ' (' + data.length + ' registros)';
-  document.getElementById('previosBar').classList.add('open');
+  document.getElementById('abCounter').textContent = data.length + ' previos de ' + wellName;
+  document.getElementById('btnPreviosExit').style.display = '';
   renderGrid();
   if(gridRows.length) setActiveRow(0);
   updateStatusBar();
@@ -812,7 +804,7 @@ async function loadPrevios(wellId, wellName){
 }
 
 function salirPrevios(){
-  document.getElementById('previosBar').classList.remove('open');
+  document.getElementById('btnPreviosExit').style.display = 'none';
   if(_previosBackup){
     gridRows.length = 0;
     _previosBackup.gridRows.forEach(r => gridRows.push(r));
@@ -831,7 +823,7 @@ function exitAnySpecialMode(){
   if(_previosBackup){
     _previosBackup = null;
     _previosWellName = null;
-    document.getElementById('previosBar').classList.remove('open');
+    document.getElementById('btnPreviosExit').style.display = 'none';
   }
 }
 
