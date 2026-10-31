@@ -40,7 +40,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .ac-item .ac-bat{font-size:10px;color:var(--dim)}
 .ac-empty{padding:10px 12px;font-size:11px;color:var(--dim);font-style:italic}
 
-/* ===== ACTION BAR (replaces old topbar-right + ctx-strip + save-bar) ===== */
+/* ===== ACTION BAR ===== */
 .action-bar{
   display:flex;align-items:center;gap:8px;padding:8px 18px;
   border-bottom:1px solid var(--border);background:var(--panel2);flex-shrink:0;
@@ -78,25 +78,71 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .btn-cancelar:hover{border-color:var(--rustg);color:var(--rustg)}
 .btn-guardar{background:linear-gradient(135deg,#1b6040,#207848);border:1px solid #2d8a56;color:#7edcaa;box-shadow:0 2px 10px rgba(45,138,86,.25);padding:7px 22px}
 .btn-guardar:hover{filter:brightness(1.15)}
+.btn-alerta{background:transparent;border:1px solid rgba(200,73,44,.3);color:#f08060;padding:7px 10px;font-size:11px}
+.btn-alerta:hover{border-color:var(--rustg);color:var(--rustg);background:rgba(200,73,44,.08)}
 
 .ab-dirty{font-size:10px;color:var(--glow);font-family:'IBM Plex Mono';background:rgba(126,200,217,.07);border:1px solid rgba(126,200,217,.14);border-radius:4px;padding:2px 8px;white-space:nowrap}
 .ab-dirty:empty{display:none}
 
 /* ===== ALERTAS STRIP ===== */
+@keyframes alertPulse{
+  0%,100%{opacity:1;box-shadow:0 0 4px rgba(200,73,44,.2)}
+  50%{opacity:.6;box-shadow:0 0 12px rgba(200,73,44,.5)}
+}
 .alertas-strip{
   display:none;flex-shrink:0;padding:6px 18px;gap:6px;align-items:center;flex-wrap:wrap;
-  background:rgba(200,73,44,.04);border-bottom:1px solid rgba(200,73,44,.15);
+  background:rgba(200,73,44,.06);border-bottom:1px solid rgba(200,73,44,.2);
 }
 .alertas-strip.visible{display:flex}
 .alertas-strip .as-label{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--rustg);flex-shrink:0}
 .alert-chip{
-  padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;
-  font-family:'IBM Plex Sans';white-space:nowrap;transition:all .12s;
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;
+  font-family:'IBM Plex Sans';white-space:nowrap;
+  animation:alertPulse 1.8s ease-in-out infinite;
 }
-.alert-chip.peligro{background:rgba(200,73,44,.1);border:1px solid rgba(200,73,44,.3);color:#f08060}
-.alert-chip.peligro:hover,.alert-chip.peligro.active{background:rgba(200,73,44,.22);border-color:var(--rustg);color:var(--rustg)}
-.alert-chip.precaucion{background:rgba(200,146,44,.08);border:1px solid rgba(200,146,44,.25);color:var(--amberl)}
-.alert-chip.precaucion:hover,.alert-chip.precaucion.active{background:rgba(200,146,44,.18);border-color:var(--amberl);color:var(--amberl)}
+.alert-chip.peligro{background:rgba(200,73,44,.15);border:1px solid rgba(200,73,44,.4);color:#f08060}
+.alert-chip.precaucion{background:rgba(200,146,44,.12);border:1px solid rgba(200,146,44,.3);color:var(--amberl)}
+
+/* ===== ALERT SELECTOR MODAL ===== */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none}
+.modal-backdrop.open{display:flex;align-items:center;justify-content:center}
+.modal-box{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:20px;width:420px;max-width:94vw;max-height:80vh;overflow-y:auto;
+  box-shadow:0 16px 48px rgba(0,0,0,.6);
+}
+.modal-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{color:var(--faint);cursor:pointer;font-size:18px}
+.modal-close:hover{color:var(--ink)}
+.modal-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.modal-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+  cursor:pointer;border:1px solid var(--border);transition:all .12s;
+}
+.modal-item:hover{background:var(--panel2);border-color:var(--brd2)}
+.modal-item.selected{border-color:rgba(200,73,44,.4);background:rgba(200,73,44,.08)}
+.modal-item .mi-check{width:16px;height:16px;border-radius:4px;border:1px solid var(--faint);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.modal-item.selected .mi-check{background:var(--rustg);border-color:var(--rustg);color:#fff}
+.modal-item .mi-text{font-size:12px;flex:1}
+.modal-item .mi-level{font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:3px}
+.mi-level.peligro{background:rgba(200,73,44,.15);color:#f08060}
+.mi-level.precaucion{background:rgba(200,146,44,.12);color:var(--amberl)}
+.modal-item .mi-del{color:var(--faint);font-size:14px;cursor:pointer;padding:0 2px}
+.modal-item .mi-del:hover{color:var(--rustg)}
+.modal-add-row{display:flex;gap:6px;margin-bottom:12px}
+.modal-add-row input{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;font-family:'IBM Plex Mono';color:var(--ink);outline:none}
+.modal-add-row input:focus{border-color:var(--glow)}
+.modal-add-row select{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11px;color:var(--ink);outline:none}
+.modal-add-row select option{background:var(--panel2);color:var(--ink)}
+.modal-add-row button{background:var(--teal);border:1px solid rgba(126,200,217,.3);border-radius:6px;padding:6px 12px;color:var(--glow);font-size:11px;font-weight:700;cursor:pointer}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal-actions button{border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer}
+.modal-btn-cancel{background:var(--panel2);border:1px solid var(--border);color:var(--dim)}
+.modal-btn-ok{background:linear-gradient(135deg,rgba(200,73,44,.3),rgba(200,73,44,.2));border:1px solid rgba(200,73,44,.4);color:#f08060}
+
+/* ===== CANCELADO REASON MODAL ===== */
+.cancel-modal .modal-title{color:#f08060}
+.cancel-modal .modal-item.selected{border-color:rgba(200,73,44,.5);background:rgba(200,73,44,.1)}
 
 /* ===== TABS ===== */
 .tabs{display:flex;gap:1px;padding:8px 18px 0;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0}
@@ -129,7 +175,8 @@ tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:#191e28}
 tbody tr.active{border-left:3px solid var(--glow);background:rgba(126,200,217,.025)}
 tbody td input{width:100%;background:transparent;border:none;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;min-width:0}
-tbody td select{background:transparent;border:none;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink);outline:none;cursor:pointer}
+tbody td select{background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink);outline:none;cursor:pointer;padding:3px 4px}
+tbody td select option{background:var(--panel2);color:var(--ink)}
 tbody td input::placeholder{color:var(--faint);font-style:italic}
 tbody td input[data-state="inherited"],tbody td select[data-state="inherited"]{color:var(--dim);font-style:italic}
 tbody td input[data-state="edited"]{color:#e8f8ff}
@@ -149,14 +196,19 @@ tbody td.mot-cell{background:rgba(80,168,120,.02)}
 .reg-label{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
 .reg-cell input{font-family:'IBM Plex Mono';font-size:12px;background:transparent;border:none;outline:none;color:var(--ink);width:100%}
 
-.nivel-sel{
-  background:transparent;border:1px solid var(--brd2);border-radius:4px;
-  font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);
-  padding:3px 4px;cursor:pointer;outline:none;width:100%;
+/* ===== NIVEL CELL ===== */
+.nivel-wrap{display:flex;align-items:center;gap:2px;width:100%}
+.nivel-wrap input{flex:1;font-family:'IBM Plex Mono';font-size:11px;background:transparent;border:none;outline:none;color:var(--ink);min-width:0;text-align:center}
+.nivel-wrap input::placeholder{color:var(--faint);font-style:italic}
+.nivel-status{font-family:'IBM Plex Mono';font-size:10px;font-weight:700;flex:1;text-align:center;padding:2px 0}
+.nivel-status.cancelado{color:#f08060}
+.nivel-status.indefinido{color:var(--amberl)}
+.nivel-dd{
+  width:20px;flex-shrink:0;background:var(--panel2);border:1px solid var(--brd2);
+  border-radius:3px;font-size:9px;color:var(--faint);cursor:pointer;outline:none;
+  padding:2px;text-align:center;appearance:none;-webkit-appearance:none;
 }
-.nivel-sel.cancelado{background:rgba(200,73,44,.1);border-color:rgba(200,73,44,.35);color:#f08060}
-.nivel-sel.indefinido{background:rgba(200,146,44,.1);border-color:rgba(200,146,44,.35);color:#f2c14e}
-.nivel-sel.ok{background:rgba(126,200,217,.06);border-color:rgba(126,200,217,.22);color:var(--glow)}
+.nivel-dd option{background:var(--panel2);color:var(--ink);font-size:11px}
 
 .cp-btn{
   display:flex;align-items:center;justify-content:center;gap:4px;width:100%;
@@ -233,25 +285,14 @@ table.cp-table td.placa-cell input{text-align:left}
 .ocl-dyn{background:rgba(91,118,224,.1);color:#8fa4f8;border:1px solid rgba(91,118,224,.2)}
 .ocl-niv{background:rgba(200,146,44,.1);color:var(--amberl);border:1px solid rgba(200,146,44,.2)}
 
-.obs-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px;min-height:22px}
-.obs-tag{
-  display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;
-  background:rgba(126,200,217,.08);border:1px solid rgba(126,200,217,.2);
-  font-size:10px;color:var(--glow);font-family:'IBM Plex Mono';
-}
-.obs-tag.dyn{background:rgba(91,118,224,.08);border-color:rgba(91,118,224,.2);color:#8fa4f8}
-.obs-tag.niv{background:rgba(200,146,44,.08);border-color:rgba(200,146,44,.2);color:var(--amberl)}
-.obs-tag .otx{cursor:pointer;font-size:12px;line-height:1;opacity:.5}
-.obs-tag .otx:hover{opacity:1;color:var(--rustg)}
-
-.obs-combo{position:relative;width:100%}
+.obs-combo{position:relative;width:100%;margin-bottom:2px}
 .obs-combo input{
   width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:6px;
   padding:5px 28px 5px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);outline:none;
 }
 .obs-combo input:focus{border-color:var(--teal)}
 .obs-combo input::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
-.obs-combo .oc-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--faint);pointer-events:none}
+.obs-combo .oc-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--faint);cursor:pointer}
 .obs-combo .oc-drop{
   position:absolute;bottom:100%;left:0;right:0;z-index:200;
   background:var(--panel);border:1px solid var(--border);border-radius:8px;
@@ -271,10 +312,11 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-textarea{
   flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;
   padding:6px 9px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink);
-  resize:none;width:100%;min-height:40px;outline:none;
+  resize:none;width:100%;min-height:44px;outline:none;
 }
 .obs-textarea:focus{border-color:var(--teal)}
 .obs-textarea::placeholder{color:var(--faint);font-style:italic;font-size:10.5px}
+.obs-textarea.readonly{color:var(--dim);background:rgba(29,35,44,.6);cursor:default}
 
 /* ===== STATUS BAR (slim, bottom) ===== */
 .status-bar{
@@ -316,7 +358,7 @@ table.cp-table td.placa-cell input{text-align:left}
   </div>
 </div>
 
-<!-- ===== ACTION BAR: all actions at hand ===== -->
+<!-- ===== ACTION BAR ===== -->
 <div class="action-bar">
   <button class="ab-btn btn-nuevo" id="btnNuevo" title="Buscar pozo y crear nueva medición"><span class="ab-icon">+</span> Nueva Medición</button>
   <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día"><span class="ab-icon">⏱</span> Hoy <span class="hoy-count" id="hoyCount">0</span></button>
@@ -326,6 +368,7 @@ table.cp-table td.placa-cell input{text-align:left}
   <span class="ab-badge badge-zona" id="abZona" style="display:none"></span>
   <span class="ab-badge badge-sistema" id="abSistema" style="display:none"></span>
   <div class="ab-actions">
+    <button class="ab-btn btn-alerta" id="btnAlertaOpen" disabled title="Alertas del pozo"><span class="ab-icon">⚠</span> Alertas</button>
     <span class="ab-dirty" id="abDirty"></span>
     <button class="ab-btn btn-limpiar" id="btnLimpiar" disabled title="Quitar pozo de la grilla"><span class="ab-icon">✕</span> Quitar</button>
     <button class="ab-btn btn-cancelar" id="btnCancelar" disabled title="Descartar cambios del pozo activo"><span class="ab-icon">↺</span> Descartar</button>
@@ -333,9 +376,9 @@ table.cp-table td.placa-cell input{text-align:left}
   </div>
 </div>
 
-<!-- ===== ALERTAS STRIP: quick chips from alertas_catalogo ===== -->
+<!-- ===== ALERTAS STRIP (only visible when well has alerts) ===== -->
 <div class="alertas-strip" id="alertasStrip">
-  <span class="as-label">Alertas</span>
+  <span class="as-label">⚠ Alertas activas</span>
   <div id="alertasChips"></div>
 </div>
 
@@ -357,7 +400,7 @@ table.cp-table td.placa-cell input{text-align:left}
       <th rowspan="2" style="width:82px">Estado</th>
       <th rowspan="2" class="hi" style="width:86px">Ensayo</th>
       <th rowspan="2" style="width:72px">Nivel (m)</th>
-      <th rowspan="2" class="hi" style="width:80px">Régimen</th>
+      <th rowspan="2" class="hi" style="width:62px">Régimen</th>
       <th rowspan="2" style="width:56px">P.Tbg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
       <th rowspan="2" style="width:56px">P.Csg<br><span style="font-weight:400;font-size:7px;opacity:.6">kg/cm²</span></th>
       <th rowspan="2" style="width:140px">Modelo equipo</th>
@@ -406,39 +449,65 @@ table.cp-table td.placa-cell input{text-align:left}
   </div>
 </div>
 
+<!-- ===== ALERT SELECTOR MODAL ===== -->
+<div class="modal-backdrop" id="alertModal">
+  <div class="modal-box">
+    <div class="modal-title"><span>⚠ Alertas — <span id="alertModalPozo" style="color:var(--glow)"></span></span><span class="modal-close" onclick="closeAlertModal()">✕</span></div>
+    <div class="modal-list" id="alertModalList"></div>
+    <div class="modal-add-row">
+      <input id="alertNewText" placeholder="Nueva alerta…">
+      <select id="alertNewLevel"><option value="peligro">Peligro</option><option value="precaucion">Precaución</option></select>
+      <button onclick="addCustomAlert()">+ Agregar</button>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeAlertModal()">Cerrar</button>
+      <button class="modal-btn-ok" onclick="confirmAlertModal()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CANCELADO REASON MODAL ===== -->
+<div class="modal-backdrop cancel-modal" id="cancelModal">
+  <div class="modal-box" style="width:380px">
+    <div class="modal-title" style="color:#f08060"><span>Motivo de cancelación</span><span class="modal-close" onclick="closeCancelModal()">✕</span></div>
+    <div class="modal-list" id="cancelModalList"></div>
+    <div class="modal-add-row">
+      <input id="cancelNewText" placeholder="Otro motivo…">
+      <button onclick="addCustomCancelReason()">+ Agregar</button>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeCancelModal()">Cerrar</button>
+      <button class="modal-btn-ok" onclick="confirmCancelModal()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== OBSERVACIONES ===== -->
 <div class="obs-panel">
   <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
   <div class="obs-fields">
     <div class="obs-col">
       <div class="obs-col-label">General <span class="ocl-tag ocl-gen">GEN</span></div>
-      <div class="obs-tags" id="obsTagsGen"></div>
-      <div class="obs-combo" id="comboGen">
-        <input type="text" placeholder="Escribir o elegir observación…" autocomplete="off">
-        <span class="oc-arrow">▾</span>
-        <div class="oc-drop"></div>
-      </div>
-      <textarea class="obs-textarea" id="obsGeneral" placeholder="Texto libre general…" rows="2"></textarea>
+      <textarea class="obs-textarea readonly" id="obsGeneral" placeholder="Se compila automáticamente…" readonly rows="3"></textarea>
+      <textarea class="obs-textarea" id="obsManual" placeholder="Notas adicionales del operador…" rows="2" style="margin-top:3px"></textarea>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">DIN <span class="ocl-tag ocl-dyn">DIN</span></div>
-      <div class="obs-tags" id="obsTagsDin"></div>
       <div class="obs-combo" id="comboDin">
-        <input type="text" placeholder="Observación DIN…" autocomplete="off">
+        <input type="text" placeholder="Agregar observación DIN…" autocomplete="off">
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <textarea class="obs-textarea" id="obsDin" placeholder="Texto libre DIN…" rows="2"></textarea>
+      <textarea class="obs-textarea" id="obsDin" placeholder="Se observa…" rows="3"></textarea>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">NIV <span class="ocl-tag ocl-niv">NIV</span></div>
-      <div class="obs-tags" id="obsTagsNiv"></div>
       <div class="obs-combo" id="comboNiv">
-        <input type="text" placeholder="Observación NIV…" autocomplete="off">
+        <input type="text" placeholder="Agregar observación NIV…" autocomplete="off">
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <textarea class="obs-textarea" id="obsNiv" placeholder="Texto libre NIV…" rows="2"></textarea>
+      <textarea class="obs-textarea" id="obsNiv" placeholder="Se observa…" rows="3"></textarea>
     </div>
   </div>
 </div>
@@ -454,8 +523,8 @@ table.cp-table td.placa-cell input{text-align:left}
 <div class="legend">
   <div class="leg-item"><div class="leg-sq" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)"></div><span style="font-style:italic;color:var(--dim)">Heredado</span></div>
   <div class="leg-item"><div class="leg-sq" style="background:rgba(126,200,217,.1);border:1px solid #7ec8d9"></div><span>Editado</span></div>
-  <div class="leg-item"><span style="color:#f08060">Cancelado → Dina (AIB auto)</span></div>
-  <div class="leg-item"><span>Estático → solo Nivel o Dina</span></div>
+  <div class="leg-item"><span style="color:#f08060">Cancelado → Dina auto</span></div>
+  <div class="leg-item"><span>Indefinido → Combinada auto</span></div>
   <div class="leg-item"><span style="color:var(--glow)">AIB=GPM · BES=Hz · PCP=RPM</span></div>
 </div>
 
@@ -472,6 +541,18 @@ let alertasCatalogo = [];
 let gridRows = [];
 let activeRowIdx = -1;
 let currentCpIdx = -1;
+let cancelTargetIdx = -1;
+
+const CANCEL_REASONS_KEY = 'vape_cancel_reasons';
+const defaultCancelReasons = [
+  'Pozo sin movimiento','Varilla rota','Bomba agarrada','Sin energía eléctrica',
+  'Equipo en reparación','Pozo cerrado por operadora','Falla en cabezal'
+];
+function getCancelReasons(){
+  try{ const s=localStorage.getItem(CANCEL_REASONS_KEY); if(s) return JSON.parse(s); }catch(e){}
+  return [...defaultCancelReasons];
+}
+function saveCancelReasons(r){ try{localStorage.setItem(CANCEL_REASONS_KEY,JSON.stringify(r));}catch(e){} }
 
 function fechaHoy(){
   const d = new Date();
@@ -542,7 +623,7 @@ document.addEventListener('click', function(e){
   if(!e.target.closest('.search-wrap')) acList.classList.remove('open');
 });
 
-// ===== SELECT WELL → add to grid =====
+// ===== SELECT WELL → add to grid (unshift = newest first) =====
 async function selectWell(wellId){
   acList.classList.remove('open');
   searchInput.value = '';
@@ -583,14 +664,18 @@ async function selectWell(wellId){
     motor_polea: well.motor_polea || lastFieldLog?.motor_polea || '',
     contrapesos: well.contrapesos || lastFieldLog?.contrapesos || {},
     observaciones: '',
+    obs_din: '',
+    obs_niv: '',
+    obs_manual: '',
     visita_id: null,
     _dirty: false,
-    _alertas: []
+    _alertas: [],
+    _cancelReasons: []
   };
 
-  gridRows.push(row);
+  gridRows.unshift(row);
   renderGrid();
-  setActiveRow(gridRows.length - 1);
+  setActiveRow(0);
   toast(well.well_name + ' agregado');
 }
 
@@ -641,7 +726,7 @@ async function loadToday(){
   for(const v of data){
     if(gridRows.find(r => r.visita_id === v.visita_id)) continue;
     const well = allWells.find(w => w.well_id === v.well_id) || {};
-    gridRows.push({
+    gridRows.unshift({
       well_id: v.well_id,
       well_name: v.well_name_raw,
       fecha: v.fecha,
@@ -662,9 +747,13 @@ async function loadToday(){
       motor_polea: v.motor_polea || well.motor_polea || '',
       contrapesos: well.contrapesos || {},
       observaciones: v.observaciones || '',
+      obs_din: '',
+      obs_niv: '',
+      obs_manual: '',
       visita_id: v.visita_id,
       _dirty: false,
-      _alertas: []
+      _alertas: [],
+      _cancelReasons: []
     });
   }
   document.getElementById('hoyCount').textContent = data.length;
@@ -722,6 +811,11 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
   r.motor_polea = well.motor_polea || lastFieldLog?.motor_polea || '';
   r.contrapesos = well.contrapesos || lastFieldLog?.contrapesos || {};
   r._dirty = false;
+  r._alertas = [];
+  r._cancelReasons = [];
+  r.obs_din = '';
+  r.obs_niv = '';
+  r.obs_manual = '';
 
   renderGrid();
   setActiveRow(activeRowIdx);
@@ -740,19 +834,18 @@ function renderGrid(){
     const sistemaClass = r.sistema === 'BES' ? 'c-bes' : r.sistema === 'PCP' ? 'c-pcp' : 'c-aib';
     const estadoClass = r.estado === 'Estatico' ? 'p-a' : 'p-g';
     const estadoLabel = r.estado === 'Estatico' ? 'Estático' : 'Dinámico';
-    const ensayoOpts = r.estado === 'Estatico'
-      ? ['Nivel','Dina'].map(o => `<option ${r.ensayo===o?'selected':''}>${o}</option>`).join('')
-      : ['Combinada','Dina','Nivel'].map(o => `<option ${r.ensayo===o?'selected':''}>${o}</option>`).join('');
 
-    const nivelClass = r.nivel_estado === 'NO' ? 'cancelado' : r.nivel_estado === 'Ver' ? 'indefinido' : 'ok';
-    let nivelOpts = '';
-    if(r.nivel_estado === 'NO'){
-      nivelOpts = `<option value="Cancelado" selected>Cancelado</option><option value="Indefinido">Indefinido</option><option value="">Ingresar valor</option>`;
-    } else if(r.nivel_estado === 'Ver'){
-      nivelOpts = `<option value="Indefinido" selected>Indefinido</option><option value="Cancelado">Cancelado</option><option value="">Ingresar valor</option>`;
+    let ensayoOpts;
+    if(r.estado === 'Estatico'){
+      ensayoOpts = ['Nivel','Dina','Cancelado'].map(o => `<option value="${o}" ${r.ensayo===o?'selected':''}>${o}</option>`).join('');
     } else {
-      nivelOpts = `<option value="${r.nivel_m||''}" selected>${r.nivel_m||'—'}</option><option value="Cancelado">Cancelado</option><option value="Indefinido">Indefinido</option>`;
+      ensayoOpts = ['Combinada','Dina','Nivel','Cancelado'].map(o => `<option value="${o}" ${r.ensayo===o?'selected':''}>${o}</option>`).join('');
     }
+
+    const isCancel = r.nivel_estado === 'NO';
+    const isIndef = r.nivel_estado === 'Ver';
+    const showInput = !isCancel && !isIndef;
+    const nivelDdVal = isCancel ? 'cancelado' : isIndef ? 'indefinido' : 'ok';
 
     const cpLoaded = r.contrapesos && r.contrapesos.tipo ? ' loaded' : '';
     const ds = r.visita_id ? 'inherited' : 'edited';
@@ -764,7 +857,17 @@ function renderGrid(){
       <td style="text-align:center"><span class="chip ${sistemaClass}">${r.sistema}</span></td>
       <td style="text-align:center"><span class="pill ${estadoClass}"><span class="dot"></span>${estadoLabel}</span></td>
       <td><select data-state="${ds}" onchange="onEnsayoChange(${i},this.value)">${ensayoOpts}</select></td>
-      <td><select class="nivel-sel ${nivelClass}" onchange="onNivelChange(${i},this)">${nivelOpts}</select></td>
+      <td>
+        <div class="nivel-wrap">
+          <input type="text" value="${showInput?(r.nivel_m||''):''}" placeholder="—" ${showInput?'':'hidden'} onchange="onNivelValueChange(${i},this.value)" onfocus="this.select()">
+          <span class="nivel-status ${isCancel?'cancelado':isIndef?'indefinido':''}" ${showInput?'hidden':''}>${isCancel?'Canc.':isIndef?'Indef.':''}</span>
+          <select class="nivel-dd" onchange="onNivelDdChange(${i},this.value)">
+            <option value="ok" ${nivelDdVal==='ok'?'selected':''}>▾</option>
+            <option value="cancelado" ${nivelDdVal==='cancelado'?'selected':''}>Cancelado</option>
+            <option value="indefinido" ${nivelDdVal==='indefinido'?'selected':''}>Indefinido</option>
+          </select>
+        </div>
+      </td>
       <td><div class="reg-cell"><span class="reg-label">${getRegimenLabel(r.sistema)}</span><input value="${r.regimen||'—'}" data-state="inherited" onchange="onFieldChange(${i},'regimen',this.value)"></div></td>
       <td style="text-align:center"><input value="${r.presion_tbg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
       <td style="text-align:center"><input value="${r.presion_csg||''}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_csg',this.value)"></td>
@@ -806,6 +909,7 @@ function setActiveRow(idx){
   document.getElementById('btnGuardar').disabled = false;
   document.getElementById('btnLimpiar').disabled = false;
   document.getElementById('btnCancelar').disabled = !r._dirty;
+  document.getElementById('btnAlertaOpen').disabled = false;
 
   document.querySelectorAll('#gridBody tr').forEach((tr,i) => tr.classList.toggle('active', i===idx));
 
@@ -821,33 +925,91 @@ function resetActionBar(){
   document.getElementById('btnGuardar').disabled = true;
   document.getElementById('btnLimpiar').disabled = true;
   document.getElementById('btnCancelar').disabled = true;
+  document.getElementById('btnAlertaOpen').disabled = true;
   document.getElementById('alertasStrip').classList.remove('visible');
   activeRowIdx = -1;
 }
 
+// ===== ALERTAS: only show strip when well has assigned alerts =====
 function renderAlertasStrip(row){
   const strip = document.getElementById('alertasStrip');
   const container = document.getElementById('alertasChips');
-  if(!alertasCatalogo.length){ strip.classList.remove('visible'); return; }
-
-  container.innerHTML = alertasCatalogo.map(a => {
-    const isActive = row._alertas && row._alertas.includes(a.alerta_id);
-    return `<span class="alert-chip ${a.nivel}${isActive?' active':''}" data-aid="${a.alerta_id}" onclick="toggleAlerta(${a.alerta_id},this)">${a.texto}</span>`;
-  }).join('');
+  if(!row._alertas || !row._alertas.length){
+    strip.classList.remove('visible');
+    return;
+  }
+  const activeAlerts = alertasCatalogo.filter(a => row._alertas.includes(a.alerta_id));
+  if(!activeAlerts.length){ strip.classList.remove('visible'); return; }
+  container.innerHTML = activeAlerts.map(a =>
+    `<span class="alert-chip ${a.nivel}">${a.texto}</span>`
+  ).join('');
   strip.classList.add('visible');
 }
 
-function toggleAlerta(alertaId, el){
-  if(activeRowIdx < 0) return;
+// ===== ALERT SELECTOR MODAL =====
+document.getElementById('btnAlertaOpen').addEventListener('click', ()=>{
+  if(activeRowIdx<0) return;
+  openAlertModal();
+});
+
+function openAlertModal(){
   const r = gridRows[activeRowIdx];
-  if(!r._alertas) r._alertas = [];
-  const idx = r._alertas.indexOf(alertaId);
-  if(idx >= 0){ r._alertas.splice(idx, 1); el.classList.remove('active'); }
-  else { r._alertas.push(alertaId); el.classList.add('active'); }
-  r._dirty = true;
-  updateStatusBar();
+  document.getElementById('alertModalPozo').textContent = r.well_name;
+  renderAlertModalList();
+  document.getElementById('alertModal').classList.add('open');
 }
 
+function closeAlertModal(){
+  document.getElementById('alertModal').classList.remove('open');
+}
+
+function renderAlertModalList(){
+  const r = gridRows[activeRowIdx];
+  const list = document.getElementById('alertModalList');
+  if(!alertasCatalogo.length){
+    list.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--dim)">No hay alertas en el catálogo</div>';
+    return;
+  }
+  list.innerHTML = alertasCatalogo.map(a => {
+    const sel = r._alertas.includes(a.alerta_id);
+    return `<div class="modal-item ${sel?'selected':''}" data-aid="${a.alerta_id}" onclick="toggleAlertItem(this,${a.alerta_id})">
+      <div class="mi-check">${sel?'✓':''}</div>
+      <span class="mi-text">${a.texto}</span>
+      <span class="mi-level ${a.nivel}">${a.nivel}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleAlertItem(el, alertaId){
+  el.classList.toggle('selected');
+  el.querySelector('.mi-check').textContent = el.classList.contains('selected') ? '✓' : '';
+}
+
+function addCustomAlert(){
+  const input = document.getElementById('alertNewText');
+  const text = input.value.trim();
+  if(!text) return;
+  const level = document.getElementById('alertNewLevel').value;
+  const fakeId = Date.now();
+  alertasCatalogo.push({alerta_id: fakeId, texto: text, nivel: level});
+  input.value = '';
+  renderAlertModalList();
+  toast('Alerta agregada al catálogo');
+}
+
+function confirmAlertModal(){
+  const r = gridRows[activeRowIdx];
+  const items = document.querySelectorAll('#alertModalList .modal-item.selected');
+  r._alertas = [...items].map(el => parseInt(el.dataset.aid));
+  r._dirty = true;
+  closeAlertModal();
+  renderAlertasStrip(r);
+  updateStatusBar();
+  compileGeneral();
+  toast(r._alertas.length ? r._alertas.length+' alerta(s) asignadas' : 'Alertas removidas');
+}
+
+// ===== FIELD CHANGES =====
 function onFieldChange(idx, field, val){
   gridRows[idx][field] = val;
   gridRows[idx]._dirty = true;
@@ -860,22 +1022,114 @@ function onEnsayoChange(idx, val){
   updateStatusBar();
 }
 
-function onNivelChange(idx, sel){
-  const v = sel.value;
-  sel.className = 'nivel-sel';
-  if(v === 'Cancelado'){ sel.classList.add('cancelado'); gridRows[idx].nivel_estado = 'NO'; gridRows[idx].nivel_m = null; }
-  else if(v === 'Indefinido'){ sel.classList.add('indefinido'); gridRows[idx].nivel_estado = 'Ver'; gridRows[idx].nivel_m = null; }
-  else { sel.classList.add('ok'); gridRows[idx].nivel_estado = 'OK'; gridRows[idx].nivel_m = parseFloat(v) || null; }
-
+// ===== NIVEL: hybrid input + state dropdown =====
+function onNivelValueChange(idx, val){
+  gridRows[idx].nivel_m = parseFloat(val) || null;
+  gridRows[idx].nivel_estado = 'OK';
   gridRows[idx]._dirty = true;
-  const row = sel.closest('tr');
-  const ensayo = row.querySelector('td:nth-child(6) select');
-  if(!ensayo) return;
-  if(v === 'Cancelado' && gridRows[idx].sistema === 'AIB'){
-    ensayo.value = 'Dina';
-    gridRows[idx].ensayo = 'Dina';
+  updateStatusBar();
+}
+
+function onNivelDdChange(idx, val){
+  const r = gridRows[idx];
+  if(val === 'cancelado'){
+    r.nivel_estado = 'NO';
+    r.nivel_m = null;
+    r.ensayo = 'Dina';
+    r._dirty = true;
+    cancelTargetIdx = idx;
+    renderGrid();
+    setActiveRow(idx);
+    openCancelModal();
+  } else if(val === 'indefinido'){
+    r.nivel_estado = 'Ver';
+    r.nivel_m = null;
+    r.ensayo = 'Combinada';
+    r._dirty = true;
+    renderGrid();
+    setActiveRow(idx);
+  } else {
+    r.nivel_estado = 'OK';
+    r._dirty = true;
+    renderGrid();
+    setActiveRow(idx);
   }
   updateStatusBar();
+}
+
+// ===== CANCELADO REASON MODAL =====
+let selectedCancelReasons = [];
+
+function openCancelModal(){
+  selectedCancelReasons = gridRows[cancelTargetIdx]?._cancelReasons ? [...gridRows[cancelTargetIdx]._cancelReasons] : [];
+  renderCancelModalList();
+  document.getElementById('cancelModal').classList.add('open');
+}
+
+function closeCancelModal(){
+  document.getElementById('cancelModal').classList.remove('open');
+}
+
+function renderCancelModalList(){
+  const reasons = getCancelReasons();
+  const list = document.getElementById('cancelModalList');
+  list.innerHTML = reasons.map((r,i) => {
+    const sel = selectedCancelReasons.includes(r);
+    return `<div class="modal-item ${sel?'selected':''}" data-reason="${r.replace(/"/g,'&quot;')}" onclick="toggleCancelItem(this)">
+      <div class="mi-check">${sel?'✓':''}</div>
+      <span class="mi-text">${r}</span>
+      <span class="mi-del" onclick="event.stopPropagation();deleteCancelReason(${i})" title="Eliminar">✕</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleCancelItem(el){
+  el.classList.toggle('selected');
+  el.querySelector('.mi-check').textContent = el.classList.contains('selected') ? '✓' : '';
+  const reason = el.dataset.reason;
+  if(el.classList.contains('selected')){
+    if(!selectedCancelReasons.includes(reason)) selectedCancelReasons.push(reason);
+  } else {
+    selectedCancelReasons = selectedCancelReasons.filter(r=>r!==reason);
+  }
+}
+
+function addCustomCancelReason(){
+  const input = document.getElementById('cancelNewText');
+  const text = input.value.trim();
+  if(!text) return;
+  const reasons = getCancelReasons();
+  if(!reasons.includes(text)){
+    reasons.push(text);
+    saveCancelReasons(reasons);
+  }
+  selectedCancelReasons.push(text);
+  input.value = '';
+  renderCancelModalList();
+}
+
+function deleteCancelReason(idx){
+  const reasons = getCancelReasons();
+  reasons.splice(idx, 1);
+  saveCancelReasons(reasons);
+  renderCancelModalList();
+}
+
+function confirmCancelModal(){
+  if(cancelTargetIdx<0) return;
+  const r = gridRows[cancelTargetIdx];
+  r._cancelReasons = [...selectedCancelReasons];
+  if(selectedCancelReasons.length){
+    const reasonText = 'Se observa ' + selectedCancelReasons.join(' - ');
+    r.obs_din = reasonText;
+    r.obs_niv = 'Nivel cancelado';
+  }
+  closeCancelModal();
+  if(activeRowIdx === cancelTargetIdx) loadObsForRow(r);
+  compileGeneral();
+  r._dirty = true;
+  updateStatusBar();
+  toast('Motivo de cancelación registrado');
 }
 
 function updateStatusBar(){
@@ -957,8 +1211,10 @@ async function guardarVisita(){
 
   let saved = 0;
   for(const r of dirty){
-    const obs = activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id
-      ? collectObsText() : r.observaciones;
+    if(activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id){
+      saveObsFromUI(r);
+    }
+    const obs = compileObsText(r);
 
     const payload = {
       well_id: r.well_id,
@@ -1006,12 +1262,11 @@ async function guardarVisita(){
   toast(saved + ' pozo(s) guardados correctamente');
 }
 
-// ===== OBS COMBO SYSTEM =====
+// ===== OBSERVATIONS SYSTEM =====
 const OBS_PRESETS_KEY = 'vape_obs_presets';
 const defaultPresets = {
-  gen: ['Golpe de fluido','Lateral abierto','Sin SAM','Fuga en cabeza','Pérdida de sello','Ruido anormal'],
-  din: ['Carta incompleta','Válvula viajera desgastada','Anclaje suelto','Fricción alta','Golpe de bomba'],
-  niv: ['Espumoso','Gasificado','Nivel cancelado','Sin retorno','Pozo surgente']
+  din: ['Golpe de fluido','Golpe de bomba inferior','Pérdida en válvula viajera','Carta incompleta','Fricción alta','Torque excedido','Anclaje suelto','Válvula viajera desgastada'],
+  niv: ['Nivel cancelado','Espumoso','Gasificado','Sin retorno','Pozo surgente','Nivel estabilizado','Nivel inestable']
 };
 function getPresets(){
   try{ const s = localStorage.getItem(OBS_PRESETS_KEY); if(s) return JSON.parse(s); } catch(e){}
@@ -1019,9 +1274,7 @@ function getPresets(){
 }
 function savePresets(p){ try{ localStorage.setItem(OBS_PRESETS_KEY, JSON.stringify(p)); } catch(e){} }
 
-const obsState = { gen:[], din:[], niv:[] };
-
-function initCombo(cat, comboId, tagsId){
+function initCombo(cat, comboId){
   const combo = document.getElementById(comboId);
   const input = combo.querySelector('input');
   const drop = combo.querySelector('.oc-drop');
@@ -1032,7 +1285,7 @@ function initCombo(cat, comboId, tagsId){
     if(e.key==='Enter'){
       e.preventDefault();
       const v=input.value.trim();
-      if(v) addObsTag(cat, v, tagsId);
+      if(v) addObsPresetToField(cat, v);
       input.value=''; drop.classList.remove('open');
     }
     if(e.key==='Escape') drop.classList.remove('open');
@@ -1051,8 +1304,7 @@ function renderDrop(cat, drop, filter){
   const filtered = f ? presets.filter(p=>p.toLowerCase().includes(f)) : presets;
   const hasExact = presets.some(p=>p.toLowerCase()===f);
   let html = filtered.map(p=>{
-    const inUse = obsState[cat].includes(p);
-    return `<div class="oc-drop-item${inUse?' style="opacity:.4"':''}" data-val="${p.replace(/"/g,'&quot;')}">
+    return `<div class="oc-drop-item" data-val="${p.replace(/"/g,'&quot;')}">
       <span>${p}</span>
       <span class="odi-x" data-del="${p.replace(/"/g,'&quot;')}" title="Eliminar preset">✕</span>
     </div>`;
@@ -1064,10 +1316,7 @@ function renderDrop(cat, drop, filter){
   drop.querySelectorAll('.oc-drop-item').forEach(el=>{
     el.addEventListener('click', e=>{
       if(e.target.classList.contains('odi-x')) return;
-      const v = el.dataset.val;
-      if(!obsState[cat].includes(v)){
-        addObsTag(cat, v, cat==='gen'?'obsTagsGen':cat==='din'?'obsTagsDin':'obsTagsNiv');
-      }
+      addObsPresetToField(cat, el.dataset.val);
       drop.closest('.obs-combo').querySelector('input').value='';
       drop.classList.remove('open');
     });
@@ -1086,89 +1335,79 @@ function renderDrop(cat, drop, filter){
       const v = el.dataset.new;
       const p = getPresets();
       if(!p[cat]) p[cat]=[];
-      p[cat].push(v.charAt(0).toUpperCase()+v.slice(1));
+      const capitalized = v.charAt(0).toUpperCase()+v.slice(1);
+      p[cat].push(capitalized);
       savePresets(p);
-      addObsTag(cat, v.charAt(0).toUpperCase()+v.slice(1), cat==='gen'?'obsTagsGen':cat==='din'?'obsTagsDin':'obsTagsNiv');
+      addObsPresetToField(cat, capitalized);
       drop.closest('.obs-combo').querySelector('input').value='';
       drop.classList.remove('open');
     });
   });
 }
 
-function addObsTag(cat, text, tagsId){
-  if(obsState[cat].includes(text)) return;
-  obsState[cat].push(text);
-  renderObsTags(cat, tagsId);
+function addObsPresetToField(cat, text){
+  const taId = cat === 'din' ? 'obsDin' : 'obsNiv';
+  const ta = document.getElementById(taId);
+  const current = ta.value.trim();
+  if(current.includes(text)) return;
+  if(!current || current === 'Se observa'){
+    ta.value = 'Se observa ' + text;
+  } else if(current.startsWith('Se observa ')){
+    ta.value = current + ' - ' + text;
+  } else {
+    ta.value = current + ' - ' + text;
+  }
   markObsDirty();
-}
-
-function removeObsTag(cat, text, tagsId){
-  obsState[cat] = obsState[cat].filter(t=>t!==text);
-  renderObsTags(cat, tagsId);
-  markObsDirty();
-}
-
-function renderObsTags(cat, tagsId){
-  const cont = document.getElementById(tagsId);
-  const cls = cat==='din'?'dyn':cat==='niv'?'niv':'';
-  cont.innerHTML = obsState[cat].map(t=>
-    `<span class="obs-tag ${cls}"><span class="ot-text">${t}</span><span class="otx" data-cat="${cat}" data-val="${t.replace(/"/g,'&quot;')}" data-tags="${tagsId}">✕</span></span>`
-  ).join('');
-  cont.querySelectorAll('.otx').forEach(x=>{
-    x.addEventListener('click', ()=> removeObsTag(x.dataset.cat, x.dataset.val, x.dataset.tags));
-  });
 }
 
 function markObsDirty(){
   if(activeRowIdx<0) return;
-  gridRows[activeRowIdx]._dirty = true;
-  gridRows[activeRowIdx].observaciones = collectObsText();
+  const r = gridRows[activeRowIdx];
+  r._dirty = true;
+  saveObsFromUI(r);
+  compileGeneral();
   updateStatusBar();
   document.getElementById('btnCancelar').disabled = false;
 }
 
-function collectObsText(){
+function saveObsFromUI(r){
+  r.obs_din = document.getElementById('obsDin').value.trim();
+  r.obs_niv = document.getElementById('obsNiv').value.trim();
+  r.obs_manual = document.getElementById('obsManual').value.trim();
+}
+
+function compileGeneral(){
+  if(activeRowIdx<0) return;
+  const r = gridRows[activeRowIdx];
+  saveObsFromUI(r);
+  document.getElementById('obsGeneral').value = compileObsText(r);
+}
+
+function compileObsText(r){
   const parts = [];
-  if(obsState.gen.length) parts.push('[GEN] '+obsState.gen.join('. '));
-  const genFree = document.getElementById('obsGeneral').value.trim();
-  if(genFree) parts.push(genFree);
-  if(obsState.din.length) parts.push('[DIN] '+obsState.din.join('. '));
-  const dinFree = document.getElementById('obsDin').value.trim();
-  if(dinFree) parts.push(dinFree);
-  if(obsState.niv.length) parts.push('[NIV] '+obsState.niv.join('. '));
-  const nivFree = document.getElementById('obsNiv').value.trim();
-  if(nivFree) parts.push(nivFree);
+  if(r._alertas && r._alertas.length){
+    const alertTexts = alertasCatalogo.filter(a=>r._alertas.includes(a.alerta_id)).map(a=>'⚠ '+a.texto);
+    if(alertTexts.length) parts.push('ALERTAS: '+alertTexts.join(', '));
+  }
+  if(r.obs_din) parts.push('DIN: '+r.obs_din);
+  if(r.obs_niv) parts.push('NIV: '+r.obs_niv);
+  if(r.obs_manual) parts.push(r.obs_manual);
   return parts.join(' | ');
 }
 
 function loadObsForRow(r){
-  obsState.gen=[]; obsState.din=[]; obsState.niv=[];
-  document.getElementById('obsGeneral').value='';
-  document.getElementById('obsDin').value='';
-  document.getElementById('obsNiv').value='';
-  const obs = r.observaciones || '';
-  if(obs){
-    const genMatch = obs.match(/\[GEN\]\s*([^|[\]]*)/);
-    const dinMatch = obs.match(/\[DIN\]\s*([^|[\]]*)/);
-    const nivMatch = obs.match(/\[NIV\]\s*([^|[\]]*)/);
-    if(genMatch) obsState.gen = genMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
-    if(dinMatch) obsState.din = dinMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
-    if(nivMatch) obsState.niv = nivMatch[1].split('. ').map(s=>s.trim()).filter(Boolean);
-    const freeTexts = obs.split(' | ').filter(p=>!p.startsWith('[GEN]')&&!p.startsWith('[DIN]')&&!p.startsWith('[NIV]'));
-    if(freeTexts.length) document.getElementById('obsGeneral').value = freeTexts.join('\n');
-  }
-  renderObsTags('gen','obsTagsGen');
-  renderObsTags('din','obsTagsDin');
-  renderObsTags('niv','obsTagsNiv');
+  document.getElementById('obsDin').value = r.obs_din || '';
+  document.getElementById('obsNiv').value = r.obs_niv || '';
+  document.getElementById('obsManual').value = r.obs_manual || '';
+  document.getElementById('obsGeneral').value = compileObsText(r);
 }
 
-['obsGeneral','obsDin','obsNiv'].forEach(id=>{
+['obsDin','obsNiv','obsManual'].forEach(id=>{
   document.getElementById(id).addEventListener('input', markObsDirty);
 });
 
-initCombo('gen','comboGen','obsTagsGen');
-initCombo('din','comboDin','obsTagsDin');
-initCombo('niv','comboNiv','obsTagsNiv');
+initCombo('din','comboDin');
+initCombo('niv','comboNiv');
 
 // ===== KEYBOARD =====
 document.addEventListener('keydown', function(e){
