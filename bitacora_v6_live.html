@@ -164,6 +164,17 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .tab{padding:7px 15px;border-radius:6px 6px 0 0;font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);cursor:pointer;border:1px solid transparent;border-bottom:none}
 .tab.active{background:var(--bg);color:var(--ink);border-color:var(--border);border-bottom-color:var(--bg);margin-bottom:-1px;position:relative}
 
+/* ===== ROW CONTEXT MENU ===== */
+.row-menu{position:fixed;z-index:250;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:6px 0;min-width:160px;display:none}
+.row-menu.open{display:block}
+.row-menu-item{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;font-family:'IBM Plex Sans';font-size:12px;font-weight:600;color:var(--ink);transition:background .1s}
+.row-menu-item:hover{background:var(--panel2)}
+.row-menu-item .rmi-icon{font-size:14px;width:18px;text-align:center}
+.row-menu-item.rmi-edit{color:var(--glow)}
+.row-menu-item.rmi-delete{color:var(--rust)}
+.row-menu-item.rmi-data{color:var(--dim)}
+.row-menu-sep{height:1px;background:var(--border);margin:4px 0}
+
 /* ===== GRID ===== */
 .grid-outer{flex:1;display:flex;flex-direction:column;padding:14px 18px 0;background:var(--bg);overflow:hidden}
 .grid-panel{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:auto;box-shadow:0 4px 20px rgba(0,0,0,.06)}
@@ -452,6 +463,15 @@ table.cp-table td.placa-cell input{text-align:left}
   </tbody>
 </table>
 </div>
+</div>
+
+<!-- ===== ROW CONTEXT MENU ===== -->
+<div class="row-menu" id="rowMenu">
+  <div class="row-menu-item rmi-edit" onclick="rowMenuAction('edit')"><span class="rmi-icon">✏</span> Editar</div>
+  <div class="row-menu-sep"></div>
+  <div class="row-menu-item rmi-data" onclick="rowMenuAction('data')"><span class="rmi-icon">📋</span> Datos</div>
+  <div class="row-menu-sep"></div>
+  <div class="row-menu-item rmi-delete" onclick="rowMenuAction('delete')"><span class="rmi-icon">🗑</span> Eliminar</div>
 </div>
 
 <!-- ===== CONTRAPESOS POPOVER ===== -->
@@ -993,7 +1013,7 @@ function renderGrid(){
     const ds = r.visita_id ? 'inherited' : 'edited';
 
     return `<tr class="${i===activeRowIdx?'active':''}" onclick="setActiveRow(${i})" data-idx="${i}">
-      <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer"></td>
+      <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer" onclick="openRowMenu(${i},event);event.stopPropagation()"></td>
       <td><input value="${fechaDisplay(r.fecha)}" data-state="${ds}" readonly></td>
       <td><input value="${r.bateria}" data-state="inherited" readonly></td>
       <td style="text-align:center"><span class="chip ${sistemaClass}">${r.sistema}</span></td>
@@ -1032,6 +1052,61 @@ function fixHeaderTop(){
   if(r1){ document.querySelector('table.main-grid').style.setProperty('--hdr1-h', r1.offsetHeight + 'px'); }
 }
 fixHeaderTop();
+
+// ===== ROW CONTEXT MENU =====
+let rowMenuIdx = -1;
+function openRowMenu(idx, e){
+  e.preventDefault();
+  rowMenuIdx = idx;
+  setActiveRow(idx);
+  const menu = document.getElementById('rowMenu');
+  const x = Math.min(e.clientX, window.innerWidth - 180);
+  const y = Math.min(e.clientY, window.innerHeight - 140);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.add('open');
+}
+function closeRowMenu(){ document.getElementById('rowMenu').classList.remove('open'); rowMenuIdx = -1; }
+document.addEventListener('click', function(e){ if(!document.getElementById('rowMenu').contains(e.target)) closeRowMenu(); });
+
+async function rowMenuAction(action){
+  const idx = rowMenuIdx;
+  closeRowMenu();
+  if(idx < 0 || !gridRows[idx]) return;
+  const r = gridRows[idx];
+
+  if(action === 'edit'){
+    r._dirty = true;
+    updateStatusBar();
+    renderGrid();
+    toast('Editando ' + r.well_name + ' — modifica y guarda');
+  }
+  else if(action === 'delete'){
+    if(!confirm('Eliminar la visita de ' + r.well_name + ' del ' + fechaDisplay(r.fecha) + '?')) return;
+    if(r.visita_id && supabaseClient){
+      const del = await supabaseClient.from('bitacora_visitas').delete().eq('visita_id', r.visita_id);
+      if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
+    }
+    gridRows.splice(idx, 1);
+    if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
+    updateStatusBar();
+    renderGrid();
+    toast(r.well_name + ' eliminado');
+  }
+  else if(action === 'data'){
+    const w = r;
+    const info = [
+      'Pozo: ' + w.well_name,
+      'Batería: ' + w.bateria,
+      'Operadora: ' + (w.operadora||'-'),
+      'Sistema: ' + w.sistema,
+      'Modelo: ' + (w.modelo||'-'),
+      'Motor: ' + [w.motor_marca, w.motor_rpm?w.motor_rpm+'rpm':'', w.motor_hp?w.motor_hp+'hp':''].filter(Boolean).join(' / '),
+      'Contrapesos: ' + (w.contrapesos && w.contrapesos.tipo ? w.contrapesos.tipo + ' x' + nv(w.contrapesos.cant) + ' a ' + nv(w.contrapesos.cm) + 'cm' : 'sin datos'),
+    ].join('\n');
+    alert(info);
+  }
+}
 
 function setActiveRow(idx){
   activeRowIdx = idx;
@@ -1319,10 +1394,10 @@ function openCp(idx, btn){
   document.getElementById('cpPozo').textContent = r.well_name;
   const cp = r.contrapesos || {};
   const vals = [
-    nn(cp.tipo,''), nn(cp.cant,''), nn(cp.cm,''),
-    nn(cp.secu,''), nn(cp.cant2,''), nn(cp.cm2,''),
-    nn(cp.tipo,''), nn(cp.cant,''), nn(cp.cm,''),
-    '','',''
+    nn(cp.tipo,''), nv(cp.cant), nv(cp.cm),
+    nn(cp.secu,''), nv(cp.cant2), nv(cp.cm2),
+    nn(cp.tipo,''), nv(cp.cant), nv(cp.cm),
+    '',0,0
   ];
   const placaCols = [0,3,6,9];
   document.getElementById('cpBody').innerHTML = '<tr>' + vals.map((v,i) => {
@@ -1404,9 +1479,17 @@ async function guardarVisita(){
       observaciones: obs,
     };
 
-    const result = await supabaseClient.from('bitacora_visitas')
-      .insert(visitaPayload)
-      .select('visita_id');
+    let result;
+    if(r.visita_id){
+      result = await supabaseClient.from('bitacora_visitas')
+        .update(visitaPayload)
+        .eq('visita_id', r.visita_id)
+        .select('visita_id');
+    } else {
+      result = await supabaseClient.from('bitacora_visitas')
+        .insert(visitaPayload)
+        .select('visita_id');
+    }
 
     if(result.error){
       toast('Error guardando ' + r.well_name + ': ' + result.error.message, true);
@@ -1414,7 +1497,7 @@ async function guardarVisita(){
       continue;
     }
 
-    if(result.data?.[0]) r.visita_id = result.data[0].visita_id;
+    if(!r.visita_id && result.data?.[0]) r.visita_id = result.data[0].visita_id;
 
     const wellUpdate = {
       bit_sistema: r.sistema,
