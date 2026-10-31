@@ -546,6 +546,18 @@ table.cp-table td.placa-cell input{text-align:left}
   </div>
 </div>
 
+<!-- ===== CONFIRM MODAL ===== -->
+<div class="modal-backdrop" id="confirmModal" style="display:none">
+  <div class="modal-box" style="width:400px">
+    <div class="modal-title"><span id="confirmTitle">Confirmar</span><span class="modal-close" onclick="closeConfirmModal(false)">✕</span></div>
+    <p id="confirmMsg" style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.5"></p>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeConfirmModal(false)">Cancelar</button>
+      <button class="modal-btn-ok" id="confirmOkBtn" onclick="closeConfirmModal(true)">Aceptar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== OBSERVACIONES ===== -->
 <div class="obs-panel">
   <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
@@ -607,6 +619,20 @@ let activeRowIdx = -1;
 let currentCpIdx = -1;
 let editingRowIdx = -1;
 let cancelTargetIdx = -1;
+let _nuevaMedicionMode = false;
+let _confirmCb = null;
+
+function showConfirm(title, msg, onOk){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  _confirmCb = onOk;
+  document.getElementById('confirmModal').style.display = '';
+}
+function closeConfirmModal(accepted){
+  document.getElementById('confirmModal').style.display = 'none';
+  if(accepted && typeof _confirmCb === 'function') _confirmCb();
+  _confirmCb = null;
+}
 
 const CANCEL_REASONS_KEY = 'vape_cancel_reasons';
 const defaultCancelReasons = [
@@ -745,7 +771,25 @@ async function selectWell(wellId){
     _cancelReasons: []
   };
 
+  row._snapshot = JSON.stringify({
+    fecha: row.fecha, bateria: row.bateria, sistema: row.sistema, estado: row.estado,
+    ensayo: row.ensayo, nivel_m: row.nivel_m, nivel_estado: row.nivel_estado,
+    cancel_motivo: row.cancel_motivo, carrera_in: row.carrera_in, hz: row.hz,
+    pip_kg: row.pip_kg, rpm: row.rpm, torque: row.torque,
+    presion_tbg: row.presion_tbg, presion_csg: row.presion_csg,
+    modelo: row.modelo, motor_marca: row.motor_marca, motor_rpm: row.motor_rpm,
+    motor_hp: row.motor_hp, motor_polea: row.motor_polea,
+    observaciones: row.observaciones, obs_din: row.obs_din, obs_niv: row.obs_niv, obs_manual: row.obs_manual
+  });
+
   gridRows.unshift(row);
+
+  if(_nuevaMedicionMode){
+    row._dirty = true;
+    editingRowIdx = 0;
+    _nuevaMedicionMode = false;
+  }
+
   renderGrid();
   setActiveRow(0);
   toast(well.well_name + ' agregado');
@@ -927,8 +971,14 @@ async function loadCampaign(fecha){
 
 // ===== NUEVO =====
 document.getElementById('btnNuevo').addEventListener('click', ()=>{
+  gridRows = [];
+  activeRowIdx = -1;
+  editingRowIdx = -1;
+  _nuevaMedicionMode = true;
+  renderGrid();
+  updateStatusBar();
+  searchInput.value = '';
   searchInput.focus();
-  searchInput.select();
   toast('Buscá un pozo para crear nueva medición');
 });
 
@@ -936,7 +986,18 @@ document.getElementById('btnNuevo').addEventListener('click', ()=>{
 document.getElementById('btnLimpiar').addEventListener('click', ()=>{
   if(activeRowIdx < 0) return;
   const r = gridRows[activeRowIdx];
-  if(r._dirty && !confirm('Descartar cambios de ' + r.well_name + '?')) return;
+  if(r._dirty){
+    showConfirm('Descartar cambios', 'Descartar cambios de ' + r.well_name + '?', ()=>{
+      gridRows.splice(activeRowIdx, 1);
+      activeRowIdx = Math.min(activeRowIdx, gridRows.length - 1);
+      renderGrid();
+      if(activeRowIdx >= 0) setActiveRow(activeRowIdx);
+      else resetActionBar();
+      updateStatusBar();
+      toast('Pozo quitado de la grilla');
+    });
+    return;
+  }
   gridRows.splice(activeRowIdx, 1);
   activeRowIdx = Math.min(activeRowIdx, gridRows.length - 1);
   renderGrid();
@@ -1108,6 +1169,18 @@ async function rowMenuAction(action){
   const r = gridRows[idx];
 
   if(action === 'edit'){
+    if(!r._snapshot){
+      r._snapshot = JSON.stringify({
+        fecha: r.fecha, bateria: r.bateria, sistema: r.sistema, estado: r.estado,
+        ensayo: r.ensayo, nivel_m: r.nivel_m, nivel_estado: r.nivel_estado,
+        cancel_motivo: r.cancel_motivo, carrera_in: r.carrera_in, hz: r.hz,
+        pip_kg: r.pip_kg, rpm: r.rpm, torque: r.torque,
+        presion_tbg: r.presion_tbg, presion_csg: r.presion_csg,
+        modelo: r.modelo, motor_marca: r.motor_marca, motor_rpm: r.motor_rpm,
+        motor_hp: r.motor_hp, motor_polea: r.motor_polea,
+        observaciones: r.observaciones, obs_din: r.obs_din, obs_niv: r.obs_niv, obs_manual: r.obs_manual
+      });
+    }
     r._dirty = true;
     editingRowIdx = idx;
     activeRowIdx = idx;
@@ -1117,15 +1190,16 @@ async function rowMenuAction(action){
   }
   else if(action === 'delete'){
     if(!r.visita_id){ toast('Este registro aún no fue guardado', true); return; }
-    if(!confirm('Eliminar de la base de datos la visita de ' + r.well_name + ' del ' + fechaDisplay(r.fecha) + '?')) return;
-    const del = await supabaseClient.from('bitacora_visitas').delete().eq('visita_id', r.visita_id);
-    if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
-    gridRows.splice(idx, 1);
-    if(editingRowIdx === idx) editingRowIdx = -1;
-    if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
-    updateStatusBar();
-    renderGrid();
-    toast(r.well_name + ' eliminado');
+    showConfirm('Eliminar visita', 'Eliminar de la base de datos la visita de ' + r.well_name + ' del ' + fechaDisplay(r.fecha) + '?', async ()=>{
+      const del = await supabaseClient.from('bitacora_visitas').delete().eq('visita_id', r.visita_id);
+      if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
+      gridRows.splice(idx, 1);
+      if(editingRowIdx === idx) editingRowIdx = -1;
+      if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
+      updateStatusBar();
+      renderGrid();
+      toast(r.well_name + ' eliminado');
+    });
   }
   else if(action === 'data'){
     const w = r;
@@ -1489,11 +1563,34 @@ function confirmCp(){
 }
 
 // ===== GUARDAR → INSERT bitacora_visitas + UPDATE wells bit_* =====
+function rowHasChanges(r){
+  if(!r._snapshot) return true;
+  if(activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id) saveObsFromUI(r);
+  const snap = JSON.parse(r._snapshot);
+  const keys = Object.keys(snap);
+  for(const k of keys){
+    const a = snap[k], b = r[k];
+    if(a === null && b === null) continue;
+    if(a === null || b === null){ return true; }
+    if(String(a) !== String(b)) return true;
+  }
+  return false;
+}
+
 async function guardarVisita(){
   const dirty = gridRows.filter(r => r._dirty);
   if(!dirty.length){ toast('No hay cambios para guardar'); return; }
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
 
+  const sinCambios = dirty.filter(r => !rowHasChanges(r));
+  if(sinCambios.length === dirty.length){
+    showConfirm('Sin cambios', 'No se cambió ningún campo, ¿desea continuar y guardar de todas formas?', ()=>{ doGuardar(dirty); });
+    return;
+  }
+  doGuardar(dirty);
+}
+
+async function doGuardar(dirty){
   let saved = 0;
   for(const r of dirty){
     if(activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id){
