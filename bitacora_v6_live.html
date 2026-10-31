@@ -180,10 +180,10 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .nuevo-sistema-btn:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
 .nuevo-sistema-btn.selected{border-color:var(--glow);background:rgba(14,116,144,.12);color:var(--glow)}
 .nuevo-sistema-btn .nsb-label{display:block;font-size:10px;font-weight:500;color:var(--dim);margin-top:2px}
-.previos-bar{display:none;align-items:center;gap:10px;padding:6px 18px;background:var(--teal);color:#fff;font-family:'IBM Plex Sans Condensed';font-size:12px;font-weight:700;letter-spacing:.04em}
+.previos-bar{display:none;align-items:center;gap:10px;padding:10px 18px;background:var(--teal);color:#fff;font-family:'IBM Plex Sans Condensed';font-size:13px;font-weight:700;letter-spacing:.04em;flex-shrink:0;min-height:36px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .previos-bar.open{display:flex}
-.previos-bar button{background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:'IBM Plex Sans';font-size:11px;font-weight:700;cursor:pointer}
-.previos-bar button:hover{background:rgba(255,255,255,.35)}
+.previos-bar button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 16px;font-family:'IBM Plex Sans';font-size:12px;font-weight:700;cursor:pointer;transition:background .15s}
+.previos-bar button:hover{background:rgba(255,255,255,.45)}
 .row-menu-sep{height:1px;background:var(--border);margin:4px 0}
 
 /* ===== GRID ===== */
@@ -827,6 +827,14 @@ function salirPrevios(){
   toast('Volviste a la grilla actual');
 }
 
+function exitAnySpecialMode(){
+  if(_previosBackup){
+    _previosBackup = null;
+    _previosWellName = null;
+    document.getElementById('previosBar').classList.remove('open');
+  }
+}
+
 const CANCEL_REASONS_KEY = 'vape_cancel_reasons';
 const defaultCancelReasons = [
   'Pozo sin movimiento','Varilla rota','Bomba agarrada','Sin energía eléctrica',
@@ -1020,15 +1028,23 @@ document.getElementById('btnHoy').addEventListener('click', loadToday);
 
 async function loadToday(){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+  exitAnySpecialMode();
   const { data } = await supabaseClient.from('bitacora_visitas')
     .select('visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones')
     .eq('fecha', fechaHoy());
   if(!data?.length){
+    gridRows.length = 0;
+    editingRowIdx = -1;
+    activeRowIdx = -1;
+    renderGrid();
+    updateStatusBar();
     toast('No hay visitas cargadas hoy');
     return;
   }
+  gridRows.length = 0;
+  editingRowIdx = -1;
+  activeRowIdx = -1;
   for(const v of data){
-    if(gridRows.find(r => r.visita_id === v.visita_id)) continue;
     const well = allWells.find(w => w.well_id === v.well_id) || {};
     gridRows.unshift({
       well_id: v.well_id,
@@ -1109,6 +1125,7 @@ async function loadCampDates(){
 
 async function loadCampaign(fecha){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+  exitAnySpecialMode();
   const visitaCols = 'visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones';
   const { data } = await supabaseClient.from('bitacora_visitas')
     .select(visitaCols).eq('fecha', fecha);
@@ -1117,6 +1134,8 @@ async function loadCampaign(fecha){
     return;
   }
   gridRows.length = 0;
+  editingRowIdx = -1;
+  activeRowIdx = -1;
   for(const v of data){
     const well = allWells.find(w => w.well_id === v.well_id) || {};
     gridRows.push({
@@ -1164,6 +1183,7 @@ async function loadCampaign(fecha){
 
 // ===== NUEVO =====
 document.getElementById('btnNuevo').addEventListener('click', ()=>{
+  exitAnySpecialMode();
   gridRows = [];
   activeRowIdx = -1;
   editingRowIdx = -1;
