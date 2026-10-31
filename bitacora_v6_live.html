@@ -811,12 +811,20 @@ function salirPrevios(){
     activeRowIdx = _previosBackup.activeRowIdx;
     editingRowIdx = _previosBackup.editingRowIdx;
     _previosBackup = null;
+    _previosWellName = null;
+    renderGrid();
+    if(activeRowIdx >= 0) setActiveRow(activeRowIdx);
+    updateStatusBar();
+    toast('Volviste a la grilla actual');
+  } else {
+    _previosWellName = null;
+    gridRows.length = 0;
+    editingRowIdx = -1;
+    activeRowIdx = -1;
+    renderGrid();
+    updateStatusBar();
+    toast('Guardaste cambios en previos — usá Hoy para volver al día operativo');
   }
-  _previosWellName = null;
-  renderGrid();
-  if(activeRowIdx >= 0) setActiveRow(activeRowIdx);
-  updateStatusBar();
-  toast('Volviste a la grilla actual');
 }
 
 function exitAnySpecialMode(){
@@ -1776,7 +1784,6 @@ function confirmCp(){
 // ===== GUARDAR → INSERT bitacora_visitas + UPDATE wells bit_* =====
 function rowHasChanges(r){
   if(!r._snapshot) return true;
-  if(activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id) saveObsFromUI(r);
   const snap = JSON.parse(r._snapshot);
   const keys = Object.keys(snap);
   for(const k of keys){
@@ -1789,6 +1796,9 @@ function rowHasChanges(r){
 }
 
 async function guardarVisita(){
+  if(activeRowIdx >= 0 && gridRows[activeRowIdx]){
+    saveObsFromUI(gridRows[activeRowIdx]);
+  }
   const dirty = gridRows.filter(r => r._dirty);
   if(!dirty.length){ toast('No hay cambios para guardar'); return; }
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
@@ -1802,11 +1812,11 @@ async function guardarVisita(){
 }
 
 async function doGuardar(dirty){
+  if(activeRowIdx >= 0 && gridRows[activeRowIdx]){
+    saveObsFromUI(gridRows[activeRowIdx]);
+  }
   let saved = 0;
   for(const r of dirty){
-    if(activeRowIdx >= 0 && gridRows[activeRowIdx].well_id === r.well_id){
-      saveObsFromUI(r);
-    }
     const obs = compileObsText(r);
 
     const visitaPayload = {
@@ -1889,6 +1899,10 @@ async function doGuardar(dirty){
   }
 
   editingRowIdx = -1;
+  if(_previosBackup){
+    _previosBackup = null;
+    _previosWellName = null;
+  }
   updateStatusBar();
   renderGrid();
   toast(saved + ' pozo(s) guardados correctamente');
