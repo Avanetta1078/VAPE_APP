@@ -72,6 +72,21 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .btn-hoy{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
 .btn-hoy:hover{border-color:var(--glow);color:var(--ink)}
 .btn-hoy .hoy-count{background:var(--rust);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700}
+.btn-camp{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
+.btn-camp:hover{border-color:var(--glow);color:var(--ink)}
+.camp-wrap{display:inline-block}
+.camp-panel{display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--panel);border:1px solid var(--brd2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);width:280px;padding:10px;margin-top:4px}
+.camp-panel.open{display:block}
+.camp-head{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:12px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.camp-date-row{display:flex;gap:6px;margin-bottom:8px}
+.camp-date-row input{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border:1px solid var(--brd2);border-radius:4px;background:var(--panel2);color:var(--ink)}
+.camp-load-btn{font-size:11px;padding:5px 12px;background:var(--teal);color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:600}
+.camp-load-btn:hover{filter:brightness(1.2)}
+.camp-list{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.camp-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);transition:background .15s}
+.camp-item:hover{background:var(--panel2)}
+.camp-item .camp-count{background:var(--teal);color:#fff;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700}
+.camp-loading{font-size:11px;color:var(--dim);padding:8px}
 .btn-limpiar{background:transparent;border:1px solid var(--border);color:var(--dim)}
 .btn-limpiar:hover{border-color:var(--rustg);color:var(--rustg)}
 .btn-cancelar{background:transparent;border:1px solid rgba(200,73,44,.35);color:var(--rust)}
@@ -362,6 +377,17 @@ table.cp-table td.placa-cell input{text-align:left}
 <div class="action-bar">
   <button class="ab-btn btn-nuevo" id="btnNuevo" title="Buscar pozo y crear nueva medición"><span class="ab-icon">+</span> Nueva Medición</button>
   <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día"><span class="ab-icon">⏱</span> Hoy <span class="hoy-count" id="hoyCount">0</span></button>
+  <div class="camp-wrap" style="position:relative">
+    <button class="ab-btn btn-camp" id="btnCamp" title="Ver campañas anteriores"><span class="ab-icon">📋</span> Campañas</button>
+    <div class="camp-panel" id="campPanel">
+      <div class="camp-head">Campañas registradas</div>
+      <div class="camp-date-row">
+        <input type="date" id="campDate" style="flex:1">
+        <button class="camp-load-btn" id="campLoadDate">Cargar</button>
+      </div>
+      <div class="camp-list" id="campList"><span class="camp-loading">Cargando fechas…</span></div>
+    </div>
+  </div>
   <div class="ab-sep"></div>
   <span class="ab-pozo empty" id="abPozo">Seleccioná un pozo</span>
   <span class="ab-badge badge-bat" id="abBat" style="display:none"></span>
@@ -771,6 +797,97 @@ async function loadToday(){
   renderGrid();
   if(gridRows.length) setActiveRow(0);
   toast(data.length + ' visitas del día cargadas');
+}
+
+// ===== CAMPAÑAS =====
+const campPanel = document.getElementById('campPanel');
+const campBtn = document.getElementById('btnCamp');
+campBtn.addEventListener('click', async ()=>{
+  campPanel.classList.toggle('open');
+  if(campPanel.classList.contains('open')) await loadCampDates();
+});
+document.addEventListener('click', e=>{
+  if(!campBtn.contains(e.target) && !campPanel.contains(e.target)) campPanel.classList.remove('open');
+});
+
+document.getElementById('campLoadDate').addEventListener('click', ()=>{
+  const dt = document.getElementById('campDate').value;
+  if(!dt){ toast('Elegí una fecha', true); return; }
+  loadCampaign(dt);
+  campPanel.classList.remove('open');
+});
+
+async function loadCampDates(){
+  if(!supabaseClient) return;
+  const list = document.getElementById('campList');
+  list.innerHTML = '<span class="camp-loading">Cargando fechas…</span>';
+  const { data } = await supabaseClient.from('bitacora_visitas')
+    .select('fecha')
+    .order('fecha', {ascending:false});
+  if(!data?.length){ list.innerHTML = '<span class="camp-loading">Sin campañas registradas</span>'; return; }
+  const counts = {};
+  data.forEach(r => { counts[r.fecha] = (counts[r.fecha]||0) + 1; });
+  const dates = Object.keys(counts).sort((a,b) => b.localeCompare(a));
+  list.innerHTML = dates.map(d => {
+    const parts = d.split('-');
+    const display = parts[2]+'/'+parts[1]+'/'+parts[0];
+    return '<div class="camp-item" onclick="loadCampaign(\''+d+'\');campPanel.classList.remove(\'open\')"><span>'+display+'</span><span class="camp-count">'+counts[d]+'</span></div>';
+  }).join('');
+}
+
+async function loadCampaign(fecha){
+  if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+  const visitaCols = 'visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones';
+  const { data } = await supabaseClient.from('bitacora_visitas')
+    .select(visitaCols).eq('fecha', fecha);
+  if(!data?.length){
+    toast('No hay visitas en esa fecha');
+    return;
+  }
+  gridRows.length = 0;
+  for(const v of data){
+    const well = allWells.find(w => w.well_id === v.well_id) || {};
+    gridRows.push({
+      well_id: v.well_id,
+      well_name: v.well_name_raw,
+      fecha: v.fecha,
+      bateria: v.bateria || well.bateria || '',
+      operadora: v.operadora || well.operadora || '',
+      sistema: v.sistema_extraccion || 'AIB',
+      estado: v.tipo_ensayo || 'Dinamico',
+      ensayo: v.tipo_operacion || 'Combinada',
+      nivel_m: v.nivel_medido_m,
+      nivel_estado: v.nivel_estado || 'OK',
+      cancel_motivo: v.cancel_motivo || '',
+      carrera_in: v.carrera_in || null,
+      hz: v.hz || null,
+      pip_kg: v.pip_kg || null,
+      rpm: v.rpm_bes || null,
+      torque: v.torque_inlb || null,
+      presion_tbg: v.presion_tubing_kg || null,
+      presion_csg: v.presion_casing_kg || null,
+      modelo: v.unidad_descripcion || '',
+      motor_marca: v.motor_marca || well.motor_marca || '',
+      motor_rpm: v.motor_rpm || well.motor_rpm || '',
+      motor_hp: v.motor_hp || well.motor_hp || '',
+      motor_polea: v.motor_polea || well.motor_polea || '',
+      contrapesos: v.contrapesos || well.contrapesos || {},
+      observaciones: v.observaciones || '',
+      obs_din: '',
+      obs_niv: '',
+      obs_manual: '',
+      visita_id: v.visita_id,
+      _dirty: false,
+      _alertas: well.alertas_activas || [],
+      _cancelReasons: []
+    });
+  }
+  const parts = fecha.split('-');
+  const display = parts[2]+'/'+parts[1]+'/'+parts[0];
+  renderGrid();
+  if(gridRows.length) setActiveRow(0);
+  updateStatusBar();
+  toast(data.length + ' pozos del ' + display + ' cargados');
 }
 
 // ===== NUEVO =====
