@@ -171,8 +171,19 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .row-menu-item:hover{background:var(--panel2)}
 .row-menu-item .rmi-icon{font-size:14px;width:18px;text-align:center}
 .row-menu-item.rmi-edit{color:var(--glow)}
+.row-menu-item.rmi-nuevo{color:var(--green)}
+.row-menu-item.rmi-previos{color:var(--teal)}
 .row-menu-item.rmi-delete{color:var(--rust)}
 .row-menu-item.rmi-data{color:var(--dim)}
+.nuevo-sistema-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.nuevo-sistema-btn{padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:var(--panel);cursor:pointer;text-align:center;font-family:'IBM Plex Mono';font-size:13px;font-weight:700;color:var(--ink);transition:all .15s}
+.nuevo-sistema-btn:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
+.nuevo-sistema-btn.selected{border-color:var(--glow);background:rgba(14,116,144,.12);color:var(--glow)}
+.nuevo-sistema-btn .nsb-label{display:block;font-size:10px;font-weight:500;color:var(--dim);margin-top:2px}
+.previos-bar{display:none;align-items:center;gap:10px;padding:6px 18px;background:var(--teal);color:#fff;font-family:'IBM Plex Sans Condensed';font-size:12px;font-weight:700;letter-spacing:.04em}
+.previos-bar.open{display:flex}
+.previos-bar button{background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:'IBM Plex Sans';font-size:11px;font-weight:700;cursor:pointer}
+.previos-bar button:hover{background:rgba(255,255,255,.35)}
 .row-menu-sep{height:1px;background:var(--border);margin:4px 0}
 
 /* ===== GRID ===== */
@@ -439,6 +450,13 @@ table.cp-table td.placa-cell input{text-align:left}
 </div>
 
 <!-- ===== GRID ===== -->
+<!-- ===== PREVIOS BAR ===== -->
+<div class="previos-bar" id="previosBar">
+  <span id="previosLabel">Previos de —</span>
+  <span style="flex:1"></span>
+  <button onclick="salirPrevios()">✕ Salir de Previos</button>
+</div>
+
 <div class="grid-outer">
 <div class="grid-panel">
 <table class="main-grid">
@@ -479,6 +497,9 @@ table.cp-table td.placa-cell input{text-align:left}
 <!-- ===== ROW CONTEXT MENU ===== -->
 <div class="row-menu" id="rowMenu">
   <div class="row-menu-item rmi-edit" onclick="rowMenuAction('edit')"><span class="rmi-icon">✎</span> Editar</div>
+  <div class="row-menu-sep"></div>
+  <div class="row-menu-item rmi-nuevo" onclick="rowMenuAction('nuevo')"><span class="rmi-icon">+</span> Nuevo</div>
+  <div class="row-menu-item rmi-previos" onclick="rowMenuAction('previos')"><span class="rmi-icon">◷</span> Previos</div>
   <div class="row-menu-sep"></div>
   <div class="row-menu-item rmi-data" onclick="rowMenuAction('data')"><span class="rmi-icon">≡</span> Datos</div>
   <div class="row-menu-sep"></div>
@@ -558,6 +579,32 @@ table.cp-table td.placa-cell input{text-align:left}
   </div>
 </div>
 
+<!-- ===== NUEVO POZO MODAL ===== -->
+<div class="modal-backdrop" id="nuevoModal" style="display:none">
+  <div class="modal-box" style="width:420px">
+    <div class="modal-title"><span>Crear Nuevo Pozo</span><span class="modal-close" onclick="closeNuevoModal()">✕</span></div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:600;color:var(--dim);display:block;margin-bottom:4px">Nombre del pozo</label>
+      <input id="nuevoNombre" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono';font-size:12px;box-sizing:border-box" placeholder="Ej: YPF.NQ.LLL-1234">
+    </div>
+    <div style="margin-bottom:6px">
+      <label style="font-size:11px;font-weight:600;color:var(--dim);display:block;margin-bottom:4px">Batería (opcional)</label>
+      <input id="nuevoBateria" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono';font-size:12px;box-sizing:border-box" placeholder="Ej: Bat-Norte">
+    </div>
+    <label style="font-size:11px;font-weight:600;color:var(--dim);display:block;margin:10px 0 4px">Sistema de extracción</label>
+    <div class="nuevo-sistema-grid" id="nuevoSistemaGrid">
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'AIB')">AIB<span class="nsb-label">Bombeo Mecánico</span></div>
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'BES')">BES<span class="nsb-label">Electrosumergible</span></div>
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'PCP')">PCP<span class="nsb-label">Cavidades Progresivas</span></div>
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'ROTAFLEX')">ROTAFLEX<span class="nsb-label">Bombeo Rotativo</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeNuevoModal()">Cancelar</button>
+      <button class="modal-btn-ok" id="nuevoOkBtn" onclick="crearNuevoPozo()" disabled>Crear Pozo</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== OBSERVACIONES ===== -->
 <div class="obs-panel">
   <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
@@ -621,6 +668,9 @@ let editingRowIdx = -1;
 let cancelTargetIdx = -1;
 let _nuevaMedicionMode = false;
 let _confirmCb = null;
+let _nuevoSistema = null;
+let _previosBackup = null;
+let _previosWellName = null;
 
 function showConfirm(title, msg, onOk){
   document.getElementById('confirmTitle').textContent = title;
@@ -632,6 +682,149 @@ function closeConfirmModal(accepted){
   document.getElementById('confirmModal').style.display = 'none';
   if(accepted && typeof _confirmCb === 'function') _confirmCb();
   _confirmCb = null;
+}
+
+// ===== NUEVO POZO =====
+function openNuevoModal(){
+  _nuevoSistema = null;
+  document.getElementById('nuevoNombre').value = '';
+  document.getElementById('nuevoBateria').value = '';
+  document.getElementById('nuevoSistemaGrid').querySelectorAll('.nuevo-sistema-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('nuevoOkBtn').disabled = true;
+  document.getElementById('nuevoModal').style.display = '';
+  document.getElementById('nuevoNombre').focus();
+}
+function closeNuevoModal(){ document.getElementById('nuevoModal').style.display = 'none'; }
+function selNuevoSistema(btn, val){
+  document.getElementById('nuevoSistemaGrid').querySelectorAll('.nuevo-sistema-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _nuevoSistema = val;
+  document.getElementById('nuevoOkBtn').disabled = !document.getElementById('nuevoNombre').value.trim();
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.getElementById('nuevoNombre');
+  if(inp) inp.addEventListener('input', ()=>{
+    document.getElementById('nuevoOkBtn').disabled = !inp.value.trim() || !_nuevoSistema;
+  });
+});
+
+async function crearNuevoPozo(){
+  const nombre = document.getElementById('nuevoNombre').value.trim();
+  if(!nombre || !_nuevoSistema){ toast('Completá nombre y sistema', true); return; }
+  if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+
+  const bateria = document.getElementById('nuevoBateria').value.trim();
+  const payload = { well_name: nombre, bit_sistema: _nuevoSistema };
+  if(bateria) payload.bateria = bateria;
+
+  const { data, error } = await supabaseClient.from('wells').insert(payload).select('well_id, well_name, bateria, operadora, bit_sistema');
+  if(error){ toast('Error creando pozo: ' + error.message, true); return; }
+  if(!data?.length){ toast('Error: no se obtuvo el pozo creado', true); return; }
+
+  const w = data[0];
+  allWells.push(w);
+  closeNuevoModal();
+
+  const row = {
+    well_id: w.well_id, well_name: w.well_name, fecha: fechaHoy(),
+    bateria: w.bateria || '', operadora: w.operadora || '',
+    sistema: _nuevoSistema, estado: 'Dinamico', ensayo: 'Combinada',
+    nivel_m: null, nivel_estado: 'OK', cancel_motivo: '',
+    carrera_in: null, hz: null, pip_kg: null, rpm: null, torque: null,
+    presion_tbg: null, presion_csg: null, modelo: '',
+    motor_marca: '', motor_rpm: '', motor_hp: '', motor_polea: '',
+    contrapesos: {}, observaciones: '', obs_din: '', obs_niv: '', obs_manual: '',
+    visita_id: null, _dirty: true, _alertas: [], _cancelReasons: []
+  };
+  row._snapshot = JSON.stringify({
+    fecha: row.fecha, bateria: row.bateria, sistema: row.sistema, estado: row.estado,
+    ensayo: row.ensayo, nivel_m: row.nivel_m, nivel_estado: row.nivel_estado,
+    cancel_motivo: row.cancel_motivo, carrera_in: row.carrera_in, hz: row.hz,
+    pip_kg: row.pip_kg, rpm: row.rpm, torque: row.torque,
+    presion_tbg: row.presion_tbg, presion_csg: row.presion_csg,
+    modelo: row.modelo, motor_marca: row.motor_marca, motor_rpm: row.motor_rpm,
+    motor_hp: row.motor_hp, motor_polea: row.motor_polea,
+    observaciones: '', obs_din: '', obs_niv: '', obs_manual: ''
+  });
+
+  gridRows.unshift(row);
+  editingRowIdx = 0;
+  renderGrid();
+  setActiveRow(0);
+  updateStatusBar();
+  toast(w.well_name + ' creado y listo para editar');
+}
+
+// ===== PREVIOS =====
+async function loadPrevios(wellId, wellName){
+  if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
+  const visitaCols = 'visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones';
+  const { data } = await supabaseClient.from('bitacora_visitas')
+    .select(visitaCols).eq('well_id', wellId).order('fecha', {ascending:false});
+  if(!data?.length){ toast('No hay registros previos de ' + wellName); return; }
+
+  _previosBackup = { gridRows: [...gridRows], activeRowIdx, editingRowIdx };
+  _previosWellName = wellName;
+
+  gridRows.length = 0;
+  const well = allWells.find(w => w.well_id === wellId) || {};
+  for(const v of data){
+    gridRows.push({
+      well_id: v.well_id,
+      well_name: v.well_name_raw || wellName,
+      fecha: v.fecha,
+      bateria: v.bateria || well.bateria || '',
+      operadora: v.operadora || well.operadora || '',
+      sistema: v.sistema_extraccion || 'AIB',
+      estado: v.tipo_ensayo || 'Dinamico',
+      ensayo: v.tipo_operacion || 'Combinada',
+      nivel_m: nn(v.nivel_medido_m),
+      nivel_estado: v.nivel_estado || 'OK',
+      cancel_motivo: v.cancel_motivo || '',
+      carrera_in: nn(v.carrera_in),
+      hz: nn(v.hz),
+      pip_kg: nn(v.pip_kg),
+      rpm: nn(v.rpm_bes),
+      torque: nn(v.torque_inlb),
+      presion_tbg: nn(v.presion_tubing_kg),
+      presion_csg: nn(v.presion_casing_kg),
+      modelo: v.unidad_descripcion || '',
+      motor_marca: v.motor_marca || well.motor_marca || '',
+      motor_rpm: nn(v.motor_rpm, nn(well.motor_rpm, '')),
+      motor_hp: nn(v.motor_hp, nn(well.motor_hp, '')),
+      motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
+      contrapesos: v.contrapesos || well.contrapesos || {},
+      observaciones: v.observaciones || '',
+      obs_din: '', obs_niv: '', obs_manual: '',
+      visita_id: v.visita_id,
+      _dirty: false, _alertas: well.alertas_activas || [], _cancelReasons: []
+    });
+  }
+
+  editingRowIdx = -1;
+  activeRowIdx = -1;
+  document.getElementById('previosLabel').textContent = 'Previos de ' + wellName + ' (' + data.length + ' registros)';
+  document.getElementById('previosBar').classList.add('open');
+  renderGrid();
+  if(gridRows.length) setActiveRow(0);
+  updateStatusBar();
+  toast(data.length + ' registros previos de ' + wellName);
+}
+
+function salirPrevios(){
+  document.getElementById('previosBar').classList.remove('open');
+  if(_previosBackup){
+    gridRows.length = 0;
+    _previosBackup.gridRows.forEach(r => gridRows.push(r));
+    activeRowIdx = _previosBackup.activeRowIdx;
+    editingRowIdx = _previosBackup.editingRowIdx;
+    _previosBackup = null;
+  }
+  _previosWellName = null;
+  renderGrid();
+  if(activeRowIdx >= 0) setActiveRow(activeRowIdx);
+  updateStatusBar();
+  toast('Volviste a la grilla actual');
 }
 
 const CANCEL_REASONS_KEY = 'vape_cancel_reasons';
@@ -1200,6 +1393,12 @@ async function rowMenuAction(action){
       renderGrid();
       toast(r.well_name + ' eliminado');
     });
+  }
+  else if(action === 'nuevo'){
+    openNuevoModal();
+  }
+  else if(action === 'previos'){
+    loadPrevios(r.well_id, r.well_name);
   }
   else if(action === 'data'){
     const w = r;
