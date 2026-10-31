@@ -787,7 +787,7 @@ async function loadPrevios(wellId, wellName){
       motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
       contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
-      obs_din: '', obs_niv: '', obs_manual: '',
+      ...parseObsText(v.observaciones),
       visita_id: v.visita_id,
       _dirty: false, _alertas: well.alertas_activas || [], _cancelReasons: []
     });
@@ -1072,9 +1072,7 @@ async function loadToday(){
       motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
       contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
-      obs_din: '',
-      obs_niv: '',
-      obs_manual: '',
+      ...parseObsText(v.observaciones),
       visita_id: v.visita_id,
       _dirty: false,
       _alertas: well.alertas_activas || [],
@@ -1164,9 +1162,7 @@ async function loadCampaign(fecha){
       motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
       contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
-      obs_din: '',
-      obs_niv: '',
-      obs_manual: '',
+      ...parseObsText(v.observaciones),
       visita_id: v.visita_id,
       _dirty: false,
       _alertas: well.alertas_activas || [],
@@ -2027,6 +2023,21 @@ function compileGeneral(){
   const r = gridRows[activeRowIdx];
   saveObsFromUI(r);
   document.getElementById('obsGeneral').value = compileObsText(r);
+}
+
+function parseObsText(text){
+  const result = { obs_din: '', obs_niv: '', obs_manual: '' };
+  if(!text) return result;
+  const parts = text.split(' | ');
+  const manual = [];
+  for(const p of parts){
+    if(p.startsWith('DIN: ')) result.obs_din = p.slice(5);
+    else if(p.startsWith('NIV: ')) result.obs_niv = p.slice(5);
+    else if(p.startsWith('ALERTAS: ')) continue;
+    else manual.push(p);
+  }
+  result.obs_manual = manual.join(' | ');
+  return result;
 }
 
 function compileObsText(r){
