@@ -167,20 +167,22 @@ body{display:flex;flex-direction:column;overflow:hidden}
 /* ===== GRID ===== */
 .grid-outer{flex:1;overflow:auto;padding:14px 18px 0;background:var(--bg)}
 .grid-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:visible;box-shadow:0 4px 20px rgba(0,0,0,.06)}
-table.main-grid{border-collapse:collapse;width:100%;min-width:960px}
+table.main-grid{border-collapse:separate;border-spacing:0;width:100%;min-width:960px}
 
 thead th{
   font-family:'IBM Plex Sans';font-size:9px;font-weight:700;letter-spacing:.07em;
   text-transform:uppercase;color:var(--dim);padding:8px 6px;text-align:center;
   border-right:1px solid var(--border);border-bottom:2px solid rgba(14,116,144,.2);
-  background:linear-gradient(180deg,#f8f9fb,#eef0f4);white-space:nowrap;vertical-align:middle;
+  background:#eef0f4;white-space:nowrap;vertical-align:middle;
   position:sticky;top:0;z-index:10;
 }
+thead tr:first-child th{top:0}
+thead tr:nth-child(2) th{top:32px}
 thead th:last-child{border-right:none}
-thead th.hi{color:var(--glow);opacity:.85}
-thead th.grp-mot{background:rgba(22,163,74,.06);color:#15803d;font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em;border-bottom:1px solid rgba(22,163,74,.18)}
-thead th.sub-mot{background:rgba(22,163,74,.03);font-size:8px;padding:5px 3px;color:#16a34a;border-bottom:2px solid rgba(14,116,144,.2)}
-thead th.cp-h{background:rgba(146,64,14,.06);color:var(--amber);font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em}
+thead th.hi{color:var(--glow)}
+thead th.grp-mot{background:#eaf5ed;color:#15803d;font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em;border-bottom:1px solid rgba(22,163,74,.18)}
+thead th.sub-mot{background:#f0f8f2;font-size:8px;padding:5px 3px;color:#16a34a;border-bottom:2px solid rgba(14,116,144,.2)}
+thead th.cp-h{background:#fdf5ed;color:var(--amber);font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em}
 
 tbody td{
   padding:5px 5px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
@@ -960,7 +962,7 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
 });
 
 // ===== RENDER GRID =====
-function nv(v){ return v !== null && v !== undefined && v !== '' ? v : ''; }
+function nv(v){ return v !== null && v !== undefined && v !== '' ? v : 0; }
 
 function renderGrid(){
   const tbody = document.getElementById('gridBody');
@@ -997,7 +999,7 @@ function renderGrid(){
       <td><select data-state="${ds}" onchange="onEnsayoChange(${i},this.value)">${ensayoOpts}</select></td>
       <td>
         <div class="nivel-wrap">
-          <input type="text" value="${showInput?nv(r.nivel_m):''}" placeholder="—" ${showInput?'':'hidden'} onchange="onNivelValueChange(${i},this.value)" onfocus="this.select()">
+          <input type="text" value="${showInput?nv(r.nivel_m):''}" placeholder="0" ${showInput?'':'hidden'} onchange="onNivelValueChange(${i},this.value)" onfocus="this.select()">
           <span class="nivel-status ${isCancel?'cancelado':isIndef?'indefinido':''}" ${showInput?'hidden':''}>${isCancel?'Canc.':isIndef?'Indef.':''}</span>
           <select class="nivel-dd" onchange="onNivelDdChange(${i},this.value)">
             <option value="ok" ${nivelDdVal==='ok'?'selected':''}>▾</option>
@@ -1006,18 +1008,18 @@ function renderGrid(){
           </select>
         </div>
       </td>
-      <td style="text-align:center"><input value="${nv(r.carrera_in)}" data-state="${ds}" style="text-align:center;${r.sistema!=='AIB'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='AIB'?'disabled':''} onchange="onFieldChange(${i},'carrera_in',this.value)" onfocus="this.select()"></td>
-      <td style="text-align:center"><input value="${nv(r.hz)}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'hz',this.value)" onfocus="this.select()"></td>
-      <td style="text-align:center"><input value="${nv(r.pip_kg)}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'pip_kg',this.value)" onfocus="this.select()"></td>
-      <td style="text-align:center"><input value="${r.sistema==='PCP'?(nv(r.rpm)+(r.torque!=null?'/'+r.torque:'')):nv(r.rpm)}" data-state="${ds}" style="text-align:center;${r.sistema!=='PCP'?'opacity:.3':''}" placeholder="—" ${r.sistema!=='PCP'?'disabled':''} onchange="onRpmTorqueChange(${i},this.value)" onfocus="this.select()"></td>
-      <td style="text-align:center"><input value="${nv(r.presion_tbg)}" data-state="${ds}" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
-      <td style="text-align:center"><input value="${nv(r.presion_csg)}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'presion_csg',this.value)"></td>
+      <td style="text-align:center"><input value="${nv(r.carrera_in)}" data-state="${ds}" style="text-align:center;${r.sistema!=='AIB'?'opacity:.3':''}" placeholder="0" ${r.sistema!=='AIB'?'disabled':''} onchange="onFieldChange(${i},'carrera_in',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${nv(r.hz)}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="0" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'hz',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${nv(r.pip_kg)}" data-state="${ds}" style="text-align:center;${r.sistema!=='BES'?'opacity:.3':''}" placeholder="0" ${r.sistema!=='BES'?'disabled':''} onchange="onFieldChange(${i},'pip_kg',this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${r.sistema==='PCP'?(nv(r.rpm)+(r.torque!=null?'/'+r.torque:'')):nv(r.rpm)}" data-state="${ds}" style="text-align:center;${r.sistema!=='PCP'?'opacity:.3':''}" placeholder="0" ${r.sistema!=='PCP'?'disabled':''} onchange="onRpmTorqueChange(${i},this.value)" onfocus="this.select()"></td>
+      <td style="text-align:center"><input value="${nv(r.presion_tbg)}" data-state="${ds}" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'presion_tbg',this.value)"></td>
+      <td style="text-align:center"><input value="${nv(r.presion_csg)}" data-state="inherited" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'presion_csg',this.value)"></td>
       <td><input value="${r.modelo}" data-state="inherited" style="font-size:10px" onchange="onFieldChange(${i},'modelo',this.value)"></td>
       <td style="padding:4px"><button class="cp-btn${cpLoaded}" onclick="openCp(${i},this);event.stopPropagation()">Contrapesos</button></td>
       <td class="mot-cell"><input value="${r.motor_marca}" data-state="inherited" onchange="onFieldChange(${i},'motor_marca',this.value)"></td>
-      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_rpm)}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'motor_rpm',this.value)"></td>
-      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_hp)}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'motor_hp',this.value)"></td>
-      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_polea)}" data-state="inherited" style="text-align:center" placeholder="—" onchange="onFieldChange(${i},'motor_polea',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_rpm)}" data-state="inherited" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'motor_rpm',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_hp)}" data-state="inherited" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'motor_hp',this.value)"></td>
+      <td class="mot-cell" style="text-align:center"><input value="${nv(r.motor_polea)}" data-state="inherited" style="text-align:center" placeholder="0" onchange="onFieldChange(${i},'motor_polea',this.value)"></td>
     </tr>`;
   }).join('');
 }
