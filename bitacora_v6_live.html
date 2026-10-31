@@ -687,21 +687,21 @@ async function selectWell(wellId){
     sistema: sistema,
     estado: lv.tipo_ensayo || fl.tipo_ensayo || 'Dinamico',
     ensayo: lv.tipo_operacion || fl.tipo_operacion || 'Combinada',
-    nivel_m: well.bit_nivel_m || lv.nivel_medido_m || null,
+    nivel_m: nn(well.bit_nivel_m, nn(lv.nivel_medido_m)),
     nivel_estado: well.bit_nivel_estado || lv.nivel_estado || fl.nivel_estado || 'OK',
     cancel_motivo: well.bit_cancel_motivo || '',
-    carrera_in: well.bit_carrera_in || parseFloat(fl.carrera_in) || lv.carrera_in || null,
-    hz: well.bit_hz || lv.hz || null,
-    pip_kg: well.bit_pip_kg || lv.pip_kg || null,
-    rpm: well.bit_rpm || lv.rpm_bes || null,
-    torque: well.bit_torque || lv.torque_inlb || null,
-    presion_tbg: lv.presion_tubing_kg || fl.presion_tubing_kg || null,
-    presion_csg: lv.presion_casing_kg || fl.presion_casing_kg || null,
+    carrera_in: nn(well.bit_carrera_in, nn(pf(fl.carrera_in), nn(lv.carrera_in))),
+    hz: nn(well.bit_hz, nn(lv.hz)),
+    pip_kg: nn(well.bit_pip_kg, nn(lv.pip_kg)),
+    rpm: nn(well.bit_rpm, nn(lv.rpm_bes)),
+    torque: nn(well.bit_torque, nn(lv.torque_inlb)),
+    presion_tbg: nn(lv.presion_tubing_kg, nn(fl.presion_tubing_kg)),
+    presion_csg: nn(lv.presion_casing_kg, nn(fl.presion_casing_kg)),
     modelo: lv.unidad_modelo || fl.unidad_descripcion || '',
     motor_marca: well.motor_marca || '',
-    motor_rpm: well.motor_rpm || '',
-    motor_hp: well.motor_hp || '',
-    motor_polea: well.motor_polea || '',
+    motor_rpm: nn(well.motor_rpm, ''),
+    motor_hp: nn(well.motor_hp, ''),
+    motor_polea: nn(well.motor_polea, ''),
     contrapesos: well.contrapesos || {},
     observaciones: '',
     obs_din: '',
@@ -770,21 +770,21 @@ async function loadToday(){
       sistema: v.sistema_extraccion || 'AIB',
       estado: v.tipo_ensayo || 'Dinamico',
       ensayo: v.tipo_operacion || 'Combinada',
-      nivel_m: v.nivel_medido_m,
+      nivel_m: nn(v.nivel_medido_m),
       nivel_estado: v.nivel_estado || 'OK',
       cancel_motivo: v.cancel_motivo || '',
-      carrera_in: v.carrera_in || null,
-      hz: v.hz || null,
-      pip_kg: v.pip_kg || null,
-      rpm: v.rpm_bes || null,
-      torque: v.torque_inlb || null,
-      presion_tbg: v.presion_tubing_kg || null,
-      presion_csg: v.presion_casing_kg || null,
+      carrera_in: nn(v.carrera_in),
+      hz: nn(v.hz),
+      pip_kg: nn(v.pip_kg),
+      rpm: nn(v.rpm_bes),
+      torque: nn(v.torque_inlb),
+      presion_tbg: nn(v.presion_tubing_kg),
+      presion_csg: nn(v.presion_casing_kg),
       modelo: v.unidad_descripcion || '',
       motor_marca: v.motor_marca || well.motor_marca || '',
-      motor_rpm: v.motor_rpm || well.motor_rpm || '',
-      motor_hp: v.motor_hp || well.motor_hp || '',
-      motor_polea: v.motor_polea || well.motor_polea || '',
+      motor_rpm: nn(v.motor_rpm, nn(well.motor_rpm, '')),
+      motor_hp: nn(v.motor_hp, nn(well.motor_hp, '')),
+      motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
       contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
       obs_din: '',
@@ -859,21 +859,21 @@ async function loadCampaign(fecha){
       sistema: v.sistema_extraccion || 'AIB',
       estado: v.tipo_ensayo || 'Dinamico',
       ensayo: v.tipo_operacion || 'Combinada',
-      nivel_m: v.nivel_medido_m,
+      nivel_m: nn(v.nivel_medido_m),
       nivel_estado: v.nivel_estado || 'OK',
       cancel_motivo: v.cancel_motivo || '',
-      carrera_in: v.carrera_in || null,
-      hz: v.hz || null,
-      pip_kg: v.pip_kg || null,
-      rpm: v.rpm_bes || null,
-      torque: v.torque_inlb || null,
-      presion_tbg: v.presion_tubing_kg || null,
-      presion_csg: v.presion_casing_kg || null,
+      carrera_in: nn(v.carrera_in),
+      hz: nn(v.hz),
+      pip_kg: nn(v.pip_kg),
+      rpm: nn(v.rpm_bes),
+      torque: nn(v.torque_inlb),
+      presion_tbg: nn(v.presion_tubing_kg),
+      presion_csg: nn(v.presion_casing_kg),
       modelo: v.unidad_descripcion || '',
       motor_marca: v.motor_marca || well.motor_marca || '',
-      motor_rpm: v.motor_rpm || well.motor_rpm || '',
-      motor_hp: v.motor_hp || well.motor_hp || '',
-      motor_polea: v.motor_polea || well.motor_polea || '',
+      motor_rpm: nn(v.motor_rpm, nn(well.motor_rpm, '')),
+      motor_hp: nn(v.motor_hp, nn(well.motor_hp, '')),
+      motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
       contrapesos: v.contrapesos || well.contrapesos || {},
       observaciones: v.observaciones || '',
       obs_din: '',
@@ -932,16 +932,16 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
   r.sistema = sistema;
   r.estado = lv.tipo_ensayo || fl.tipo_ensayo || 'Dinamico';
   r.ensayo = lv.tipo_operacion || fl.tipo_operacion || 'Combinada';
-  r.nivel_m = well.bit_nivel_m || lv.nivel_medido_m || null;
+  r.nivel_m = nn(well.bit_nivel_m, nn(lv.nivel_medido_m));
   r.nivel_estado = well.bit_nivel_estado || lv.nivel_estado || fl.nivel_estado || 'OK';
   r.cancel_motivo = well.bit_cancel_motivo || '';
-  r.carrera_in = well.bit_carrera_in || parseFloat(fl.carrera_in) || lv.carrera_in || null;
-  r.hz = well.bit_hz || lv.hz || null;
-  r.pip_kg = well.bit_pip_kg || lv.pip_kg || null;
-  r.rpm = well.bit_rpm || lv.rpm_bes || null;
-  r.torque = well.bit_torque || lv.torque_inlb || null;
-  r.presion_tbg = lv.presion_tubing_kg || fl.presion_tubing_kg || null;
-  r.presion_csg = lv.presion_casing_kg || fl.presion_casing_kg || null;
+  r.carrera_in = nn(well.bit_carrera_in, nn(pf(fl.carrera_in), nn(lv.carrera_in)));
+  r.hz = nn(well.bit_hz, nn(lv.hz));
+  r.pip_kg = nn(well.bit_pip_kg, nn(lv.pip_kg));
+  r.rpm = nn(well.bit_rpm, nn(lv.rpm_bes));
+  r.torque = nn(well.bit_torque, nn(lv.torque_inlb));
+  r.presion_tbg = nn(lv.presion_tubing_kg, nn(fl.presion_tubing_kg));
+  r.presion_csg = nn(lv.presion_casing_kg, nn(fl.presion_casing_kg));
   r.modelo = lv.unidad_modelo || fl.unidad_descripcion || '';
   r.motor_marca = well.motor_marca || '';
   r.motor_rpm = well.motor_rpm || '';
@@ -963,6 +963,8 @@ document.getElementById('btnCancelar').addEventListener('click', async ()=>{
 
 // ===== RENDER GRID =====
 function nv(v){ return v !== null && v !== undefined && v !== '' ? v : 0; }
+function nn(v, fb){ return v !== null && v !== undefined && v !== '' ? v : (fb !== undefined ? fb : null); }
+function pf(v){ var n = parseFloat(v); return isNaN(n) ? null : n; }
 
 function renderGrid(){
   const tbody = document.getElementById('gridBody');
@@ -1168,8 +1170,8 @@ function onFieldChange(idx, field, val){
 
 function onRpmTorqueChange(idx, val){
   const parts = val.split('/');
-  gridRows[idx].rpm = parseFloat(parts[0]) || null;
-  gridRows[idx].torque = parts[1] ? (parseFloat(parts[1]) || null) : null;
+  gridRows[idx].rpm = pf(parts[0]);
+  gridRows[idx].torque = parts[1] ? pf(parts[1]) : null;
   gridRows[idx]._dirty = true;
   updateStatusBar();
 }
@@ -1182,7 +1184,7 @@ function onEnsayoChange(idx, val){
 
 // ===== NIVEL: hybrid input + state dropdown =====
 function onNivelValueChange(idx, val){
-  gridRows[idx].nivel_m = parseFloat(val) || null;
+  gridRows[idx].nivel_m = pf(val);
   gridRows[idx].nivel_estado = 'OK';
   gridRows[idx]._dirty = true;
   updateStatusBar();
@@ -1317,10 +1319,10 @@ function openCp(idx, btn){
   document.getElementById('cpPozo').textContent = r.well_name;
   const cp = r.contrapesos || {};
   const vals = [
-    cp.tipo||'—', cp.cant||'—', cp.cm||'—',
-    cp.secu||'—', cp.cant2||'—', cp.cm2||'—',
-    cp.tipo||'—', cp.cant||'—', cp.cm||'—',
-    '—','—','—'
+    nn(cp.tipo,''), nn(cp.cant,''), nn(cp.cm,''),
+    nn(cp.secu,''), nn(cp.cant2,''), nn(cp.cm2,''),
+    nn(cp.tipo,''), nn(cp.cant,''), nn(cp.cm,''),
+    '','',''
   ];
   const placaCols = [0,3,6,9];
   document.getElementById('cpBody').innerHTML = '<tr>' + vals.map((v,i) => {
@@ -1348,11 +1350,11 @@ function confirmCp(){
   const r = gridRows[currentCpIdx];
   r.contrapesos = {
     tipo: document.getElementById('cpF0').value,
-    cant: parseInt(document.getElementById('cpF1').value) || null,
-    cm: parseInt(document.getElementById('cpF2').value) || null,
+    cant: pf(document.getElementById('cpF1').value),
+    cm: pf(document.getElementById('cpF2').value),
     secu: document.getElementById('cpF3').value,
-    cant2: parseInt(document.getElementById('cpF4').value) || null,
-    cm2: parseInt(document.getElementById('cpF5').value) || null,
+    cant2: pf(document.getElementById('cpF4').value),
+    cm2: pf(document.getElementById('cpF5').value),
   };
   r._dirty = true;
   updateStatusBar();
@@ -1383,21 +1385,21 @@ async function guardarVisita(){
       sistema_extraccion: r.sistema,
       tipo_ensayo: r.estado,
       tipo_operacion: r.ensayo,
-      nivel_medido_m: parseFloat(r.nivel_m) || null,
+      nivel_medido_m: pf(r.nivel_m),
       nivel_estado: r.nivel_estado,
       cancel_motivo: r.cancel_motivo || null,
-      presion_tubing_kg: parseFloat(r.presion_tbg) || null,
-      presion_casing_kg: parseFloat(r.presion_csg) || null,
-      carrera_in: parseFloat(r.carrera_in) || null,
-      hz: parseFloat(r.hz) || null,
-      pip_kg: parseFloat(r.pip_kg) || null,
-      rpm_bes: parseFloat(r.rpm) || null,
-      torque_inlb: parseFloat(r.torque) || null,
+      presion_tubing_kg: pf(r.presion_tbg),
+      presion_casing_kg: pf(r.presion_csg),
+      carrera_in: pf(r.carrera_in),
+      hz: pf(r.hz),
+      pip_kg: pf(r.pip_kg),
+      rpm_bes: pf(r.rpm),
+      torque_inlb: pf(r.torque),
       unidad_descripcion: r.modelo,
       motor_marca: r.motor_marca,
-      motor_rpm: parseFloat(r.motor_rpm) || null,
-      motor_hp: parseFloat(r.motor_hp) || null,
-      motor_polea: r.motor_polea === '—' ? null : r.motor_polea,
+      motor_rpm: pf(r.motor_rpm),
+      motor_hp: pf(r.motor_hp),
+      motor_polea: r.motor_polea || null,
       contrapesos: r.contrapesos && r.contrapesos.tipo ? r.contrapesos : null,
       observaciones: obs,
     };
@@ -1416,19 +1418,19 @@ async function guardarVisita(){
 
     const wellUpdate = {
       bit_sistema: r.sistema,
-      bit_carrera_in: parseFloat(r.carrera_in) || null,
-      bit_hz: parseFloat(r.hz) || null,
-      bit_pip_kg: parseFloat(r.pip_kg) || null,
-      bit_rpm: parseFloat(r.rpm) || null,
-      bit_torque: parseFloat(r.torque) || null,
+      bit_carrera_in: pf(r.carrera_in),
+      bit_hz: pf(r.hz),
+      bit_pip_kg: pf(r.pip_kg),
+      bit_rpm: pf(r.rpm),
+      bit_torque: pf(r.torque),
       bit_nivel_estado: r.nivel_estado,
-      bit_nivel_m: parseFloat(r.nivel_m) || null,
+      bit_nivel_m: pf(r.nivel_m),
       bit_cancel_motivo: r.cancel_motivo || null,
       alertas_activas: r._alertas || [],
       motor_marca: r.motor_marca || null,
-      motor_rpm: parseFloat(r.motor_rpm) || null,
-      motor_hp: parseFloat(r.motor_hp) || null,
-      motor_polea: r.motor_polea === '—' ? null : r.motor_polea,
+      motor_rpm: pf(r.motor_rpm),
+      motor_hp: pf(r.motor_hp),
+      motor_polea: r.motor_polea || null,
       contrapesos: r.contrapesos && r.contrapesos.tipo ? r.contrapesos : null,
       bit_updated_at: new Date().toISOString()
     };
