@@ -412,10 +412,10 @@ table.cp-table td.placa-cell input{text-align:left}
 
 /* ===== DATOS MODAL ===== */
 .datos-modal .modal-box{width:520px}
-.datos-section{margin-bottom:10px}
-.datos-section-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--glow);margin-bottom:4px;border-bottom:1px solid rgba(14,116,144,.15);padding-bottom:3px}
-.datos-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11.5px;font-family:'IBM Plex Mono';border-bottom:1px solid var(--panel2)}
-.datos-row .dr-label{color:var(--dim);font-weight:500;font-family:'IBM Plex Sans';font-size:11px}
+.datos-section{margin-bottom:6px}
+.datos-section-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--glow);margin-bottom:2px;border-bottom:1px solid rgba(14,116,144,.12);padding-bottom:2px}
+.datos-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0;font-size:11px;font-family:'IBM Plex Mono';border-bottom:1px solid var(--panel2)}
+.datos-row .dr-label{color:var(--dim);font-weight:500;font-family:'IBM Plex Sans';font-size:10px}
 .datos-row .dr-value{font-weight:700;color:var(--ink);text-align:right}
 .datos-tramo{background:var(--panel2);border-radius:6px;padding:6px 10px;margin-bottom:4px;font-family:'IBM Plex Mono';font-size:11px}
 .datos-tramo .dt-head{font-weight:700;color:var(--glow);font-size:10px;margin-bottom:2px}
@@ -2190,7 +2190,8 @@ function openDatosModal(r){
     return;
   }
 
-  const cp = (v) => `<span class="dr-copy" onclick="event.stopPropagation();navigator.clipboard.writeText('${String(v).replace(/'/g,"\\'")}').then(()=>toast('Copiado'))">⧉</span>`;
+  function esc(v){ return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+  function cpBtn(v){ return '<span class="dr-copy" data-cp="'+esc(v)+'">⧉</span>'; }
   let html = '';
 
   // Sarta de Varillas (tabla estilo VAPE_APP)
@@ -2206,21 +2207,17 @@ function openDatosModal(r){
     html += '<table class="datos-sarta"><tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
     tramos.forEach((t,i) => {
       if(!t) return;
-      html += '<tr><td>'+(i+1)+'</td><td>'+t.diam+cp(t.diam)+'</td><td>'+t.grado+cp(t.grado)+'</td><td>'+t.longMts+' m'+cp(t.longMts+' m')+'</td></tr>';
+      html += '<tr><td>'+(i+1)+'</td><td>'+esc(t.diam)+'</td><td>'+esc(t.grado)+'</td><td>'+t.longMts+' m '+cpBtn(t.longMts+' m')+'</td></tr>';
     });
     html += '</table></div>';
   }
 
   // Bomba
-  const vBomba = (exRow[16]||'-')+'"';
-  const vProfBomba = (exRow[17]||'-')+' m';
-  const vProfAncla = exRow[18]||'-';
-  const vApiBba = exRow[40]||'-';
   html += '<div class="datos-section"><div class="datos-section-title">Bomba</div>';
-  html += '<div class="datos-row"><span class="dr-label">Diámetro Bomba</span><span class="dr-value">'+vBomba+cp(vBomba)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Prof. Bomba</span><span class="dr-value">'+vProfBomba+cp(vProfBomba)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Prof. Ancla</span><span class="dr-value">'+vProfAncla+cp(vProfAncla)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">API Bomba</span><span class="dr-value">'+vApiBba+cp(vApiBba)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Diám. Bomba</span><span class="dr-value">'+esc(exRow[16]||'-')+'"</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Prof. Bomba</span><span class="dr-value">'+esc(exRow[17]||'-')+' m '+cpBtn((exRow[17]||'-')+' m')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Prof. Ancla</span><span class="dr-value">'+esc(exRow[18]||'-')+' '+cpBtn(exRow[18]||'-')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">API Bomba</span><span class="dr-value">'+esc(exRow[40]||'-')+'</span></div>';
   html += '</div>';
 
   // Controles + fórmula agua M3/día
@@ -2230,21 +2227,24 @@ function openDatosModal(r){
   const gas = parseFloat(exRow[30]) || 0;
   const aguaM3 = Math.round(pctAgua * bruta / 100 * 100) / 100;
   html += '<div class="datos-section"><div class="datos-section-title">Controles</div>';
-  html += '<div class="datos-row"><span class="dr-label">Bruta</span><span class="dr-value">'+bruta+' m³/d'+cp(bruta)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Neta</span><span class="dr-value">'+neta+' m³/d'+cp(neta)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">% Agua</span><span class="dr-value">'+pctAgua+'%'+cp(pctAgua)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Agua M³/d</span><span class="dr-value" style="color:var(--glow);font-weight:800">'+aguaM3+' m³/d'+cp(aguaM3)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Gas</span><span class="dr-value">'+gas+' m³/d'+cp(gas)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Bruta</span><span class="dr-value">'+bruta+' m³/d '+cpBtn(bruta)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Neta</span><span class="dr-value">'+neta+' m³/d '+cpBtn(neta)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">% Agua</span><span class="dr-value">'+pctAgua+'% '+cpBtn(pctAgua)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Agua M³/d</span><span class="dr-value" style="color:var(--glow);font-weight:800">'+aguaM3+' m³/d '+cpBtn(aguaM3)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Gas</span><span class="dr-value">'+gas+' m³/d '+cpBtn(gas)+'</span></div>';
   html += '</div>';
 
   // Info pozo (de la grilla)
   html += '<div class="datos-section"><div class="datos-section-title">Pozo (Bitácora)</div>';
-  html += '<div class="datos-row"><span class="dr-label">Sistema</span><span class="dr-value">'+r.sistema+cp(r.sistema)+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Modelo Equipo</span><span class="dr-value">'+(r.modelo||'-')+cp(r.modelo||'-')+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Motor</span><span class="dr-value">'+[r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / ')+cp([r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / '))+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Sistema</span><span class="dr-value">'+esc(r.sistema)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Modelo Equipo</span><span class="dr-value">'+esc(r.modelo||'-')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Motor</span><span class="dr-value">'+esc([r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / '))+'</span></div>';
   html += '</div>';
 
   content.innerHTML = html;
+  content.querySelectorAll('.dr-copy').forEach(btn => {
+    btn.addEventListener('click', function(e){ e.stopPropagation(); navigator.clipboard.writeText(this.dataset.cp).then(()=>toast('Copiado')); });
+  });
   document.getElementById('datosModal').classList.add('open');
 }
 
