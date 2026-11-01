@@ -1092,13 +1092,7 @@ async function loadToday(){
   document.getElementById('hoyCount').textContent = data.length;
   renderGrid();
   if(gridRows.length) setActiveRow(0);
-}
-
-async function refreshHoyCount(){
-  if(!supabaseClient) return;
-  const hoy = fechaHoy();
-  const { count } = await supabaseClient.from('bitacora_visitas').select('visita_id', { count: 'exact', head: true }).eq('fecha', hoy);
-  if(typeof count === 'number') document.getElementById('hoyCount').textContent = count;
+  toast(data.length + ' visitas del día cargadas');
 }
 
 // ===== CAMPAÑAS =====
@@ -1296,8 +1290,6 @@ function renderGrid(){
     const estadoClass = r.estado === 'Estatico' ? 'p-a' : 'p-g';
     const estadoLabel = r.estado === 'Estatico' ? 'Estático' : 'Dinámico';
 
-    const sistemaOpts = ['AIB','BES','PCP','ROTAFLEX','SSE','ABANDONADO'].map(s=>`<option value="${s}" ${r.sistema===s?'selected':''}>${s}</option>`).join('');
-
     let ensayoOpts;
     if(r.estado === 'Estatico'){
       ensayoOpts = ['Nivel','Dina','Cancelado'].map(o => `<option value="${o}" ${r.ensayo===o?'selected':''}>${o}</option>`).join('');
@@ -1317,7 +1309,7 @@ function renderGrid(){
     const editable = r._dirty || eIdx===i;
     const trCls = eIdx>=0&&i!==eIdx?'editing-locked':(eIdx>=0&&i===eIdx?'edit-target active':(i===activeRowIdx?'active':''));
 
-    const sistemaOpts = ['AIB','BES','PCP'].map(s=>`<option value="${s}" ${r.sistema===s?'selected':''}>${s}</option>`).join('');
+    const sistemaOpts = ['AIB','BES','PCP','ROTAFLEX','SSE','ABANDONADO'].map(s=>`<option value="${s}" ${r.sistema===s?'selected':''}>${s}</option>`).join('');
     const estadoOpts = ['Dinamico','Estatico'].map(s=>`<option value="${s}" ${r.estado===s?'selected':''}>${s}</option>`).join('');
 
     return `<tr class="${trCls}" onclick="setActiveRow(${i})" data-idx="${i}">
@@ -1918,6 +1910,13 @@ async function doGuardar(dirty){
   renderGrid();
   toast(saved + ' pozo(s) guardados correctamente');
   refreshHoyCount();
+}
+
+async function refreshHoyCount(){
+  if(!supabaseClient) return;
+  const hoy = fechaHoy();
+  const { count } = await supabaseClient.from('bitacora_visitas').select('visita_id', { count: 'exact', head: true }).eq('fecha', hoy);
+  if(typeof count === 'number') document.getElementById('hoyCount').textContent = count;
 }
 
 // ===== OBSERVATIONS SYSTEM =====
