@@ -419,6 +419,15 @@ table.cp-table td.placa-cell input{text-align:left}
 .datos-row .dr-value{font-weight:700;color:var(--ink);text-align:right}
 .datos-tramo{background:var(--panel2);border-radius:6px;padding:6px 10px;margin-bottom:4px;font-family:'IBM Plex Mono';font-size:11px}
 .datos-tramo .dt-head{font-weight:700;color:var(--glow);font-size:10px;margin-bottom:2px}
+.datos-sarta{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono';font-size:11px;margin-bottom:6px}
+.datos-sarta th{font-size:9px;font-weight:600;color:var(--dim);text-align:right;padding:3px 5px;border-bottom:1px solid var(--border);font-family:'IBM Plex Sans Condensed';text-transform:uppercase;letter-spacing:.05em}
+.datos-sarta th:first-child{text-align:left}
+.datos-sarta td{padding:4px 5px;text-align:right;border-bottom:1px solid var(--panel2);font-weight:600;color:var(--ink)}
+.datos-sarta td:first-child{text-align:left;color:var(--glow);font-weight:700}
+.datos-sarta tr:nth-child(even){background:rgba(14,116,144,.04)}
+.dr-copy{cursor:pointer;opacity:.35;font-size:10px;margin-left:6px;transition:opacity .12s}
+.dr-copy:hover{opacity:1}
+.dr-copy:active{opacity:.6}
 .datos-copy-all{width:100%;padding:8px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--glow));color:#fff;font-family:'IBM Plex Sans';font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;transition:filter .12s}
 .datos-copy-all:hover{filter:brightness(1.15)}
 .datos-no-excel{text-align:center;padding:20px;color:var(--dim);font-size:12px}
@@ -2181,52 +2190,58 @@ function openDatosModal(r){
     return;
   }
 
+  const cp = (v) => `<span class="dr-copy" onclick="event.stopPropagation();navigator.clipboard.writeText('${String(v).replace(/'/g,"\\'")}').then(()=>toast('Copiado'))">⧉</span>`;
   let html = '';
 
-  // Varillas
+  // Sarta de Varillas (tabla estilo VAPE_APP)
   const tramos = [
-    parseTramo(exRow, 4, 6),   // E, G => 1er
-    parseTramo(exRow, 7, 9),   // H, J => 2do
-    parseTramo(exRow, 10, 12), // K, M => 3er
-    parseTramo(exRow, 13, 15), // N, P => 4to
+    parseTramo(exRow, 4, 6),
+    parseTramo(exRow, 7, 9),
+    parseTramo(exRow, 10, 12),
+    parseTramo(exRow, 13, 15),
   ];
-  const tramoLabels = ['1er','2do','3er','4to'];
   const hasTramos = tramos.some(t=>t);
   if(hasTramos){
-    html += '<div class="datos-section"><div class="datos-section-title">Varillas</div>';
+    html += '<div class="datos-section"><div class="datos-section-title">Sarta de Varillas</div>';
+    html += '<table class="datos-sarta"><tr><th>Tramo</th><th>Diám.</th><th>Grado</th><th>Long.</th></tr>';
     tramos.forEach((t,i) => {
       if(!t) return;
-      html += '<div class="datos-tramo"><div class="dt-head">'+tramoLabels[i]+' Tramo — '+t.diam+'</div>';
-      html += 'Grado '+t.grado+', Long <b>'+t.longMts+' mts</b> ('+t.cant+' var × 7.62)</div>';
+      html += '<tr><td>'+(i+1)+'</td><td>'+t.diam+cp(t.diam)+'</td><td>'+t.grado+cp(t.grado)+'</td><td>'+t.longMts+' m'+cp(t.longMts+' m')+'</td></tr>';
     });
-    html += '</div>';
+    html += '</table></div>';
   }
 
   // Bomba
+  const vBomba = (exRow[16]||'-')+'"';
+  const vProfBomba = (exRow[17]||'-')+' m';
+  const vProfAncla = exRow[18]||'-';
+  const vApiBba = exRow[40]||'-';
   html += '<div class="datos-section"><div class="datos-section-title">Bomba</div>';
-  html += '<div class="datos-row"><span class="dr-label">Diámetro Bomba</span><span class="dr-value">'+(exRow[16]||'-')+'"</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Prof. Bomba</span><span class="dr-value">'+(exRow[17]||'-')+' m</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Prof. Ancla</span><span class="dr-value">'+(exRow[18]||'-')+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">API Bomba</span><span class="dr-value">'+(exRow[40]||'-')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Diámetro Bomba</span><span class="dr-value">'+vBomba+cp(vBomba)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Prof. Bomba</span><span class="dr-value">'+vProfBomba+cp(vProfBomba)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Prof. Ancla</span><span class="dr-value">'+vProfAncla+cp(vProfAncla)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">API Bomba</span><span class="dr-value">'+vApiBba+cp(vApiBba)+'</span></div>';
   html += '</div>';
 
-  // Controles + fórmula agua
+  // Controles + fórmula agua M3/día
   const bruta = parseFloat(exRow[27]) || 0;
   const neta = parseFloat(exRow[28]) || 0;
   const pctAgua = parseFloat(exRow[29]) || 0;
   const gas = parseFloat(exRow[30]) || 0;
+  const aguaM3 = Math.round(pctAgua * bruta / 100 * 100) / 100;
   html += '<div class="datos-section"><div class="datos-section-title">Controles</div>';
-  html += '<div class="datos-row"><span class="dr-label">Bruta</span><span class="dr-value">'+bruta+' m³/d</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Neta</span><span class="dr-value">'+neta+' m³/d</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">% Agua</span><span class="dr-value">'+pctAgua+'%</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Gas</span><span class="dr-value">'+gas+' m³/d</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Bruta</span><span class="dr-value">'+bruta+' m³/d'+cp(bruta)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Neta</span><span class="dr-value">'+neta+' m³/d'+cp(neta)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">% Agua</span><span class="dr-value">'+pctAgua+'%'+cp(pctAgua)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Agua M³/d</span><span class="dr-value" style="color:var(--glow);font-weight:800">'+aguaM3+' m³/d'+cp(aguaM3)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Gas</span><span class="dr-value">'+gas+' m³/d'+cp(gas)+'</span></div>';
   html += '</div>';
 
   // Info pozo (de la grilla)
   html += '<div class="datos-section"><div class="datos-section-title">Pozo (Bitácora)</div>';
-  html += '<div class="datos-row"><span class="dr-label">Sistema</span><span class="dr-value">'+r.sistema+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Modelo Equipo</span><span class="dr-value">'+(r.modelo||'-')+'</span></div>';
-  html += '<div class="datos-row"><span class="dr-label">Motor</span><span class="dr-value">'+[r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / ')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Sistema</span><span class="dr-value">'+r.sistema+cp(r.sistema)+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Modelo Equipo</span><span class="dr-value">'+(r.modelo||'-')+cp(r.modelo||'-')+'</span></div>';
+  html += '<div class="datos-row"><span class="dr-label">Motor</span><span class="dr-value">'+[r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / ')+cp([r.motor_marca,r.motor_rpm?r.motor_rpm+'rpm':'',r.motor_hp?r.motor_hp+'hp':''].filter(Boolean).join(' / '))+'</span></div>';
   html += '</div>';
 
   content.innerHTML = html;
@@ -2244,12 +2259,18 @@ function copyDatosAll(){
   content.querySelectorAll('.datos-section').forEach(sec => {
     const title = sec.querySelector('.datos-section-title');
     if(title) text += '— ' + title.textContent + ' —\n';
-    sec.querySelectorAll('.datos-tramo').forEach(t => {
-      text += t.textContent.trim() + '\n';
-    });
+    const tabla = sec.querySelector('.datos-sarta');
+    if(tabla){
+      tabla.querySelectorAll('tr').forEach((tr,i) => {
+        if(i===0) return;
+        const cells = tr.querySelectorAll('td');
+        text += 'Tramo '+cells[0].textContent.trim()+': '+cells[1].textContent.trim()+', '+cells[2].textContent.trim()+', '+cells[3].textContent.trim()+'\n';
+      });
+    }
     sec.querySelectorAll('.datos-row').forEach(row => {
       const label = row.querySelector('.dr-label')?.textContent || '';
-      const value = row.querySelector('.dr-value')?.textContent || '';
+      const valEl = row.querySelector('.dr-value');
+      const value = valEl ? valEl.textContent.replace(/⧉/g,'').trim() : '';
       text += label + ': ' + value + '\n';
     });
     text += '\n';
