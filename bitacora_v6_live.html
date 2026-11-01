@@ -172,6 +172,51 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .tabs{display:flex;gap:1px;padding:8px 18px 0;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0}
 .tab{padding:7px 15px;border-radius:6px 6px 0 0;font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);cursor:pointer;border:1px solid transparent;border-bottom:none}
 .tab.active{background:var(--bg);color:var(--ink);border-color:var(--border);border-bottom-color:var(--bg);margin-bottom:-1px;position:relative}
+.tab-partes-badge{background:var(--glow);color:#fff;font-size:8px;font-weight:800;border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:middle}
+
+.bitacora-view{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.bitacora-view:not(.active){display:none}
+
+/* ===== PARTES PANEL ===== */
+.partes-view{display:none;flex:1;flex-direction:column;padding:18px;background:var(--bg);overflow-y:auto}
+.partes-view.active{display:flex}
+.prt-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.prt-header h2{font-family:'IBM Plex Sans Condensed';font-size:16px;font-weight:700;color:var(--ink);margin:0;letter-spacing:.02em}
+.prt-step{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.prt-step-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prt-step-num{width:24px;height:24px;border-radius:50%;background:var(--glow);color:#fff;font-family:'IBM Plex Mono';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prt-step-num.done{background:var(--green)}
+.prt-step-title{font-family:'IBM Plex Sans Condensed';font-size:13px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.prt-step-body{padding-left:34px}
+.prt-upload-area{border:2px dashed var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;color:var(--dim);font-size:12px;font-family:'IBM Plex Sans'}
+.prt-upload-area:hover{border-color:var(--glow);color:var(--glow)}
+.prt-upload-area.has-files{border-color:var(--green);border-style:solid;color:var(--green)}
+.prt-match-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono';font-size:11px}
+.prt-match-table th{font-family:'IBM Plex Sans Condensed';font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:4px 6px;text-align:left;border-bottom:1px solid var(--border)}
+.prt-match-table td{padding:5px 6px;border-bottom:1px solid var(--panel2)}
+.prt-match-ok{color:var(--green);font-weight:700}
+.prt-match-fail{color:var(--rust);font-weight:700}
+.prt-match-warn{color:var(--amber);font-weight:700}
+.prt-match-fix{font-size:10px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--panel);cursor:pointer;color:var(--glow);font-family:'IBM Plex Sans';font-weight:600}
+.prt-match-fix:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
+.prt-match-select{font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;font-family:'IBM Plex Mono';background:var(--panel)}
+.prt-summary{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}
+.prt-stat{background:var(--panel2);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px}
+.prt-stat-val{font-family:'IBM Plex Mono';font-size:18px;font-weight:800;color:var(--ink)}
+.prt-stat-lbl{font-family:'IBM Plex Sans';font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.prt-btn{padding:8px 18px;border:none;border-radius:8px;font-family:'IBM Plex Sans';font-weight:700;font-size:12px;cursor:pointer;transition:all .12s}
+.prt-btn-primary{background:linear-gradient(135deg,var(--teal),var(--glow));color:#fff}
+.prt-btn-primary:hover{filter:brightness(1.15)}
+.prt-btn-primary:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.prt-btn-secondary{background:var(--panel);border:1px solid var(--border);color:var(--dim)}
+.prt-btn-secondary:hover{border-color:var(--glow);color:var(--glow)}
+.prt-historial{margin-top:14px}
+.prt-hist-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono';font-size:11px}
+.prt-hist-table th{font-family:'IBM Plex Sans Condensed';font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.prt-hist-table td{padding:5px 8px;border-bottom:1px solid var(--panel2)}
+.prt-hist-table tr:hover{background:var(--panel2)}
+.prt-badge-open{background:rgba(146,64,14,.12);color:var(--amber);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px}
+.prt-badge-closed{background:rgba(21,128,61,.1);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px}
 
 /* ===== ROW CONTEXT MENU ===== */
 .row-menu{position:fixed;z-index:250;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);padding:4px;min-width:170px;display:none}
@@ -497,10 +542,12 @@ table.cp-table td.placa-cell input{text-align:left}
 </div>
 
 <!-- ===== TABS ===== -->
-<div class="tabs">
-  <div class="tab active">Bitácora</div><div class="tab">Consultas</div><div class="tab">Recorrido</div>
+<div class="tabs" id="mainTabs">
+  <div class="tab active" data-tab="bitacora">Bitácora</div><div class="tab" data-tab="partes">Partes</div><div class="tab" data-tab="consultas">Consultas</div><div class="tab" data-tab="recorrido">Recorrido</div>
 </div>
 
+<!-- ===== BITACORA VIEW ===== -->
+<div class="bitacora-view" id="viewBitacora">
 <!-- ===== GRID ===== -->
 <div class="grid-outer">
 <div class="grid-panel">
@@ -692,6 +739,57 @@ table.cp-table td.placa-cell input{text-align:left}
   <span class="sb-hint" id="sbHint">Sin cambios pendientes</span>
   <span class="sb-dirty" id="sbDirty"></span>
   <span class="sb-keys">Ctrl+S guardar</span>
+</div>
+
+</div><!-- /bitacora-view -->
+
+<!-- ===== PARTES VIEW ===== -->
+<div class="partes-view" id="viewPartes">
+  <div class="prt-header">
+    <h2>Generador de Partes</h2>
+    <span style="font-size:11px;color:var(--dim);font-family:'IBM Plex Sans'">Cierre de jornada — emparejar TAM con Bitácora</span>
+  </div>
+
+  <!-- PASO 1: Subir carpeta TAM -->
+  <div class="prt-step" id="prtStep1">
+    <div class="prt-step-head"><div class="prt-step-num" id="prtNum1">1</div><div class="prt-step-title">Subir carpeta TAM del día</div></div>
+    <div class="prt-step-body">
+      <div class="prt-upload-area" id="prtUploadArea" onclick="document.getElementById('prtFileInput').click()">
+        📁 Hacé clic para seleccionar los archivos (CSV + .dyn/.txt)<br>
+        <span style="font-size:10px;color:var(--faint)">O arrastrá la carpeta aquí</span>
+      </div>
+      <input type="file" id="prtFileInput" multiple accept=".csv,.txt,.dyn" style="display:none">
+      <div id="prtFileList" style="margin-top:6px;font-size:10px;color:var(--dim)"></div>
+    </div>
+  </div>
+
+  <!-- PASO 2: Emparejamiento -->
+  <div class="prt-step" id="prtStep2" style="display:none">
+    <div class="prt-step-head"><div class="prt-step-num" id="prtNum2">2</div><div class="prt-step-title">Emparejamiento Bitácora ↔ TAM</div></div>
+    <div class="prt-step-body">
+      <div class="prt-summary" id="prtMatchSummary"></div>
+      <div style="overflow-x:auto"><table class="prt-match-table" id="prtMatchTable"><thead><tr><th>Pozo (Bitácora)</th><th>Pozo (TAM/CSV)</th><th>Archivos</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="prtMatchBody"></tbody></table></div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="prt-btn prt-btn-primary" id="prtConfirmMatch" disabled>Confirmar emparejamiento</button>
+        <button class="prt-btn prt-btn-secondary" onclick="prtReset()">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: Generar parte y cerrar -->
+  <div class="prt-step" id="prtStep3" style="display:none">
+    <div class="prt-step-head"><div class="prt-step-num" id="prtNum3">3</div><div class="prt-step-title">Parte generado</div></div>
+    <div class="prt-step-body" id="prtParteResult"></div>
+  </div>
+
+  <!-- HISTORIAL DE PARTES -->
+  <div class="prt-historial">
+    <div style="font-family:'IBM Plex Sans Condensed';font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Historial de Partes</div>
+    <table class="prt-hist-table">
+      <thead><tr><th>Nº Parte</th><th>Fecha</th><th>Pozos</th><th>DYN</th><th>ACU</th><th>COMB</th><th>Estado</th><th>Origen</th></tr></thead>
+      <tbody id="prtHistBody"><tr><td colspan="8" style="color:var(--dim);text-align:center;padding:12px">Cargando...</td></tr></tbody>
+    </table>
+  </div>
 </div>
 
 <!-- ===== LEGEND ===== -->
@@ -2283,6 +2381,329 @@ function copyDatosAll(){
     text += '\n';
   });
   navigator.clipboard.writeText(text.trim()).then(()=> toast('Datos copiados al portapapeles'));
+}
+
+// ===== TABS =====
+document.getElementById('viewBitacora').classList.add('active');
+document.querySelectorAll('#mainTabs .tab').forEach(tab => {
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('#mainTabs .tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    const view = this.dataset.tab;
+    document.getElementById('viewBitacora').classList.toggle('active', view === 'bitacora');
+    document.getElementById('viewPartes').classList.toggle('active', view === 'partes');
+    if(view === 'partes') prtLoadHistorial();
+  });
+});
+
+// ===== PARTES MODULE =====
+let _prtCsvRows = [];
+let _prtTxtFiles = [];
+let _prtMatches = [];
+
+function prtReset(){
+  _prtCsvRows = [];
+  _prtTxtFiles = [];
+  _prtMatches = [];
+  document.getElementById('prtFileInput').value = '';
+  document.getElementById('prtUploadArea').classList.remove('has-files');
+  document.getElementById('prtFileList').innerHTML = '';
+  document.getElementById('prtStep2').style.display = 'none';
+  document.getElementById('prtStep3').style.display = 'none';
+  document.getElementById('prtNum1').classList.remove('done');
+  document.getElementById('prtNum2').classList.remove('done');
+  document.getElementById('prtNum3').classList.remove('done');
+  document.getElementById('prtConfirmMatch').disabled = true;
+}
+
+document.getElementById('prtFileInput').addEventListener('change', async function(){
+  const files = Array.from(this.files);
+  if(!files.length) return;
+  const csvFile = files.find(f => f.name.toLowerCase().endsWith('.csv'));
+  const txtFiles = files.filter(f => f.name.toLowerCase().endsWith('.txt') || f.name.toLowerCase().endsWith('.dyn'));
+  if(!csvFile && !txtFiles.length){ toast('No se encontraron archivos CSV ni TXT/DYN', true); return; }
+
+  const area = document.getElementById('prtUploadArea');
+  area.classList.add('has-files');
+  const listEl = document.getElementById('prtFileList');
+  listEl.innerHTML = (csvFile ? '📄 CSV: <b>'+csvFile.name+'</b><br>' : '') + '📎 Archivos DYN/TXT: <b>'+txtFiles.length+'</b>';
+
+  if(csvFile){
+    const text = await csvFile.text();
+    _prtCsvRows = prtParseCsv(text);
+  }
+  _prtTxtFiles = txtFiles;
+  document.getElementById('prtNum1').classList.add('done');
+  prtDoMatch();
+});
+
+// Drag and drop
+const prtArea = document.getElementById('prtUploadArea');
+prtArea.addEventListener('dragover', e => { e.preventDefault(); prtArea.style.borderColor = 'var(--glow)'; });
+prtArea.addEventListener('dragleave', () => { prtArea.style.borderColor = ''; });
+prtArea.addEventListener('drop', async e => {
+  e.preventDefault();
+  prtArea.style.borderColor = '';
+  const items = Array.from(e.dataTransfer.files);
+  if(!items.length) return;
+  const csvFile = items.find(f => f.name.toLowerCase().endsWith('.csv'));
+  const txtFiles = items.filter(f => f.name.toLowerCase().endsWith('.txt') || f.name.toLowerCase().endsWith('.dyn'));
+  if(csvFile){
+    _prtCsvRows = prtParseCsv(await csvFile.text());
+  }
+  _prtTxtFiles = txtFiles;
+  prtArea.classList.add('has-files');
+  document.getElementById('prtFileList').innerHTML = (csvFile ? '📄 CSV: <b>'+csvFile.name+'</b><br>' : '') + '📎 Archivos DYN/TXT: <b>'+txtFiles.length+'</b>';
+  document.getElementById('prtNum1').classList.add('done');
+  prtDoMatch();
+});
+
+function prtParseCsv(text){
+  const delim = text.split('\n')[0].includes(';') ? ';' : ',';
+  const lines = text.split(/\r?\n/).filter(l => l.length);
+  const headers = lines[0].split(delim).map(h => h.replace(/^﻿/,'').replace(/"/g,'').trim());
+  return lines.slice(1).map(line => {
+    const cells = line.split(delim).map(c => c.replace(/^"|"$/g,'').trim());
+    const row = {};
+    headers.forEach((h,i) => { row[h] = cells[i] || ''; });
+    return row;
+  });
+}
+
+function prtParseTxtName(name){
+  const m = name.match(/^(.*?)_(ACU|DYN)_\d+_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})-(\d{2})\.(txt|dyn)$/i);
+  if(!m) return null;
+  return { well: m[1], type: m[2].toUpperCase(), date: m[5]+'-'+m[3]+'-'+m[4] };
+}
+
+function prtNormalize(name){
+  return String(name||'').trim().toUpperCase().replace(/[\s_\-\.]+/g,' ').replace(/[^A-Z0-9 ]/g,'');
+}
+
+function prtDoMatch(){
+  const body = document.getElementById('prtMatchBody');
+  const summary = document.getElementById('prtMatchSummary');
+  _prtMatches = [];
+
+  const csvWells = [...new Set(_prtCsvRows.map(r => (r['Well Name']||'').trim()).filter(Boolean))];
+  const txtParsed = _prtTxtFiles.map(f => ({ file: f, meta: prtParseTxtName(f.name) }));
+
+  const today = fechaHoy();
+  const bitacoraWells = gridRows.filter(r => r.fecha === today);
+
+  if(!bitacoraWells.length){
+    body.innerHTML = '<tr><td colspan="5" style="color:var(--rust);text-align:center;padding:12px">No hay pozos en la Bitácora de hoy. Cargá los pozos primero.</td></tr>';
+    document.getElementById('prtStep2').style.display = '';
+    return;
+  }
+
+  let okCount = 0, failCount = 0, warnCount = 0;
+
+  bitacoraWells.forEach(bw => {
+    const bName = bw.well_name;
+    const bNorm = prtNormalize(bName);
+
+    let csvMatch = csvWells.find(c => prtNormalize(c) === bNorm);
+    let matchType = csvMatch ? 'ok' : null;
+
+    if(!csvMatch){
+      csvMatch = csvWells.find(c => prtNormalize(c).includes(bNorm) || bNorm.includes(prtNormalize(c)));
+      if(csvMatch) matchType = 'partial';
+    }
+    if(!csvMatch){
+      const candidates = csvWells.filter(c => {
+        const cn = prtNormalize(c);
+        const words = bNorm.split(' ');
+        return words.filter(w => w.length > 2 && cn.includes(w)).length >= Math.max(1, words.length - 1);
+      });
+      if(candidates.length === 1){ csvMatch = candidates[0]; matchType = 'fuzzy'; }
+    }
+
+    const txtMatches = csvMatch ? txtParsed.filter(t => t.meta && prtNormalize(t.meta.well) === prtNormalize(csvMatch)) : [];
+    const hasDyn = txtMatches.some(t => t.meta?.type === 'DYN');
+    const hasAcu = txtMatches.some(t => t.meta?.type === 'ACU');
+
+    const entry = {
+      bitacora: bName,
+      csv: csvMatch || '',
+      matchType: matchType || 'none',
+      txtCount: txtMatches.length,
+      hasDyn, hasAcu,
+      resolved: matchType === 'ok',
+      manualCsv: '',
+      sistema: bw.sistema,
+      ensayo: bw.ensayo
+    };
+
+    if(matchType === 'ok') okCount++;
+    else if(matchType) warnCount++;
+    else failCount++;
+
+    _prtMatches.push(entry);
+  });
+
+  summary.innerHTML =
+    '<div class="prt-stat"><div class="prt-stat-val">'+bitacoraWells.length+'</div><div class="prt-stat-lbl">Pozos Bitácora</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+csvWells.length+'</div><div class="prt-stat-lbl">Pozos CSV</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+_prtTxtFiles.length+'</div><div class="prt-stat-lbl">Archivos DYN/TXT</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val" style="color:var(--green)">'+okCount+'</div><div class="prt-stat-lbl">Exactos</div></div>'+
+    (warnCount ? '<div class="prt-stat"><div class="prt-stat-val" style="color:var(--amber)">'+warnCount+'</div><div class="prt-stat-lbl">Parciales</div></div>' : '')+
+    (failCount ? '<div class="prt-stat"><div class="prt-stat-val" style="color:var(--rust)">'+failCount+'</div><div class="prt-stat-lbl">Sin match</div></div>' : '');
+
+  prtRenderMatchTable();
+  document.getElementById('prtStep2').style.display = '';
+  prtCheckAllResolved();
+}
+
+function prtRenderMatchTable(){
+  const body = document.getElementById('prtMatchBody');
+  const csvWells = [...new Set(_prtCsvRows.map(r => (r['Well Name']||'').trim()).filter(Boolean))];
+
+  body.innerHTML = _prtMatches.map((m,i) => {
+    let statusHtml, actionHtml;
+    if(m.matchType === 'ok' || m.resolved){
+      statusHtml = '<span class="prt-match-ok">✓ OK</span>';
+      actionHtml = m.txtCount ? (m.hasDyn?'DYN ':'')+(m.hasAcu?'ACU':'') : '<span style="color:var(--dim)">sin archivos</span>';
+    } else if(m.matchType === 'partial' || m.matchType === 'fuzzy'){
+      statusHtml = '<span class="prt-match-warn">~ Parcial</span>';
+      actionHtml = '<button class="prt-match-fix" onclick="prtAcceptMatch('+i+')">Aceptar</button> <button class="prt-match-fix" onclick="prtManualMatch('+i+')">Cambiar</button>';
+    } else {
+      statusHtml = '<span class="prt-match-fail">✕ Sin match</span>';
+      const opts = csvWells.map(c => '<option value="'+c.replace(/"/g,'&quot;')+'">'+c+'</option>').join('');
+      actionHtml = '<select class="prt-match-select" onchange="prtSetManual('+i+',this.value)"><option value="">— Elegir —</option>'+opts+'</select>';
+    }
+    return '<tr><td>'+m.bitacora+'</td><td>'+(m.csv||'<span style="color:var(--rust)">—</span>')+'</td><td style="text-align:center">'+m.txtCount+'</td><td>'+statusHtml+'</td><td>'+actionHtml+'</td></tr>';
+  }).join('');
+}
+
+function prtAcceptMatch(idx){
+  _prtMatches[idx].resolved = true;
+  prtRenderMatchTable();
+  prtCheckAllResolved();
+}
+
+function prtManualMatch(idx){
+  const csvWells = [...new Set(_prtCsvRows.map(r => (r['Well Name']||'').trim()).filter(Boolean))];
+  const opts = csvWells.map(c => '<option value="'+c.replace(/"/g,'&quot;')+'">'+c+'</option>').join('');
+  const cell = document.getElementById('prtMatchBody').rows[idx]?.cells[4];
+  if(cell) cell.innerHTML = '<select class="prt-match-select" onchange="prtSetManual('+idx+',this.value)"><option value="">— Elegir —</option>'+opts+'</select>';
+}
+
+function prtSetManual(idx, val){
+  if(!val) return;
+  _prtMatches[idx].csv = val;
+  _prtMatches[idx].matchType = 'manual';
+  _prtMatches[idx].resolved = true;
+  const txtParsed = _prtTxtFiles.map(f => ({ file: f, meta: prtParseTxtName(f.name) }));
+  const txtMatches = txtParsed.filter(t => t.meta && prtNormalize(t.meta.well) === prtNormalize(val));
+  _prtMatches[idx].txtCount = txtMatches.length;
+  _prtMatches[idx].hasDyn = txtMatches.some(t => t.meta?.type === 'DYN');
+  _prtMatches[idx].hasAcu = txtMatches.some(t => t.meta?.type === 'ACU');
+  prtRenderMatchTable();
+  prtCheckAllResolved();
+}
+
+function prtCheckAllResolved(){
+  const allOk = _prtMatches.every(m => m.resolved);
+  document.getElementById('prtConfirmMatch').disabled = !allOk;
+}
+
+document.getElementById('prtConfirmMatch').addEventListener('click', async function(){
+  this.disabled = true;
+  this.textContent = 'Cerrando día...';
+
+  const today = fechaHoy();
+  const parts = today.split('-');
+  const fechaFmt = parts[2]+'/'+parts[1]+'/'+parts[0];
+
+  const counts = { Combinada:0, Dina:0, Nivel:0 };
+  _prtMatches.forEach(m => {
+    if(m.hasDyn && m.hasAcu) counts.Combinada++;
+    else if(m.hasDyn) counts.Dina++;
+    else counts.Nivel++;
+  });
+
+  const baterias = [...new Set(gridRows.filter(r=>r.fecha===today).map(r=>r.bateria).filter(Boolean))].join(', ');
+  const operadora = gridRows.find(r=>r.fecha===today)?.operadora || '';
+
+  let nextNum = today.split('-')[0]+'-0001';
+  if(supabaseClient){
+    try{
+      const { data } = await supabaseClient.from('partes').select('nro_parte').ilike('nro_parte', today.split('-')[0]+'-%').order('nro_parte',{ascending:false}).limit(1);
+      if(data?.length){
+        const seq = parseInt(data[0].nro_parte.split('-').pop(),10)||0;
+        nextNum = today.split('-')[0]+'-'+String(seq+1).padStart(4,'0');
+      }
+    } catch(e){}
+  }
+
+  if(supabaseClient){
+    try{
+      await supabaseClient.from('partes').upsert({
+        fecha: today,
+        operadora: operadora || 'TODAS',
+        yacimiento: operadora,
+        nro_parte: nextNum,
+        baterias: baterias,
+        observaciones: 'Cerrado desde Bitácora',
+        total_pozos: _prtMatches.length,
+        pozos_dyn: counts.Dina,
+        pozos_acu: counts.Nivel,
+        pozos_ambos: counts.Combinada,
+        created_by: 'bitacora'
+      }, { onConflict: 'fecha,operadora' });
+    } catch(e){ console.error('Error guardando parte:', e); }
+  }
+
+  document.getElementById('prtNum2').classList.add('done');
+  document.getElementById('prtNum3').classList.add('done');
+  document.getElementById('prtStep3').style.display = '';
+
+  document.getElementById('prtParteResult').innerHTML =
+    '<div style="text-align:center;padding:12px">'+
+    '<div style="font-size:28px;margin-bottom:6px">✓</div>'+
+    '<div style="font-family:\'IBM Plex Sans Condensed\';font-size:14px;font-weight:700;color:var(--green)">Parte '+nextNum+' — '+fechaFmt+'</div>'+
+    '<div class="prt-summary" style="justify-content:center">'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+_prtMatches.length+'</div><div class="prt-stat-lbl">Total</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+counts.Combinada+'</div><div class="prt-stat-lbl">Combinada</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+counts.Dina+'</div><div class="prt-stat-lbl">Dina</div></div>'+
+    '<div class="prt-stat"><div class="prt-stat-val">'+counts.Nivel+'</div><div class="prt-stat-lbl">Nivel</div></div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--dim);margin-top:6px">Cerrado desde Bitácora · '+new Date().toLocaleTimeString('es-AR')+'</div>'+
+    '</div>';
+
+  this.textContent = 'Confirmar emparejamiento';
+  toast('Parte '+nextNum+' generado y cerrado');
+  prtLoadHistorial();
+});
+
+async function prtLoadHistorial(){
+  if(!supabaseClient) return;
+  const body = document.getElementById('prtHistBody');
+  try{
+    const { data } = await supabaseClient.from('partes').select('*').order('fecha',{ascending:false}).limit(20);
+    if(!data?.length){
+      body.innerHTML = '<tr><td colspan="8" style="color:var(--dim);text-align:center;padding:12px">Sin partes registrados</td></tr>';
+      return;
+    }
+    body.innerHTML = data.map(p => {
+      const [y,m,d] = p.fecha.split('-');
+      const isClosed = (p.observaciones||'').includes('Cerrado');
+      const origen = p.created_by === 'bitacora' ? 'Bitácora' : 'VAPE_APP';
+      return '<tr>'+
+        '<td style="font-weight:700;color:var(--glow)">'+p.nro_parte+'</td>'+
+        '<td>'+d+'/'+m+'/'+y+'</td>'+
+        '<td style="font-weight:700">'+p.total_pozos+'</td>'+
+        '<td>'+p.pozos_dyn+'</td>'+
+        '<td>'+p.pozos_acu+'</td>'+
+        '<td>'+p.pozos_ambos+'</td>'+
+        '<td>'+(isClosed ? '<span class="prt-badge-closed">CERRADO</span>' : '<span class="prt-badge-open">ABIERTO</span>')+'</td>'+
+        '<td style="font-size:10px;color:var(--dim)">'+origen+'</td>'+
+        '</tr>';
+    }).join('');
+  } catch(e){
+    body.innerHTML = '<tr><td colspan="8" style="color:var(--rust);padding:12px">Error cargando historial</td></tr>';
+  }
 }
 
 // ===== KEYBOARD =====
