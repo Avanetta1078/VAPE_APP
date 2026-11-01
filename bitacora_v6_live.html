@@ -335,7 +335,7 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-header{flex-shrink:0;padding-top:2px;min-width:90px}
 .obs-header .oh-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--glow)}
 .obs-header .oh-sub{font-size:10px;color:var(--dim);margin-top:2px}
-.obs-fields{display:flex;gap:8px;flex:1}
+.obs-fields{display:flex;gap:8px;flex:1;align-items:stretch}
 .obs-col{flex:1;display:flex;flex-direction:column;gap:3px}
 .obs-col-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);display:flex;align-items:center;gap:6px}
 .obs-col-label .ocl-tag{font-size:8px;padding:1px 5px;border-radius:3px;font-family:'IBM Plex Mono'}
@@ -377,7 +377,8 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-textarea.readonly{color:var(--dim);background:rgba(238,240,244,.8);cursor:default}
 .obs-copy-btn{position:absolute;top:3px;right:3px;background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;color:var(--dim);opacity:.5;transition:opacity .15s}
 .obs-copy-btn:hover{opacity:1;border-color:var(--glow);color:var(--glow)}
-.obs-ta-wrap{position:relative}
+.obs-ta-wrap{position:relative;flex:1;display:flex;flex-direction:column}
+.obs-ta-wrap .obs-textarea{flex:1}
 
 /* ===== STATUS BAR (slim, bottom) ===== */
 .status-bar{
@@ -611,7 +612,7 @@ table.cp-table td.placa-cell input{text-align:left}
 
 <!-- ===== OBSERVACIONES ===== -->
 <div class="obs-panel">
-  <div class="obs-header"><div class="oh-title">Observaciones</div><div class="oh-sub" id="obsPozo">—</div></div>
+  <div class="obs-header"><div class="oh-title">Observaciones</div></div>
   <div class="obs-fields">
     <div class="obs-col">
       <div class="obs-col-label">General <span class="ocl-tag ocl-gen">GEN</span></div>
@@ -1461,7 +1462,6 @@ function setActiveRow(idx){
   cs.className = 'ab-badge badge-sistema badge-' + r.sistema.toLowerCase();
   cs.style.display = '';
 
-  document.getElementById('obsPozo').textContent = r.well_name;
   loadObsForRow(r);
 
   document.getElementById('btnGuardar').disabled = false;
