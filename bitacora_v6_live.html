@@ -180,7 +180,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .row-menu-item.rmi-delete:hover{background:rgba(200,73,44,.08)}
 .row-menu-item.rmi-data{color:var(--dim)}
 .row-menu-item.rmi-data:hover{background:rgba(0,0,0,.04)}
-.nuevo-sistema-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.nuevo-sistema-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
 .nuevo-sistema-btn{padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:var(--panel);cursor:pointer;text-align:center;font-family:'IBM Plex Mono';font-size:13px;font-weight:700;color:var(--ink);transition:all .15s}
 .nuevo-sistema-btn:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
 .nuevo-sistema-btn.selected{border-color:var(--glow);background:rgba(14,116,144,.12);color:var(--glow)}
@@ -194,7 +194,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 table.main-grid{border-collapse:separate;border-spacing:0;width:100%;min-width:960px}
 
 thead th{
-  font-family:'IBM Plex Sans';font-size:9px;font-weight:700;letter-spacing:.07em;
+  font-family:'IBM Plex Sans';font-size:11px;font-weight:700;letter-spacing:.07em;
   text-transform:uppercase;color:var(--dim);padding:8px 6px;text-align:center;
   border-right:1px solid var(--border);border-bottom:2px solid rgba(14,116,144,.2);
   background:#eef0f4;white-space:nowrap;vertical-align:middle;
@@ -204,9 +204,9 @@ thead tr.hdr1 th{top:0}
 thead tr.hdr2 th{top:var(--hdr1-h,36px)}
 thead th:last-child{border-right:none}
 thead th.hi{color:var(--glow)}
-thead th.grp-mot{background:#eaf5ed;color:#15803d;font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em;border-bottom:1px solid rgba(22,163,74,.18)}
-thead th.sub-mot{background:#f0f8f2;font-size:8px;padding:5px 3px;color:#16a34a;border-bottom:2px solid rgba(14,116,144,.2)}
-thead th.cp-h{background:#fdf5ed;color:var(--amber);font-family:'IBM Plex Sans Condensed';font-size:10px;letter-spacing:.08em}
+thead th.grp-mot{background:#eaf5ed;color:#15803d;font-family:'IBM Plex Sans Condensed';font-size:11px;letter-spacing:.08em;border-bottom:1px solid rgba(22,163,74,.18)}
+thead th.sub-mot{background:#f0f8f2;font-size:9px;padding:5px 3px;color:#16a34a;border-bottom:2px solid rgba(14,116,144,.2)}
+thead th.cp-h{background:#fdf5ed;color:var(--amber);font-family:'IBM Plex Sans Condensed';font-size:11px;letter-spacing:.08em}
 
 tbody td{
   padding:5px 5px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
@@ -471,10 +471,10 @@ table.cp-table td.placa-cell input{text-align:left}
       <th colspan="4" class="grp-mot">Motor</th>
     </tr>
     <tr class="hdr2">
-      <th class="hi" style="width:56px;font-size:8px;padding:5px 3px">Carrera<br><span style="font-weight:400;opacity:.5">AIB (")</span></th>
-      <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">Hz<br><span style="font-weight:400;opacity:.5">BES</span></th>
-      <th class="hi" style="width:44px;font-size:8px;padding:5px 3px">PIP<br><span style="font-weight:400;opacity:.5">BES kg</span></th>
-      <th class="hi" style="width:52px;font-size:8px;padding:5px 3px">RPM/%T<br><span style="font-weight:400;opacity:.5">PCP</span></th>
+      <th class="hi" style="width:56px;font-size:9px;padding:5px 3px">Carrera<br><span style="font-weight:400;opacity:.5">AIB (")</span></th>
+      <th class="hi" style="width:44px;font-size:9px;padding:5px 3px">Hz<br><span style="font-weight:400;opacity:.5">BES</span></th>
+      <th class="hi" style="width:44px;font-size:9px;padding:5px 3px">PIP<br><span style="font-weight:400;opacity:.5">BES kg</span></th>
+      <th class="hi" style="width:52px;font-size:9px;padding:5px 3px">RPM/%T<br><span style="font-weight:400;opacity:.5">PCP</span></th>
       <th class="sub-mot" style="width:62px">Marca</th>
       <th class="sub-mot" style="width:42px">RPM</th>
       <th class="sub-mot" style="width:36px">HP</th>
@@ -588,6 +588,8 @@ table.cp-table td.placa-cell input{text-align:left}
       <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'BES')">BES<span class="nsb-label">Electrosumergible</span></div>
       <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'PCP')">PCP<span class="nsb-label">Cavidades Progresivas</span></div>
       <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'ROTAFLEX')">ROTAFLEX<span class="nsb-label">Bombeo Rotativo</span></div>
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'SSE')">SSE<span class="nsb-label">Sin Sistema</span></div>
+      <div class="nuevo-sistema-btn" onclick="selNuevoSistema(this,'ABANDONADO')">ABAND.<span class="nsb-label">Abandonado</span></div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn-cancel" onclick="closeNuevoModal()">Cancelar</button>
@@ -719,7 +721,8 @@ async function crearNuevoPozo(){
   const row = {
     well_id: w.well_id, well_name: w.well_name, fecha: fechaHoy(),
     bateria: w.bateria || '', operadora: w.operadora || '',
-    sistema: _nuevoSistema, estado: 'Dinamico', ensayo: 'Combinada',
+    sistema: _nuevoSistema, estado: 'Dinamico',
+    ensayo: (['AIB','ROTAFLEX'].includes(_nuevoSistema)) ? 'Combinada' : 'Nivel',
     nivel_m: null, nivel_estado: 'OK', cancel_motivo: '',
     carrera_in: null, hz: null, pip_kg: null, rpm: null, torque: null,
     presion_tbg: null, presion_csg: null, modelo: '',
