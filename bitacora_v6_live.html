@@ -331,9 +331,13 @@ table.cp-table td.placa-cell input{text-align:left}
 .cp-backdrop.open{display:block}
 
 /* ===== OBSERVACIONES ===== */
-.obs-panel{flex-shrink:0;background:var(--panel);border-top:2px solid rgba(14,116,144,.2);padding:10px 18px;display:flex;gap:14px;align-items:flex-start;min-height:88px}
-.obs-header{flex-shrink:0;padding-top:2px;min-width:90px}
+.obs-panel{flex-shrink:0;background:var(--panel);border-top:2px solid rgba(14,116,144,.2);padding:8px 18px;display:flex;gap:14px;align-items:flex-start}
+.obs-panel.collapsed .obs-fields{display:none}
+.obs-panel.collapsed{padding:6px 18px;min-height:0}
+.obs-header{flex-shrink:0;padding-top:2px;min-width:90px;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
 .obs-header .oh-title{font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--glow)}
+.obs-header .oh-toggle{font-size:10px;color:var(--glow);transition:transform .2s}
+.obs-panel.collapsed .oh-toggle{transform:rotate(-90deg)}
 .obs-header .oh-sub{font-size:10px;color:var(--dim);margin-top:2px}
 .obs-fields{display:flex;gap:8px;flex:1;align-items:stretch}
 .obs-col{flex:1;display:flex;flex-direction:column;gap:3px}
@@ -612,11 +616,11 @@ table.cp-table td.placa-cell input{text-align:left}
 
 <!-- ===== OBSERVACIONES ===== -->
 <div class="obs-panel">
-  <div class="obs-header"><div class="oh-title">Observaciones</div></div>
+  <div class="obs-header" onclick="this.closest('.obs-panel').classList.toggle('collapsed')"><div class="oh-title">Observaciones</div><span class="oh-toggle">▾</span></div>
   <div class="obs-fields">
     <div class="obs-col">
       <div class="obs-col-label">General <span class="ocl-tag ocl-gen">GEN</span></div>
-      <div class="obs-ta-wrap"><textarea class="obs-textarea readonly" id="obsGeneral" placeholder="Se compila automáticamente…" readonly rows="6"></textarea><button class="obs-copy-btn" onclick="copyObs('obsGeneral')" title="Copiar">⧉</button></div>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea readonly" id="obsGeneral" placeholder="Se compila automáticamente…" readonly rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsGeneral')" title="Copiar">⧉</button></div>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">DIN <span class="ocl-tag ocl-dyn">DIN</span></div>
@@ -625,7 +629,7 @@ table.cp-table td.placa-cell input{text-align:left}
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsDin" placeholder="Se observa…" rows="6"></textarea><button class="obs-copy-btn" onclick="copyObs('obsDin')" title="Copiar">⧉</button></div>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsDin" placeholder="Se observa…" rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsDin')" title="Copiar">⧉</button></div>
     </div>
     <div class="obs-col">
       <div class="obs-col-label">NIV <span class="ocl-tag ocl-niv">NIV</span></div>
@@ -634,7 +638,7 @@ table.cp-table td.placa-cell input{text-align:left}
         <span class="oc-arrow">▾</span>
         <div class="oc-drop"></div>
       </div>
-      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsNiv" placeholder="Se observa…" rows="6"></textarea><button class="obs-copy-btn" onclick="copyObs('obsNiv')" title="Copiar">⧉</button></div>
+      <div class="obs-ta-wrap"><textarea class="obs-textarea" id="obsNiv" placeholder="Se observa…" rows="3"></textarea><button class="obs-copy-btn" onclick="copyObs('obsNiv')" title="Copiar">⧉</button></div>
     </div>
   </div>
 </div>
