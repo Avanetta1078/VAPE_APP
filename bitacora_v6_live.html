@@ -1417,9 +1417,17 @@ async function rowMenuAction(action){
       if(del.error){ toast('Error eliminando: ' + del.error.message, true); return; }
       gridRows.splice(idx, 1);
       if(editingRowIdx === idx) editingRowIdx = -1;
-      if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
+      if(gridRows.length === 0){
+        activeRowIdx = -1;
+        resetActionBar();
+        document.getElementById('alertasStrip').classList.remove('visible');
+      } else {
+        if(activeRowIdx >= gridRows.length) activeRowIdx = gridRows.length - 1;
+        setActiveRow(activeRowIdx);
+      }
       updateStatusBar();
       renderGrid();
+      refreshHoyCount();
       toast(r.well_name + ' eliminado');
     });
   }
