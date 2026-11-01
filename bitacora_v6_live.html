@@ -71,7 +71,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .btn-nuevo{background:linear-gradient(135deg,var(--teal),#0e7490);border:1px solid rgba(14,116,144,.35);color:#fff;box-shadow:0 2px 8px rgba(14,116,144,.2)}
 .btn-hoy{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
 .btn-hoy:hover{border-color:var(--glow);color:var(--ink)}
-.btn-hoy .hoy-count{background:var(--rust);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700}
+.btn-hoy .hoy-count{background:var(--glow);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700}
 .btn-camp{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
 .btn-camp:hover{border-color:var(--glow);color:var(--ink)}
 .camp-wrap{display:inline-block}
@@ -165,16 +165,21 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .tab.active{background:var(--bg);color:var(--ink);border-color:var(--border);border-bottom-color:var(--bg);margin-bottom:-1px;position:relative}
 
 /* ===== ROW CONTEXT MENU ===== */
-.row-menu{position:fixed;z-index:250;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:6px 0;min-width:160px;display:none}
+.row-menu{position:fixed;z-index:250;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);padding:4px;min-width:170px;display:none}
 .row-menu.open{display:block}
-.row-menu-item{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;font-family:'IBM Plex Sans';font-size:12px;font-weight:600;color:var(--ink);transition:background .1s}
+.row-menu-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-family:'IBM Plex Sans';font-size:12px;font-weight:600;color:var(--ink);transition:all .12s;border-radius:7px;margin:1px 0}
 .row-menu-item:hover{background:var(--panel2)}
-.row-menu-item .rmi-icon{font-size:14px;width:18px;text-align:center}
+.row-menu-item .rmi-icon{font-size:13px;width:18px;text-align:center;opacity:.7}
 .row-menu-item.rmi-edit{color:var(--glow)}
+.row-menu-item.rmi-edit:hover{background:rgba(14,116,144,.08)}
 .row-menu-item.rmi-nuevo{color:var(--green)}
+.row-menu-item.rmi-nuevo:hover{background:rgba(21,128,61,.08)}
 .row-menu-item.rmi-previos{color:var(--teal)}
+.row-menu-item.rmi-previos:hover{background:rgba(26,82,102,.08)}
 .row-menu-item.rmi-delete{color:var(--rust)}
+.row-menu-item.rmi-delete:hover{background:rgba(200,73,44,.08)}
 .row-menu-item.rmi-data{color:var(--dim)}
+.row-menu-item.rmi-data:hover{background:rgba(0,0,0,.04)}
 .nuevo-sistema-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .nuevo-sistema-btn{padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:var(--panel);cursor:pointer;text-align:center;font-family:'IBM Plex Mono';font-size:13px;font-weight:700;color:var(--ink);transition:all .15s}
 .nuevo-sistema-btn:hover{border-color:var(--glow);background:rgba(14,116,144,.06)}
@@ -182,7 +187,6 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .nuevo-sistema-btn .nsb-label{display:block;font-size:10px;font-weight:500;color:var(--dim);margin-top:2px}
 .btn-previos-exit{background:var(--teal)!important;color:#fff!important;border:1px solid rgba(26,82,102,.4)!important;border-radius:6px!important;font-weight:700!important;font-size:11px!important;padding:4px 12px!important;cursor:pointer}
 .btn-previos-exit:hover{background:var(--glow)!important}
-.row-menu-sep{height:1px;background:var(--border);margin:4px 0}
 
 /* ===== GRID ===== */
 .grid-outer{flex:1;display:flex;flex-direction:column;padding:14px 18px 0;background:var(--bg);overflow:hidden}
@@ -363,7 +367,6 @@ table.cp-table td.placa-cell input{text-align:left}
 .obs-copy-btn{position:absolute;top:3px;right:3px;background:var(--panel2);border:1px solid var(--brd2);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;color:var(--dim);opacity:.5;transition:opacity .15s}
 .obs-copy-btn:hover{opacity:1;border-color:var(--glow);color:var(--glow)}
 .obs-ta-wrap{position:relative}
-.ab-counter{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:11px;font-weight:700;color:var(--teal);background:rgba(14,116,144,.08);border:1px solid rgba(14,116,144,.2);border-radius:6px;padding:4px 10px;white-space:nowrap}
 
 /* ===== STATUS BAR (slim, bottom) ===== */
 .status-bar{
@@ -409,7 +412,6 @@ table.cp-table td.placa-cell input{text-align:left}
 <div class="action-bar">
   <button class="ab-btn btn-nuevo" id="btnNuevo" title="Buscar pozo y crear nueva medición"><span class="ab-icon">+</span> Nueva Medición</button>
   <button class="ab-btn btn-guardar" id="btnGuardar" disabled onclick="guardarVisita()" title="Guardar — Ctrl+S"><span class="ab-icon">✓</span> GUARDAR</button>
-  <span class="ab-counter" id="abCounter">0 pozos</span>
   <button class="ab-btn btn-previos-exit" id="btnPreviosExit" style="display:none" onclick="salirPrevios()">✕ Salir Previos</button>
   <div class="ab-sep"></div>
   <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día">Hoy <span class="hoy-count" id="hoyCount">0</span></button>
@@ -489,12 +491,9 @@ table.cp-table td.placa-cell input{text-align:left}
 <!-- ===== ROW CONTEXT MENU ===== -->
 <div class="row-menu" id="rowMenu">
   <div class="row-menu-item rmi-edit" onclick="rowMenuAction('edit')"><span class="rmi-icon">✎</span> Editar</div>
-  <div class="row-menu-sep"></div>
-  <div class="row-menu-item rmi-nuevo" onclick="rowMenuAction('nuevo')"><span class="rmi-icon">+</span> Nuevo</div>
+  <div class="row-menu-item rmi-nuevo" onclick="rowMenuAction('nuevo')"><span class="rmi-icon">+</span> Nuevo Pozo</div>
   <div class="row-menu-item rmi-previos" onclick="rowMenuAction('previos')"><span class="rmi-icon">◷</span> Previos</div>
-  <div class="row-menu-sep"></div>
   <div class="row-menu-item rmi-data" onclick="rowMenuAction('data')"><span class="rmi-icon">≡</span> Datos</div>
-  <div class="row-menu-sep"></div>
   <div class="row-menu-item rmi-delete" onclick="rowMenuAction('delete')"><span class="rmi-icon">✕</span> Eliminar</div>
 </div>
 
@@ -560,7 +559,7 @@ table.cp-table td.placa-cell input{text-align:left}
 </div>
 
 <!-- ===== CONFIRM MODAL ===== -->
-<div class="modal-backdrop" id="confirmModal" style="display:none">
+<div class="modal-backdrop" id="confirmModal">
   <div class="modal-box" style="width:400px">
     <div class="modal-title"><span id="confirmTitle">Confirmar</span><span class="modal-close" onclick="closeConfirmModal(false)">✕</span></div>
     <p id="confirmMsg" style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.5"></p>
@@ -572,7 +571,7 @@ table.cp-table td.placa-cell input{text-align:left}
 </div>
 
 <!-- ===== NUEVO POZO MODAL ===== -->
-<div class="modal-backdrop" id="nuevoModal" style="display:none">
+<div class="modal-backdrop" id="nuevoModal">
   <div class="modal-box" style="width:420px">
     <div class="modal-title"><span>Crear Nuevo Pozo</span><span class="modal-close" onclick="closeNuevoModal()">✕</span></div>
     <div style="margin-bottom:10px">
@@ -668,10 +667,10 @@ function showConfirm(title, msg, onOk){
   document.getElementById('confirmTitle').textContent = title;
   document.getElementById('confirmMsg').textContent = msg;
   _confirmCb = onOk;
-  document.getElementById('confirmModal').style.display = '';
+  document.getElementById('confirmModal').classList.add('open');
 }
 function closeConfirmModal(accepted){
-  document.getElementById('confirmModal').style.display = 'none';
+  document.getElementById('confirmModal').classList.remove('open');
   if(accepted && typeof _confirmCb === 'function') _confirmCb();
   _confirmCb = null;
 }
@@ -683,10 +682,10 @@ function openNuevoModal(){
   document.getElementById('nuevoBateria').value = '';
   document.getElementById('nuevoSistemaGrid').querySelectorAll('.nuevo-sistema-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('nuevoOkBtn').disabled = true;
-  document.getElementById('nuevoModal').style.display = '';
-  document.getElementById('nuevoNombre').focus();
+  document.getElementById('nuevoModal').classList.add('open');
+  setTimeout(()=> document.getElementById('nuevoNombre').focus(), 50);
 }
-function closeNuevoModal(){ document.getElementById('nuevoModal').style.display = 'none'; }
+function closeNuevoModal(){ document.getElementById('nuevoModal').classList.remove('open'); }
 function selNuevoSistema(btn, val){
   document.getElementById('nuevoSistemaGrid').querySelectorAll('.nuevo-sistema-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -795,7 +794,7 @@ async function loadPrevios(wellId, wellName){
 
   editingRowIdx = -1;
   activeRowIdx = -1;
-  document.getElementById('abCounter').textContent = data.length + ' previos de ' + wellName;
+  document.getElementById('btnPreviosExit').textContent = '✕ Salir Previos (' + data.length + ' de ' + wellName + ')';
   document.getElementById('btnPreviosExit').style.display = '';
   renderGrid();
   if(gridRows.length) setActiveRow(0);
@@ -1302,7 +1301,7 @@ function renderGrid(){
     const estadoOpts = ['Dinamico','Estatico'].map(s=>`<option value="${s}" ${r.estado===s?'selected':''}>${s}</option>`).join('');
 
     return `<tr class="${trCls}" onclick="setActiveRow(${i})" data-idx="${i}">
-      <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer" onclick="openRowMenu(${i},event);event.stopPropagation()"></td>
+      <td><input value="${r.well_name}" readonly data-state="${ds}" style="cursor:pointer" ondblclick="openRowMenu(${i},event);event.stopPropagation()"></td>
       <td><input type="${editable?'date':'text'}" value="${editable?r.fecha:fechaDisplay(r.fecha)}" data-state="${ds}" ${editable?'':'readonly'} onchange="onFieldChange(${i},'fecha',this.value)" style="font-size:10px"></td>
       <td><input value="${r.bateria}" data-state="${ds}" ${editable?'':'readonly'} onchange="onFieldChange(${i},'bateria',this.value)"></td>
       <td style="text-align:center">${editable?`<select class="chip ${sistemaClass}" style="cursor:pointer;padding:2px 4px;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:700" onchange="onSistemaChange(${i},this.value)">${sistemaOpts}</select>`:`<span class="chip ${sistemaClass}">${r.sistema}</span>`}</td>
@@ -1357,13 +1356,9 @@ function openRowMenu(idx, e){
   rowMenuIdx = idx;
   setActiveRow(idx);
   const menu = document.getElementById('rowMenu');
-  const editItem = menu.querySelector('.rmi-edit');
-  editItem.innerHTML = '<span class="rmi-icon">✎</span> Editar';
-  const delItem = menu.querySelector('.rmi-delete');
-  delItem.style.display = gridRows[idx].visita_id ? '' : 'none';
-  menu.querySelectorAll('.row-menu-sep')[1].style.display = gridRows[idx].visita_id ? '' : 'none';
-  const x = Math.min(e.clientX, window.innerWidth - 180);
-  const y = Math.min(e.clientY, window.innerHeight - 140);
+  menu.querySelector('.rmi-delete').style.display = gridRows[idx].visita_id ? '' : 'none';
+  const x = Math.min(e.clientX, window.innerWidth - 190);
+  const y = Math.min(e.clientY, window.innerHeight - 200);
   menu.style.left = x + 'px';
   menu.style.top = y + 'px';
   menu.classList.add('open');
@@ -1721,8 +1716,6 @@ function updateStatusBar(){
   if(activeRowIdx >= 0){
     document.getElementById('btnCancelar').disabled = !gridRows[activeRowIdx]._dirty;
   }
-  const ctr = document.getElementById('abCounter');
-  if(ctr) ctr.textContent = gridRows.length + ' pozo' + (gridRows.length !== 1 ? 's' : '');
   document.getElementById('btnGuardar').disabled = !dirty.length;
 }
 
