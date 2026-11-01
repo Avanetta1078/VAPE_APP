@@ -76,8 +76,11 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .btn-hoy{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
 .btn-hoy:hover{border-color:var(--glow);color:var(--ink)}
 .btn-hoy .hoy-count{background:var(--glow);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;font-weight:700}
-.btn-camp{background:var(--panel);border:1px solid var(--brd2);color:var(--dim)}
+.btn-camp{background:var(--panel);border:1px solid var(--brd2);color:var(--dim);display:inline-flex;align-items:center;gap:4px}
 .btn-camp:hover{border-color:var(--glow);color:var(--ink)}
+.btn-camp .camp-chevron{font-size:9px;opacity:.5;transition:transform .2s}
+.btn-camp .camp-info{font-family:'IBM Plex Mono';font-size:9px;color:var(--glow);font-weight:700}
+.btn-camp.active{border-color:var(--glow);color:var(--glow)}
 .camp-wrap{display:inline-block}
 .camp-panel{display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--panel);border:1px solid var(--brd2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);width:280px;padding:10px;margin-top:4px}
 .camp-panel.open{display:block}
@@ -464,7 +467,7 @@ table.cp-table td.placa-cell input{text-align:left}
   <div class="ab-sep"></div>
   <button class="ab-btn btn-hoy" id="btnHoy" title="Cargar pozos del día">Hoy <span class="hoy-count" id="hoyCount">0</span></button>
   <div class="camp-wrap" style="position:relative">
-    <button class="ab-btn btn-camp" id="btnCamp" title="Ver campañas anteriores">Campañas</button>
+    <button class="ab-btn btn-camp" id="btnCamp" title="Ver campañas anteriores">Campañas <span class="camp-info" id="campInfo"></span><span class="camp-chevron">▾</span></button>
     <div class="camp-panel" id="campPanel">
       <div class="camp-head">Campañas registradas</div>
       <div class="camp-date-row">
@@ -1085,6 +1088,8 @@ document.getElementById('btnHoy').addEventListener('click', loadToday);
 async function loadToday(){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
   exitAnySpecialMode();
+  document.getElementById('campInfo').textContent = '';
+  document.getElementById('btnCamp').classList.remove('active');
   const { data } = await supabaseClient.from('bitacora_visitas')
     .select('visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones')
     .eq('fecha', fechaHoy())
@@ -1231,6 +1236,8 @@ async function loadCampaign(fecha){
   renderGrid();
   if(gridRows.length) setActiveRow(0);
   updateStatusBar();
+  document.getElementById('campInfo').textContent = display+' ('+data.length+')';
+  document.getElementById('btnCamp').classList.add('active');
   toast(data.length + ' pozos del ' + display + ' cargados');
 }
 
