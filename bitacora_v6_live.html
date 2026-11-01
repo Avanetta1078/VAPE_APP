@@ -1038,7 +1038,8 @@ async function loadToday(){
   exitAnySpecialMode();
   const { data } = await supabaseClient.from('bitacora_visitas')
     .select('visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones')
-    .eq('fecha', fechaHoy());
+    .eq('fecha', fechaHoy())
+    .order('visita_id', {ascending: false});
   if(!data?.length){
     gridRows.length = 0;
     editingRowIdx = -1;
@@ -1053,7 +1054,7 @@ async function loadToday(){
   activeRowIdx = -1;
   for(const v of data){
     const well = allWells.find(w => w.well_id === v.well_id) || {};
-    gridRows.unshift({
+    gridRows.push({
       well_id: v.well_id,
       well_name: v.well_name_raw,
       fecha: v.fecha,
