@@ -56,6 +56,9 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .badge-aib{background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.3)}
 .badge-bes{background:rgba(147,51,234,.1);color:#7c3aed;border:1px solid rgba(147,51,234,.3)}
 .badge-pcp{background:rgba(22,163,74,.1);color:#15803d;border:1px solid rgba(22,163,74,.3)}
+.badge-rotaflex{background:rgba(217,119,6,.1);color:#92400e;border:1px solid rgba(217,119,6,.3)}
+.badge-sse{background:rgba(107,114,128,.1);color:#4b5563;border:1px solid rgba(107,114,128,.3)}
+.badge-abandonado{background:rgba(200,73,44,.1);color:#c8492c;border:1px solid rgba(200,73,44,.3)}
 
 .ab-actions{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
@@ -93,6 +96,8 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .btn-cancelar:hover{border-color:var(--rustg);color:var(--rustg)}
 .btn-guardar{background:linear-gradient(135deg,#15803d,#16a34a);border:1px solid #22c55e;color:#fff;box-shadow:0 2px 10px rgba(22,163,74,.2);padding:7px 22px}
 .btn-guardar:hover{filter:brightness(1.15)}
+@keyframes guardar-pulse{0%,100%{box-shadow:0 2px 10px rgba(22,163,74,.2)}50%{box-shadow:0 2px 18px rgba(22,163,74,.55),0 0 8px rgba(22,163,74,.3)}}
+.btn-guardar.pulsing{animation:guardar-pulse 1.4s ease-in-out infinite}
 .btn-alerta{background:transparent;border:1px solid rgba(200,73,44,.35);color:var(--rust);padding:7px 10px;font-size:11px}
 .btn-alerta:hover{border-color:var(--rustg);color:var(--rustg);background:rgba(200,73,44,.06)}
 
@@ -233,6 +238,9 @@ tbody td.mot-cell{background:rgba(22,163,74,.02)}
 .c-aib{background:rgba(37,99,235,.1);color:#1d4ed8;border:1px solid rgba(37,99,235,.3)}
 .c-bes{background:rgba(147,51,234,.1);color:#7c3aed;border:1px solid rgba(147,51,234,.3)}
 .c-pcp{background:rgba(22,163,74,.1);color:#15803d;border:1px solid rgba(22,163,74,.3)}
+.c-rotaflex{background:rgba(217,119,6,.1);color:#92400e;border:1px solid rgba(217,119,6,.3)}
+.c-sse{background:rgba(107,114,128,.1);color:#4b5563;border:1px solid rgba(107,114,128,.3)}
+.c-abandonado{background:rgba(200,73,44,.1);color:#c8492c;border:1px solid rgba(200,73,44,.3)}
 
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:10px;padding:3px 9px;font-size:10px;font-weight:700;white-space:nowrap}
 .p-g{background:rgba(22,163,74,.1);color:#15803d;border:1px solid rgba(22,163,74,.3)}
@@ -1084,7 +1092,13 @@ async function loadToday(){
   document.getElementById('hoyCount').textContent = data.length;
   renderGrid();
   if(gridRows.length) setActiveRow(0);
-  toast(data.length + ' visitas del día cargadas');
+}
+
+async function refreshHoyCount(){
+  if(!supabaseClient) return;
+  const hoy = fechaHoy();
+  const { count } = await supabaseClient.from('bitacora_visitas').select('visita_id', { count: 'exact', head: true }).eq('fecha', hoy);
+  if(typeof count === 'number') document.getElementById('hoyCount').textContent = count;
 }
 
 // ===== CAMPAÑAS =====
@@ -1277,9 +1291,12 @@ function renderGrid(){
     return;
   }
   tbody.innerHTML = gridRows.map((r,i) => {
-    const sistemaClass = r.sistema === 'BES' ? 'c-bes' : r.sistema === 'PCP' ? 'c-pcp' : 'c-aib';
+    const scMap = {BES:'c-bes',PCP:'c-pcp',ROTAFLEX:'c-rotaflex',SSE:'c-sse',ABANDONADO:'c-abandonado'};
+    const sistemaClass = scMap[r.sistema] || 'c-aib';
     const estadoClass = r.estado === 'Estatico' ? 'p-a' : 'p-g';
     const estadoLabel = r.estado === 'Estatico' ? 'Estático' : 'Dinámico';
+
+    const sistemaOpts = ['AIB','BES','PCP','ROTAFLEX','SSE','ABANDONADO'].map(s=>`<option value="${s}" ${r.sistema===s?'selected':''}>${s}</option>`).join('');
 
     let ensayoOpts;
     if(r.estado === 'Estatico'){
@@ -1719,7 +1736,9 @@ function updateStatusBar(){
   if(activeRowIdx >= 0){
     document.getElementById('btnCancelar').disabled = !gridRows[activeRowIdx]._dirty;
   }
-  document.getElementById('btnGuardar').disabled = !dirty.length;
+  const btnG = document.getElementById('btnGuardar');
+  btnG.disabled = !dirty.length;
+  btnG.classList.toggle('pulsing', dirty.length > 0);
 }
 
 // ===== CONTRAPESOS POPOVER =====
@@ -1898,6 +1917,7 @@ async function doGuardar(dirty){
   updateStatusBar();
   renderGrid();
   toast(saved + ' pozo(s) guardados correctamente');
+  refreshHoyCount();
 }
 
 // ===== OBSERVATIONS SYSTEM =====
