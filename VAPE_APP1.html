@@ -3692,6 +3692,23 @@
       }
     }
 
+    // Visita SOLO Nivel ("No se realiza Dina"): el bloque Dina de Resumen Pozo
+    // no corresponde a esta fecha — se limpia por completo (valores, sello,
+    // comentario, botón editar y badge), dejando solo el ojito para navegar las
+    // cartas anteriores. (Mismo criterio temporal que dinaNoRealizada.)
+    if(w.dinaNoRealizada){
+      ['rp-cargamax','rp-cargamin','rp-gpm','rp-llenado','rp-prestbg','rp-fabricante','rp-modeloapi','rp-carrera','rp-pipdyn','rp-dyn-stamp']
+        .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
+      setRaw('rp-dyn-comment', 'Sin comentarios registrados.');
+      const _edBtn = document.getElementById('rp-edit-dyn-btn'); if(_edBtn) _edBtn.style.display = 'none';
+      const _cl = document.getElementById('rp-classif');
+      if(_cl){
+        const _est = (w.wellState || '').toUpperCase();
+        _cl.classList.remove('rp-badge-combinada');
+        _cl.textContent = _est.includes('STATIC') ? 'Nivel — Estático' : _est.includes('PRODUC') ? 'Nivel — Dinámico' : 'Nivel';
+      }
+    }
+
     // ---- Chips Nivel ----
     // Si el nivel fue marcado como indefinido, no se muestran valores numéricos
     // de nivel/sumergencia/PIP — se muestra "INDEF." para evitar confusión.
@@ -4023,7 +4040,10 @@
     const i = wellNames.indexOf(currentWell);
 
     document.querySelectorAll('.well-select .name').forEach(el => el.textContent = currentWell);
-    document.getElementById('dtLabel').textContent = fmtDate(w.dt);
+    // Visita solo Nivel ("No se realiza Dina"): el selector global muestra la
+    // fecha del Nivel (no la de la Dina vieja, que es lo que w.dt trae). Solo
+    // display — no se modifica w.dt (que sigue mandando en el resto de la lógica).
+    document.getElementById('dtLabel').textContent = fmtDate((w.dinaNoRealizada && w.acuDate) ? w.acuDate : w.dt);
     document.getElementById('dtIndex').textContent = `POZO ${i+1} DE ${wellNames.length}`;
 
     document.getElementById('prevBtn').style.opacity = i<=0 ? .35 : 1;
