@@ -3164,6 +3164,15 @@
         const commentsBlob = `${entry.commentDyn||''} ${entry.commentAcu||''}`.toUpperCase();
         // Detección de Nivel CANCELADO (solo comentario Dyn: "no se realiza nivel/ensayo")
         entry.nivelCancelado = /NO\s+SE\s+REALIZA/i.test(entry.commentDyn || '') && !(entry.packerM != null && entry.packerM > 0);
+        // Espejo de nivelCancelado: ensayo SOLO Nivel cuyo comentario (ACU) dice
+        // "No se realiza Dina" — esa visita NO llevó Dina, aunque el pozo tenga
+        // Dinas de fechas anteriores. Solo aplica si existe una Dina más vieja que
+        // el Nivel (sino no hay nada que suprimir). Se usa para que la Operación de
+        // la grilla Inicio muestre "Nivel" (no "Combinada"), para habilitar el EDIT
+        // y para no colgar una carta Dina de otra fecha en el panel del pozo.
+        // (Criterio temporal: se reemplazará cuando Bitácora defina la operación.)
+        entry.dinaNoRealizada = /NO\s+SE\s+REALIZA\s+DINA/i.test(entry.commentAcu || '')
+          && entry.hasDyn && (entry.acuDate || '') > (entry.dynDate || '');
         entry.besConfirmado = /\bBES\b|ELECTRO|\bHZ\b/.test(commentsBlob);
         // Clasificacion de sistema de extraccion: Rotaflex solo si dice la palabra completa
         // (ver nota en memoria: "rota"/"rotador" sueltos son un accesorio de un AIB, no un Rotaflex).
@@ -3673,7 +3682,7 @@
 
     const dynImg = document.getElementById('rp-dyn-img');
     if(dynImg){
-      if(w.hasDyn && w.dynTestId){
+      if(w.hasDyn && w.dynTestId && !w.dinaNoRealizada){
         const chartUrl = supabaseClient.storage.from('cartas').getPublicUrl(chartHistPath(currentWell, 'DYN', w.dynDate, w.dynTime)).data.publicUrl;
         dynImg.onerror = () => { dynImg.style.display = 'none'; };
         dynImg.onload = () => { dynImg.style.display = 'block'; };
@@ -4925,7 +4934,7 @@
           if(!enEsaFecha) return false;
         }
         if(operacionFilter){
-          const op = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo';
+          const op = (w.dinaNoRealizada && w.hasAcu) ? 'Nivel' : (w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo');
           if(op !== operacionFilter) return false;
         }
         if(comentarioFilter){
@@ -4936,7 +4945,7 @@
       }).map(n => {
         const w = WELLS_DB[n];
         // "Operación": Combinada si el pozo tiene Dina Y Nivel cargados, o el tipo único si solo tiene uno.
-        const operacion = w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo';
+        const operacion = (w.dinaNoRealizada && w.hasAcu) ? 'Nivel' : (w.hasDyn && w.hasAcu ? 'Combinada' : w.hasDyn ? 'Dina' : w.hasAcu ? 'Nivel' : 'Sin ensayo');
         // "Ensayo" (último): cual de los dos ensayos es mas reciente (por fecha) — determina tambien
         // que comentario mostrar, ya que Nivel y Dina tienen cada uno el suyo propio.
         let tipoUltimo = null, comentarioUltimo = null;
