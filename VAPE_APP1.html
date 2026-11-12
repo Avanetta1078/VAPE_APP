@@ -3688,6 +3688,13 @@
         dynImg.onload = () => { dynImg.style.display = 'block'; };
         dynImg.src = chartUrl + '?t=' + Date.now();
       } else {
+        // No corresponde carta (sin Dina o visita solo Nivel): además de ocultar,
+        // se cancela cualquier imagen pendiente — se anulan los handlers y se
+        // limpia el src para que una carga tardía (p.ej. la que dispara
+        // updateChartImg desde el caché) no vuelva a mostrar la carta vieja.
+        dynImg.onload = null;
+        dynImg.onerror = null;
+        dynImg.removeAttribute('src');
         dynImg.style.display = 'none';
       }
     }
