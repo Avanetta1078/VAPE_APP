@@ -1267,76 +1267,126 @@ async function loadCampDates(){
   if(!supabaseClient) return;
   const list = document.getElementById('campList');
   list.innerHTML = '<span class="camp-loading">Cargando fechas…</span>';
-  const { data } = await supabaseClient.from('bitacora_visitas')
-    .select('fecha')
-    .order('fecha', {ascending:false});
+  const { data } = await supabaseClient.from('tests')
+    .select('test_date, well_id')
+    .order('test_date', {ascending:false});
   if(!data?.length){ list.innerHTML = '<span class="camp-loading">Sin campañas registradas</span>'; return; }
   const counts = {};
-  data.forEach(r => { counts[r.fecha] = (counts[r.fecha]||0) + 1; });
+  data.forEach(r => {
+    if(!counts[r.test_date]) counts[r.test_date] = new Set();
+    counts[r.test_date].add(r.well_id);
+  });
   const dates = Object.keys(counts).sort((a,b) => b.localeCompare(a));
   list.innerHTML = dates.map(d => {
     const parts = d.split('-');
     const display = parts[2]+'/'+parts[1]+'/'+parts[0];
-    return '<div class="camp-item" onclick="loadCampaign(\''+d+'\');campPanel.classList.remove(\'open\')"><span>'+display+'</span><span class="camp-count">'+counts[d]+'</span></div>';
+    const wellCount = counts[d].size;
+    return '<div class="camp-item" onclick="loadCampaign(\''+d+'\');campPanel.classList.remove(\'open\')"><span>'+display+'</span><span class="camp-count">'+wellCount+' pozos</span></div>';
   }).join('');
 }
 
 async function loadCampaign(fecha){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
   exitAnySpecialMode();
-  const visitaCols = 'visita_id,well_id,well_name_raw,operadora,bateria,fecha,sistema_extraccion,tipo_ensayo,tipo_operacion,nivel_medido_m,nivel_estado,cancel_motivo,carrera_in,hz,pip_kg,rpm_bes,torque_inlb,presion_tubing_kg,presion_casing_kg,unidad_descripcion,motor_marca,motor_rpm,motor_hp,motor_polea,contrapesos,observaciones';
-  const { data } = await supabaseClient.from('bitacora_visitas')
-    .select(visitaCols).eq('fecha', fecha);
-  if(!data?.length){
-    toast('No hay visitas en esa fecha');
-    return;
+
+  // 1) Buscar tests de esa fecha
+  const { data: tests } = await supabaseClient.from('tests')
+    .select('test_id, well_id, well_config_id, test_type, test_date, well_state')
+    .eq('test_date', fecha);
+  if(!tests?.length){ toast('No hay ensayos en esa fecha'); return; }
+
+  // 2) Agrupar por well_id: determinar tipo ensayo (Combinada si DYN+ACU)
+  const byWell = {};
+  tests.forEach(t => {
+    if(!byWell[t.well_id]) byWell[t.well_id] = { types: new Set(), configId: t.well_config_id, state: t.well_state };
+    byWell[t.well_id].types.add(t.test_type);
+    if(t.well_config_id) byWell[t.well_id].configId = t.well_config_id;
+    if(t.well_state) byWell[t.well_id].state = t.well_state;
+  });
+
+  // 3) Traer wells info
+  const wellIds = Object.keys(byWell).map(Number);
+  const { data: wellsData } = await supabaseClient.from('wells')
+    .select('well_id, well_name, operadora, bateria, sistema')
+    .in('well_id', wellIds);
+  const wellMap = {};
+  (wellsData||[]).forEach(w => { wellMap[w.well_id] = w; });
+
+  // 4) Traer configs para modelo/motor
+  const configIds = [...new Set(Object.values(byWell).map(b => b.configId).filter(Boolean))];
+  let cfgMap = {};
+  if(configIds.length){
+    const { data: cfgs } = await supabaseClient.from('well_configurations')
+      .select('well_config_id, surface_unit_model, surface_unit_manufacturer, motor_mfg_comment, motor_rating_hp, rated_rpm, stroke_length_in')
+      .in('well_config_id', configIds);
+    (cfgs||[]).forEach(c => { cfgMap[c.well_config_id] = c; });
   }
+
+  // 5) También buscar si hay bitacora_visitas para esa fecha (datos de campo)
+  const { data: visitas } = await supabaseClient.from('bitacora_visitas')
+    .select('well_id, visita_id, nivel_medido_m, nivel_estado, cancel_motivo, carrera_in, hz, pip_kg, rpm_bes, torque_inlb, presion_tubing_kg, presion_casing_kg, observaciones, contrapesos, motor_polea')
+    .eq('fecha', fecha);
+  const visitaMap = {};
+  (visitas||[]).forEach(v => { visitaMap[v.well_id] = v; });
+
+  // 6) Armar grilla
   gridRows.length = 0;
   editingRowIdx = -1;
   activeRowIdx = -1;
-  for(const v of data){
-    const well = allWells.find(w => w.well_id === v.well_id) || {};
+
+  wellIds.forEach(wid => {
+    const info = byWell[wid];
+    const w = wellMap[wid] || {};
+    const cfg = cfgMap[info.configId] || {};
+    const vis = visitaMap[wid];
+    const hasDyn = info.types.has('DYN');
+    const hasAcu = info.types.has('ACU');
+    let ensayo = (hasDyn && hasAcu) ? 'Combinada' : hasDyn ? 'Combinada' : 'Nivel';
+    const estado = info.state ? (info.state.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
+
     gridRows.push({
-      well_id: v.well_id,
-      well_name: v.well_name_raw,
-      fecha: v.fecha,
-      bateria: v.bateria || well.bateria || '',
-      operadora: v.operadora || well.operadora || '',
-      sistema: v.sistema_extraccion || 'AIB',
-      estado: v.tipo_ensayo || 'Dinamico',
-      ensayo: v.tipo_operacion || 'Combinada',
-      nivel_m: nn(v.nivel_medido_m),
-      nivel_estado: v.nivel_estado || 'OK',
-      cancel_motivo: v.cancel_motivo || '',
-      carrera_in: nn(v.carrera_in),
-      hz: nn(v.hz),
-      pip_kg: nn(v.pip_kg),
-      rpm: nn(v.rpm_bes),
-      torque: nn(v.torque_inlb),
-      presion_tbg: nn(v.presion_tubing_kg),
-      presion_csg: nn(v.presion_casing_kg),
-      modelo: v.unidad_descripcion || '',
-      motor_marca: v.motor_marca || well.motor_marca || '',
-      motor_rpm: nn(v.motor_rpm, nn(well.motor_rpm, '')),
-      motor_hp: nn(v.motor_hp, nn(well.motor_hp, '')),
-      motor_polea: nn(v.motor_polea, nn(well.motor_polea, '')),
-      contrapesos: v.contrapesos || well.contrapesos || {},
-      observaciones: v.observaciones || '',
-      ...parseObsText(v.observaciones),
-      visita_id: v.visita_id,
+      well_id: wid,
+      well_name: w.well_name || '?',
+      fecha: fecha,
+      bateria: w.bateria || '',
+      operadora: w.operadora || '',
+      sistema: w.sistema || 'AIB',
+      estado: estado,
+      ensayo: ensayo,
+      nivel_m: vis ? nn(vis.nivel_medido_m) : '',
+      nivel_estado: vis ? (vis.nivel_estado || 'OK') : 'OK',
+      cancel_motivo: vis ? (vis.cancel_motivo || '') : '',
+      carrera_in: vis ? nn(vis.carrera_in) : nn(cfg.stroke_length_in),
+      hz: vis ? nn(vis.hz) : '',
+      pip_kg: vis ? nn(vis.pip_kg) : '',
+      rpm: vis ? nn(vis.rpm_bes) : '',
+      torque: vis ? nn(vis.torque_inlb) : '',
+      presion_tbg: vis ? nn(vis.presion_tubing_kg) : '',
+      presion_csg: vis ? nn(vis.presion_casing_kg) : '',
+      modelo: cfg.surface_unit_model || cfg.surface_unit_manufacturer || '',
+      motor_marca: cfg.motor_mfg_comment || '',
+      motor_rpm: nn(cfg.rated_rpm, ''),
+      motor_hp: nn(cfg.motor_rating_hp, ''),
+      motor_polea: vis ? nn(vis.motor_polea, '') : '',
+      contrapesos: vis ? (vis.contrapesos || {}) : {},
+      observaciones: vis ? (vis.observaciones || '') : '',
+      ...parseObsText(vis ? vis.observaciones : ''),
+      visita_id: vis ? vis.visita_id : null,
       _dirty: false,
-      _alertas: well.alertas_activas || [],
+      _alertas: (allWells.find(aw => aw.well_id === wid) || {}).alertas_activas || [],
       _cancelReasons: []
     });
-  }
+  });
+
+  gridRows.sort((a,b) => a.well_name.localeCompare(b.well_name));
   const parts = fecha.split('-');
   const display = parts[2]+'/'+parts[1]+'/'+parts[0];
   renderGrid();
   if(gridRows.length) setActiveRow(0);
   updateStatusBar();
-  document.getElementById('campInfo').textContent = display+' ('+data.length+')';
+  document.getElementById('campInfo').textContent = display+' ('+gridRows.length+')';
   document.getElementById('btnCamp').classList.add('active');
-  toast(data.length + ' pozos del ' + display + ' cargados');
+  toast(gridRows.length + ' pozos del ' + display + ' cargados');
 }
 
 // ===== NUEVO =====
