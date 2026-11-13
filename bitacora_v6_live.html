@@ -1289,22 +1289,23 @@ async function loadCampaign(fecha){
   if(!supabaseClient){ toast('Sin conexión a Supabase', true); return; }
   exitAnySpecialMode();
 
-  // 1) Buscar tests de esa fecha
+  // 1) Buscar tests de esa fecha (incluye test_comments para clasificar sistema)
   const { data: tests } = await supabaseClient.from('tests')
-    .select('test_id, well_id, well_config_id, test_type, test_date, well_state')
+    .select('test_id, well_id, well_config_id, test_type, test_date, test_comments')
     .eq('test_date', fecha);
   if(!tests?.length){ toast('No hay ensayos en esa fecha'); return; }
 
-  // 2) Agrupar por well_id: determinar tipo ensayo (Combinada si DYN+ACU)
+  // 2) Agrupar por well_id
   const byWell = {};
   tests.forEach(t => {
-    if(!byWell[t.well_id]) byWell[t.well_id] = { types: new Set(), configId: t.well_config_id, state: t.well_state };
+    if(!byWell[t.well_id]) byWell[t.well_id] = { types: new Set(), configId: t.well_config_id, commentDyn:'', commentAcu:'' };
     byWell[t.well_id].types.add(t.test_type);
     if(t.well_config_id) byWell[t.well_id].configId = t.well_config_id;
-    if(t.well_state) byWell[t.well_id].state = t.well_state;
+    if(t.test_type === 'DYN') byWell[t.well_id].commentDyn = t.test_comments || '';
+    if(t.test_type === 'ACU') byWell[t.well_id].commentAcu = t.test_comments || '';
   });
 
-  // 3) Traer wells info
+  // 3) Traer wells
   const wellIds = Object.keys(byWell).map(Number);
   const { data: wellsData } = await supabaseClient.from('wells')
     .select('well_id, well_name, operadora, bateria, bit_sistema, contrapesos, motor_marca, motor_hp, motor_rpm')
@@ -1312,7 +1313,7 @@ async function loadCampaign(fecha){
   const wellMap = {};
   (wellsData||[]).forEach(w => { wellMap[w.well_id] = w; });
 
-  // 4) Traer configs para modelo/motor
+  // 4) Traer configs
   const configIds = [...new Set(Object.values(byWell).map(b => b.configId).filter(Boolean))];
   let cfgMap = {};
   if(configIds.length){
@@ -1322,7 +1323,7 @@ async function loadCampaign(fecha){
     (cfgs||[]).forEach(c => { cfgMap[c.well_config_id] = c; });
   }
 
-  // 5) Traer dyn_results para presiones
+  // 5) Traer dyn_results (presiones)
   const dynTestIds = tests.filter(t => t.test_type === 'DYN').map(t => t.test_id);
   let dynMap = {};
   if(dynTestIds.length){
@@ -1336,14 +1337,38 @@ async function loadCampaign(fecha){
     if(dynMap[t.test_id]) dynByWell[t.well_id] = dynMap[t.test_id];
   });
 
-  // 6) También buscar si hay bitacora_visitas para esa fecha (datos de campo)
+  // 6) Traer acu_results (nivel, well_state, presion casing)
+  const acuTestIds = tests.filter(t => t.test_type === 'ACU').map(t => t.test_id);
+  let acuMap = {};
+  if(acuTestIds.length){
+    const { data: acuR } = await supabaseClient.from('acu_results')
+      .select('test_id, liquid_level_tvd_m, fluid_above_pump_m, well_state, acu_casing_pressure_kg')
+      .in('test_id', acuTestIds);
+    (acuR||[]).forEach(a => { acuMap[a.test_id] = a; });
+  }
+  const acuByWell = {};
+  tests.filter(t => t.test_type === 'ACU').forEach(t => {
+    if(acuMap[t.test_id]) acuByWell[t.well_id] = acuMap[t.test_id];
+  });
+
+  // 7) bitacora_visitas overlay
   const { data: visitas } = await supabaseClient.from('bitacora_visitas')
     .select('well_id, visita_id, nivel_medido_m, nivel_estado, cancel_motivo, carrera_in, hz, pip_kg, rpm_bes, torque_inlb, presion_tubing_kg, presion_casing_kg, observaciones, contrapesos, motor_polea')
     .eq('fecha', fecha);
   const visitaMap = {};
   (visitas||[]).forEach(v => { visitaMap[v.well_id] = v; });
 
-  // 6) Armar grilla
+  // Clasificar sistema (misma lógica que VAPE_APP)
+  function classifySistema(cBlob, uBlob, hadDyn){
+    if(/\bROTAFLEX\b/.test(cBlob) || /\bROTAFLEX\b/.test(uBlob)) return 'ROTAFLEX';
+    if(/\bBES\b|ELECTRO|\bHZ\b/.test(cBlob)) return 'BES';
+    if(/\bPCP\b|CAVIDAD PROGRESIVA/.test(cBlob)) return 'PCP';
+    if(/\bSSE\b/.test(cBlob)) return 'SSE';
+    if(/LUFKIN|\bLFK\b|\bSIAM\b|VULCAN/.test(uBlob) || hadDyn) return 'AIB';
+    return null;
+  }
+
+  // 8) Armar grilla
   gridRows.length = 0;
   editingRowIdx = -1;
   activeRowIdx = -1;
@@ -1354,13 +1379,32 @@ async function loadCampaign(fecha){
     const cfg = cfgMap[info.configId] || {};
     const vis = visitaMap[wid];
     const dyn = dynByWell[wid];
+    const acu = acuByWell[wid];
     const hasDyn = info.types.has('DYN');
     const hasAcu = info.types.has('ACU');
-    let ensayo = (hasDyn && hasAcu) ? 'Combinada' : hasDyn ? 'Combinada' : 'Nivel';
-    const estado = info.state ? (info.state.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
 
+    // Ensayo
+    let ensayo = (hasDyn && hasAcu) ? 'Combinada' : hasDyn ? 'Combinada' : 'Nivel';
+
+    // Estado del pozo desde acu_results.well_state
+    const wsRaw = acu ? (acu.well_state || '') : '';
+    const wsUp = wsRaw.toUpperCase();
+    const estado = wsUp.includes('STATIC') ? 'Estatico' : wsUp.includes('PRODUC') ? 'Dinamico' : 'Dinamico';
+
+    // Sistema: clasificar desde comentarios + unidad
+    const commentsBlob = `${info.commentDyn} ${info.commentAcu}`.toUpperCase();
+    const unitBlob = `${cfg.surface_unit_manufacturer||''} ${cfg.surface_unit_model||''}`.toUpperCase();
+    const sistemaCalc = w.bit_sistema || classifySistema(commentsBlob, unitBlob, hasDyn);
+
+    // Modelo: fabricante + modelo (o solo fabricante si modelo es null)
     const modelParts = [cfg.surface_unit_manufacturer, cfg.surface_unit_model].filter(Boolean);
-    const modeloStr = modelParts.join(' ') || '';
+    let modeloStr = modelParts.join(' ') || '';
+    if(sistemaCalc === 'BES') modeloStr = 'BES' + (modeloStr ? ' — ' + modeloStr : '');
+    else if(sistemaCalc === 'PCP') modeloStr = 'PCP' + (modeloStr ? ' — ' + modeloStr : '');
+    else if(sistemaCalc === 'SSE') modeloStr = 'SSE' + (modeloStr ? ' — ' + modeloStr : '');
+
+    // Nivel medido desde acu_results
+    const nivelFromAcu = acu ? nn(acu.liquid_level_tvd_m) : '';
 
     gridRows.push({
       well_id: wid,
@@ -1368,10 +1412,10 @@ async function loadCampaign(fecha){
       fecha: fecha,
       bateria: w.bateria || '',
       operadora: w.operadora || '',
-      sistema: w.bit_sistema || 'AIB',
+      sistema: sistemaCalc || 'AIB',
       estado: estado,
       ensayo: ensayo,
-      nivel_m: vis ? nn(vis.nivel_medido_m) : '',
+      nivel_m: vis ? nn(vis.nivel_medido_m) : nivelFromAcu,
       nivel_estado: vis ? (vis.nivel_estado || 'OK') : 'OK',
       cancel_motivo: vis ? (vis.cancel_motivo || '') : '',
       carrera_in: vis ? nn(vis.carrera_in) : nn(cfg.stroke_length_in),
@@ -1380,7 +1424,7 @@ async function loadCampaign(fecha){
       rpm: vis ? nn(vis.rpm_bes) : '',
       torque: vis ? nn(vis.torque_inlb) : '',
       presion_tbg: vis ? nn(vis.presion_tubing_kg) : (dyn ? nn(dyn.dyn_tubing_pressure_kg) : ''),
-      presion_csg: vis ? nn(vis.presion_casing_kg) : (dyn ? nn(dyn.dyn_casing_pressure_kg) : ''),
+      presion_csg: vis ? nn(vis.presion_casing_kg) : (acu ? nn(acu.acu_casing_pressure_kg) : (dyn ? nn(dyn.dyn_casing_pressure_kg) : '')),
       modelo: modeloStr,
       motor_marca: w.motor_marca || cfg.motor_mfg_comment || '',
       motor_rpm: nn(w.motor_rpm || cfg.rated_rpm, ''),
