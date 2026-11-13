@@ -1307,7 +1307,7 @@ async function loadCampaign(fecha){
   // 3) Traer wells info
   const wellIds = Object.keys(byWell).map(Number);
   const { data: wellsData } = await supabaseClient.from('wells')
-    .select('well_id, well_name, operadora, bateria, sistema')
+    .select('well_id, well_name, operadora, bateria, bit_sistema, contrapesos, motor_marca, motor_hp, motor_rpm')
     .in('well_id', wellIds);
   const wellMap = {};
   (wellsData||[]).forEach(w => { wellMap[w.well_id] = w; });
@@ -1317,12 +1317,26 @@ async function loadCampaign(fecha){
   let cfgMap = {};
   if(configIds.length){
     const { data: cfgs } = await supabaseClient.from('well_configurations')
-      .select('well_config_id, surface_unit_model, surface_unit_manufacturer, motor_mfg_comment, motor_rating_hp, rated_rpm, stroke_length_in')
+      .select('well_config_id, surface_unit_model, surface_unit_manufacturer, motor_mfg_comment, motor_rating_hp, rated_rpm, stroke_length_in, weight_of_counterweights_lb')
       .in('well_config_id', configIds);
     (cfgs||[]).forEach(c => { cfgMap[c.well_config_id] = c; });
   }
 
-  // 5) También buscar si hay bitacora_visitas para esa fecha (datos de campo)
+  // 5) Traer dyn_results para presiones
+  const dynTestIds = tests.filter(t => t.test_type === 'DYN').map(t => t.test_id);
+  let dynMap = {};
+  if(dynTestIds.length){
+    const { data: dynR } = await supabaseClient.from('dyn_results')
+      .select('test_id, dyn_tubing_pressure_kg, dyn_casing_pressure_kg, pip_dyn_kg, spm, computed_stroke_length_in')
+      .in('test_id', dynTestIds);
+    (dynR||[]).forEach(d => { dynMap[d.test_id] = d; });
+  }
+  const dynByWell = {};
+  tests.filter(t => t.test_type === 'DYN').forEach(t => {
+    if(dynMap[t.test_id]) dynByWell[t.well_id] = dynMap[t.test_id];
+  });
+
+  // 6) También buscar si hay bitacora_visitas para esa fecha (datos de campo)
   const { data: visitas } = await supabaseClient.from('bitacora_visitas')
     .select('well_id, visita_id, nivel_medido_m, nivel_estado, cancel_motivo, carrera_in, hz, pip_kg, rpm_bes, torque_inlb, presion_tubing_kg, presion_casing_kg, observaciones, contrapesos, motor_polea')
     .eq('fecha', fecha);
@@ -1339,10 +1353,14 @@ async function loadCampaign(fecha){
     const w = wellMap[wid] || {};
     const cfg = cfgMap[info.configId] || {};
     const vis = visitaMap[wid];
+    const dyn = dynByWell[wid];
     const hasDyn = info.types.has('DYN');
     const hasAcu = info.types.has('ACU');
     let ensayo = (hasDyn && hasAcu) ? 'Combinada' : hasDyn ? 'Combinada' : 'Nivel';
     const estado = info.state ? (info.state.toUpperCase().includes('STATIC') ? 'Estatico' : 'Dinamico') : 'Dinamico';
+
+    const modelParts = [cfg.surface_unit_manufacturer, cfg.surface_unit_model].filter(Boolean);
+    const modeloStr = modelParts.join(' ') || '';
 
     gridRows.push({
       well_id: wid,
@@ -1350,7 +1368,7 @@ async function loadCampaign(fecha){
       fecha: fecha,
       bateria: w.bateria || '',
       operadora: w.operadora || '',
-      sistema: w.sistema || 'AIB',
+      sistema: w.bit_sistema || 'AIB',
       estado: estado,
       ensayo: ensayo,
       nivel_m: vis ? nn(vis.nivel_medido_m) : '',
@@ -1358,17 +1376,17 @@ async function loadCampaign(fecha){
       cancel_motivo: vis ? (vis.cancel_motivo || '') : '',
       carrera_in: vis ? nn(vis.carrera_in) : nn(cfg.stroke_length_in),
       hz: vis ? nn(vis.hz) : '',
-      pip_kg: vis ? nn(vis.pip_kg) : '',
+      pip_kg: vis ? nn(vis.pip_kg) : (dyn ? nn(dyn.pip_dyn_kg) : ''),
       rpm: vis ? nn(vis.rpm_bes) : '',
       torque: vis ? nn(vis.torque_inlb) : '',
-      presion_tbg: vis ? nn(vis.presion_tubing_kg) : '',
-      presion_csg: vis ? nn(vis.presion_casing_kg) : '',
-      modelo: cfg.surface_unit_model || cfg.surface_unit_manufacturer || '',
-      motor_marca: cfg.motor_mfg_comment || '',
-      motor_rpm: nn(cfg.rated_rpm, ''),
-      motor_hp: nn(cfg.motor_rating_hp, ''),
+      presion_tbg: vis ? nn(vis.presion_tubing_kg) : (dyn ? nn(dyn.dyn_tubing_pressure_kg) : ''),
+      presion_csg: vis ? nn(vis.presion_casing_kg) : (dyn ? nn(dyn.dyn_casing_pressure_kg) : ''),
+      modelo: modeloStr,
+      motor_marca: w.motor_marca || cfg.motor_mfg_comment || '',
+      motor_rpm: nn(w.motor_rpm || cfg.rated_rpm, ''),
+      motor_hp: nn(w.motor_hp || cfg.motor_rating_hp, ''),
       motor_polea: vis ? nn(vis.motor_polea, '') : '',
-      contrapesos: vis ? (vis.contrapesos || {}) : {},
+      contrapesos: vis ? (vis.contrapesos || w.contrapesos || {}) : (w.contrapesos || {}),
       observaciones: vis ? (vis.observaciones || '') : '',
       ...parseObsText(vis ? vis.observaciones : ''),
       visita_id: vis ? vis.visita_id : null,
